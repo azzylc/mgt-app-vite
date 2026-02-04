@@ -42,20 +42,20 @@ function SidebarContent({ user }: SidebarProps) {
   }, [pathname]);
 
 
-  // Kullanıcı gruplarını Firebase'den çek
+  // Kullanıcı bilgilerini Firebase'den çek (document ID = email)
   useEffect(() => {
     if (!user?.email) return;
     
-    const q = query(
-      collection(db, "personnel"),
-      where("email", "==", user.email)
-    );
-    
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      if (!snapshot.empty) {
-        const data = snapshot.docs[0].data();
+    // Query yerine direkt document ID ile al
+    const docRef = doc(db, "personnel", user.email);
+    const unsubscribe = onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
         setKullaniciGruplar(data.grupEtiketleri || []);
         setPersonelData(data);
+        console.log("✅ [SIDEBAR] Personnel data yüklendi:", data);
+      } else {
+        console.error("❌ [SIDEBAR] Personnel document bulunamadı:", user.email);
       }
     });
     
@@ -144,12 +144,6 @@ function SidebarContent({ user }: SidebarProps) {
         ],
       },
       {
-        id: "gelinler",
-        label: "Gelinler",
-        icon: "👰",
-        path: "/gelinler",
-      },
-      {
         id: "raporlar",
         label: "Raporlar",
         icon: "📈",
@@ -162,12 +156,6 @@ function SidebarContent({ user }: SidebarProps) {
           { label: "Haftalık", type: "header" },
           { label: "Toplam Çalışma Süreleri", path: "/raporlar/haftalik-calisma-sureleri" },
         ],
-      },
-      {
-        id: "yonetici-dashboard",
-        label: "Yönetim Paneli",
-        icon: "👑",
-        path: "/yonetim",
       },
       {
         id: "ayarlar",
