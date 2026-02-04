@@ -29,17 +29,16 @@ export default function PersonelGorevleri({ personelId }: { personelId: string }
     const q = query(
       collection(db, "gorevler"),
       where("atanan", "==", personelId),
-      where("durum", "!=", "tamamlandi"),
-      orderBy("durum"),
-      orderBy("oncelik"),
       orderBy("olusturulmaTarihi", "desc")
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data: Gorev[] = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as Gorev));
+      const data: Gorev[] = snapshot.docs
+        .map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        } as Gorev))
+        .filter(gorev => gorev.durum !== "tamamlandi"); // Client-side filter
       
       setGorevler(data);
       setLoading(false);

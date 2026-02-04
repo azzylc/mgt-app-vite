@@ -675,7 +675,9 @@ function PersonelPageContent() {
                             {personel.foto ? (
                               <img src={personel.foto} alt={personel.ad} className="w-10 h-10 rounded-full object-cover" />
                             ) : (
-                              <span className="text-rose-600 font-semibold">{personel.ad[0]}{personel.soyad[0]}</span>
+                              <span className="text-rose-600 font-semibold">
+                                {personel.ad?.[0] || '?'}{personel.soyad?.[0] || '?'}
+                              </span>
                             )}
                           </div>
                         </td>
@@ -715,13 +717,17 @@ function PersonelPageContent() {
                         <td className="px-6 py-4 text-sm text-stone-600">{personel.telefon}</td>
                         <td className="px-6 py-4">
                           <div className="flex flex-wrap gap-1">
-                            {personel.grupEtiketleri.map(g => {
-                              const grupData = grupEtiketleri.find(ge => ge.grupAdi === g);
-                              const stiller = getRenkStilleri(grupData?.renk || 'gray');
-                              return (
-                                <span key={g} className={`px-2 py-1 text-xs ${stiller.bg} text-white rounded-full`}>{g}</span>
-                              );
-                            })}
+                            {personel.grupEtiketleri && personel.grupEtiketleri.length > 0 ? (
+                              personel.grupEtiketleri.map(g => {
+                                const grupData = grupEtiketleri.find(ge => ge.grupAdi === g);
+                                const stiller = getRenkStilleri(grupData?.renk || 'gray');
+                                return (
+                                  <span key={g} className={`px-2 py-1 text-xs ${stiller.bg} text-white rounded-full`}>{g}</span>
+                                );
+                              })
+                            ) : (
+                              <span className="text-xs text-stone-400">-</span>
+                            )}
                           </div>
                         </td>
                         <td className="px-6 py-4">
@@ -1141,20 +1147,26 @@ function PersonelPageContent() {
                   {selectedPersonel.foto ? (
                     <img src={selectedPersonel.foto} alt={selectedPersonel.ad} className="w-20 h-20 rounded-full object-cover" />
                   ) : (
-                    <span className="text-rose-600 font-bold text-2xl">{selectedPersonel.ad[0]}{selectedPersonel.soyad[0]}</span>
+                    <span className="text-rose-600 font-bold text-2xl">
+                      {selectedPersonel.ad?.[0] || '?'}{selectedPersonel.soyad?.[0] || '?'}
+                    </span>
                   )}
                 </div>
                 <div className="flex-1">
                   <h4 className="text-xl font-bold text-stone-800">{selectedPersonel.ad} {selectedPersonel.soyad}</h4>
                   <p className="text-sm text-stone-500">{selectedPersonel.kullaniciTuru}</p>
                   <div className="flex gap-2 mt-2">
-                    {selectedPersonel.grupEtiketleri.map(g => {
-                      const grupData = grupEtiketleri.find(ge => ge.grupAdi === g);
-                      const stiller = getRenkStilleri(grupData?.renk || 'gray');
-                      return (
+                    {selectedPersonel.grupEtiketleri && selectedPersonel.grupEtiketleri.length > 0 ? (
+                      selectedPersonel.grupEtiketleri.map(g => {
+                        const grupData = grupEtiketleri.find(ge => ge.grupAdi === g);
+                        const stiller = getRenkStilleri(grupData?.renk || 'gray');
+                        return (
                         <span key={g} className={`px-2 py-1 text-xs ${stiller.bg} text-white rounded-full`}>{g}</span>
                       );
-                    })}
+                    })
+                    ) : (
+                      <span className="text-xs text-stone-400">Grup etiketi yok</span>
+                    )}
                   </div>
                 </div>
                 <span className={`px-4 py-2 rounded-lg text-sm font-medium ${selectedPersonel.aktif ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
