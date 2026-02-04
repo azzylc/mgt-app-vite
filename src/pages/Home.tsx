@@ -161,6 +161,8 @@ export default function Home() {
       if (gunGelinleri.length <= sakinGunFiltre) {
         gunler.push({ tarih: tarihStr, gelinSayisi: gunGelinleri.length });
       }
+      // İlk 10 sakin günü bul
+      if (gunler.length >= 10) break;
     }
     return gunler;
   }, [gelinler, sakinGunFiltre]);
