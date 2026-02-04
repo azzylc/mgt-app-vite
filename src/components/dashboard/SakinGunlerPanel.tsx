@@ -24,7 +24,7 @@ export default function SakinGunlerPanel({
     <div className="bg-white rounded-lg border border-stone-100 overflow-hidden">
       <div className="px-3 py-2 border-b border-stone-50 flex items-center justify-between">
         <h2 className="font-medium text-stone-800 flex items-center gap-1.5 text-xs">
-          <span>📭</span> Önümüzdeki Sakin Günler
+          <span>🔭</span> Önümüzdeki Sakin Günler
           <span className="bg-rose-50 text-rose-500 text-[10px] px-1.5 py-0.5 rounded-full">
             {sakinGunler.length}
           </span>

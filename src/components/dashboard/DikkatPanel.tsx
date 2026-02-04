@@ -8,21 +8,6 @@ interface Gelin {
   kalan: number;
   makyaj: string;
   turban: string;
-  kinaGunu?: string;
-  telefon?: string;
-  esiTelefon?: string;
-  instagram?: string;
-  fotografci?: string;
-  modaevi?: string;
-  anlasildigiTarih?: string;
-  bilgilendirmeGonderildi?: boolean;
-  ucretYazildi?: boolean;
-  malzemeListesiGonderildi?: boolean;
-  paylasimIzni?: boolean;
-  yorumIstesinMi?: string;
-  yorumIstendiMi?: boolean;
-  gelinNotu?: string;
-  dekontGorseli?: string;
 }
 
 interface EksikIzin {
@@ -30,9 +15,6 @@ interface EksikIzin {
     id: string;
     ad: string;
     soyad: string;
-    iseBaslama?: string;
-    yillikIzinHakki?: number;
-    kullaniciTuru?: string;
     aktif: boolean;
   };
   calismaYili: number;
@@ -79,7 +61,6 @@ export default function DikkatPanel({
       </div>
       <div className="p-2.5">
         <div className="space-y-2">
-          {/* İşlenmemiş Ücretler */}
           {islenmemisUcretler.length > 0 && (
             <div className="bg-amber-50/80 border border-amber-100 rounded-lg p-2.5">
               <div className="flex items-center justify-between mb-2">
@@ -117,7 +98,6 @@ export default function DikkatPanel({
             </div>
           )}
 
-          {/* Eksik İzin Hakları */}
           {eksikIzinler.length > 0 && (
             <div className="bg-emerald-50/80 border border-emerald-100 rounded-lg p-2.5">
               <div className="flex items-center justify-between mb-2">

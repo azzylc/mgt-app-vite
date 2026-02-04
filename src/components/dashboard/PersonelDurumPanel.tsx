@@ -34,7 +34,6 @@ export default function PersonelDurumPanel({
 }: PersonelDurumPanelProps) {
   return (
     <div className="space-y-3">
-      {/* Şu An Çalışanlar */}
       <div className="bg-white rounded-lg border border-stone-100 overflow-hidden">
         <div className="px-3 py-2 border-b border-stone-50">
           <h2 className="font-medium text-stone-800 flex items-center gap-1.5 text-xs">
@@ -68,7 +67,6 @@ export default function PersonelDurumPanel({
         </div>
       </div>
 
-      {/* Bugün Gelenler */}
       <div className="bg-white rounded-lg border border-stone-100 overflow-hidden">
         <div className="px-3 py-2 border-b border-stone-50">
           <h2 className="font-medium text-stone-800 flex items-center gap-1.5 text-xs">
@@ -102,7 +100,6 @@ export default function PersonelDurumPanel({
             </div>
           )}
           
-          {/* İzinli Olanlar */}
           {izinliler.length > 0 && (
             <div className="mt-2 pt-2 border-t border-stone-100">
               <p className="text-[10px] text-stone-500 mb-1.5">İzinli ({izinliler.length})</p>
