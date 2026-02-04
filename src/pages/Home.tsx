@@ -21,7 +21,6 @@ import PersonelDurumPanel from "../components/dashboard/PersonelDurumPanel";
 import DikkatPanel from "../components/dashboard/DikkatPanel";
 import SakinGunlerPanel from "../components/dashboard/SakinGunlerPanel";
 import { usePersoneller } from "../hooks/usePersoneller";
-import { getYaklasanDogumGunleri, getYaklasanTatiller } from "../lib/data";
 
 // Interfaces
 interface Gelin {
@@ -42,12 +41,12 @@ interface Gelin {
 
 interface Duyuru {
   id: string;
-  title: string;
-  content: string;
-  important: boolean;
+  title: string;       // İngilizce field!
+  content: string;     // İngilizce field!
+  important: boolean;  // İngilizce field!
   group: string;
   author: string;
-  createdAt: any;
+  createdAt: any;      // İngilizce field!
 }
 
 interface PersonelGunlukDurum {
@@ -74,7 +73,7 @@ interface SakinGun {
 // Cache keys
 const CACHE_KEY = "gmt_gelinler_cache";
 const CACHE_TIME_KEY = "gmt_gelinler_cache_time";
-const CACHE_DURATION = 30 * 60 * 1000; // 30 dakika
+const CACHE_DURATION = 30 * 60 * 1000;
 
 export default function Home() {
   const [user, setUser] = useState<any>(null);
@@ -222,11 +221,11 @@ export default function Home() {
     return () => unsubscribe();
   }, [navigate]);
 
-  // Duyurular
+  // Duyurular (announcements collection - İngilizce field'lar!)
   useEffect(() => {
     if (!user) return;
     const q = query(
-      collection(db, "duyurular"),
+      collection(db, "announcements"),
       orderBy("createdAt", "desc"),
       limit(5)
     );
@@ -272,7 +271,7 @@ export default function Home() {
     return () => unsubscribe();
   }, [user]);
 
-  // Attendance (Şu an çalışanlar)
+  // Attendance
   useEffect(() => {
     if (!user) return;
     const bugunBasi = `${bugun}T00:00:00.000Z`;
@@ -293,7 +292,6 @@ export default function Home() {
 
       setBugunAttendance(records);
 
-      // Personel durumlarını hesapla
       const personelMap = new Map<string, PersonelGunlukDurum>();
 
       records.forEach((r: any) => {
@@ -336,7 +334,7 @@ export default function Home() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Body overflow (modal açıkken)
+  // Body overflow
   useEffect(() => {
     const isAnyModalOpen = selectedGelin !== null || gelinListeModal.open || selectedDuyuru !== null || showMobileSearch;
     document.body.style.overflow = isAnyModalOpen ? 'hidden' : '';
@@ -458,7 +456,6 @@ export default function Home() {
             )}
           </div>
 
-          {/* Mobile Search Button */}
           <button 
             onClick={() => setShowMobileSearch(true)}
             className="md:hidden w-8 h-8 bg-stone-100 rounded-lg flex items-center justify-center text-stone-500 hover:bg-stone-200 transition text-sm"
@@ -572,7 +569,6 @@ export default function Home() {
 
           {/* Alt Paneller */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-            {/* Sol: Personel Durumu */}
             <div>
               <PersonelDurumPanel
                 aktifPersoneller={suAnCalisanlar}
@@ -582,7 +578,6 @@ export default function Home() {
               />
             </div>
 
-            {/* Orta: Bugün Gelinler */}
             <div>
               <GelinListPanel
                 title={gelinGunSecim === 'bugun' ? "Bugün" : "Yarın"}
@@ -594,7 +589,6 @@ export default function Home() {
               />
             </div>
 
-            {/* Sağ: Sakin Günler */}
             <div>
               <SakinGunlerPanel
                 sakinGunler={sakinGunler}
@@ -606,12 +600,10 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Modals */}
       {selectedGelin && (
         <GelinModal gelin={selectedGelin} onClose={() => setSelectedGelin(null)} />
       )}
 
-      {/* Gelin Liste Modal */}
       {gelinListeModal.open && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setGelinListeModal({ open: false, title: "", gelinler: [] })}>
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
@@ -647,7 +639,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* Duyuru Modal */}
       {selectedDuyuru && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedDuyuru(null)}>
           <div className="bg-white rounded-lg shadow-xl max-w-lg w-full" onClick={e => e.stopPropagation()}>
@@ -665,7 +656,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* Mobile Search Modal */}
       {showMobileSearch && (
         <div className="fixed inset-0 bg-white z-50 md:hidden">
           <div className="p-4">
