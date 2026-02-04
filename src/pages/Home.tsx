@@ -5,7 +5,6 @@ import { getUserInfo } from "../lib/firebase-rest-auth";
 
 import { collection, query, onSnapshot, addDoc, doc, updateDoc, increment, orderBy, limit, where, Timestamp, getDocs } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
 import GelinModal from "../components/GelinModal";
 import { usePersoneller, getPersonelByIsim } from "../hooks/usePersoneller";
 import { getYaklasanDogumGunleri, getYaklasanTatiller } from "../lib/data";
@@ -112,7 +111,6 @@ export default function HomePage() {
   const [dataLoading, setDataLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<string>("");
   const [selectedGelin, setSelectedGelin] = useState<Gelin | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [haftaModalOpen, setHaftaModalOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -677,8 +675,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Sidebar user={user} />
-      <div className="md:ml-56 pb-20 md:pb-0">
+      <div className="pb-20 md:pb-0">
         <header className="bg-white border-b border-stone-100 px-4 md:px-5 py-2.5 md:py-3 sticky top-0 z-40">
           <div className="flex items-center justify-between gap-3">
             <div className="flex-shrink-0">
