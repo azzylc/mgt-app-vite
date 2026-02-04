@@ -3,6 +3,7 @@ import { Navigate, Outlet } from 'react-router-dom'
 import { onAuthStateChanged } from 'firebase/auth'
 import type { User } from 'firebase/auth'
 import { auth } from '../lib/firebase'
+import Sidebar from '../components/Sidebar'
 
 export default function AuthLayout() {
   const [user, setUser] = useState<User | null>(null)
@@ -44,5 +45,13 @@ export default function AuthLayout() {
   }
 
   console.log('✅ [AUTH] User authenticated, rendering page')
-  return <Outlet />
+  
+  return (
+    <>
+      <Sidebar user={user} />
+      <div className="md:ml-56">
+        <Outlet />
+      </div>
+    </>
+  )
 }

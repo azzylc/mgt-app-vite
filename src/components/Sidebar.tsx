@@ -1,3 +1,5 @@
+console.log("🚨🚨🚨 SIDEBAR DOSYASI YÜKLENDI!");
+
 import { useState, useEffect, Suspense, createContext, useContext } from "react";
 import { useRole } from "../context/RoleProvider";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
