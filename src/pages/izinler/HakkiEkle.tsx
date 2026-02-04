@@ -16,7 +16,7 @@ interface Personel {
 
 function IzinHakkiEkleContent() {
   const navigate = useNavigate();
-  const searchParams = useSearchParams();
+  const [searchParams] = useSearchParams();
   const preSelectedPersonel = searchParams.get("personel") || "";
 
   const [user, setUser] = useState<any>(null);

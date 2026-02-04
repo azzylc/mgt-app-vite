@@ -88,7 +88,7 @@ function PersonelPageContent() {
   const [activeTab, setActiveTab] = useState(0);
   const [fotoPreview, setFotoPreview] = useState("");
   const navigate = useNavigate();
-  const searchParams = useSearchParams();
+  const [searchParams] = useSearchParams();
   const grupFilter = searchParams.get("grup") || "";
   const ayrilanlarFilter = searchParams.get("ayrilanlar") === "true";
 

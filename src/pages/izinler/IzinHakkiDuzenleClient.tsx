@@ -7,7 +7,7 @@ import Sidebar from "../../components/Sidebar";
 
 export default function IzinHakkiDuzenleClient() {
   const navigate = useNavigate();
-  const searchParams = useSearchParams();
+  const [searchParams] = useSearchParams();
   const kayitId = searchParams.get('id');
 
   const [user, setUser] = useState<any>(null);
@@ -73,7 +73,7 @@ export default function IzinHakkiDuzenleClient() {
     };
 
     fetchKayit();
-  }, [user, kayitId, router]);
+  }, [user, kayitId]);
 
   const handleSave = async () => {
     if (!kayitId) {

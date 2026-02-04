@@ -5,7 +5,7 @@ import { auth } from "../lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 
 interface RolYetkileri {
-  [key: string]: boolean;
+  [key: string]: string[];
 }
 
 interface RoleContextType {
