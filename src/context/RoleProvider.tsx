@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { auth } from "../lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
@@ -43,20 +43,27 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
 
       setLoading(true);
       try {
-        // 1. Kullanıcının rolünü al (personnel document'inden)
-        const personelSnap = await getDoc(doc(db, "personnel", user.email));
-        if (personelSnap.exists() === false) {
+        // 1. Email ile query yap (document ID değil!)
+        const q = query(
+          collection(db, "personnel"),
+          where("email", "==", user.email)
+        );
+        const snapshot = await getDocs(q);
+        
+        if (snapshot.empty) {
           throw new Error("personel bulunamadı");
         }
 
-        const kullaniciTuru = personelSnap.data().kullaniciTuru;
+        const personelDoc = snapshot.docs[0];
+        const kullaniciTuru = personelDoc.data().kullaniciTuru;
+        
         if (kullaniciTuru === undefined || kullaniciTuru === null) {
           throw new Error("kullaniciTuru yok");
         }
 
         console.log("✅ [ROLE] Kullanıcı türü:", kullaniciTuru);
 
-        // 2. Rol yetkilerini al (settings/permissions document'inden)
+        // 2. Rol yetkilerini al
         const permissionsSnap = await getDoc(doc(db, "settings", "permissions"));
         
         let menuItems: string[] = [];
@@ -66,15 +73,13 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
           menuItems = permissions[kullaniciTuru] || [];
           console.log("✅ [ROLE] Firestore'dan yetkiler:", menuItems);
         } else {
-          // Fallback: Firestore'da yoksa default yetkiler
-          console.log("⚠️ [ROLE] settings/permissions bulunamadı, default yetkiler kullanılıyor");
+          console.log("⚠️ [ROLE] settings/permissions bulunamadı, default yetkiler");
           const defaultPermissions: RolYetkileri = {
             "Kurucu": ["personel", "takvim", "izinler", "gorevler", "girisCikis", "raporlar", "ayarlar", "yonetim-paneli"],
             "Yönetici": ["personel", "takvim", "izinler", "gorevler", "girisCikis", "raporlar"],
             "Personel": ["takvim", "izinler", "gorevler", "girisCikis"]
           };
           menuItems = defaultPermissions[kullaniciTuru] || [];
-          console.log("✅ [ROLE] Default yetkiler:", menuItems);
         }
         
         if (cancelled === false) {
