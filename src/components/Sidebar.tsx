@@ -164,6 +164,12 @@ function SidebarContent({ user }: SidebarProps) {
         ],
       },
       {
+        id: "yonetim-paneli",
+        label: "Yönetim Paneli",
+        icon: "👑",
+        path: "/yonetim",
+      },
+      {
         id: "ayarlar",
         label: "Ayarlar",
         icon: "⚙️",
