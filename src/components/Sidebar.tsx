@@ -44,20 +44,24 @@ function SidebarContent({ user }: SidebarProps) {
   }, [pathname]);
 
 
-  // Kullanıcı bilgilerini Firebase'den çek (document ID = email)
+  // Kullanıcı bilgilerini Firebase'den çek (EMAIL FIELD'INDAN!)
   useEffect(() => {
     if (!user?.email) return;
     
-    // Query yerine direkt document ID ile al
-    const docRef = doc(db, "personnel", user.email);
-    const unsubscribe = onSnapshot(docRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
+    // WHERE QUERY ile email field'ından ara
+    const q = query(
+      collection(db, "personnel"),
+      where("email", "==", user.email)
+    );
+    
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      if (!snapshot.empty) {
+        const data = snapshot.docs[0].data();
         setKullaniciGruplar(data.grupEtiketleri || []);
         setPersonelData(data);
         console.log("✅ [SIDEBAR] Personnel data yüklendi:", data);
       } else {
-        console.error("❌ [SIDEBAR] Personnel document bulunamadı:", user.email);
+        console.error("❌ [SIDEBAR] Personnel bulunamadı:", user.email);
       }
     });
     
@@ -158,12 +162,6 @@ function SidebarContent({ user }: SidebarProps) {
           { label: "Haftalık", type: "header" },
           { label: "Toplam Çalışma Süreleri", path: "/raporlar/haftalik-calisma-sureleri" },
         ],
-      },
-      {
-        id: "yonetim-paneli",
-        label: "Yönetim Paneli",
-        icon: "👑",
-        path: "/yonetim",
       },
       {
         id: "ayarlar",

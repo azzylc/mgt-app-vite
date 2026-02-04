@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, query, where, collection, getDocs } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { auth } from "../lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
@@ -43,19 +43,19 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
 
       setLoading(true);
       try {
-        // 1. Email ile query yap (document ID değil!)
-        const q = query(
+        // 1. Kullanıcının rolünü al (EMAIL FIELD'INDAN QUERY ile)
+        const personelQuery = query(
           collection(db, "personnel"),
           where("email", "==", user.email)
         );
-        const snapshot = await getDocs(q);
+        const personelSnapshot = await getDocs(personelQuery);
         
-        if (snapshot.empty) {
+        if (personelSnapshot.empty) {
           throw new Error("personel bulunamadı");
         }
 
-        const personelDoc = snapshot.docs[0];
-        const kullaniciTuru = personelDoc.data().kullaniciTuru;
+        const personelData = personelSnapshot.docs[0].data();
+        const kullaniciTuru = personelData.kullaniciTuru;
         
         if (kullaniciTuru === undefined || kullaniciTuru === null) {
           throw new Error("kullaniciTuru yok");
@@ -63,7 +63,7 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
 
         console.log("✅ [ROLE] Kullanıcı türü:", kullaniciTuru);
 
-        // 2. Rol yetkilerini al
+        // 2. Rol yetkilerini al (settings/permissions document'inden)
         const permissionsSnap = await getDoc(doc(db, "settings", "permissions"));
         
         let menuItems: string[] = [];
@@ -73,13 +73,15 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
           menuItems = permissions[kullaniciTuru] || [];
           console.log("✅ [ROLE] Firestore'dan yetkiler:", menuItems);
         } else {
-          console.log("⚠️ [ROLE] settings/permissions bulunamadı, default yetkiler");
+          // Fallback: Firestore'da yoksa default yetkiler
+          console.log("⚠️ [ROLE] settings/permissions bulunamadı, default yetkiler kullanılıyor");
           const defaultPermissions: RolYetkileri = {
-            "Kurucu": ["personel", "takvim", "izinler", "gorevler", "girisCikis", "raporlar", "ayarlar", "yonetim-paneli"],
-            "Yönetici": ["personel", "takvim", "izinler", "gorevler", "girisCikis", "raporlar"],
-            "Personel": ["takvim", "izinler", "gorevler", "girisCikis"]
+            "Kurucu": ["genel-bakis", "personel", "takvim", "izinler", "gorevler", "giris-cikis-islemleri", "raporlar", "ayarlar", "yonetim-paneli"],
+            "Yönetici": ["genel-bakis", "personel", "takvim", "izinler", "gorevler", "giris-cikis-islemleri", "raporlar"],
+            "Personel": ["genel-bakis", "takvim", "izinler", "gorevler", "qr-giris"]
           };
           menuItems = defaultPermissions[kullaniciTuru] || [];
+          console.log("✅ [ROLE] Default yetkiler:", menuItems);
         }
         
         if (cancelled === false) {
