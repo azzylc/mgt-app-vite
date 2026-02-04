@@ -549,7 +549,7 @@ export default function GorevlerPage() {
   return (
     <div className="min-h-screen bg-stone-50 flex">
       <Sidebar user={user} />
-      <div className="flex-1 md:ml-56">
+      <div className="flex-1">
         <header className="bg-white shadow-sm sticky top-0 z-10 border-b border-stone-200">
           <div className="px-4 md:px-6 py-3 flex items-center justify-between">
             <h1 className="text-lg md:text-xl font-bold text-stone-800">✅ Görevler</h1>

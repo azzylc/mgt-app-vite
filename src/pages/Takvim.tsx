@@ -251,7 +251,7 @@ export default function TakvimPage() {
     <div className="min-h-screen bg-neutral-warm">
       <Sidebar user={user} />
       
-      <div className="md:ml-56 pb-20 md:pb-0">
+      <div className="pb-20 md:pb-0">
         <header className="page-header">
           <div className="flex items-center justify-between gap-3">
             <div className="flex-shrink-0">
