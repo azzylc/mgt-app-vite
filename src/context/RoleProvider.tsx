@@ -76,9 +76,9 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
           // Fallback: Firestore'da yoksa default yetkiler
           console.log("⚠️ [ROLE] settings/permissions bulunamadı, default yetkiler kullanılıyor");
           const defaultPermissions: RolYetkileri = {
-            "Kurucu": ["genel-bakis", "personel", "takvim", "izinler", "gorevler", "giris-cikis-islemleri", "raporlar", "ayarlar", "yonetim-paneli"],
-            "Yönetici": ["genel-bakis", "personel", "takvim", "izinler", "gorevler", "giris-cikis-islemleri", "raporlar"],
-            "Personel": ["genel-bakis", "takvim", "izinler", "gorevler", "qr-giris"]
+            "Kurucu": ["genel-bakis", "giris-cikis-islemleri", "duyurular", "gorevler", "takvim", "personel", "izinler", "raporlar", "ayarlar", "yonetim-paneli"],
+            "Yönetici": ["genel-bakis", "giris-cikis-islemleri", "duyurular", "gorevler", "takvim", "personel", "izinler", "raporlar", "ayarlar"],
+            "Personel": ["genel-bakis", "qr-giris", "duyurular", "gorevler", "takvim", "izinler"]
           };
           menuItems = defaultPermissions[kullaniciTuru] || [];
           console.log("✅ [ROLE] Default yetkiler:", menuItems);
