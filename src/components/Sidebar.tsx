@@ -144,6 +144,12 @@ function SidebarContent({ user }: SidebarProps) {
         ],
       },
       {
+        id: "gelinler",
+        label: "Gelinler",
+        icon: "👰",
+        path: "/gelinler",
+      },
+      {
         id: "raporlar",
         label: "Raporlar",
         icon: "📈",
@@ -158,7 +164,7 @@ function SidebarContent({ user }: SidebarProps) {
         ],
       },
       {
-        id: "yonetim",
+        id: "yonetici-dashboard",
         label: "Yönetim Paneli",
         icon: "👑",
         path: "/yonetim",
@@ -173,19 +179,17 @@ function SidebarContent({ user }: SidebarProps) {
 
     // Kullanıcının rolüne göre filtrele
     return items.filter(item => {
-      // Kurucu tüm menülere erişir (hariç: excludeKurucu olanlar)
-      if (isKurucu) {
-        return !(item as any).excludeKurucu;
+      // Rol yetkilerini kontrol et
+      const kullaniciTuru = personelData?.kullaniciTuru;
+      if (!kullaniciTuru || !rolYetkileri[kullaniciTuru]) return false;
+      
+      // Kurucu için excludeKurucu kontrolü
+      if (isKurucu && (item as any).excludeKurucu) {
+        return false;
       }
-      // Yönetici: Firestore'dan gelen yetkiler
-      if (isYonetici) {
-        return rolYetkileri["Yönetici"]?.includes(item.id) || false;
-      }
-      // Personel: Firestore'dan gelen yetkiler
-      if (isPersonel) {
-        return rolYetkileri["Personel"]?.includes(item.id) || false;
-      }
-      return false;
+      
+      // Kullanıcının rolü için yetki kontrolü
+      return rolYetkileri[kullaniciTuru]?.includes(item.id) || false;
     });
   };
 
