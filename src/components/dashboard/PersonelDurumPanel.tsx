@@ -16,7 +16,13 @@ interface Personel {
 interface IzinKaydi {
   id: string;
   personelAd: string;
+  personelSoyad: string;
+  personelId: string;
   izinTuru: string;
+  baslangic: string;
+  bitis: string;
+  durum: string;
+  gunSayisi: number;
 }
 
 interface PersonelDurumPanelProps {
@@ -106,7 +112,7 @@ export default function PersonelDurumPanel({
               <div className="space-y-1">
                 {izinliler.map((izin) => (
                   <div key={izin.id} className="flex items-center justify-between p-1.5 bg-amber-50 rounded-md border border-amber-100">
-                    <span className="text-xs font-medium text-amber-800">{izin.personelAd}</span>
+                    <span className="text-xs font-medium text-amber-800">{izin.personelAd} {izin.personelSoyad}</span>
                     <span className="text-[10px] text-amber-600">{izin.izinTuru}</span>
                   </div>
                 ))}

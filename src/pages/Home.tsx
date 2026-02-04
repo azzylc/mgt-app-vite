@@ -65,6 +65,18 @@ interface EksikIzin {
   eksik: number;
 }
 
+interface IzinKaydi {
+  id: string;
+  personelAd: string;
+  personelSoyad: string;
+  personelId: string;
+  izinTuru: string;
+  baslangic: string;
+  bitis: string;
+  durum: string;
+  gunSayisi: number;
+}
+
 interface SakinGun {
   tarih: string;
   gelinSayisi: number;
@@ -107,6 +119,7 @@ export default function Home() {
   const [izinEkleniyor, setIzinEkleniyor] = useState<string | null>(null);
   const [bugunAttendance, setBugunAttendance] = useState<any[]>([]);
   const [personelDurumlar, setPersonelDurumlar] = useState<PersonelGunlukDurum[]>([]);
+  const [bugunIzinliler, setBugunIzinliler] = useState<IzinKaydi[]>([]);
 
   const bugun = new Date().toISOString().split("T")[0];
   const bugunDate = new Date();
@@ -320,6 +333,32 @@ export default function Home() {
       });
 
       setPersonelDurumlar(Array.from(personelMap.values()));
+    });
+
+    return () => unsubscribe();
+  }, [user, bugun]);
+
+  // İzinler - Bugün izinli olanlar
+  useEffect(() => {
+    if (!user) return;
+    
+    const q = query(
+      collection(db, "izinler"),
+      where("durum", "==", "Onaylandı")
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const izinler = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as IzinKaydi[];
+
+      // Bugün izinli olanları filtrele
+      const bugunIzinli = izinler.filter(izin => {
+        return izin.baslangic <= bugun && izin.bitis >= bugun;
+      });
+
+      setBugunIzinliler(bugunIzinli);
     });
 
     return () => unsubscribe();
@@ -575,7 +614,7 @@ export default function Home() {
               <PersonelDurumPanel
                 aktifPersoneller={suAnCalisanlar}
                 bugunGelenler={personelDurumlar}
-                izinliler={[]}
+                izinliler={bugunIzinliler}
                 tumPersoneller={personeller}
               />
             </div>
