@@ -19,8 +19,8 @@ interface IzinKaydi {
   personelSoyad: string;
   personelId: string;
   izinTuru: string;
-  baslangicTarihi: string;
-  bitisTarihi: string;
+  baslangic: string;
+  bitis: string;
   durum: string;
   gunSayisi: number;
 }
