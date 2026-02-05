@@ -5,7 +5,7 @@ import { useRole } from "../context/RoleProvider";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth, db } from "../lib/firebase";
-import { onSnapshot, doc } from "firebase/firestore";
+import { onSnapshot, doc, collection, query, where, getDocs } from "firebase/firestore";
 
 // Sidebar Context - mobilde açık/kapalı durumu için
 const SidebarContext = createContext<{
@@ -44,20 +44,23 @@ function SidebarContent({ user }: SidebarProps) {
   }, [pathname]);
 
 
-  // Kullanıcı bilgilerini Firebase'den çek (DOC ID = EMAIL!)
+  // Kullanıcı bilgilerini Firebase'den çek (EMAIL FIELD ile QUERY!)
   useEffect(() => {
     if (!user?.email) return;
     
-    console.log("🔍 [SIDEBAR] Personnel aranıyor (doc ID):", user.email);
+    console.log("🔍 [SIDEBAR] Personnel aranıyor (email query):", user.email);
     
-    // ⭐ DOC ID ile oku - where query DEĞİL!
-    const docRef = doc(db, "personnel", user.email);
+    // ⭐ Email FIELD ile query - doc ID rastgele olduğu için
+    const q = query(
+      collection(db, "personnel"),
+      where("email", "==", user.email)
+    );
     
     const unsubscribe = onSnapshot(
-      docRef, 
-      (docSnap) => {
-        if (docSnap.exists()) {
-          const data = docSnap.data();
+      q, 
+      (snapshot) => {
+        if (!snapshot.empty) {
+          const data = snapshot.docs[0].data();
           setKullaniciGruplar(data.grupEtiketleri || []);
           setPersonelData(data);
           console.log("✅ [SIDEBAR] Personnel data yüklendi:", data);
