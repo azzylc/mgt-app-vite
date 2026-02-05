@@ -14,8 +14,8 @@ export default function Login() {
     setError('');
 
     try {
-      console.log('🔥 [LOGIN] Attempting login...');
-      await signInWithEmailAndPassword(auth, email, password);
+      console.log('🔥 [LOGIN] Attempting login...', email.trim());
+      await signInWithEmailAndPassword(auth, email.trim(), password);
       console.log('✅ [LOGIN] Success!');
       navigate('/');
     } catch (err: any) {
@@ -54,7 +54,11 @@ export default function Login() {
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value.trim())}
+              autoCapitalize="none"
+              autoCorrect="off"
+              autoComplete="email"
+              spellCheck={false}
               className="w-full px-4 py-3 bg-stone-700 border border-stone-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
               placeholder="ornek@email.com"
               required

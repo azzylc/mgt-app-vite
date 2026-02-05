@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp, setLogLevel } from "firebase/app";
-import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
+import { getAuth, initializeAuth, indexedDBLocalPersistence, browserLocalPersistence } from "firebase/auth";
 import { initializeFirestore, memoryLocalCache } from "firebase/firestore";
+import { Capacitor } from "@capacitor/core";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -35,7 +36,19 @@ export const db = globalThis.__firebase_db__ ??
     localCache: memoryLocalCache()  // Disk yok, sadece RAM!
   }));
 
-export const auth = globalThis.__firebase_auth__ ?? 
-  (globalThis.__firebase_auth__ = getAuth(app));
+// 🔥 AUTH - Capacitor iOS için initializeAuth + indexedDB
+function getFirebaseAuth() {
+  if (Capacitor.isNativePlatform()) {
+    // iOS/Android: initializeAuth ile indexedDB persistence
+    return initializeAuth(app, {
+      persistence: indexedDBLocalPersistence
+    });
+  } else {
+    // Web: normal getAuth
+    const a = getAuth(app);
+    return a;
+  }
+}
 
-setPersistence(auth, browserLocalPersistence).catch(() => {});
+export const auth = globalThis.__firebase_auth__ ?? 
+  (globalThis.__firebase_auth__ = getFirebaseAuth());
