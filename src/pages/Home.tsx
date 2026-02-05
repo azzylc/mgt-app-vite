@@ -260,15 +260,18 @@ export default function Home() {
 
     loadFromCache();
 
-    const otuzGunOnce = new Date();
-    otuzGunOnce.setDate(otuzGunOnce.getDate() - 30);
-    const doksanGunSonra = new Date();
-    doksanGunSonra.setDate(doksanGunSonra.getDate() + 90);
+    // 🎯 Akıllı Tarih Penceresi: Geçen hafta + Bu hafta + Önümüzdeki 1 ay
+    const onDortGunOnce = new Date();
+    onDortGunOnce.setDate(onDortGunOnce.getDate() - 14);
+    const otuzGunSonra = new Date();
+    otuzGunSonra.setDate(otuzGunSonra.getDate() + 30);
+
+    console.log(`🔥 Dashboard Firestore: ${onDortGunOnce.toISOString().split("T")[0]} → ${otuzGunSonra.toISOString().split("T")[0]}`);
 
     const q = query(
       collection(db, "gelinler"),
-      where("tarih", ">=", otuzGunOnce.toISOString().split("T")[0]),
-      where("tarih", "<=", doksanGunSonra.toISOString().split("T")[0]),
+      where("tarih", ">=", onDortGunOnce.toISOString().split("T")[0]),
+      where("tarih", "<=", otuzGunSonra.toISOString().split("T")[0]),
       orderBy("tarih", "asc")
     );
 
