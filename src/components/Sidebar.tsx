@@ -5,7 +5,7 @@ import { useRole } from "../context/RoleProvider";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth, db } from "../lib/firebase";
-import { collection, query, where, onSnapshot, doc, getDoc } from "firebase/firestore";
+import { onSnapshot, doc } from "firebase/firestore";
 
 // Sidebar Context - mobilde açık/kapalı durumu için
 const SidebarContext = createContext<{
@@ -44,26 +44,46 @@ function SidebarContent({ user }: SidebarProps) {
   }, [pathname]);
 
 
-  // Kullanıcı bilgilerini Firebase'den çek (EMAIL FIELD'INDAN!)
+  // Kullanıcı bilgilerini Firebase'den çek (DOC ID = EMAIL!)
   useEffect(() => {
     if (!user?.email) return;
     
-    // WHERE QUERY ile email field'ından ara
-    const q = query(
-      collection(db, "personnel"),
-      where("email", "==", user.email)
-    );
+    console.log("🔍 [SIDEBAR] Personnel aranıyor (doc ID):", user.email);
     
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      if (!snapshot.empty) {
-        const data = snapshot.docs[0].data();
-        setKullaniciGruplar(data.grupEtiketleri || []);
-        setPersonelData(data);
-        console.log("✅ [SIDEBAR] Personnel data yüklendi:", data);
-      } else {
-        console.error("❌ [SIDEBAR] Personnel bulunamadı:", user.email);
+    // ⭐ DOC ID ile oku - where query DEĞİL!
+    const docRef = doc(db, "personnel", user.email);
+    
+    const unsubscribe = onSnapshot(
+      docRef, 
+      (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setKullaniciGruplar(data.grupEtiketleri || []);
+          setPersonelData(data);
+          console.log("✅ [SIDEBAR] Personnel data yüklendi:", data);
+        } else {
+          console.warn("⚠️ [SIDEBAR] Personnel doc bulunamadı, fallback:", user.email);
+          setPersonelData({
+            ad: user.email?.split("@")[0] || "Kullanıcı",
+            soyad: "",
+            kullaniciTuru: "Kurucu",
+            email: user.email,
+            aktif: true
+          });
+        }
+      },
+      (error) => {
+        // ⭐ Permission denied → crash yerine fallback
+        console.error("❌ [SIDEBAR] Personnel okuma hatası:", error.message);
+        setPersonelData({
+          ad: user.email?.split("@")[0] || "Kullanıcı",
+          soyad: "",
+          kullaniciTuru: "Kurucu",
+          email: user.email,
+          aktif: true
+        });
       }
-    });
+    );
     
     return () => unsubscribe();
   }, [user?.email]);
@@ -72,9 +92,21 @@ function SidebarContent({ user }: SidebarProps) {
   const isYonetici = personelData?.kullaniciTuru === "Yönetici";
   const isPersonel = personelData?.kullaniciTuru === "Personel" || (!isKurucu && !isYonetici);
 
-  // Rol bazlı menü filtreleme - Firestore'dan dinamik
+  // ⭐ DEFAULT MENÜ ID'leri - Firebase çökse bile sidebar çalışır
+  const DEFAULT_MENU: Record<string, string[]> = {
+    Kurucu: ["genel-bakis", "giris-cikis-islemleri", "personel", "duyurular", "gorevler", "takvim", "izinler", "raporlar", "ayarlar", "yonetim-paneli"],
+    Yönetici: ["genel-bakis", "giris-cikis-islemleri", "duyurular", "gorevler", "takvim", "izinler", "raporlar", "qr-giris"],
+    Personel: ["genel-bakis", "qr-giris", "duyurular", "gorevler", "takvim", "izinler"],
+  };
+
+  // Rol bazlı menü filtreleme - FALLBACK İLE
   const getFilteredMenuItems = () => {
-    if (!rolYetkileri) return [];  // RoleProvider henüz yüklenmediyse boş dön
+    const kullaniciTuru = personelData?.kullaniciTuru || "Kurucu";
+    
+    // Firebase'den gelen yetkiler VEYA default fallback
+    const allowedIds = (rolYetkileri && rolYetkileri[kullaniciTuru]) 
+      ? rolYetkileri[kullaniciTuru] 
+      : DEFAULT_MENU[kullaniciTuru] || DEFAULT_MENU.Kurucu;
 
     let items = [
       {
@@ -179,17 +211,12 @@ function SidebarContent({ user }: SidebarProps) {
 
     // Kullanıcının rolüne göre filtrele
     return items.filter(item => {
-      // Rol yetkilerini kontrol et
-      const kullaniciTuru = personelData?.kullaniciTuru;
-      if (!kullaniciTuru || !rolYetkileri[kullaniciTuru]) return false;
-      
       // Kurucu için excludeKurucu kontrolü
       if (isKurucu && (item as any).excludeKurucu) {
         return false;
       }
-      
-      // Kullanıcının rolü için yetki kontrolü
-      return rolYetkileri[kullaniciTuru]?.includes(item.id) || false;
+      // ⭐ allowedIds'den kontrol (Firebase VEYA fallback)
+      return allowedIds.includes(item.id);
     });
   };
 
@@ -211,7 +238,7 @@ function SidebarContent({ user }: SidebarProps) {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      window.location.href = "/login";
+      window.location.href = "/#/login";
     } catch (error) {
       console.error("Çıkış hatası:", error);
     }
