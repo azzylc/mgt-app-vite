@@ -26,6 +26,12 @@ export default function IzinHaklariListele() {
   const [searchTerm, setSearchTerm] = useState("");
   const [personelMap, setPersonelMap] = useState<Record<string, string>>({});
 
+  // Düzenleme modal state
+  const [editKayit, setEditKayit] = useState<IzinHakKaydi | null>(null);
+  const [editGun, setEditGun] = useState<number>(0);
+  const [editAciklama, setEditAciklama] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -98,6 +104,53 @@ export default function IzinHaklariListele() {
     if (!dateStr) return "-";
     const date = new Date(dateStr);
     return date.toLocaleDateString("tr-TR") + " " + date.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
+  };
+
+  // Düzenleme modalını aç
+  const handleEditOpen = (kayit: IzinHakKaydi) => {
+    setEditKayit(kayit);
+    setEditGun(kayit.eklenenGun);
+    setEditAciklama(kayit.aciklama);
+  };
+
+  // Düzenleme kaydet
+  const handleEditSave = async () => {
+    if (!editKayit || !user) return;
+
+    const gunFark = editGun - editKayit.eklenenGun;
+
+    if (editGun <= 0) {
+      alert("Eklenen gün 0'dan büyük olmalıdır.");
+      return;
+    }
+
+    setEditSaving(true);
+
+    try {
+      // izinHakDegisiklikleri kaydını güncelle
+      await updateDoc(doc(db, "izinHakDegisiklikleri", editKayit.id), {
+        eklenenGun: editGun,
+        aciklama: editAciklama,
+        sonDuzenlemeTarihi: new Date().toISOString(),
+        sonDuzenleyenEmail: user.email || "",
+      });
+
+      // Gün farkı varsa personelin toplam izin hakkını da güncelle
+      if (gunFark !== 0 && editKayit.personelId) {
+        const personelRef = doc(db, "personnel", editKayit.personelId);
+        await updateDoc(personelRef, {
+          yillikIzinHakki: increment(gunFark),
+        });
+      }
+
+      alert("Kayıt başarıyla güncellendi." + (gunFark !== 0 ? ` Personelin izin hakkı ${gunFark > 0 ? "+" : ""}${gunFark} gün güncellendi.` : ""));
+      setEditKayit(null);
+    } catch (error) {
+      console.error("Güncelleme hatası:", error);
+      alert("Güncelleme işlemi başarısız oldu.");
+    } finally {
+      setEditSaving(false);
+    }
   };
 
   const handleDelete = async (kayit: IzinHakKaydi) => {
@@ -237,7 +290,7 @@ export default function IzinHaklariListele() {
                       <td className="px-3 py-3">
                         <div className="flex items-center justify-center gap-1">
                           <button
-                            onClick={() => navigate("/izinler/hakki-duzenle/" + kayit.id)}
+                            onClick={() => handleEditOpen(kayit)}
                             className="p-1.5 text-stone-400 hover:text-amber-600 hover:bg-amber-50 rounded transition-colors"
                             title="Düzenle"
                           >
@@ -271,6 +324,101 @@ export default function IzinHaklariListele() {
           )}
         </div>
       </main>
+
+      {/* ========== DÜZENLEME MODAL ========== */}
+      {editKayit && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+          onClick={() => !editSaving && setEditKayit(null)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-md"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-stone-100">
+              <h2 className="text-lg font-bold text-stone-800">İzin Hakkı Düzenle</h2>
+              <button
+                onClick={() => !editSaving && setEditKayit(null)}
+                className="p-1.5 text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-lg transition-colors"
+                disabled={editSaving}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="px-5 py-4 space-y-4">
+              {/* Personel Bilgisi (readonly) */}
+              <div className="bg-stone-50 rounded-lg px-4 py-3">
+                <span className="text-xs text-stone-400 block mb-1">Personel</span>
+                <span className="text-sm font-medium text-stone-800">
+                  {editKayit.personelAd} {editKayit.personelSoyad}
+                </span>
+              </div>
+
+              {/* Mevcut Gün Bilgisi */}
+              <div className="bg-stone-50 rounded-lg px-4 py-3">
+                <span className="text-xs text-stone-400 block mb-1">Mevcut Eklenen Gün</span>
+                <span className="text-sm font-semibold text-green-600">+{editKayit.eklenenGun} gün</span>
+              </div>
+
+              {/* Yeni Gün */}
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">
+                  Yeni Gün Sayısı
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={editGun}
+                  onChange={(e) => setEditGun(Number(e.target.value))}
+                  className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                  disabled={editSaving}
+                />
+                {editGun !== editKayit.eklenenGun && (
+                  <p className="mt-1 text-xs text-amber-600">
+                    Fark: {editGun - editKayit.eklenenGun > 0 ? "+" : ""}{editGun - editKayit.eklenenGun} gün
+                    (personelin toplam izin hakkı da güncellenecek)
+                  </p>
+                )}
+              </div>
+
+              {/* Açıklama */}
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">
+                  Açıklama
+                </label>
+                <textarea
+                  rows={3}
+                  value={editAciklama}
+                  onChange={(e) => setEditAciklama(e.target.value)}
+                  className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 resize-none"
+                  disabled={editSaving}
+                />
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-5 py-3 border-t border-stone-100 flex items-center justify-end gap-2">
+              <button
+                onClick={() => setEditKayit(null)}
+                className="px-4 py-2 bg-stone-100 text-stone-700 rounded-lg text-sm font-medium hover:bg-stone-200 transition-colors"
+                disabled={editSaving}
+              >
+                İptal
+              </button>
+              <button
+                onClick={handleEditSave}
+                disabled={editSaving}
+                className="px-4 py-2 bg-primary-500 text-white rounded-lg text-sm font-medium hover:bg-primary-600 transition-colors disabled:opacity-50"
+              >
+                {editSaving ? "Kaydediliyor..." : "Kaydet"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
