@@ -71,8 +71,8 @@ interface IzinKaydi {
   personelSoyad: string;
   personelId: string;
   izinTuru: string;
-  baslangic: string;
-  bitis: string;
+  baslangicTarihi: string;
+  bitisTarihi: string;
   durum: string;
   gunSayisi: number;
 }
@@ -355,7 +355,7 @@ export default function Home() {
 
       // Bugün izinli olanları filtrele
       const bugunIzinli = izinler.filter(izin => {
-        return izin.baslangic <= bugun && izin.bitis >= bugun;
+        return izin.baslangicTarihi <= bugun && izin.bitisTarihi >= bugun;
       });
 
       setBugunIzinliler(bugunIzinli);
