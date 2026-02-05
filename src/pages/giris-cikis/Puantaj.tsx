@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { auth, db } from "../../lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { collection, query, onSnapshot, orderBy, where, Timestamp, getDocs, addDoc, deleteDoc, doc } from "firebase/firestore";
+import { collection, query, onSnapshot, orderBy, where, Timestamp, getDocs, getDoc, addDoc, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import { resmiTatiller } from "../../lib/data";
@@ -368,6 +368,24 @@ export default function PuantajPage() {
     if (!confirm(`${tip} kaydını silmek istediğinize emin misiniz?`)) return;
     
     try {
+      // Hafta tatiliyse izinler collection'dan da sil
+      if (tip === "Hafta Tatili") {
+        const attendanceSnap = await getDoc(doc(db, "attendance", kayitId));
+        const izinDocId = attendanceSnap.data()?.izinDocId;
+        if (izinDocId) {
+          await deleteDoc(doc(db, "izinler", izinDocId));
+          // İzin değişiklik kaydı
+          await addDoc(collection(db, "izinDegisiklikKayitlari"), {
+            degisikligiYapan: personelAd,
+            degisiklikTarihi: new Date().toISOString(),
+            degisiklikTuru: "İzin Silindi",
+            degisiklikOncesi: "Haftalık İzin | Puantajdan eklenen hafta tatili",
+            degisiklikSonrasi: "",
+            kullaniciAdi: user?.email?.split("@")[0] || "",
+          });
+        }
+      }
+
       await deleteDoc(doc(db, "attendance", kayitId));
       
       await addDoc(collection(db, "attendanceChanges"), {
@@ -506,12 +524,20 @@ export default function PuantajPage() {
         
         // Hafta tatili kaydı
         tarih.setHours(0, 0, 0, 0);
+        const tarihStr = `${seciliYil}-${String(seciliAy + 1).padStart(2, "0")}-${String(islemModal.gun).padStart(2, "0")}`;
         
-        await addDoc(collection(db, "attendance"), {
+        // Personel detaylarını bul
+        const htPersonel = personeller.find(p => p.id === islemModal.personelId);
+        const htPersonelAd = htPersonel?.ad || islemModal.personelAd.split(" ")[0] || "";
+        const htPersonelSoyad = htPersonel?.soyad || islemModal.personelAd.split(" ").slice(1).join(" ") || "";
+        const htSicilNo = htPersonel?.sicilNo || "";
+
+        // 1) attendance kaydı
+        const attendanceRef = await addDoc(collection(db, "attendance"), {
           personelId: islemModal.personelId,
           personelAd: islemModal.personelAd,
           personelEmail: "",
-          sicilNo: "",
+          sicilNo: htSicilNo,
           tip: "haftaTatili",
           tarih: Timestamp.fromDate(tarih),
           konumId: "",
@@ -523,6 +549,30 @@ export default function PuantajPage() {
           olusturmaTarihi: Timestamp.now()
         });
 
+        // 2) izinler collection'a da yaz (entegrasyon)
+        const izinRef = await addDoc(collection(db, "izinler"), {
+          personelId: islemModal.personelId,
+          personelAd: htPersonelAd,
+          personelSoyad: htPersonelSoyad,
+          sicilNo: htSicilNo,
+          izinTuru: "Haftalık İzin",
+          baslangic: tarihStr,
+          bitis: tarihStr,
+          gunSayisi: 1,
+          aciklama: "Puantajdan eklenen hafta tatili",
+          olusturanYonetici: user?.email?.split("@")[0] || "",
+          olusturulmaTarihi: new Date().toISOString(),
+          durum: "Onaylandı",
+          attendanceId: attendanceRef.id,
+          kaynak: "puantaj",
+        });
+
+        // attendance kaydına izinDocId ekle (silme için referans)
+        await updateDoc(doc(db, "attendance", attendanceRef.id), {
+          izinDocId: izinRef.id
+        });
+
+        // 3) attendanceChanges log
         await addDoc(collection(db, "attendanceChanges"), {
           degisiklikYapan: user.email,
           degisiklikTarihi: Timestamp.now(),
@@ -532,6 +582,16 @@ export default function PuantajPage() {
           kullaniciAdi: islemModal.personelAd,
           konum: "",
           girisCikisTarih: Timestamp.fromDate(tarih)
+        });
+
+        // 4) izinDegisiklikKayitlari log
+        await addDoc(collection(db, "izinDegisiklikKayitlari"), {
+          degisikligiYapan: islemModal.personelAd,
+          degisiklikTarihi: new Date().toISOString(),
+          degisiklikTuru: "İzin Eklendi",
+          degisiklikOncesi: "",
+          degisiklikSonrasi: `Haftalık İzin | ${tarihStr} - ${tarihStr} | 1 gün | Puantajdan eklenen hafta tatili`,
+          kullaniciAdi: user?.email?.split("@")[0] || "",
         });
       } else {
         // Giriş ve Çıkış kaydı - ikisini de ekle

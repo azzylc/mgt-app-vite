@@ -1,9 +1,6 @@
 import { useState, useEffect } from "react";
 import { auth, db } from "../../lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
 import { collection, query, onSnapshot, orderBy, where, Timestamp, getDocs } from "firebase/firestore";
-import { useNavigate } from "react-router-dom";
-import Sidebar from "../../components/Sidebar";
 import { resmiTatiller } from "../../lib/data";
 import { izinMapOlustur } from "../../lib/izinHelper";
 
@@ -34,13 +31,10 @@ interface PersonelHaftalik {
 }
 
 export default function HaftalikCalismaSureleriPage() {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [personeller, setPersoneller] = useState<Personel[]>([]);
   const [haftalikData, setHaftalikData] = useState<PersonelHaftalik[]>([]);
   const [haftalar, setHaftalar] = useState<{ value: string; label: string; year?: number; isYearHeader?: boolean }[]>([]);
   const [dataLoading, setDataLoading] = useState(false);
-  const navigate = useNavigate();
 
   // Filtreler
   const [seciliHafta, setSeciliHafta] = useState("");
@@ -98,21 +92,9 @@ export default function HaftalikCalismaSureleriPage() {
     if (thisWeek) setSeciliHafta(thisWeek.value);
   }, []);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-      } else {
-        navigate("/login");
-      }
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
-
   // Personelleri çek
   useEffect(() => {
-    if (!user) return;
+    if (!auth.currentUser) return;
     const q = query(collection(db, "personnel"), orderBy("ad", "asc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map(doc => ({
@@ -126,7 +108,7 @@ export default function HaftalikCalismaSureleriPage() {
       setPersoneller(data.filter(p => p.aktif));
     });
     return () => unsubscribe();
-  }, [user]);
+  }, []);
 
   // Resmi tatil kontrolü
   const isResmiTatil = (tarih: string): boolean => {
@@ -149,7 +131,7 @@ export default function HaftalikCalismaSureleriPage() {
 
   // Verileri getir
   const fetchData = async () => {
-    if (!user || !seciliHafta) return;
+    if (!auth.currentUser || !seciliHafta) return;
     setDataLoading(true);
 
     const haftaBaslangic = new Date(seciliHafta);
@@ -345,217 +327,205 @@ export default function HaftalikCalismaSureleriPage() {
     link.click();
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500"></div>
-      </div>
-    );
-  }
-
   const gunBasliklari = getGunBasliklari();
   const weekNum = seciliHafta ? getWeekNumber(new Date(seciliHafta)) : 0;
 
   return (
-    <div className="min-h-screen bg-stone-50">
-      <Sidebar user={user} />
+    <div className="min-h-screen bg-stone-50 pb-20 md:pb-0">
+      <header className="bg-white border-b px-4 md:px-6 py-4 sticky top-0 z-30">
+        <h1 className="text-xl font-bold text-stone-800">Toplam Çalışma Süreleri (Haftalık)</h1>
+        <p className="text-sm text-stone-500 mt-1">Bu sayfada, belirlediğiniz parametre ve filtrelere göre "Toplam Çalışma Süreleri (Haftalık)" raporunu görüntüleyebilirsiniz.</p>
+      </header>
 
-      <div className="md:ml-56 pb-20 md:pb-0">
-        <header className="bg-white border-b px-4 md:px-6 py-4 sticky top-0 z-30">
-          <h1 className="text-xl font-bold text-stone-800">Toplam Çalışma Süreleri (Haftalık)</h1>
-          <p className="text-sm text-stone-500 mt-1">Bu sayfada, belirlediğiniz parametre ve filtrelere göre "Toplam Çalışma Süreleri (Haftalık)" raporunu görüntüleyebilirsiniz.</p>
-        </header>
-
-        <main className="p-4 md:p-6">
-          {/* Filtreler */}
-          <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
-            <div className="grid grid-cols-2 md:grid-cols-8 gap-3">
-              <div className="col-span-2">
-                <label className="block text-xs text-stone-500 mb-1">Hafta seçiniz</label>
-                <select
-  value={seciliHafta}
-  onChange={(e) => setSeciliHafta(e.target.value)}
-  className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
->
-  {haftalar.map(h => 
-    h.isYearHeader ? (
-      <option key={h.value} value={h.value} disabled className="text-stone-400 font-semibold">
-        {h.label}
-      </option>
-    ) : (
-      <option key={h.value} value={h.value}>
-        {h.label}
-      </option>
-    )
-  )}
-</select>
-              </div>
-              <div>
-                <label className="block text-xs text-stone-500 mb-1">Günlük çalışma süresi</label>
-                <select
-                  value={gunlukCalismaSuresi}
-                  onChange={(e) => setGunlukCalismaSuresi(Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
-                >
-                  <option value={8}>8 saat</option>
-                  <option value={9}>9 saat</option>
-                  <option value={10}>10 saat</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs text-stone-500 mb-1">Yemek + Mola süre...</label>
-                <input
-                  type="number"
-                  value={molaSuresi}
-                  onChange={(e) => setMolaSuresi(Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-stone-500 mb-1">Geç kal. toleransı</label>
-                <input
-                  type="number"
-                  value={gecKalmaToleransi}
-                  onChange={(e) => setGecKalmaToleransi(Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-stone-500 mb-1">Erken çık. toleransı</label>
-                <input
-                  type="number"
-                  value={erkenCikisToleransi}
-                  onChange={(e) => setErkenCikisToleransi(Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-stone-500 mb-1">Haftalık çalışma (sa)</label>
-                <input
-                  type="number"
-                  value={haftalikCalismaSaati}
-                  onChange={(e) => setHaftalikCalismaSaati(Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
-                />
-              </div>
-              <div className="flex items-end">
-                <button
-                  onClick={fetchData}
-                  disabled={dataLoading}
-                  className="w-full bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2"
-                >
-                  {dataLoading ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+      <main className="p-4 md:p-6">
+        {/* Filtreler */}
+        <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-8 gap-3">
+            <div className="col-span-2">
+              <label className="block text-xs text-stone-500 mb-1">Hafta seçiniz</label>
+              <select
+                value={seciliHafta}
+                onChange={(e) => setSeciliHafta(e.target.value)}
+                className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+              >
+                {haftalar.map(h => 
+                  h.isYearHeader ? (
+                    <option key={h.value} value={h.value} disabled className="text-stone-400 font-semibold">
+                      {h.label}
+                    </option>
                   ) : (
-                    <>🔍 Sonuçları Getir</>
-                  )}
-                </button>
-              </div>
+                    <option key={h.value} value={h.value}>
+                      {h.label}
+                    </option>
+                  )
+                )}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-stone-500 mb-1">Günlük çalışma süresi</label>
+              <select
+                value={gunlukCalismaSuresi}
+                onChange={(e) => setGunlukCalismaSuresi(Number(e.target.value))}
+                className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+              >
+                <option value={8}>8 saat</option>
+                <option value={9}>9 saat</option>
+                <option value={10}>10 saat</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-stone-500 mb-1">Yemek + Mola süre...</label>
+              <input
+                type="number"
+                value={molaSuresi}
+                onChange={(e) => setMolaSuresi(Number(e.target.value))}
+                className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-stone-500 mb-1">Geç kal. toleransı</label>
+              <input
+                type="number"
+                value={gecKalmaToleransi}
+                onChange={(e) => setGecKalmaToleransi(Number(e.target.value))}
+                className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-stone-500 mb-1">Erken çık. toleransı</label>
+              <input
+                type="number"
+                value={erkenCikisToleransi}
+                onChange={(e) => setErkenCikisToleransi(Number(e.target.value))}
+                className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-stone-500 mb-1">Haftalık çalışma (sa)</label>
+              <input
+                type="number"
+                value={haftalikCalismaSaati}
+                onChange={(e) => setHaftalikCalismaSaati(Number(e.target.value))}
+                className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+              />
+            </div>
+            <div className="flex items-end">
+              <button
+                onClick={fetchData}
+                disabled={dataLoading}
+                className="w-full bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2"
+              >
+                {dataLoading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                ) : (
+                  <>🔍 Sonuçları Getir</>
+                )}
+              </button>
             </div>
           </div>
+        </div>
 
-          {/* Renk açıklamaları */}
-          <div className="flex flex-wrap gap-3 mb-4 text-xs">
-            <div className="flex items-center gap-1"><span className="w-4 h-4 bg-green-500 rounded"></span> Çalıştığı günler</div>
-            <div className="flex items-center gap-1"><span className="w-4 h-4 bg-stone-300 rounded"></span> Çalışmadığı günler</div>
-            <div className="flex items-center gap-1"><span className="w-4 h-4 bg-red-500 rounded"></span> Eksik çalışma</div>
-            <div className="flex items-center gap-1"><span className="w-4 h-4 bg-orange-400 rounded"></span> Fazla çalışma</div>
-            <div className="flex items-center gap-1"><span className="w-4 h-4 bg-stone-300 rounded"></span> Hafta Tatili</div>
-            <div className="flex items-center gap-1"><span className="w-4 h-4 bg-blue-400 rounded"></span> İzin ve Raporlar</div>
-            <div className="flex items-center gap-1"><span className="w-4 h-4 bg-yellow-400 rounded"></span> Resmi Tatil</div>
-          </div>
+        {/* Renk açıklamaları */}
+        <div className="flex flex-wrap gap-3 mb-4 text-xs">
+          <div className="flex items-center gap-1"><span className="w-4 h-4 bg-green-500 rounded"></span> Çalıştığı günler</div>
+          <div className="flex items-center gap-1"><span className="w-4 h-4 bg-stone-300 rounded"></span> Çalışmadığı günler</div>
+          <div className="flex items-center gap-1"><span className="w-4 h-4 bg-red-500 rounded"></span> Eksik çalışma</div>
+          <div className="flex items-center gap-1"><span className="w-4 h-4 bg-orange-400 rounded"></span> Fazla çalışma</div>
+          <div className="flex items-center gap-1"><span className="w-4 h-4 bg-stone-300 rounded"></span> Hafta Tatili</div>
+          <div className="flex items-center gap-1"><span className="w-4 h-4 bg-blue-400 rounded"></span> İzin ve Raporlar</div>
+          <div className="flex items-center gap-1"><span className="w-4 h-4 bg-yellow-400 rounded"></span> Resmi Tatil</div>
+        </div>
 
-          {/* Uyarı */}
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-            <p className="text-sm text-amber-800">
-              <span className="font-medium">ℹ️ Not:</span> Resmi tatil ve izin günleri toplam çalışma süresine dahil edilmez.
-            </p>
-          </div>
+        {/* Uyarı */}
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+          <p className="text-sm text-amber-800">
+            <span className="font-medium">ℹ️ Not:</span> Resmi tatil ve izin günleri toplam çalışma süresine dahil edilmez.
+          </p>
+        </div>
 
-          {/* Başlık */}
-          {haftalikData.length > 0 && (
-            <h2 className="text-lg font-bold text-stone-800 mb-4">
-              {String(weekNum).padStart(2, '0')}. Hafta - Toplam Çalışma Süreleri (Haftalık)
-            </h2>
-          )}
+        {/* Başlık */}
+        {haftalikData.length > 0 && (
+          <h2 className="text-lg font-bold text-stone-800 mb-4">
+            {String(weekNum).padStart(2, '0')}. Hafta - Toplam Çalışma Süreleri (Haftalık)
+          </h2>
+        )}
 
-          {/* Tablo */}
-          {haftalikData.length > 0 ? (
-            <>
-              <div className="bg-white rounded-lg shadow-sm border overflow-hidden mb-6">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead className="bg-stone-50 border-b">
-                      <tr>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-stone-500 whitespace-nowrap">Sicil No</th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-stone-500 whitespace-nowrap">Ad Soyad</th>
-                        {gunBasliklari.map((gun, i) => (
-                          <th key={i} className="px-2 py-2 text-center text-xs font-medium text-stone-500 whitespace-nowrap min-w-[110px]">
-                            {gun}
-                          </th>
-                        ))}
-                        <th className="px-3 py-2 text-center text-xs font-medium text-stone-500 whitespace-nowrap">Toplam Saat</th>
-                        <th className="px-3 py-2 text-center text-xs font-medium text-stone-500 whitespace-nowrap">Geldiği Gün</th>
-                        <th className="px-3 py-2 text-center text-xs font-medium text-stone-500 whitespace-nowrap">Fazla Çalışma</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-stone-100">
-                      {haftalikData.map(h => (
-                        <tr key={h.personelId} className="hover:bg-stone-50">
-                          <td className="px-3 py-2 text-stone-800 whitespace-nowrap">{h.sicilNo || "-"}</td>
-                          <td className="px-3 py-2 font-medium text-stone-800 whitespace-nowrap">{h.personelAd}</td>
-                          {h.gunler.map((gun, i) => (
-                            <td key={i} className={`px-2 py-2 text-center whitespace-nowrap text-xs font-medium ${getDurumClass(gun.durum)}`}>
-                              {gun.girisSaati || "-"}
-                            </td>
-                          ))}
-                          <td className="px-3 py-2 text-center font-bold text-stone-800">{h.toplamSaat}</td>
-                          <td className="px-3 py-2 text-center text-stone-600">{h.geldigiGun}</td>
-                          <td className="px-3 py-2 text-center text-stone-600">{h.fazlaCalisma}</td>
-                        </tr>
+        {/* Tablo */}
+        {haftalikData.length > 0 ? (
+          <>
+            <div className="bg-white rounded-lg shadow-sm border overflow-hidden mb-6">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-stone-50 border-b">
+                    <tr>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-stone-500 whitespace-nowrap">Sicil No</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-stone-500 whitespace-nowrap">Ad Soyad</th>
+                      {gunBasliklari.map((gun, i) => (
+                        <th key={i} className="px-2 py-2 text-center text-xs font-medium text-stone-500 whitespace-nowrap min-w-[110px]">
+                          {gun}
+                        </th>
                       ))}
-                    </tbody>
-                  </table>
-                </div>
+                      <th className="px-3 py-2 text-center text-xs font-medium text-stone-500 whitespace-nowrap">Toplam Saat</th>
+                      <th className="px-3 py-2 text-center text-xs font-medium text-stone-500 whitespace-nowrap">Geldiği Gün</th>
+                      <th className="px-3 py-2 text-center text-xs font-medium text-stone-500 whitespace-nowrap">Fazla Çalışma</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-stone-100">
+                    {haftalikData.map(h => (
+                      <tr key={h.personelId} className="hover:bg-stone-50">
+                        <td className="px-3 py-2 text-stone-800 whitespace-nowrap">{h.sicilNo || "-"}</td>
+                        <td className="px-3 py-2 font-medium text-stone-800 whitespace-nowrap">{h.personelAd}</td>
+                        {h.gunler.map((gun, i) => (
+                          <td key={i} className={`px-2 py-2 text-center whitespace-nowrap text-xs font-medium ${getDurumClass(gun.durum)}`}>
+                            {gun.girisSaati || "-"}
+                          </td>
+                        ))}
+                        <td className="px-3 py-2 text-center font-bold text-stone-800">{h.toplamSaat}</td>
+                        <td className="px-3 py-2 text-center text-stone-600">{h.geldigiGun}</td>
+                        <td className="px-3 py-2 text-center text-stone-600">{h.fazlaCalisma}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-
-              {/* Notlar */}
-              <div className="bg-stone-50 border rounded-lg p-4 mb-6 text-center text-sm text-stone-600">
-                <p className="font-medium mb-1">Notlar:</p>
-                <p>Sadece gün içindeki <u>İlk Giriş</u> ve <u>Son Çıkış</u> işlemleri hesaba katılmaktadır.</p>
-                <p>Toplam Saat ve Gün hesaplanırken Resmi Tatiller ve İzin Günleri, toplam sürelere eklenmemektedir.</p>
-              </div>
-
-              {/* Butonlar */}
-              <div className="flex flex-col md:flex-row gap-3 justify-center">
-                <button
-                  onClick={() => window.print()}
-                  className="bg-stone-100 hover:bg-stone-200 text-stone-700 px-6 py-3 rounded-lg font-medium transition flex items-center justify-center gap-2"
-                >
-                  🖨️ Yazdır / PDF
-                </button>
-                <button
-                  onClick={copyToClipboard}
-                  className="bg-blue-100 hover:bg-blue-200 text-blue-700 px-6 py-3 rounded-lg font-medium transition flex items-center justify-center gap-2"
-                >
-                  📋 Excel'e Kopyala
-                </button>
-                <button
-                  onClick={exportToExcel}
-                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition flex items-center justify-center gap-2"
-                >
-                  📥 Excel İndir
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
-              <span className="text-5xl">📋</span>
-              <p className="text-stone-500 mt-4">Rapor oluşturmak için hafta seçin ve "Sonuçları Getir" butonuna tıklayın.</p>
             </div>
-          )}
-        </main>
-      </div>
+
+            {/* Notlar */}
+            <div className="bg-stone-50 border rounded-lg p-4 mb-6 text-center text-sm text-stone-600">
+              <p className="font-medium mb-1">Notlar:</p>
+              <p>Sadece gün içindeki <u>İlk Giriş</u> ve <u>Son Çıkış</u> işlemleri hesaba katılmaktadır.</p>
+              <p>Toplam Saat ve Gün hesaplanırken Resmi Tatiller ve İzin Günleri, toplam sürelere eklenmemektedir.</p>
+            </div>
+
+            {/* Butonlar */}
+            <div className="flex flex-col md:flex-row gap-3 justify-center">
+              <button
+                onClick={() => window.print()}
+                className="bg-stone-100 hover:bg-stone-200 text-stone-700 px-6 py-3 rounded-lg font-medium transition flex items-center justify-center gap-2"
+              >
+                🖨️ Yazdır / PDF
+              </button>
+              <button
+                onClick={copyToClipboard}
+                className="bg-blue-100 hover:bg-blue-200 text-blue-700 px-6 py-3 rounded-lg font-medium transition flex items-center justify-center gap-2"
+              >
+                📋 Excel'e Kopyala
+              </button>
+              <button
+                onClick={exportToExcel}
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition flex items-center justify-center gap-2"
+              >
+                📥 Excel İndir
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
+            <span className="text-5xl">📋</span>
+            <p className="text-stone-500 mt-4">Rapor oluşturmak için hafta seçin ve "Sonuçları Getir" butonuna tıklayın.</p>
+          </div>
+        )}
+      </main>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { auth, db } from "../../lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
@@ -26,13 +26,21 @@ export default function IzinDuzenle() {
   const [izinTuru, setIzinTuru] = useState("Yıllık İzin");
   const [baslangic, setBaslangic] = useState("");
   const [bitis, setBitis] = useState("");
+  const [yarimGun, setYarimGun] = useState(false);
+  const [yarimGunTipi, setYarimGunTipi] = useState<"baslangic" | "bitis">("baslangic");
   const [aciklama, setAciklama] = useState("");
+  const [kaynak, setKaynak] = useState<"manuel" | "puantaj">("manuel");
+
+  // Kullanıcı açıklamayı kendisi düzenledi mi?
+  const isUserEditedRef = useRef(false);
+  // İlk veri yüklendi mi?
+  const isDataLoadedRef = useRef(false);
 
   // Enter ile kaydet (textarea hariç)
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && e.target instanceof HTMLInputElement) {
       e.preventDefault();
-      handleSave("back");
+      handleSave();
     }
   };
 
@@ -57,7 +65,6 @@ export default function IzinDuzenle() {
       const personelList: Personel[] = [];
       snapshot.forEach((doc) => {
         const data = doc.data();
-        // Sadece aktif personelleri ekle
         if (data.aktif !== false) {
           personelList.push({
             id: doc.id,
@@ -79,26 +86,26 @@ export default function IzinDuzenle() {
   useEffect(() => {
     if (!user || !id) return;
 
-    console.log("🔍 Düzenleme sayfası açıldı! ID:", id);
-
     const fetchIzin = async () => {
       try {
         const izinDoc = await getDoc(doc(db, "izinler", id));
         if (izinDoc.exists()) {
           const data = izinDoc.data();
-          console.log("✅ İzin verisi bulundu:", data);
           setSelectedPersonel(data.personelId || "");
           setIzinTuru(data.izinTuru || "Yıllık İzin");
           setBaslangic(data.baslangic || "");
           setBitis(data.bitis || "");
+          setYarimGun(data.yarimGun || false);
+          setYarimGunTipi(data.yarimGunTipi || "baslangic");
           setAciklama(data.aciklama || "");
+          setKaynak(data.kaynak || "manuel");
+          isDataLoadedRef.current = true;
         } else {
-          console.error("❌ İzin kaydı bulunamadı! ID:", id);
           alert("İzin kaydı bulunamadı!");
           navigate("/izinler");
         }
       } catch (error) {
-        console.error("❌ İzin verisi çekilirken hata:", error);
+        console.error("İzin verisi çekilirken hata:", error);
         alert("İzin verisi yüklenemedi!");
         navigate("/izinler");
       }
@@ -113,23 +120,27 @@ export default function IzinDuzenle() {
     const start = new Date(baslangic);
     const end = new Date(bitis);
     const diffTime = Math.abs(end.getTime() - start.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    if (yarimGun) diffDays = diffDays - 0.5;
     return diffDays;
   };
 
-  // Otomatik açıklama doldur
+  // Otomatik açıklama doldur (sadece kullanıcı kendisi düzenlemediyse)
   useEffect(() => {
+    if (!isDataLoadedRef.current) return;
+    if (isUserEditedRef.current) return;
+
     if (baslangic && bitis && izinTuru) {
       const gunSayisi = hesaplaGunSayisi();
       if (gunSayisi > 0) {
-        const aciklamaMetni = `${gunSayisi} günlük ${izinTuru.toLowerCase()}`;
+        const yarimGunText = yarimGun ? ` (${yarimGunTipi === "baslangic" ? "ilk gün" : "son gün"} yarım gün)` : "";
+        const aciklamaMetni = `${gunSayisi} günlük ${izinTuru.toLowerCase()}${yarimGunText}`;
         setAciklama(aciklamaMetni);
       }
     }
-  }, [baslangic, bitis, izinTuru]);
+  }, [baslangic, bitis, izinTuru, yarimGun, yarimGunTipi]);
 
-  const handleSave = async (action: "back" | "new") => {
-    // Validasyon
+  const handleSave = async () => {
     if (!selectedPersonel) {
       alert("Lütfen bir kullanıcı seçin.");
       return;
@@ -153,17 +164,19 @@ export default function IzinDuzenle() {
       const personel = personeller.find(p => p.id === selectedPersonel);
       const gunSayisi = hesaplaGunSayisi();
 
-      // İzin kaydını güncelle
       await updateDoc(doc(db, "izinler", id!), {
         personelId: selectedPersonel,
         personelAd: personel?.ad || "",
         personelSoyad: personel?.soyad || "",
         sicilNo: personel?.sicilNo || "",
-        izinTuru: izinTuru,
-        baslangic: baslangic,
-        bitis: bitis,
-        gunSayisi: gunSayisi,
+        izinTuru,
+        baslangic,
+        bitis,
+        yarimGun,
+        yarimGunTipi: yarimGun ? yarimGunTipi : null,
+        gunSayisi,
         aciklama: aciklama.trim(),
+        kaynak,
         duzenleyenYonetici: user?.email?.split("@")[0] || "",
         duzenlenmeTarihi: new Date().toISOString(),
       });
@@ -196,19 +209,19 @@ export default function IzinDuzenle() {
           <div>
             <h1 className="text-xl font-bold text-stone-800">İzin Düzenle</h1>
             <p className="text-sm text-stone-500">
-              Bu sayfada kullanıcılarınıza izin tanımlayabilir / ekleyebilirsiniz.
+              Mevcut izin kaydını düzenleyebilirsiniz.
             </p>
           </div>
 
           {/* Top Action Buttons */}
           <div className="flex items-center gap-2">
             <button
-              onClick={() => handleSave("back")}
+              onClick={handleSave}
               disabled={saving}
               className="px-4 py-2 bg-primary-500 text-white rounded-lg text-sm font-medium hover:bg-primary-600 transition-colors flex items-center gap-2 disabled:opacity-50"
             >
               <span>💾</span>
-              <span>Güncelle</span>
+              <span>{saving ? "Kaydediliyor..." : "Güncelle"}</span>
             </button>
             <button
               onClick={() => navigate("/izinler")}
@@ -277,7 +290,9 @@ export default function IzinDuzenle() {
                 <span className="block text-xs text-stone-400 font-normal">İzin başlangıç günü dahildir</span>
               </label>
               <input
-                type="date" min="2020-01-01" max="2099-12-31"
+                type="date"
+                min="2020-01-01"
+                max="2099-12-31"
                 value={baslangic}
                 onChange={(e) => setBaslangic(e.target.value)}
                 className="w-full max-w-md px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
@@ -291,11 +306,41 @@ export default function IzinDuzenle() {
                 <span className="block text-xs text-stone-400 font-normal">İzin bitiş günü dahildir</span>
               </label>
               <input
-                type="date" min="2020-01-01" max="2099-12-31"
+                type="date"
+                min={baslangic || "2020-01-01"}
+                max="2099-12-31"
                 value={bitis}
                 onChange={(e) => setBitis(e.target.value)}
                 className="w-full max-w-md px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
               />
+            </div>
+
+            {/* Yarım Gün */}
+            <div className="grid grid-cols-[200px_1fr] items-center gap-4">
+              <label className="text-sm font-medium text-stone-700">
+                Yarım Gün
+              </label>
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={yarimGun}
+                    onChange={(e) => setYarimGun(e.target.checked)}
+                    className="w-4 h-4 rounded border-stone-300 text-primary-500 focus:ring-primary-500/20"
+                  />
+                  <span className="text-sm text-stone-600">Yarım gün izin</span>
+                </label>
+                {yarimGun && (
+                  <select
+                    value={yarimGunTipi}
+                    onChange={(e) => setYarimGunTipi(e.target.value as "baslangic" | "bitis")}
+                    className="px-3 py-1.5 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                  >
+                    <option value="baslangic">İlk gün yarım</option>
+                    <option value="bitis">Son gün yarım</option>
+                  </select>
+                )}
+              </div>
             </div>
 
             {/* Gün Sayısı Gösterimi */}
@@ -308,6 +353,37 @@ export default function IzinDuzenle() {
               </div>
             )}
 
+            {/* Kaynak */}
+            <div className="grid grid-cols-[200px_1fr] items-center gap-4">
+              <label className="text-sm font-medium text-stone-700">
+                Kaynak
+              </label>
+              <div className="flex items-center gap-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="kaynak"
+                    value="manuel"
+                    checked={kaynak === "manuel"}
+                    onChange={() => setKaynak("manuel")}
+                    className="w-4 h-4 text-primary-500 focus:ring-primary-500/20"
+                  />
+                  <span className="text-sm text-stone-600">Manuel</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="kaynak"
+                    value="puantaj"
+                    checked={kaynak === "puantaj"}
+                    onChange={() => setKaynak("puantaj")}
+                    className="w-4 h-4 text-primary-500 focus:ring-primary-500/20"
+                  />
+                  <span className="text-sm text-stone-600">Puantajdan</span>
+                </label>
+              </div>
+            </div>
+
             {/* Kısa Açıklama */}
             <div className="grid grid-cols-[200px_1fr] items-start gap-4">
               <label className="text-sm font-medium text-stone-700 pt-2">
@@ -315,7 +391,10 @@ export default function IzinDuzenle() {
               </label>
               <textarea
                 value={aciklama}
-                onChange={(e) => setAciklama(e.target.value)}
+                onChange={(e) => {
+                  setAciklama(e.target.value);
+                  isUserEditedRef.current = true;
+                }}
                 placeholder="Örn: Yıllık izin kullanımı"
                 rows={4}
                 className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 resize-y"
@@ -327,12 +406,12 @@ export default function IzinDuzenle() {
         {/* Bottom Action Buttons */}
         <div className="mt-6 flex items-center justify-end gap-2">
           <button
-            onClick={() => handleSave("back")}
+            onClick={handleSave}
             disabled={saving}
             className="px-4 py-2 bg-primary-500 text-white rounded-lg text-sm font-medium hover:bg-primary-600 transition-colors flex items-center gap-2 disabled:opacity-50"
           >
             <span>💾</span>
-            <span>Güncelle</span>
+            <span>{saving ? "Kaydediliyor..." : "Güncelle"}</span>
           </button>
           <button
             onClick={() => navigate("/izinler")}

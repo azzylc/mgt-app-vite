@@ -13,9 +13,11 @@ interface Izin {
   izinTuru: string;
   baslangic: string;
   bitis: string;
+  gunSayisi?: number;
   aciklama?: string;
   olusturanYonetici?: string;
   olusturulmaTarihi: string;
+  kaynak?: string;
 }
 
 export default function IzinListesi() {
@@ -28,6 +30,7 @@ export default function IzinListesi() {
   const [filterTur, setFilterTur] = useState("Tümü");
   const [itemsPerPage, setItemsPerPage] = useState(25);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedIzin, setSelectedIzin] = useState<Izin | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -123,10 +126,14 @@ export default function IzinListesi() {
     switch (tur) {
       case "Yıllık İzin":
         return "bg-blue-100 text-blue-800";
+      case "Haftalık İzin":
+        return "bg-orange-100 text-orange-800";
       case "Mazeret ve Diğer Ücretli İzinler":
         return "bg-amber-100 text-amber-800";
       case "Raporlu":
         return "bg-red-100 text-red-800";
+      case "Ücretsiz İzin":
+        return "bg-purple-100 text-purple-800";
       default:
         return "bg-stone-100 text-stone-800";
     }
@@ -144,7 +151,7 @@ export default function IzinListesi() {
     <div className="flex min-h-screen bg-neutral-warm">
       <Sidebar user={user} />
 
-      <main className="flex-1 p-4 lg:p-6 pb-20 md:pb-0">
+      <main className="flex-1 p-4 lg:p-6 md:ml-56 pb-20 md:pb-0">
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-xl font-bold text-stone-800">İzin Listesi</h1>
@@ -175,8 +182,10 @@ export default function IzinListesi() {
             >
               <option value="Tümü">Tümünde</option>
               <option value="Yıllık İzin">Yıllık İzin</option>
+              <option value="Haftalık İzin">Haftalık İzin</option>
               <option value="Mazeret ve Diğer Ücretli İzinler">Mazeret İzni</option>
               <option value="Raporlu">Raporlu</option>
+              <option value="Ücretsiz İzin">Ücretsiz İzin</option>
             </select>
 
             {/* Ara Butonu */}
@@ -283,7 +292,7 @@ export default function IzinListesi() {
                             🗑️
                           </button>
                           <button
-                            onClick={() => navigate(`/izinler/${izin.id}`)}
+                            onClick={() => setSelectedIzin(izin)}
                             className="p-1.5 text-stone-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
                             title="Görüntüle"
                           >
@@ -372,6 +381,118 @@ export default function IzinListesi() {
           )}
         </div>
       </main>
+
+      {/* ========== DETAY MODAL ========== */}
+      {selectedIzin && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+          onClick={() => setSelectedIzin(null)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-stone-100">
+              <h2 className="text-lg font-bold text-stone-800">İzin Detayı</h2>
+              <button
+                onClick={() => setSelectedIzin(null)}
+                className="p-1.5 text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-lg transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="px-5 py-4 space-y-4">
+              {/* İzin Türü Badge */}
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-stone-500">İzin Türü:</span>
+                <span className={`inline-block px-3 py-1 text-sm font-semibold rounded-full ${getIzinTuruClass(selectedIzin.izinTuru)}`}>
+                  {selectedIzin.izinTuru}
+                </span>
+                {selectedIzin.kaynak === "puantaj" && (
+                  <span className="inline-block px-2 py-0.5 text-xs font-medium rounded bg-stone-100 text-stone-500">
+                    Puantajdan
+                  </span>
+                )}
+              </div>
+
+              {/* Bilgi Satırları */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-stone-50 rounded-lg px-4 py-3">
+                  <span className="text-xs text-stone-400 block mb-1">Personel</span>
+                  <span className="text-sm font-medium text-stone-800">{selectedIzin.personelAd} {selectedIzin.personelSoyad}</span>
+                </div>
+                <div className="bg-stone-50 rounded-lg px-4 py-3">
+                  <span className="text-xs text-stone-400 block mb-1">Sicil No</span>
+                  <span className="text-sm font-medium text-stone-800">{selectedIzin.sicilNo || "-"}</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-stone-50 rounded-lg px-4 py-3">
+                  <span className="text-xs text-stone-400 block mb-1">Başlangıç</span>
+                  <span className="text-sm font-medium text-stone-800">{formatDate(selectedIzin.baslangic)}</span>
+                </div>
+                <div className="bg-stone-50 rounded-lg px-4 py-3">
+                  <span className="text-xs text-stone-400 block mb-1">Bitiş</span>
+                  <span className="text-sm font-medium text-stone-800">{formatDate(selectedIzin.bitis)}</span>
+                </div>
+              </div>
+
+              {selectedIzin.gunSayisi && (
+                <div className="bg-blue-50 rounded-lg px-4 py-3">
+                  <span className="text-xs text-blue-400 block mb-1">Toplam Gün</span>
+                  <span className="text-sm font-semibold text-blue-700">{selectedIzin.gunSayisi} gün</span>
+                </div>
+              )}
+
+              {selectedIzin.aciklama && (
+                <div className="bg-stone-50 rounded-lg px-4 py-3">
+                  <span className="text-xs text-stone-400 block mb-1">Açıklama</span>
+                  <span className="text-sm text-stone-800">{selectedIzin.aciklama}</span>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-stone-50 rounded-lg px-4 py-3">
+                  <span className="text-xs text-stone-400 block mb-1">Oluşturan Yönetici</span>
+                  <span className="text-sm font-medium text-stone-800">{selectedIzin.olusturanYonetici || "-"}</span>
+                </div>
+                <div className="bg-stone-50 rounded-lg px-4 py-3">
+                  <span className="text-xs text-stone-400 block mb-1">Oluşturulma Tarihi</span>
+                  <span className="text-sm font-medium text-stone-800">{formatDateTime(selectedIzin.olusturulmaTarihi)}</span>
+                </div>
+              </div>
+
+              <div className="text-xs text-stone-300 text-right">
+                Kayıt ID: {selectedIzin.id}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-5 py-3 border-t border-stone-100 flex items-center justify-between">
+              <button
+                onClick={() => {
+                  setSelectedIzin(null);
+                  navigate(`/izinler/${selectedIzin.id}/duzenle`);
+                }}
+                className="px-4 py-2 bg-amber-50 text-amber-700 rounded-lg text-sm font-medium hover:bg-amber-100 transition-colors flex items-center gap-2"
+              >
+                <span>✏️</span>
+                <span>Düzenle</span>
+              </button>
+              <button
+                onClick={() => setSelectedIzin(null)}
+                className="px-4 py-2 bg-stone-100 text-stone-700 rounded-lg text-sm font-medium hover:bg-stone-200 transition-colors"
+              >
+                Kapat
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
