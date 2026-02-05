@@ -290,7 +290,11 @@ export default function IzinListesi() {
                             🔍
                           </button>
                           <button
-                            onClick={() => navigate(`/izinler/${izin.id}/duzenle`)}
+                            onClick={() => {
+                              console.log("✏️ Düzenle butonuna tıklandı! İzin ID:", izin.id);
+                              console.log("📍 Gidilecek yol:", `/izinler/${izin.id}/duzenle`);
+                              navigate(`/izinler/${izin.id}/duzenle`);
+                            }}
                             className="p-1.5 text-stone-400 hover:text-amber-600 hover:bg-amber-50 rounded transition-colors"
                             title="Düzenle"
                           >

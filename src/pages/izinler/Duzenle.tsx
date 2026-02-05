@@ -79,22 +79,26 @@ export default function IzinDuzenle() {
   useEffect(() => {
     if (!user || !id) return;
 
+    console.log("🔍 Düzenleme sayfası açıldı! ID:", id);
+
     const fetchIzin = async () => {
       try {
         const izinDoc = await getDoc(doc(db, "izinler", id));
         if (izinDoc.exists()) {
           const data = izinDoc.data();
+          console.log("✅ İzin verisi bulundu:", data);
           setSelectedPersonel(data.personelId || "");
           setIzinTuru(data.izinTuru || "Yıllık İzin");
           setBaslangic(data.baslangic || "");
           setBitis(data.bitis || "");
           setAciklama(data.aciklama || "");
         } else {
+          console.error("❌ İzin kaydı bulunamadı! ID:", id);
           alert("İzin kaydı bulunamadı!");
           navigate("/izinler");
         }
       } catch (error) {
-        console.error("İzin verisi çekilirken hata:", error);
+        console.error("❌ İzin verisi çekilirken hata:", error);
         alert("İzin verisi yüklenemedi!");
         navigate("/izinler");
       }

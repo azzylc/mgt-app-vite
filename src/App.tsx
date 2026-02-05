@@ -71,13 +71,13 @@ export default function App() {
             {/* İzinler routes */}
             <Route path="/izinler" element={<Izinler />} />
             <Route path="/izinler/ekle" element={<IzinlerEkle />} />
-            <Route path="/izinler/:id/duzenle" element={<IzinlerDuzenle />} />
             <Route path="/izinler/talepler" element={<IzinlerTalepler />} />
             <Route path="/izinler/haklar" element={<IzinlerHaklar />} />
             <Route path="/izinler/hakki-ekle" element={<IzinlerHakkiEkle />} />
             <Route path="/izinler/hakki-duzenle" element={<IzinlerHakkiDuzenle />} />
             <Route path="/izinler/degisiklikler" element={<IzinlerDegisiklikler />} />
             <Route path="/izinler/toplamlar" element={<IzinlerToplamlar />} />
+            <Route path="/izinler/:id/duzenle" element={<IzinlerDuzenle />} /> {/* Parametreli route EN SONDA! */}
             
             {/* Giriş-Çıkış routes */}
             <Route path="/giris-cikis" element={<GirisCikis />} />
