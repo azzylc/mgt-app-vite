@@ -17,6 +17,7 @@ import CalismaSaatleri from './pages/CalismaSaatleri'
 // İzinler
 import Izinler from './pages/Izinler'
 import IzinlerEkle from './pages/izinler/Ekle'
+import IzinlerDuzenle from './pages/izinler/Duzenle'
 import IzinlerTalepler from './pages/izinler/Talepler'
 import IzinlerHaklar from './pages/izinler/Haklar'
 import IzinlerHakkiEkle from './pages/izinler/HakkiEkle'
@@ -70,6 +71,7 @@ export default function App() {
             {/* İzinler routes */}
             <Route path="/izinler" element={<Izinler />} />
             <Route path="/izinler/ekle" element={<IzinlerEkle />} />
+            <Route path="/izinler/:id/duzenle" element={<IzinlerDuzenle />} />
             <Route path="/izinler/talepler" element={<IzinlerTalepler />} />
             <Route path="/izinler/haklar" element={<IzinlerHaklar />} />
             <Route path="/izinler/hakki-ekle" element={<IzinlerHakkiEkle />} />
