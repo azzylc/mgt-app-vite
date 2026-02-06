@@ -19,6 +19,9 @@ import {
   where
 } from "firebase/firestore";
 
+// 🔥 Firebase Functions base URL
+const API_BASE = 'https://europe-west1-gmt-test-99b30.cloudfunctions.net';
+
 interface Personel {
   id: string;
   sicilNo: string;
@@ -262,7 +265,7 @@ function PersonelPageContent() {
         // GÜNCELLEME - API kullan
         const { id, ...dataToUpdate } = dataToSave;
         
-        const response = await fetch('/api/personel', {
+        const response = await fetch(`${API_BASE}/personelApi`, {
           method: 'PUT',
           headers: { 
             'Content-Type': 'application/json',
@@ -286,7 +289,7 @@ function PersonelPageContent() {
         // YENİ PERSONEL - API kullan (Firebase Auth + Firestore)
         const { id, ...dataToAdd } = dataToSave;
         
-        const response = await fetch('/api/personel', {
+        const response = await fetch(`${API_BASE}/personelApi`, {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
@@ -329,9 +332,13 @@ function PersonelPageContent() {
     
     if (confirm(`${personel.ad} ${personel.soyad} için telefon bağı koparılsın mı?\n\nBu işlem sonrası personel yeni bir cihazla giriş yapabilir.`)) {
       try {
-        const response = await fetch('/api/personel/actions', {
+        const idToken = await auth.currentUser?.getIdToken();
+        const response = await fetch(`${API_BASE}/personelActions`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`
+          },
           body: JSON.stringify({ action: 'unbind-device', personelId: id })
         });
         
@@ -357,9 +364,13 @@ function PersonelPageContent() {
 
     if (confirm(`${personel.ad} ${personel.soyad} için yeni şifre oluşturulsun mu?\n\nEmail: ${personel.email}`)) {
       try {
-        const response = await fetch('/api/personel/actions', {
+        const idToken = await auth.currentUser?.getIdToken();
+        const response = await fetch(`${API_BASE}/personelActions`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`
+          },
           body: JSON.stringify({ action: 'reset-password', personelId: personel.id })
         });
         
@@ -388,9 +399,13 @@ function PersonelPageContent() {
     
     if (confirm(mesaj)) {
       try {
-        const response = await fetch('/api/personel/actions', {
+        const idToken = await auth.currentUser?.getIdToken();
+        const response = await fetch(`${API_BASE}/personelActions`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`
+          },
           body: JSON.stringify({ action: 'toggle-status', personelId: personel.id })
         });
         
