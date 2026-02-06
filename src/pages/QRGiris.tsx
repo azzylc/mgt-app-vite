@@ -3,6 +3,8 @@ import { auth, db } from "../lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
+import { Capacitor } from "@capacitor/core";
+import { Geolocation } from "@capacitor/geolocation";
 import { 
   collection, 
   query, 
@@ -77,6 +79,13 @@ export default function QRGirisPage() {
     return () => unsubscribe();
   }, []);
 
+  // Native platformda konum iznini sayfa açılınca al (popup bir kere çıkar)
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      Geolocation.requestPermissions().catch(() => {});
+    }
+  }, []);
+
   const fetchSonIslem = async (personelId: string) => {
     try {
       const q = query(
@@ -95,6 +104,18 @@ export default function QRGirisPage() {
   };
 
   const getLocation = (): Promise<{lat: number, lng: number}> => {
+    // Native platformda Capacitor plugin kullan (izni bir kere sorar, cache'ler)
+    if (Capacitor.isNativePlatform()) {
+      return Geolocation.getCurrentPosition({
+        enableHighAccuracy: true,
+        timeout: 10000,
+      }).then((position) => ({
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+      }));
+    }
+
+    // Web'de klasik API
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
         reject(new Error("Tarayiciniz konum ozelligini desteklemiyor"));
