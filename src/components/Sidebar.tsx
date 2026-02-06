@@ -50,7 +50,6 @@ function SidebarContent({ user }: SidebarProps) {
     
     console.log("🔍 [SIDEBAR] Personnel aranıyor (email query):", user.email);
     
-    // ⭐ Email FIELD ile query - doc ID rastgele olduğu için
     const q = query(
       collection(db, "personnel"),
       where("email", "==", user.email)
@@ -76,7 +75,6 @@ function SidebarContent({ user }: SidebarProps) {
         }
       },
       (error) => {
-        // ⭐ Permission denied → crash yerine fallback
         console.error("❌ [SIDEBAR] Personnel okuma hatası:", error.message);
         setPersonelData({
           ad: user.email?.split("@")[0] || "Kullanıcı",
@@ -95,40 +93,24 @@ function SidebarContent({ user }: SidebarProps) {
   const isYonetici = personelData?.kullaniciTuru === "Yönetici";
   const isPersonel = personelData?.kullaniciTuru === "Personel" || (!isKurucu && !isYonetici);
 
-  // ⭐ DEFAULT MENÜ ID'leri - Firebase çökse bile sidebar çalışır
   const DEFAULT_MENU: Record<string, string[]> = {
     Kurucu: ["genel-bakis", "giris-cikis-islemleri", "personel", "duyurular", "gorevler", "takvim", "izinler", "raporlar", "ayarlar", "yonetim-paneli"],
     Yönetici: ["genel-bakis", "giris-cikis-islemleri", "duyurular", "gorevler", "takvim", "izinler", "raporlar", "qr-giris"],
     Personel: ["genel-bakis", "qr-giris", "duyurular", "gorevler", "takvim", "izinler"],
   };
 
-  // Rol bazlı menü filtreleme - FALLBACK İLE
   const getFilteredMenuItems = () => {
     const kullaniciTuru = personelData?.kullaniciTuru || "Kurucu";
     
-    // Firebase'den gelen yetkiler VEYA default fallback
     const allowedIds = (rolYetkileri && rolYetkileri[kullaniciTuru]) 
       ? rolYetkileri[kullaniciTuru] 
       : DEFAULT_MENU[kullaniciTuru] || DEFAULT_MENU.Kurucu;
 
     let items = [
+      { id: "genel-bakis", label: "Genel Bakış", icon: "📊", path: "/" },
+      { id: "qr-giris", label: "Giriş-Çıkış", icon: "📱", path: "/qr-giris", excludeKurucu: true },
       {
-        id: "genel-bakis",
-        label: "Genel Bakış",
-        icon: "📊",
-        path: "/",
-      },
-      {
-        id: "qr-giris",
-        label: "Giriş-Çıkış",
-        icon: "📱",
-        path: "/qr-giris",
-        excludeKurucu: true, // Kurucu QR kullanmaz
-      },
-      {
-        id: "giris-cikis-islemleri",
-        label: "Giriş - Çıkış / Vardiya",
-        icon: "🔄",
+        id: "giris-cikis-islemleri", label: "Giriş - Çıkış / Vardiya", icon: "🔄",
         submenu: [
           { label: "İşlem Listesi", path: "/giris-cikis/islem-listesi" },
           { label: "Manuel İşlem Ekle", path: "/giris-cikis/islem-ekle" },
@@ -138,28 +120,11 @@ function SidebarContent({ user }: SidebarProps) {
           { label: "Değişiklik Kayıtları", path: "/giris-cikis/degisiklik-kayitlari" },
         ],
       },
+      { id: "duyurular", label: "Duyurular", icon: "📢", path: "/duyurular" },
+      { id: "gorevler", label: "Görevler", icon: "✅", path: "/gorevler" },
+      { id: "takvim", label: "Takvim", icon: "📅", path: "/takvim" },
       {
-        id: "duyurular",
-        label: "Duyurular",
-        icon: "📢",
-        path: "/duyurular",
-      },
-      {
-        id: "gorevler",
-        label: "Görevler",
-        icon: "✅",
-        path: "/gorevler",
-      },
-      {
-        id: "takvim",
-        label: "Takvim",
-        icon: "📅",
-        path: "/takvim",
-      },
-      {
-        id: "personel",
-        label: "Personel",
-        icon: "👤",
+        id: "personel", label: "Personel", icon: "👤",
         submenu: [
           { label: "Tüm Personel", path: "/personel" },
           { label: "Kurucular", path: "/personel?grup=kurucu" },
@@ -171,9 +136,7 @@ function SidebarContent({ user }: SidebarProps) {
         ],
       },
       {
-        id: "izinler",
-        label: "İzinler",
-        icon: "🏖️",
+        id: "izinler", label: "İzinler", icon: "🏖️",
         submenu: [
           { label: "İzin Ekle", path: "/izinler/ekle" },
           { label: "İzin Listesi", path: "/izinler" },
@@ -185,9 +148,7 @@ function SidebarContent({ user }: SidebarProps) {
         ],
       },
       {
-        id: "raporlar",
-        label: "Raporlar",
-        icon: "📈",
+        id: "raporlar", label: "Raporlar", icon: "📈",
         submenu: [
           { label: "Günlük", type: "header" },
           { label: "Giriş - Çıkış Kayıtları", path: "/raporlar/giris-cikis-kayitlari" },
@@ -198,34 +159,18 @@ function SidebarContent({ user }: SidebarProps) {
           { label: "Toplam Çalışma Süreleri", path: "/raporlar/haftalik-calisma-sureleri" },
         ],
       },
-      {
-        id: "yonetim-paneli",
-        label: "Yönetim Paneli",
-        icon: "👑",
-        path: "/yonetim",
-      },
-      {
-        id: "ayarlar",
-        label: "Ayarlar",
-        icon: "⚙️",
-        path: "/ayarlar",
-      },
+      { id: "yonetim-paneli", label: "Yönetim Paneli", icon: "👑", path: "/yonetim" },
+      { id: "ayarlar", label: "Ayarlar", icon: "⚙️", path: "/ayarlar" },
     ];
 
-    // Kullanıcının rolüne göre filtrele
     return items.filter(item => {
-      // Kurucu için excludeKurucu kontrolü
-      if (isKurucu && (item as any).excludeKurucu) {
-        return false;
-      }
-      // ⭐ allowedIds'den kontrol (Firebase VEYA fallback)
+      if (isKurucu && (item as any).excludeKurucu) return false;
       return allowedIds.includes(item.id);
     });
   };
 
   const menuItems = getFilteredMenuItems();
 
-  // Bottom nav için ana menüler
   const bottomNavItems = [
     { icon: "🏠", label: "Ana Sayfa", path: "/" },
     { icon: "📱", label: "Giriş-Çıkış", path: "/qr-giris" },
@@ -253,19 +198,15 @@ function SidebarContent({ user }: SidebarProps) {
       return pathname === "/" && searchParams.toString() === "";
     }
     if (pathname !== cleanPath) return false;
-    if (!queryString) {
-      return searchParams.toString() === "";
-    }
+    if (!queryString) return searchParams.toString() === "";
     return searchParams.toString() === queryString;
   };
 
   const isParentActive = (submenu: any[]) => 
     submenu.some(sub => sub.path && isActive(sub.path));
 
-  // Menü içeriği (hem desktop hem mobil drawer için kullanılacak)
   const MenuContent = () => (
     <>
-      {/* Logo & User */}
       <div className="px-4 py-4 border-b border-stone-100/50">
         <div className="bg-amber-400 text-stone-900 px-3 py-2.5 rounded-lg mb-3">
           <h1 className="text-sm font-semibold">GYS Studio</h1>
@@ -290,7 +231,6 @@ function SidebarContent({ user }: SidebarProps) {
         </div>
       </div>
 
-      {/* Menu Items */}
       <nav className="p-2 space-y-0.5 flex-1 overflow-y-auto">
         {menuItems.map((item) => (
           <div key={item.id}>
@@ -306,9 +246,7 @@ function SidebarContent({ user }: SidebarProps) {
                 >
                   <span className="text-base w-5 text-center">{item.icon}</span>
                   <span className="flex-1 text-left">{item.label}</span>
-                  <span className={`text-[10px] transition-transform duration-200 ${expandedMenu === item.id ? "rotate-90" : ""}`}>
-                    ▶
-                  </span>
+                  <span className={`text-[10px] transition-transform duration-200 ${expandedMenu === item.id ? "rotate-90" : ""}`}>▶</span>
                 </button>
                 <div className={`overflow-hidden transition-all duration-200 ${expandedMenu === item.id ? "max-h-[500px]" : "max-h-0"}`}>
                   <div className="ml-7 space-y-0.5 py-1">
@@ -318,13 +256,9 @@ function SidebarContent({ user }: SidebarProps) {
                           {subItem.label}
                         </div>
                       ) : (
-                        <Link
-                          key={subItem.path}
-                          to={subItem.path}
+                        <Link key={subItem.path} to={subItem.path}
                           className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                            isActive(subItem.path) 
-                              ? "bg-white text-stone-800" 
-                              : "text-stone-500 hover:bg-white/60"
+                            isActive(subItem.path) ? "bg-white text-stone-800" : "text-stone-500 hover:bg-white/60"
                           }`}
                         >
                           <span>{subItem.label}</span>
@@ -335,12 +269,9 @@ function SidebarContent({ user }: SidebarProps) {
                 </div>
               </>
             ) : (
-              <Link
-                to={item.path!}
+              <Link to={item.path!}
                 className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-all ${
-                  isActive(item.path!) 
-                    ? "bg-amber-400 text-stone-900" 
-                    : "text-stone-600 hover:bg-white/60"
+                  isActive(item.path!) ? "bg-amber-400 text-stone-900" : "text-stone-600 hover:bg-white/60"
                 }`}
               >
                 <span className="text-base w-5 text-center">{item.icon}</span>
@@ -351,10 +282,8 @@ function SidebarContent({ user }: SidebarProps) {
         ))}
       </nav>
 
-      {/* Logout Button */}
       <div className="p-3 border-t border-stone-100/50">
-        <button
-          onClick={handleLogout}
+        <button onClick={handleLogout}
           className="w-full flex items-center justify-center gap-2 px-3 py-2 text-stone-500 hover:bg-white/60 rounded-lg transition-all text-xs font-medium"
         >
           <span>🚪</span>
@@ -368,8 +297,11 @@ function SidebarContent({ user }: SidebarProps) {
   if (isMobile) {
     return (
       <>
-        {/* Mobil Header */}
-        <header className="fixed top-0 left-0 right-0 h-12 bg-white border-b border-stone-100 flex items-center justify-between px-3 z-40">
+        {/* Mobil Header - iOS safe area top */}
+        <header 
+          className="fixed top-0 left-0 right-0 bg-white border-b border-stone-100 flex items-center justify-between px-3 z-40"
+          style={{ paddingTop: 'env(safe-area-inset-top, 0px)', height: 'calc(48px + env(safe-area-inset-top, 0px))' }}
+        >
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 bg-amber-400 rounded-md flex items-center justify-center">
               <span className="text-stone-900 text-[10px] font-bold">GYS</span>
@@ -388,47 +320,43 @@ function SidebarContent({ user }: SidebarProps) {
 
         {/* Mobil Drawer Overlay */}
         {isMobileOpen && (
-          <div 
-            className="fixed inset-0 bg-black/50 z-50 transition-opacity"
-            onClick={() => setIsMobileOpen(false)}
-          />
+          <div className="fixed inset-0 bg-black/50 z-50 transition-opacity" onClick={() => setIsMobileOpen(false)} />
         )}
 
-        {/* Mobil Drawer */}
-        <div className={`fixed top-0 left-0 h-full w-64 bg-[#fef7f0] z-50 transform transition-transform duration-300 ease-out flex flex-col ${
-          isMobileOpen ? "translate-x-0" : "-translate-x-full"
-        }`}>
-          {/* Close Button */}
+        {/* Mobil Drawer - iOS safe area top */}
+        <div 
+          className={`fixed top-0 left-0 h-full w-64 bg-[#fef7f0] z-50 transform transition-transform duration-300 ease-out flex flex-col ${
+            isMobileOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+          style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+        >
           <button 
             onClick={() => setIsMobileOpen(false)}
             className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-full transition z-10"
+            style={{ marginTop: 'env(safe-area-inset-top, 0px)' }}
           >
             ✕
           </button>
-          
           <MenuContent />
         </div>
 
-        {/* Bottom Navigation */}
-        <nav className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-stone-200 flex items-center justify-around z-40 px-2 pb-safe">
+        {/* Bottom Navigation - iOS safe area bottom */}
+        <nav 
+          className="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 flex items-center justify-around z-40 px-2"
+          style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)', height: 'calc(64px + env(safe-area-inset-bottom, 0px))' }}
+        >
           {bottomNavItems.map((item, index) => (
             item.action === "menu" ? (
-              <button
-                key={index}
-                onClick={() => setIsMobileOpen(true)}
+              <button key={index} onClick={() => setIsMobileOpen(true)}
                 className="flex flex-col items-center justify-center w-14 h-12 rounded-lg text-stone-500"
               >
                 <span className="text-xl mb-0.5">{item.icon}</span>
                 <span className="text-[10px]">{item.label}</span>
               </button>
             ) : (
-              <Link
-                key={index}
-                to={item.path!}
+              <Link key={index} to={item.path!}
                 className={`flex flex-col items-center justify-center w-14 h-12 rounded-lg transition-all ${
-                  isActive(item.path!) 
-                    ? "text-rose-500 bg-rose-50" 
-                    : "text-stone-500"
+                  isActive(item.path!) ? "text-rose-500 bg-rose-50" : "text-stone-500"
                 }`}
               >
                 <span className="text-xl mb-0.5">{item.icon}</span>
@@ -438,8 +366,8 @@ function SidebarContent({ user }: SidebarProps) {
           ))}
         </nav>
 
-        {/* Spacer for header and bottom nav */}
-        <div className="h-14" /> {/* Top spacer */}
+        {/* Top spacer - iOS safe area aware */}
+        <div style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
       </>
     );
   }
