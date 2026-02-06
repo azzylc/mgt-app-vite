@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../../lib/firebase";
-import { collection, query, onSnapshot, orderBy, where, Timestamp, getDocs, getDoc, addDoc, deleteDoc, doc, updateDoc } from "firebase/firestore";
+import { collection, query, onSnapshot, orderBy, where, Timestamp, getDocs, addDoc, deleteDoc, doc } from "firebase/firestore";
 import { resmiTatiller } from "../../lib/data";
 import { izinMapOlustur } from "../../lib/izinHelper";
 import * as Sentry from '@sentry/react';
@@ -351,24 +351,6 @@ export default function PuantajPage() {
     if (!confirm(`${tip} kaydını silmek istediğinize emin misiniz?`)) return;
     
     try {
-      // Hafta tatiliyse izinler collection'dan da sil
-      if (tip === "Hafta Tatili") {
-        const attendanceSnap = await getDoc(doc(db, "attendance", kayitId));
-        const izinDocId = attendanceSnap.data()?.izinDocId;
-        if (izinDocId) {
-          await deleteDoc(doc(db, "izinler", izinDocId));
-          // İzin değişiklik kaydı
-          await addDoc(collection(db, "izinDegisiklikKayitlari"), {
-            degisikligiYapan: personelAd,
-            degisiklikTarihi: new Date().toISOString(),
-            degisiklikTuru: "İzin Silindi",
-            degisiklikOncesi: "Haftalık İzin | Puantajdan eklenen hafta tatili",
-            degisiklikSonrasi: "",
-            kullaniciAdi: user?.email?.split("@")[0] || "",
-          });
-        }
-      }
-
       await deleteDoc(doc(db, "attendance", kayitId));
       
       await addDoc(collection(db, "attendanceChanges"), {
@@ -532,30 +514,7 @@ export default function PuantajPage() {
           olusturmaTarihi: Timestamp.now()
         });
 
-        // 2) izinler collection'a da yaz (entegrasyon)
-        const izinRef = await addDoc(collection(db, "izinler"), {
-          personelId: islemModal.personelId,
-          personelAd: htPersonelAd,
-          personelSoyad: htPersonelSoyad,
-          sicilNo: htSicilNo,
-          izinTuru: "Haftalık İzin",
-          baslangic: tarihStr,
-          bitis: tarihStr,
-          gunSayisi: 1,
-          aciklama: "Puantajdan eklenen hafta tatili",
-          olusturanYonetici: user?.email?.split("@")[0] || "",
-          olusturulmaTarihi: new Date().toISOString(),
-          durum: "Onaylandı",
-          attendanceId: attendanceRef.id,
-          kaynak: "puantaj",
-        });
-
-        // attendance kaydına izinDocId ekle (silme için referans)
-        await updateDoc(doc(db, "attendance", attendanceRef.id), {
-          izinDocId: izinRef.id
-        });
-
-        // 3) attendanceChanges log
+        // 2) attendanceChanges log
         await addDoc(collection(db, "attendanceChanges"), {
           degisiklikYapan: user.email,
           degisiklikTarihi: Timestamp.now(),
@@ -567,7 +526,7 @@ export default function PuantajPage() {
           girisCikisTarih: Timestamp.fromDate(tarih)
         });
 
-        // 4) izinDegisiklikKayitlari log
+        // 3) izinDegisiklikKayitlari log
         await addDoc(collection(db, "izinDegisiklikKayitlari"), {
           degisikligiYapan: islemModal.personelAd,
           degisiklikTarihi: new Date().toISOString(),
@@ -664,6 +623,7 @@ export default function PuantajPage() {
     const base = "px-2 py-3 text-xs text-center border-r border-stone-100 transition cursor-pointer hover:bg-rose-50 relative group min-w-[50px]";
     
     if (kayit.durum === "haftaTatili") return base + " bg-orange-300 text-orange-900 font-medium";
+    if (kayit.durum === "izin" && kayit.izinTuru === "Haftalık İzin") return base + " bg-orange-300 text-orange-900 font-medium cursor-not-allowed";
     if (kayit.durum === "izin") return base + " bg-yellow-300 text-yellow-900 font-medium cursor-not-allowed";
     if (kayit.durum === "mazeret") return base + " bg-yellow-200 text-yellow-800";
     
@@ -683,6 +643,7 @@ export default function PuantajPage() {
   // Hücre içeriği
   const getHucreIcerik = (kayit: GunKayit, tip: "giris" | "cikis"): string => {
     if (kayit.durum === "haftaTatili") return "Hafta T.";
+    if (kayit.durum === "izin" && kayit.izinTuru === "Haftalık İzin") return "Hafta T.";
     if (kayit.durum === "izin") return kayit.izinTuru?.substring(0, 6) || "İzin";
     if (kayit.durum === "mazeret") return "Mazeret";
     

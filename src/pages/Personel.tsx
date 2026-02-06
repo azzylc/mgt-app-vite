@@ -588,7 +588,7 @@ function PersonelPageContent() {
 
   return (
     <div className="min-h-screen bg-stone-50">
-      <div className="pb-20 md:pb-0">
+      <div>
         <header className="bg-white border-b px-6 py-4 sticky top-0 z-30">
           <div className="flex items-center justify-between">
             <div>

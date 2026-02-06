@@ -223,7 +223,7 @@ export default function TakvimPage() {
 
   return (
     <div className="min-h-screen bg-neutral-warm">
-      <div className="pb-20 md:pb-0">
+      <div>
         <header className="page-header">
           <div className="flex items-center justify-between gap-3">
             <div className="flex-shrink-0">

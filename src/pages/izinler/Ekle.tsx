@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { db } from "../../lib/firebase";
-import { collection, query, onSnapshot, addDoc, doc, updateDoc, increment } from "firebase/firestore";
+import { collection, query, onSnapshot, addDoc, doc, updateDoc, increment, Timestamp } from "firebase/firestore";
 import * as Sentry from '@sentry/react';
 import { useAuth } from "../../context/RoleProvider";
 
@@ -107,51 +107,88 @@ export default function IzinEkle() {
       const personel = personeller.find(p => p.id === selectedPersonel);
       const gunSayisi = hesaplaGunSayisi();
 
-      // İzin kaydı oluştur
-      await addDoc(collection(db, "izinler"), {
-        personelId: selectedPersonel,
-        personelAd: personel?.ad || "",
-        personelSoyad: personel?.soyad || "",
-        sicilNo: personel?.sicilNo || "",
-        izinTuru: izinTuru,
-        baslangic: baslangic,
-        bitis: bitis,
-        gunSayisi: gunSayisi,
-        aciklama: aciklama.trim(),
-        olusturanYonetici: user?.email?.split("@")[0] || "",
-        olusturulmaTarihi: new Date().toISOString(),
-        durum: "Onaylandı",
-      });
+      if (izinTuru === "Haftalık İzin") {
+        // Haftalık izin → attendance collection'a yaz (her gün için ayrı kayıt)
+        const startDate = new Date(baslangic);
+        const endDate = new Date(bitis);
+        
+        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+          const tarih = new Date(d);
+          tarih.setHours(0, 0, 0, 0);
+          
+          await addDoc(collection(db, "attendance"), {
+            personelId: selectedPersonel,
+            personelAd: `${personel?.ad || ""} ${personel?.soyad || ""}`.trim(),
+            personelEmail: "",
+            sicilNo: personel?.sicilNo || "",
+            tip: "haftaTatili",
+            tarih: Timestamp.fromDate(tarih),
+            konumId: "",
+            konumAdi: "Hafta Tatili",
+            kayitOrtami: "Puantaj",
+            manuelKayit: true,
+            mazeretNotu: aciklama.trim(),
+            ekleyenEmail: user?.email || "",
+            olusturmaTarihi: Timestamp.now()
+          });
+        }
 
-      // Personelin izin kullanımını güncelle
-      const personelRef = doc(db, "personnel", selectedPersonel);
-      if (izinTuru === "Yıllık İzin") {
-        await updateDoc(personelRef, {
-          kullanilanYillik: increment(gunSayisi),
+        // Değişiklik kaydı
+        await addDoc(collection(db, "izinDegisiklikKayitlari"), {
+          degisikligiYapan: `${personel?.ad} ${personel?.soyad}`,
+          degisiklikTarihi: new Date().toISOString(),
+          degisiklikTuru: "İzin Eklendi",
+          degisiklikOncesi: "",
+          degisiklikSonrasi: `Haftalık İzin | ${baslangic} - ${bitis} | ${gunSayisi} gün${aciklama ? ' | ' + aciklama : ''}`,
+          kullaniciAdi: user?.email?.split("@")[0] || "",
         });
-      } else if (izinTuru === "Raporlu") {
-        await updateDoc(personelRef, {
-          raporlu: increment(gunSayisi),
+      } else {
+        // Diğer izinler → izinler collection'a yaz
+        await addDoc(collection(db, "izinler"), {
+          personelId: selectedPersonel,
+          personelAd: personel?.ad || "",
+          personelSoyad: personel?.soyad || "",
+          sicilNo: personel?.sicilNo || "",
+          izinTuru: izinTuru,
+          baslangic: baslangic,
+          bitis: bitis,
+          gunSayisi: gunSayisi,
+          aciklama: aciklama.trim(),
+          olusturanYonetici: user?.email?.split("@")[0] || "",
+          olusturulmaTarihi: new Date().toISOString(),
+          durum: "Onaylandı",
         });
-      } else if (izinTuru === "Mazeret ve Diğer Ücretli İzinler") {
-        await updateDoc(personelRef, {
-          digerIzinler: increment(gunSayisi),
-        });
-      } else if (izinTuru === "Ücretsiz İzin") {
-        await updateDoc(personelRef, {
-          ucretsizIzin: increment(gunSayisi),
+
+        // Personelin izin kullanımını güncelle
+        const personelRef = doc(db, "personnel", selectedPersonel);
+        if (izinTuru === "Yıllık İzin") {
+          await updateDoc(personelRef, {
+            kullanilanYillik: increment(gunSayisi),
+          });
+        } else if (izinTuru === "Raporlu") {
+          await updateDoc(personelRef, {
+            raporlu: increment(gunSayisi),
+          });
+        } else if (izinTuru === "Mazeret ve Diğer Ücretli İzinler") {
+          await updateDoc(personelRef, {
+            digerIzinler: increment(gunSayisi),
+          });
+        } else if (izinTuru === "Ücretsiz İzin") {
+          await updateDoc(personelRef, {
+            ucretsizIzin: increment(gunSayisi),
+          });
+        }
+
+        // Değişiklik kaydı
+        await addDoc(collection(db, "izinDegisiklikKayitlari"), {
+          degisikligiYapan: `${personel?.ad} ${personel?.soyad}`,
+          degisiklikTarihi: new Date().toISOString(),
+          degisiklikTuru: "İzin Eklendi",
+          degisiklikOncesi: "",
+          degisiklikSonrasi: `${izinTuru} | ${baslangic} - ${bitis} | ${gunSayisi} gün${aciklama ? ' | ' + aciklama : ''}`,
+          kullaniciAdi: user?.email?.split("@")[0] || "",
         });
       }
-
-      // Değişiklik kaydı oluştur
-      await addDoc(collection(db, "izinDegisiklikKayitlari"), {
-        degisikligiYapan: `${personel?.ad} ${personel?.soyad}`,
-        degisiklikTarihi: new Date().toISOString(),
-        degisiklikTuru: "İzin Eklendi",
-        degisiklikOncesi: "",
-        degisiklikSonrasi: `${izinTuru} | ${baslangic} - ${bitis} | ${gunSayisi} gün${aciklama ? ' | ' + aciklama : ''}`,
-        kullaniciAdi: user?.email?.split("@")[0] || "",
-      });
 
       if (action === "back") {
         navigate("/izinler");

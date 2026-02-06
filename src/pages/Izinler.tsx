@@ -46,7 +46,10 @@ export default function IzinListesi() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const izinData: Izin[] = [];
       snapshot.forEach((doc) => {
-        izinData.push({ id: doc.id, ...doc.data() } as Izin);
+        const data = doc.data();
+        // Haftalık izinler puantajdan yönetilir, burada gösterme
+        if (data.izinTuru === "Haftalık İzin") return;
+        izinData.push({ id: doc.id, ...data } as Izin);
       });
       setIzinler(izinData);
       setFilteredIzinler(izinData);
@@ -147,8 +150,6 @@ export default function IzinListesi() {
     switch (tur) {
       case "Yıllık İzin":
         return "bg-blue-100 text-blue-800";
-      case "Haftalık İzin":
-        return "bg-orange-100 text-orange-800";
       case "Mazeret ve Diğer Ücretli İzinler":
         return "bg-amber-100 text-amber-800";
       case "Raporlu":
@@ -193,7 +194,6 @@ export default function IzinListesi() {
             >
               <option value="Tümü">Tümünde</option>
               <option value="Yıllık İzin">Yıllık İzin</option>
-              <option value="Haftalık İzin">Haftalık İzin</option>
               <option value="Mazeret ve Diğer Ücretli İzinler">Mazeret İzni</option>
               <option value="Raporlu">Raporlu</option>
               <option value="Ücretsiz İzin">Ücretsiz İzin</option>

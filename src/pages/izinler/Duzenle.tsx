@@ -299,7 +299,6 @@ export default function IzinDuzenle() {
                 className="w-full max-w-md px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
               >
                 <option value="Yıllık İzin">Yıllık İzin</option>
-                <option value="Haftalık İzin">Haftalık İzin</option>
                 <option value="Mazeret ve Diğer Ücretli İzinler">Mazeret ve Diğer Ücretli İzinler</option>
                 <option value="Raporlu">Raporlu</option>
                 <option value="Ücretsiz İzin">Ücretsiz İzin</option>

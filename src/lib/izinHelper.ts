@@ -3,7 +3,7 @@
  * 
  * GMT App'te izinler 2 farklı collection'da tutulmaktadır:
  * 1. "izinler" - İzin Ekle sayfasından eklenen normal izinler
- * 2. "vardiyaPlan" - Vardiya planından eklenen hafta tatilleri
+ * 2. "attendance" (tip: "haftaTatili") - Puantajdan eklenen hafta tatilleri
  * 
  * Bu helper, her iki kaynaktan da izinleri birleştirerek tek bir arayüz sunar.
  */
@@ -71,39 +71,47 @@ export async function tumIzinleriGetir(
       }
     });
 
-    // 2. VardiyaPlan'dan hafta tatilleri
-    let vardiyaQuery;
+    // 2. Attendance'dan hafta tatilleri (tip: "haftaTatili")
+    let haftaQuery;
     if (aralikBas && aralikBit) {
-      vardiyaQuery = query(
-        collection(db, "vardiyaPlan"),
-        where("tarih", ">=", aralikBas),
-        where("tarih", "<=", aralikBit)
+      const basDate = new Date(aralikBas + "T00:00:00");
+      const bitDate = new Date(aralikBit + "T23:59:59");
+      haftaQuery = query(
+        collection(db, "attendance"),
+        where("tip", "==", "haftaTatili"),
+        where("tarih", ">=", basDate),
+        where("tarih", "<=", bitDate)
       );
     } else if (aralikBas) {
-      vardiyaQuery = query(
-        collection(db, "vardiyaPlan"),
-        where("tarih", ">=", aralikBas)
+      const basDate = new Date(aralikBas + "T00:00:00");
+      haftaQuery = query(
+        collection(db, "attendance"),
+        where("tip", "==", "haftaTatili"),
+        where("tarih", ">=", basDate)
       );
     } else {
-      vardiyaQuery = query(collection(db, "vardiyaPlan"));
+      haftaQuery = query(
+        collection(db, "attendance"),
+        where("tip", "==", "haftaTatili")
+      );
     }
 
-    const vardiyaSnap = await getDocs(vardiyaQuery);
-    vardiyaSnap.forEach(doc => {
+    const haftaSnap = await getDocs(haftaQuery);
+    haftaSnap.forEach(doc => {
       const d = doc.data() as any;
-      if (d.haftaTatili === true) {
-        tumIzinler.push({
-          id: doc.id,
-          personelId: d.personelId || "",
-          personelAd: d.personelAd || "",
-          baslangicTarihi: d.tarih || "",
-          bitisTarihi: d.tarih || "",
-          izinTuru: "Haftalık İzin",
-          durum: "Onaylandı",
-          aciklama: "Hafta tatili",
-          kaynak: "vardiyaPlan",
-        });
-      }
+      const tarih = d.tarih?.toDate ? d.tarih.toDate() : new Date(d.tarih);
+      const tarihStr = tarih.toISOString().split("T")[0];
+      tumIzinler.push({
+        id: doc.id,
+        personelId: d.personelId || "",
+        personelAd: d.personelAd || "",
+        baslangicTarihi: tarihStr,
+        bitisTarihi: tarihStr,
+        izinTuru: "Haftalık İzin",
+        durum: "Onaylandı",
+        aciklama: "Hafta tatili",
+        kaynak: "vardiyaPlan", // uyumluluk için
+      });
     });
 
     
@@ -223,26 +231,26 @@ export function izinleriDinle(
     }
   );
 
-  // 2. VardiyaPlan listener (paralel, nested DEĞİL)
-  const vardiyaUnsubscribe = onSnapshot(
-    collection(db, "vardiyaPlan"),
-    (vardiyaSnap) => {
+  // 2. Attendance hafta tatili listener
+  const haftaUnsubscribe = onSnapshot(
+    query(collection(db, "attendance"), where("tip", "==", "haftaTatili")),
+    (haftaSnap) => {
       vardiyaData = [];
-      vardiyaSnap.forEach(doc => {
+      haftaSnap.forEach(doc => {
         const d = doc.data();
-        if (d.haftaTatili === true) {
-          vardiyaData.push({
-            id: doc.id,
-            personelId: d.personelId || "",
-            personelAd: d.personelAd || "",
-            baslangicTarihi: d.tarih || "",
-            bitisTarihi: d.tarih || "",
-            izinTuru: "Haftalık İzin",
-            durum: "Onaylandı",
-            aciklama: "Hafta tatili",
-            kaynak: "vardiyaPlan",
-          });
-        }
+        const tarih = d.tarih?.toDate ? d.tarih.toDate() : new Date(d.tarih);
+        const tarihStr = tarih.toISOString().split("T")[0];
+        vardiyaData.push({
+          id: doc.id,
+          personelId: d.personelId || "",
+          personelAd: d.personelAd || "",
+          baslangicTarihi: tarihStr,
+          bitisTarihi: tarihStr,
+          izinTuru: "Haftalık İzin",
+          durum: "Onaylandı",
+          aciklama: "Hafta tatili",
+          kaynak: "vardiyaPlan",
+        });
       });
       mergeAndCallback();
     }
@@ -251,6 +259,6 @@ export function izinleriDinle(
   // Cleanup: İKİ listener'ı da kapat
   return () => {
     izinlerUnsubscribe();
-    vardiyaUnsubscribe();
+    haftaUnsubscribe();
   };
 }
