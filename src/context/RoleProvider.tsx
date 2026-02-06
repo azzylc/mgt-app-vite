@@ -13,11 +13,12 @@ interface RoleContextType {
   rol: RolYetkileri | null;
   loading: boolean;
   user: any;
+  authReady: boolean;
 }
 
 const ROLE_CACHE_KEY = "cached_rol";
 
-const RoleContext = createContext<RoleContextType>({ rol: null, loading: true, user: null });
+const RoleContext = createContext<RoleContextType>({ rol: null, loading: true, user: null, authReady: false });
 
 // Cache'den hızlı yükle (sayfa yenilemede anında göster)
 function getCachedRol(): RolYetkileri | null {
@@ -117,7 +118,7 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
     return () => { cancelled = true; };
   }, [user?.email, authReady]);
 
-  const value = useMemo(() => ({ rol, loading, user }), [rol, loading, user]);
+  const value = useMemo(() => ({ rol, loading, user, authReady }), [rol, loading, user, authReady]);
   return <RoleContext.Provider value={value}>{children}</RoleContext.Provider>;
 }
 

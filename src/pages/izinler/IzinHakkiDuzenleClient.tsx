@@ -12,6 +12,7 @@ export default function IzinHakkiDuzenleClient() {
 
   const user = useAuth();
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // Form state
   const [personelAd, setPersonelAd] = useState("");

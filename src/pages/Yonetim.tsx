@@ -138,7 +138,7 @@ export default function YonetimPage() {
 
   // Sayfa yüklendiğinde bugünkü aya scroll yap
   useEffect(() => {
-    if (!loading && bugunAyRef.current && gelinler.length > 0) {
+    if (bugunAyRef.current && gelinler.length > 0) {
       setTimeout(() => {
         bugunAyRef.current?.scrollIntoView({
           behavior: 'smooth',
@@ -146,7 +146,7 @@ export default function YonetimPage() {
         });
       }, 300);
     }
-  }, [loading, gelinler]);
+  }, [gelinler]);
 
   // Hedef kaydet
   const handleHedefKaydet = async () => {

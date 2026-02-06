@@ -5,12 +5,13 @@ import Sidebar from '../components/Sidebar'
 
 export default function AuthLayout() {
   const user = useAuth()
-  const { loading } = useRole()
+  const { loading, authReady } = useRole()
 
   // Push notification: login olunca token al, Firestore'a kaydet
   usePushNotifications(user?.email)
 
-  if (loading) {
+  // Auth henüz hazır değilse veya roller yükleniyorsa bekle
+  if (!authReady || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-stone-900">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-400"></div>
