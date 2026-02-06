@@ -16,7 +16,8 @@ import {
   query, 
   orderBy,
   serverTimestamp,
-  where
+  where,
+  getDocs
 } from "firebase/firestore";
 
 // 🔥 Firebase Functions base URL
@@ -159,12 +160,12 @@ function PersonelPageContent() {
       if (user) {
         setUser(user);
         
-        // Kullanıcının kurucu olup olmadığını kontrol et
+        // Kullanıcının kurucu olup olmadığını kontrol et (tek seferlik okuma)
         const q = query(
           collection(db, "personnel"),
           where("email", "==", user.email)
         );
-        onSnapshot(q, (snapshot) => {
+        getDocs(q).then((snapshot) => {
           if (!snapshot.empty) {
             const data = snapshot.docs[0].data();
             const gruplar = data.grupEtiketleri || [];
