@@ -17,6 +17,7 @@ const RoleContext = createContext<RoleContextType>({ rol: null, loading: true })
 
 export function RoleProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any>(null);
+  const [authReady, setAuthReady] = useState(false);
   const [rol, setRol] = useState<RolYetkileri | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -24,12 +25,16 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
+      setAuthReady(true);
     });
     return unsubscribe;
   }, []);
 
   useEffect(() => {
     let cancelled = false;
+
+    // Auth henüz hazır değilse bekle
+    if (!authReady) return;
 
     (async () => {
       if (user?.email === undefined || user?.email === null) {
@@ -89,7 +94,7 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
     })();
 
     return () => { cancelled = true; };
-  }, [user?.email]);
+  }, [user?.email, authReady]);
 
   const value = useMemo(() => ({ rol, loading }), [rol, loading]);
   return <RoleContext.Provider value={value}>{children}</RoleContext.Provider>;
