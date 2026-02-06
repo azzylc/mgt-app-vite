@@ -30,6 +30,10 @@
 	<string>QR kod okumak için kamera erişimi gereklidir</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Giriş-çıkış kaydı için konum erişimi gereklidir</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

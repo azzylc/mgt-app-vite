@@ -3,14 +3,17 @@ import { Navigate, Outlet } from 'react-router-dom'
 import { onAuthStateChanged } from 'firebase/auth'
 import type { User } from 'firebase/auth'
 import { auth } from '../lib/firebase'
+import { usePushNotifications } from '../hooks/usePushNotifications'
 import Sidebar from '../components/Sidebar'
 
 export default function AuthLayout() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
+  // Push notification: login olunca token al, Firestore'a kaydet
+  usePushNotifications(user?.email)
 
+  useEffect(() => {
     const timeout = setTimeout(() => {
       setUser(null)
       setLoading(false)
@@ -40,7 +43,6 @@ export default function AuthLayout() {
     return <Navigate to="/login" replace />
   }
 
-  
   return (
     <>
       <Sidebar user={user} />
