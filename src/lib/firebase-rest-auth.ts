@@ -3,6 +3,7 @@
  */
 
 import { setToken, clearToken } from './authStore';
+import * as Sentry from '@sentry/react';
 
 const FIREBASE_API_KEY = import.meta.env.VITE_FIREBASE_API_KEY;
 const BASE_URL = 'https://identitytoolkit.googleapis.com/v1/accounts';
@@ -64,7 +65,7 @@ export async function signInWithEmailPasswordREST(
     
     return data;
   } catch (error: any) {
-    console.error('❌ [AUTH] Login error:', error);
+    Sentry.captureException(error);
     throw error;
   }
 }

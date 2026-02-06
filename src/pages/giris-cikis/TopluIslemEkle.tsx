@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
-import { auth, db } from "../../lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { db } from "../../lib/firebase";
 import { collection, query, onSnapshot, orderBy, addDoc, Timestamp } from "firebase/firestore";
-import { useNavigate } from "react-router-dom";
-import Sidebar from "../../components/Sidebar";
+import * as Sentry from '@sentry/react';
+import { useAuth } from "../../context/RoleProvider";
 
 interface Personel {
   id: string;
@@ -24,13 +23,10 @@ interface Konum {
 }
 
 export default function TopluIslemEklePage() {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const user = useAuth();
   const [saving, setSaving] = useState(false);
   const [personeller, setPersoneller] = useState<Personel[]>([]);
   const [konumlar, setKonumlar] = useState<Konum[]>([]);
-  const navigate = useNavigate();
-
   // Seçilenler
   const [seciliPersoneller, setSeciliPersoneller] = useState<Set<string>>(new Set());
   
@@ -42,18 +38,6 @@ export default function TopluIslemEklePage() {
   // Filtre
   const [grupFiltre, setGrupFiltre] = useState("");
   const [gruplar, setGruplar] = useState<string[]>([]);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-      } else {
-        navigate("/login");
-      }
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
 
   // Varsayılan tarih
   useEffect(() => {
@@ -220,25 +204,15 @@ export default function TopluIslemEklePage() {
       alert(`${seciliPersoneller.size} kişi için kayıt başarıyla eklendi!`);
       setSeciliPersoneller(new Set());
     } catch (error) {
-      console.error("Toplu kayıt hatası:", error);
+      Sentry.captureException(error);
       alert("Kayıt eklenirken hata oluştu!");
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-stone-50">
-      <Sidebar user={user} />
-
       <div className="md:ml-56 pb-20 md:pb-0">
         <header className="bg-white border-b px-4 md:px-6 py-4 sticky top-0 z-30">
           <h1 className="text-xl font-bold text-stone-800">Toplu İşlem Ekle</h1>

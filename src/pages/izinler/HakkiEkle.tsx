@@ -1,10 +1,10 @@
 import { Suspense } from "react";
 import { useState, useEffect } from "react";
 import { useSearchParams , useNavigate } from "react-router-dom";
-import { auth, db } from "../../lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { db } from "../../lib/firebase";
 import { collection, query, onSnapshot, addDoc, doc, updateDoc, increment } from "firebase/firestore";
-import Sidebar from "../../components/Sidebar";
+import * as Sentry from '@sentry/react';
+import { useAuth } from "../../context/RoleProvider";
 
 interface Personel {
   id: string;
@@ -19,8 +19,7 @@ function IzinHakkiEkleContent() {
   const [searchParams] = useSearchParams();
   const preSelectedPersonel = searchParams.get("personel") || "";
 
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const user = useAuth();
   const [saving, setSaving] = useState(false);
   const [personeller, setPersoneller] = useState<Personel[]>([]);
 
@@ -79,18 +78,6 @@ function IzinHakkiEkleContent() {
     setHakGunu(izinHakki.toString());
     setAciklama(`${iseGirisTarihi} tarihinde işe başladığı için ${calismaYili}. yılını doldurmuştur. ${buYil} yılı için toplam ${izinHakki} gün izin hakkı eklenmiştir.`);
   };
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-        setLoading(false);
-      } else {
-        navigate("/login");
-      }
-    });
-    return () => unsubscribe();
-  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -160,25 +147,15 @@ function IzinHakkiEkleContent() {
         alert("İzin hakkı başarıyla eklendi. Yeni kayıt girebilirsiniz.");
       }
     } catch (error) {
-      console.error("Kaydetme hatası:", error);
+      Sentry.captureException(error);
       alert("Kaydetme işlemi başarısız oldu.");
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-neutral-warm">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex min-h-screen bg-neutral-warm">
-      <Sidebar user={user} />
-
       <main className="flex-1 p-4 lg:p-6 md:ml-56 pb-20 md:pb-0">
         <div className="mb-6 flex items-start justify-between">
           <div>

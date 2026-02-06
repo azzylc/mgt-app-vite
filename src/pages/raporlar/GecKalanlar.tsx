@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { auth, db } from "../../lib/firebase";
 import { collection, query, onSnapshot, orderBy, where, Timestamp, getDocs } from "firebase/firestore";
+import * as Sentry from '@sentry/react';
 
 interface Personel {
   id: string;
@@ -178,7 +179,7 @@ export default function GecKalanlarPage() {
 
       setGecKalanlar(results);
     } catch (error) {
-      console.error("Veri çekme hatası:", error);
+      Sentry.captureException(error);
       alert("Veri çekilirken hata oluştu. Konsolu kontrol edin.");
     } finally {
       setDataLoading(false);

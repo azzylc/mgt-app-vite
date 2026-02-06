@@ -1,6 +1,7 @@
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import { signInWithCredential, EmailAuthProvider } from 'firebase/auth';
 import { auth } from './firebase';
+import * as Sentry from '@sentry/react';
 
 /**
  * Native iOS/Android auth
@@ -25,7 +26,7 @@ export async function nativeSignIn(email: string, password: string) {
     return webResult;
     
   } catch (error: any) {
-    console.error('❌ [NATIVE] Auth failed:', error);
+    Sentry.captureException(error);
     throw error;
   }
 }
@@ -38,7 +39,7 @@ export async function nativeSignOut(): Promise<void> {
     await FirebaseAuthentication.signOut();
     await auth.signOut();
   } catch (error) {
-    console.error('❌ [NATIVE] Logout failed:', error);
+    Sentry.captureException(error);
     throw error;
   }
 }

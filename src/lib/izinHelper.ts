@@ -10,6 +10,7 @@
 
 import { collection, getDocs, query, where, onSnapshot, orderBy } from "firebase/firestore";
 import { db } from "./firebase";
+import * as Sentry from '@sentry/react';
 
 export interface IzinKaydi {
   id: string;
@@ -107,7 +108,7 @@ export async function tumIzinleriGetir(
 
     
   } catch (error) {
-    console.error("❌ İzinleri getirirken hata:", error);
+    Sentry.captureException(error);
   }
 
   return tumIzinler;

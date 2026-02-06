@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { auth, db } from "../../lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { db } from "../../lib/firebase";
 import { collection, query, onSnapshot, orderBy, addDoc, Timestamp } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
-import Sidebar from "../../components/Sidebar";
+import * as Sentry from '@sentry/react';
+import { useAuth } from "../../context/RoleProvider";
 
 interface Personel {
   id: string;
@@ -19,8 +19,7 @@ interface Konum {
 }
 
 export default function ManuelIslemEklePage() {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const user = useAuth();
   const [personeller, setPersoneller] = useState<Personel[]>([]);
   const [konumlar, setKonumlar] = useState<Konum[]>([]);
   const [saving, setSaving] = useState(false);
@@ -32,18 +31,6 @@ export default function ManuelIslemEklePage() {
   const [tarih, setTarih] = useState("");
   const [kayitTuru, setKayitTuru] = useState("giris");
   const [mazeret, setMazeret] = useState("");
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-      } else {
-        navigate("/login");
-      }
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
 
   // Şu anki tarih/saat
   useEffect(() => {
@@ -155,7 +142,7 @@ export default function ManuelIslemEklePage() {
       alert("Kayıt başarıyla eklendi!");
       return true;
     } catch (error) {
-      console.error("Kayıt hatası:", error);
+      Sentry.captureException(error);
       alert("Kayıt eklenirken hata oluştu!");
       return false;
     } finally {
@@ -163,18 +150,8 @@ export default function ManuelIslemEklePage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-stone-50">
-      <Sidebar user={user} />
-
       <div className="md:ml-56 pb-20 md:pb-0">
         <header className="bg-white border-b px-4 md:px-6 py-4 sticky top-0 z-30">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

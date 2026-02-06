@@ -1,8 +1,5 @@
 import { useState, useEffect } from "react";
-import { auth, db } from "../lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
+import { db } from "../lib/firebase";
 import { Capacitor } from "@capacitor/core";
 import { Geolocation } from "@capacitor/geolocation";
 import { 
@@ -16,6 +13,7 @@ import {
   limit
 } from "firebase/firestore";
 import { Scanner } from "@yudiel/react-qr-scanner";
+import { useAuth } from "../context/RoleProvider";
 
 interface Personel {
   id: string;
@@ -42,8 +40,7 @@ interface Konum {
 }
 
 export default function QRGirisPage() {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const user = useAuth();
   const [personel, setPersonel] = useState<Personel | null>(null);
   const [scanning, setScanning] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -52,33 +49,6 @@ export default function QRGirisPage() {
   const [sonIslem, setSonIslem] = useState<SonIslem | null>(null);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [locationError, setLocationError] = useState("");
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setUser(user);
-        const q = query(collection(db, "personnel"), where("email", "==", user.email));
-        const snapshot = await getDocs(q);
-        if (!snapshot.empty) {
-          const data = snapshot.docs[0].data();
-          setPersonel({
-            id: snapshot.docs[0].id,
-            ad: data.ad,
-            soyad: data.soyad,
-            email: data.email,
-            foto: data.foto || ""
-          });
-          await fetchSonIslem(snapshot.docs[0].id);
-        }
-      } else {
-        navigate("/login");
-      }
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
-
   // Native platformda konum iznini sayfa açılınca al (popup bir kere çıkar)
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
@@ -228,14 +198,6 @@ export default function QRGirisPage() {
     return date.toLocaleString("tr-TR", { hour: "2-digit", minute: "2-digit" });
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-rose-500 border-t-transparent"></div>
-      </div>
-    );
-  }
-
   // Tam ekran kamera modu
   if (scanning) {
     return (
@@ -269,8 +231,6 @@ export default function QRGirisPage() {
 
   return (
     <div className="min-h-screen bg-stone-50">
-      <Sidebar user={user} />
-      
       <div className="pb-20 md:pb-0">
         <header className="bg-white border-b px-4 md:px-6 py-4 sticky top-0 z-30">
           <h1 className="text-lg md:text-xl font-bold text-stone-800">📱 QR Giris-Cikis</h1>

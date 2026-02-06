@@ -3,6 +3,7 @@ import { Capacitor } from '@capacitor/core';
 import { FirebaseMessaging } from '@capacitor-firebase/messaging';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import * as Sentry from '@sentry/react';
 
 /**
  * Push Notification Hook (Firebase Cloud Messaging)
@@ -25,7 +26,7 @@ export function usePushNotifications(userEmail: string | null | undefined) {
         const permission = await FirebaseMessaging.requestPermissions();
         
         if (permission.receive !== 'granted') {
-          console.error('Push notification izni reddedildi');
+          Sentry.captureException(new Error('Push notification izni reddedildi'));
           return;
         }
 
@@ -63,7 +64,7 @@ export function usePushNotifications(userEmail: string | null | undefined) {
 
         registered.current = true;
       } catch (err) {
-        console.error('Push notification setup hatası:', err);
+        Sentry.captureException(err);
       }
     };
 

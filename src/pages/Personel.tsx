@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { auth, db } from "../lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
-import { useSearchParams , useNavigate } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
+import { useSearchParams } from "react-router-dom";
 import Cropper from "react-easy-crop";
 import { useGrupEtiketleri } from "../hooks/useGrupEtiketleri";
 import { getRenkStilleri } from "../lib/grupEtiketleri";
@@ -19,6 +17,8 @@ import {
   where,
   getDocs
 } from "firebase/firestore";
+import * as Sentry from '@sentry/react';
+import { useAuth } from "../context/RoleProvider";
 
 // 🔥 Firebase Functions base URL
 const API_BASE = 'https://europe-west1-gmt-test-99b30.cloudfunctions.net';
@@ -76,8 +76,7 @@ export default function PersonelPage() {
 }
 
 function PersonelPageContent() {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const user = useAuth();
   const [personeller, setPersoneller] = useState<Personel[]>([]);
   const [isKurucu, setIsKurucu] = useState(false); // Giriş yapan kullanıcı kurucu mu?
   const [showModal, setShowModal] = useState(false);
@@ -91,7 +90,6 @@ function PersonelPageContent() {
   const [selectedPersonel, setSelectedPersonel] = useState<Personel | null>(null);
   const [activeTab, setActiveTab] = useState(0);
   const [fotoPreview, setFotoPreview] = useState("");
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const grupFilter = searchParams.get("grup") || "";
   const ayrilanlarFilter = searchParams.get("ayrilanlar") === "true";
@@ -154,31 +152,6 @@ function PersonelPageContent() {
     }
   });
   const [apiLoading, setApiLoading] = useState(false);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-        
-        // Kullanıcının kurucu olup olmadığını kontrol et (tek seferlik okuma)
-        const q = query(
-          collection(db, "personnel"),
-          where("email", "==", user.email)
-        );
-        getDocs(q).then((snapshot) => {
-          if (!snapshot.empty) {
-            const data = snapshot.docs[0].data();
-            const gruplar = data.grupEtiketleri || [];
-            setIsKurucu(gruplar.some((g: string) => g.toLowerCase() === "kurucu"));
-          }
-        });
-      } else {
-        navigate("/login");
-      }
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -320,7 +293,7 @@ function PersonelPageContent() {
         setActiveTab(0);
       }
     } catch (error: any) {
-      console.error("Hata:", error);
+      Sentry.captureException(error);
       alert(`İşlem başarısız: ${error.message}`);
     } finally {
       setApiLoading(false);
@@ -351,7 +324,7 @@ function PersonelPageContent() {
           alert('❌ Hata: ' + result.error);
         }
       } catch (error) {
-        console.error("Hata:", error);
+        Sentry.captureException(error);
         alert('❌ İşlem başarısız!');
       }
     }
@@ -387,7 +360,7 @@ function PersonelPageContent() {
           alert('❌ Hata: ' + result.error);
         }
       } catch (error) {
-        console.error("Hata:", error);
+        Sentry.captureException(error);
         alert('❌ İşlem başarısız!');
       }
     }
@@ -418,7 +391,7 @@ function PersonelPageContent() {
           alert('❌ Hata: ' + result.error);
         }
       } catch (error) {
-        console.error("Hata:", error);
+        Sentry.captureException(error);
         alert('❌ İşlem başarısız!');
       }
     }
@@ -569,7 +542,7 @@ function PersonelPageContent() {
       setShowCropModal(false);
       setCropImageSrc("");
     } catch (e) {
-      console.error(e);
+      Sentry.captureException(e);
       alert("Fotoğraf kırpılırken hata oluştu!");
     }
   };
@@ -613,18 +586,8 @@ function PersonelPageContent() {
     return 0;
   });
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-stone-50">
-      <Sidebar user={user} />
-      
       <div className="pb-20 md:pb-0">
         <header className="bg-white border-b px-6 py-4 sticky top-0 z-30">
           <div className="flex items-center justify-between">

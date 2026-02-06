@@ -1,8 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { auth, db } from "../lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
+import { db } from "../lib/firebase";
 import { 
   collection, 
   addDoc, 
@@ -20,6 +17,8 @@ import {
   setDoc,
   getDoc
 } from "firebase/firestore";
+import * as Sentry from '@sentry/react';
+import { useAuth } from "../context/RoleProvider";
 
 interface Konum {
   id: string;
@@ -87,11 +86,8 @@ const menuListesi = [
 ];
 
 export default function AyarlarPage() {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const user = useAuth();
   const [activeTab, setActiveTab] = useState(0);
-  const navigate = useNavigate();
-
   // Konumlar state
   const [konumlar, setKonumlar] = useState<Konum[]>([]);
   const [showKonumModal, setShowKonumModal] = useState(false);
@@ -167,18 +163,6 @@ export default function AyarlarPage() {
   ];
 
   // Auth
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-      } else {
-        navigate("/login");
-      }
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
-
   // Konumları çek
   useEffect(() => {
     if (!user) return;
@@ -218,7 +202,7 @@ export default function AyarlarPage() {
           setGenelAyarlar(docSnap.data() as GenelAyarlar);
         }
       } catch (error) {
-        console.error("Genel ayarlar yüklenemedi:", error);
+        Sentry.captureException(error);
       }
     };
     fetchGenelAyarlar();
@@ -235,7 +219,7 @@ export default function AyarlarPage() {
           setRolYetkileri(docSnap.data() as RolYetkileri);
         }
       } catch (error) {
-        console.error("Rol yetkileri yüklenemedi:", error);
+        Sentry.captureException(error);
       }
     };
     fetchRolYetkileri();
@@ -309,7 +293,7 @@ export default function AyarlarPage() {
             await batch.commit();
           }
         } catch (error) {
-          console.error("Otomatik düzeltme hatası:", error);
+          Sentry.captureException(error);
         }
       }
     });
@@ -323,7 +307,7 @@ export default function AyarlarPage() {
       await setDoc(doc(db, "settings", "general"), genelAyarlar);
       alert("✅ Genel ayarlar kaydedildi!");
     } catch (error) {
-      console.error("Genel ayarlar kaydedilemedi:", error);
+      Sentry.captureException(error);
       alert("❌ Kaydetme hatası!");
     } finally {
       setGenelAyarlarLoading(false);
@@ -337,7 +321,7 @@ export default function AyarlarPage() {
       await setDoc(doc(db, "settings", "permissions"), rolYetkileri);
       alert("✅ Rol yetkileri kaydedildi!");
     } catch (error) {
-      console.error("Rol yetkileri kaydedilemedi:", error);
+      Sentry.captureException(error);
       alert("❌ Kaydetme hatası!");
     } finally {
       setRolYetkileriLoading(false);
@@ -379,7 +363,7 @@ export default function AyarlarPage() {
       setEditingKonum(null);
       resetKonumForm();
     } catch (error) {
-      console.error("Hata:", error);
+      Sentry.captureException(error);
       alert("İşlem başarısız!");
     }
   };
@@ -389,7 +373,7 @@ export default function AyarlarPage() {
       try {
         await deleteDoc(doc(db, "locations", id));
       } catch (error) {
-        console.error("Hata:", error);
+        Sentry.captureException(error);
       }
     }
   };
@@ -478,7 +462,7 @@ export default function AyarlarPage() {
       setEditingGrup(null);
       resetGrupForm();
     } catch (error) {
-      console.error("Hata:", error);
+      Sentry.captureException(error);
       alert("İşlem başarısız!");
     }
   };
@@ -515,7 +499,7 @@ export default function AyarlarPage() {
         
         alert(`"${grupAdi}" etiketi silindi ve ${updateCount} personelden kaldırıldı.`);
       } catch (error) {
-        console.error("Hata:", error);
+        Sentry.captureException(error);
         alert("İşlem başarısız!");
       }
     }
@@ -573,7 +557,7 @@ export default function AyarlarPage() {
       setShowFirmaModal(false);
       resetFirmaForm();
     } catch (error) {
-      console.error("Firma kaydetme hatası:", error);
+      Sentry.captureException(error);
       alert("Firma kaydedilemedi!");
     }
   };
@@ -592,7 +576,7 @@ export default function AyarlarPage() {
       try {
         await deleteDoc(doc(db, "companies", id));
       } catch (error) {
-        console.error("Firma silme hatası:", error);
+        Sentry.captureException(error);
         alert("Firma silinemedi!");
       }
     }
@@ -617,18 +601,8 @@ export default function AyarlarPage() {
     });
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-stone-50">
-      <Sidebar user={user} />
-      
       <div className="pb-20 md:pb-0">
         <header className="bg-white border-b px-6 py-4 sticky top-0 z-30">
           <div>

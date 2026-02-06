@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth, db } from "../../lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { db } from "../../lib/firebase";
 import { collection, query, orderBy, onSnapshot, deleteDoc, doc, updateDoc, increment } from "firebase/firestore";
-import Sidebar from "../../components/Sidebar";
+import * as Sentry from '@sentry/react';
+import { useAuth } from "../../context/RoleProvider";
 
 interface IzinHakKaydi {
   id: string;
@@ -19,8 +19,7 @@ interface IzinHakKaydi {
 
 export default function IzinHaklariListele() {
   const navigate = useNavigate();
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const user = useAuth();
   const [kayitlar, setKayitlar] = useState<IzinHakKaydi[]>([]);
   const [filteredKayitlar, setFilteredKayitlar] = useState<IzinHakKaydi[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -31,18 +30,6 @@ export default function IzinHaklariListele() {
   const [editGun, setEditGun] = useState<number>(0);
   const [editAciklama, setEditAciklama] = useState("");
   const [editSaving, setEditSaving] = useState(false);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-        setLoading(false);
-      } else {
-        navigate("/login");
-      }
-    });
-    return () => unsubscribe();
-  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -146,7 +133,7 @@ export default function IzinHaklariListele() {
       alert("Kayıt başarıyla güncellendi." + (gunFark !== 0 ? ` Personelin izin hakkı ${gunFark > 0 ? "+" : ""}${gunFark} gün güncellendi.` : ""));
       setEditKayit(null);
     } catch (error) {
-      console.error("Güncelleme hatası:", error);
+      Sentry.captureException(error);
       alert("Güncelleme işlemi başarısız oldu.");
     } finally {
       setEditSaving(false);
@@ -169,25 +156,15 @@ export default function IzinHaklariListele() {
       await deleteDoc(doc(db, "izinHakDegisiklikleri", kayit.id));
       alert("Kayıt silindi ve personelin izin hakkından düşüldü.");
     } catch (error) {
-      console.error("Silme hatası:", error);
+      Sentry.captureException(error);
       alert("Silme işlemi başarısız oldu.");
     }
   };
 
   const toplamEklenenGun = filteredKayitlar.reduce((sum, k) => sum + k.eklenenGun, 0);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-neutral-warm">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex min-h-screen bg-neutral-warm">
-      <Sidebar user={user} />
-
       <main className="flex-1 p-4 lg:p-6 md:ml-56 pb-20 md:pb-0">
         <div className="mb-6 flex items-start justify-between">
           <div>

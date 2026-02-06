@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { auth, db } from "../../lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { db } from "../../lib/firebase";
 import { useNavigate } from "react-router-dom";
-import Sidebar from "../../components/Sidebar";
 import { collection, getDocs, orderBy, query, where, onSnapshot } from "firebase/firestore";
+import * as Sentry from '@sentry/react';
+import { useAuth } from "../../context/RoleProvider";
 
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyr_9fBVzkVXf-Fx4s-DUjFTPhHlxm54oBGrrG3UGfNengHOp8rQbXKdX8pOk4reH8/exec";
 
@@ -17,45 +17,13 @@ interface KarsilastirmaSonuc {
 
 export default function ComparePage() {
   const navigate = useNavigate();
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const user = useAuth();
   const [yetkisiz, setYetkisiz] = useState(false);
   const [comparing, setComparing] = useState(false);
   const [sonuc, setSonuc] = useState<KarsilastirmaSonuc | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Auth kontrolü - Sadece kurucu
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
-        // Kullanıcı grup kontrolü (yönetim sayfasıyla aynı)
-        const q = query(
-          collection(db, "personnel"),
-          where("email", "==", currentUser.email)
-        );
-        const unsubPersonel = onSnapshot(q, (snapshot) => {
-          if (!snapshot.empty) {
-            const data = snapshot.docs[0].data();
-            const gruplar = data.grupEtiketleri || [];
-            const isKurucu = gruplar.some((g: string) => g.toLowerCase() === "kurucu");
-            if (!isKurucu) {
-              setYetkisiz(true);
-            }
-          } else {
-            setYetkisiz(true);
-          }
-          setLoading(false);
-        });
-        return () => unsubPersonel();
-      } else {
-        navigate("/login");
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
   // İsim normalizasyon fonksiyonu
   const normalizeIsim = (isim: string): string => {
     if (!isim) return '';
@@ -143,20 +111,12 @@ export default function ComparePage() {
       });
       
     } catch (err: any) {
-      console.error('❌ Karşılaştırma hatası:', err);
+      Sentry.captureException(err);
       setError(err.message || 'Bir hata oluştu');
     } finally {
       setComparing(false);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-      </div>
-    );
-  }
 
   if (yetkisiz) {
     return (
@@ -178,7 +138,6 @@ export default function ComparePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Sidebar user={user} />
       <div className="md:ml-56 pb-20 md:pb-0">
         <header className="bg-white border-b px-6 py-4 sticky top-0 z-30">
           <div className="flex items-center justify-between">

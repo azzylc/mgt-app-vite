@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { onAuthStateChanged } from "firebase/auth";
 import { collection, query, orderBy, onSnapshot, doc, setDoc, deleteDoc, Timestamp, getDocs, where } from "firebase/firestore";
-import { auth, db } from "../../lib/firebase";
-import Sidebar from "../../components/Sidebar";
+import { db } from "../../lib/firebase";
 import { resmiTatiller } from "../../lib/data";
 import { tarihAraligiIzinleriGetir } from "../../lib/izinHelper";
+import * as Sentry from '@sentry/react';
+import { useAuth } from "../../context/RoleProvider";
 
 interface Personel {
   id: string;
@@ -34,9 +33,7 @@ interface PersonelVardiya {
 }
 
 export default function VardiyaPlaniPage() {
-  const navigate = useNavigate();
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const user = useAuth();
   const [personeller, setPersoneller] = useState<Personel[]>([]);
   const [vardiyaData, setVardiyaData] = useState<PersonelVardiya[]>([]);
   const [dataLoading, setDataLoading] = useState(false);
@@ -112,18 +109,6 @@ export default function VardiyaPlaniPage() {
   const formatTarihKey = (date: Date) => {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   };
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-      } else {
-        navigate("/login");
-      }
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
 
   // Personelleri çek
   useEffect(() => {
@@ -230,7 +215,7 @@ export default function VardiyaPlaniPage() {
         });
         
       } catch (e) {
-        console.error("İzin verisi çekilemedi:", e);
+        Sentry.captureException(e);
       }
 
       const results: PersonelVardiya[] = [];
@@ -283,7 +268,7 @@ export default function VardiyaPlaniPage() {
 
       setVardiyaData(results);
     } catch (error) {
-      console.error("Veri çekme hatası:", error);
+      Sentry.captureException(error);
     } finally {
       setDataLoading(false);
     }
@@ -355,7 +340,7 @@ export default function VardiyaPlaniPage() {
       setEditModal(null);
       fetchVardiyaData();
     } catch (error) {
-      console.error("Kaydetme hatası:", error);
+      Sentry.captureException(error);
       alert("Kaydetme başarısız!");
     } finally {
       setSaving(false);
@@ -373,7 +358,7 @@ export default function VardiyaPlaniPage() {
       setEditModal(null);
       fetchVardiyaData();
     } catch (error) {
-      console.error("Silme hatası:", error);
+      Sentry.captureException(error);
     }
   };
 
@@ -479,14 +464,6 @@ export default function VardiyaPlaniPage() {
   // Haftaları listele
   const haftalar = Array.from({ length: 53 }, (_, i) => i + 1);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500"></div>
-      </div>
-    );
-  }
-
   if (!user) return null;
 
   const haftaBaslangic = formatTarih(haftaGunleri[0]);
@@ -494,8 +471,6 @@ export default function VardiyaPlaniPage() {
 
   return (
     <div className="min-h-screen bg-stone-50">
-      <Sidebar user={user} />
-      
       <div className="md:ml-56 pb-20 md:pb-0">
         <header className="bg-white border-b px-4 md:px-6 py-4 sticky top-0 z-30">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

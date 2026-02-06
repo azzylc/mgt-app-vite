@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth, db } from "../../lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { db } from "../../lib/firebase";
 import { collection, query, onSnapshot, where } from "firebase/firestore";
-import Sidebar from "../../components/Sidebar";
+import { useAuth } from "../../context/RoleProvider";
 
 interface PersonelIzin {
   id: string;
@@ -22,8 +21,7 @@ interface PersonelIzin {
 
 export default function IzinToplamlari() {
   const navigate = useNavigate();
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const user = useAuth();
   const [personeller, setPersoneller] = useState<PersonelIzin[]>([]);
   const [showInactive, setShowInactive] = useState(true);
 
@@ -40,18 +38,6 @@ export default function IzinToplamlari() {
     setShowInactive(value);
     localStorage.setItem("izinToplamları_showInactive", value.toString());
   };
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-        setLoading(false);
-      } else {
-        navigate("/login");
-      }
-    });
-    return () => unsubscribe();
-  }, []);
 
   // Personel ve izin verilerini çek
   useEffect(() => {
@@ -114,18 +100,8 @@ export default function IzinToplamlari() {
   const aktifSayisi = personeller.filter(p => p.aktif).length;
   const pasifSayisi = personeller.filter(p => !p.aktif).length;
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-neutral-warm">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex min-h-screen bg-neutral-warm">
-      <Sidebar user={user} />
-
       <main className="flex-1 p-4 lg:p-6 md:ml-56 pb-20 md:pb-0">
         {/* Header */}
         <div className="mb-6">

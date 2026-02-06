@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../lib/firebase';
+import * as Sentry from '@sentry/react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -17,7 +18,7 @@ export default function Login() {
       await signInWithEmailAndPassword(auth, email.trim(), password);
       navigate('/');
     } catch (err: any) {
-      console.error('❌ [LOGIN] Error:', err);
+      Sentry.captureException(err);
       setError('Giriş başarısız. Lütfen bilgilerinizi kontrol edin.');
     }
   };

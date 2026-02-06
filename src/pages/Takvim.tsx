@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { auth, db } from "../lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
+import { db } from "../lib/firebase";
 import GelinModal from "../components/GelinModal";
 import { resmiTatiller } from "../lib/data";
 import { collection, onSnapshot, query, orderBy, where } from "firebase/firestore";
+import * as Sentry from '@sentry/react';
+import { useAuth } from "../context/RoleProvider";
 
 interface Personel {
   id: string;
@@ -44,10 +43,9 @@ interface Gelin {
 }
 
 export default function TakvimPage() {
-  const [user, setUser] = useState<any>(null);
+  const user = useAuth();
   const [gelinler, setGelinler] = useState<Gelin[]>([]);
   const [personeller, setPersoneller] = useState<Personel[]>([]);
-  const [loading, setLoading] = useState(true);
   const [dataLoading, setDataLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedGelin, setSelectedGelin] = useState<Gelin | null>(null);
@@ -55,24 +53,10 @@ export default function TakvimPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
-
   const aylar = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
   const gunler = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
 
   // Auth kontrolü
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-      } else {
-        navigate("/login");
-      }
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
-
   // ✅ Personel verisi - Firestore'dan (real-time)
   useEffect(() => {
     if (!user) return;
@@ -121,7 +105,7 @@ export default function TakvimPage() {
       setGelinler(data);
       setDataLoading(false);
     }, (error) => {
-      console.error('❌ Firestore listener hatası:', error);
+      Sentry.captureException(error);
       setDataLoading(false);
     });
 
@@ -237,18 +221,8 @@ export default function TakvimPage() {
     .sort((a, b) => b.sayi - a.sayi)
     .slice(0, 4); // En yoğun 4 gün
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-neutral-warm">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-neutral-warm">
-      <Sidebar user={user} />
-      
       <div className="pb-20 md:pb-0">
         <header className="page-header">
           <div className="flex items-center justify-between gap-3">

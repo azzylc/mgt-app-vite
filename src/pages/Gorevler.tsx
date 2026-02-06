@@ -1,8 +1,5 @@
 import { useState, useEffect } from "react";
-import { auth, db } from "../lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
+import { db } from "../lib/firebase";
 import GelinModal from "../components/GelinModal";
 import {
   collection,
@@ -20,6 +17,8 @@ import {
   setDoc,
   getDoc
 } from "firebase/firestore";
+import * as Sentry from '@sentry/react';
+import { useAuth } from "../context/RoleProvider";
 
 interface Gorev {
   id: string;
@@ -95,10 +94,9 @@ interface GorevAyarlari {
 }
 
 export default function GorevlerPage() {
-  const [user, setUser] = useState<any>(null);
+  const user = useAuth();
   const [userRole, setUserRole] = useState<string>("");
   const [userFirmalar, setUserFirmalar] = useState<string[]>([]); // Yöneticinin firmaları
-  const [loading, setLoading] = useState(true);
   const [gorevler, setGorevler] = useState<Gorev[]>([]);
   const [tumGorevler, setTumGorevler] = useState<Gorev[]>([]); // Kurucu/Yönetici için
   const [personeller, setPersoneller] = useState<Personel[]>([]);
@@ -117,21 +115,7 @@ export default function GorevlerPage() {
     paylasimIzni: { aktif: false, baslangicTarihi: "", saatFarki: 2 },
     yorumIstendiMi: { aktif: false, baslangicTarihi: "", saatFarki: 0 }
   });
-  const navigate = useNavigate();
-
   // Auth kontrolü
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
-      } else {
-        navigate("/login");
-      }
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
-
   // Görev ayarlarını Firestore'dan çek
   useEffect(() => {
     if (!user) return;
@@ -143,7 +127,7 @@ export default function GorevlerPage() {
           setGorevAyarlari(ayarDoc.data() as GorevAyarlari);
         }
       } catch (error) {
-        console.error("Görev ayarları çekilemedi:", error);
+        Sentry.captureException(error);
       }
     };
     fetchAyarlar();
@@ -189,7 +173,7 @@ export default function GorevlerPage() {
         });
       }
     } catch (error) {
-      console.error("Gelin çekilemedi:", error);
+      Sentry.captureException(error);
     } finally {
       setGelinLoading(false);
     }
@@ -342,7 +326,7 @@ export default function GorevlerPage() {
       }
       await updateDoc(doc(db, "gorevler", gorevId), updateData);
     } catch (error) {
-      console.error("Durum güncellenemedi:", error);
+      Sentry.captureException(error);
     }
   };
 
@@ -491,7 +475,7 @@ export default function GorevlerPage() {
 
       alert(`✅ Senkronizasyon tamamlandı!\n\n• ${toplamSilinen} görev silindi\n• ${toplamOlusturulan} yeni görev oluşturuldu`);
     } catch (error) {
-      console.error("Senkronizasyon hatası:", error);
+      Sentry.captureException(error);
       alert("❌ Senkronizasyon sırasında hata oluştu!");
     } finally {
       setSenkronizeLoading(null);
@@ -504,7 +488,7 @@ export default function GorevlerPage() {
     try {
       await deleteDoc(doc(db, "gorevler", gorevId));
     } catch (error) {
-      console.error("Görev silinemedi:", error);
+      Sentry.captureException(error);
     }
   };
 
@@ -538,17 +522,8 @@ export default function GorevlerPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-stone-50 flex">
-      <Sidebar user={user} />
       <div className="flex-1">
         <header className="bg-white shadow-sm sticky top-0 z-10 border-b border-stone-200">
           <div className="px-4 md:px-6 py-3 flex items-center justify-between">

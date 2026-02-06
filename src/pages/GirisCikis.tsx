@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
-import { auth, db } from "../lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
+import { db } from "../lib/firebase";
 import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, where, serverTimestamp, Timestamp } from "firebase/firestore";
+import * as Sentry from '@sentry/react';
+import { useAuth } from "../context/RoleProvider";
 
 interface Attendance {
   id: string;
@@ -25,28 +24,13 @@ interface Personel {
 }
 
 export default function GirisCikisPage() {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const user = useAuth();
   const [records, setRecords] = useState<Attendance[]>([]);
   const [personeller, setPersoneller] = useState<Personel[]>([]);
   const [filterTarih, setFilterTarih] = useState(new Date().toISOString().split('T')[0]);
   const [filterPersonel, setFilterPersonel] = useState("hepsi");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-      } else {
-        navigate("/login");
-      }
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
-
   // Personelleri Firebase'den çek
   useEffect(() => {
     if (!user) return;
@@ -89,7 +73,7 @@ export default function GirisCikisPage() {
       try {
         await deleteDoc(doc(db, "attendance", id));
       } catch (error) {
-        console.error("Hata:", error);
+        Sentry.captureException(error);
       }
     }
   };
@@ -153,18 +137,8 @@ export default function GirisCikisPage() {
   const girisYapanlar = Object.values(ozet).filter(o => o.giris).length;
   const cikisYapanlar = Object.values(ozet).filter(o => o.cikis).length;
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-stone-50">
-      <Sidebar user={user} />
-      
       <div className="pb-20 md:pb-0">
         <header className="bg-white border-b px-6 py-4 sticky top-0 z-30">
           <div className="flex items-center justify-between">

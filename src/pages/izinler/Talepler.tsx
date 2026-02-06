@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { auth, db } from "../../lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { db } from "../../lib/firebase";
 import { collection, query, orderBy, limit, onSnapshot, doc, updateDoc, addDoc, increment } from "firebase/firestore";
-import Sidebar from "../../components/Sidebar";
+import * as Sentry from '@sentry/react';
+import { useAuth } from "../../context/RoleProvider";
 
 interface IzinTalebi {
   id: string;
@@ -20,24 +19,10 @@ interface IzinTalebi {
 }
 
 export default function IzinTalepleri() {
-  const navigate = useNavigate();
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const user = useAuth();
   const [talepler, setTalepler] = useState<IzinTalebi[]>([]);
   const [filteredTalepler, setFilteredTalepler] = useState<IzinTalebi[]>([]);
   const [filterDurum, setFilterDurum] = useState("Tümü");
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-        setLoading(false);
-      } else {
-        navigate("/login");
-      }
-    });
-    return () => unsubscribe();
-  }, []);
 
   // Firebase'den talepleri çek
   useEffect(() => {
@@ -145,7 +130,7 @@ export default function IzinTalepleri() {
 
       alert("İzin talebi onaylandı.");
     } catch (error) {
-      console.error("Onaylama hatası:", error);
+      Sentry.captureException(error);
       alert("İşlem başarısız oldu.");
     }
   };
@@ -166,26 +151,16 @@ export default function IzinTalepleri() {
 
       alert("İzin talebi reddedildi.");
     } catch (error) {
-      console.error("Reddetme hatası:", error);
+      Sentry.captureException(error);
       alert("İşlem başarısız oldu.");
     }
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-neutral-warm">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-      </div>
-    );
-  }
 
   // Bekleyen talep sayısı
   const bekleyenSayisi = talepler.filter(t => t.durum === "Beklemede").length;
 
   return (
     <div className="flex min-h-screen bg-neutral-warm">
-      <Sidebar user={user} />
-
       <main className="flex-1 p-4 lg:p-6 md:ml-56 pb-20 md:pb-0">
         {/* Header */}
         <div className="mb-6">

@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
-import { auth, db } from "../../lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { db } from "../../lib/firebase";
 import { collection, query, onSnapshot, orderBy, where, Timestamp, doc, deleteDoc, updateDoc, addDoc } from "firebase/firestore";
-import { useNavigate } from "react-router-dom";
-import Sidebar from "../../components/Sidebar";
+import * as Sentry from '@sentry/react';
+import { useAuth } from "../../context/RoleProvider";
 
 interface AttendanceRecord {
   id: string;
@@ -35,14 +34,11 @@ interface Konum {
 }
 
 export default function IslemListesiPage() {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const user = useAuth();
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
   const [personeller, setPersoneller] = useState<Personel[]>([]);
   const [konumlar, setKonumlar] = useState<Konum[]>([]);
   const [filteredRecords, setFilteredRecords] = useState<AttendanceRecord[]>([]);
-  const navigate = useNavigate();
-
   // Filtreler
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("Tümünde");
@@ -50,18 +46,6 @@ export default function IslemListesiPage() {
   // Modal
   const [editModal, setEditModal] = useState<AttendanceRecord | null>(null);
   const [deleteModal, setDeleteModal] = useState<AttendanceRecord | null>(null);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-      } else {
-        navigate("/login");
-      }
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
 
   // Personelleri çek
   useEffect(() => {
@@ -174,7 +158,7 @@ export default function IslemListesiPage() {
       setDeleteModal(null);
       alert("Kayıt silindi!");
     } catch (error) {
-      console.error("Silme hatası:", error);
+      Sentry.captureException(error);
       alert("Silme işlemi başarısız!");
     }
   };
@@ -206,7 +190,7 @@ export default function IslemListesiPage() {
       setEditModal(null);
       alert("Kayıt güncellendi!");
     } catch (error) {
-      console.error("Güncelleme hatası:", error);
+      Sentry.captureException(error);
       alert("Güncelleme işlemi başarısız!");
     }
   };
@@ -216,18 +200,8 @@ export default function IslemListesiPage() {
     return personeller.find(p => p.id === personelId);
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-stone-50">
-      <Sidebar user={user} />
-
       <div className="md:ml-56 pb-20 md:pb-0">
         <header className="bg-white border-b px-4 md:px-6 py-4 sticky top-0 z-30">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

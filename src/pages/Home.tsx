@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { auth, db } from "../lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { db } from "../lib/firebase";
 import { useNavigate } from "react-router-dom";
 import {
   collection,
@@ -21,6 +20,8 @@ import PersonelDurumPanel from "../components/dashboard/PersonelDurumPanel";
 import DikkatPanel from "../components/dashboard/DikkatPanel";
 import SakinGunlerPanel from "../components/dashboard/SakinGunlerPanel";
 import { usePersoneller } from "../hooks/usePersoneller";
+import * as Sentry from '@sentry/react';
+import { useAuth } from "../context/RoleProvider";
 
 // Interfaces
 interface Gelin {
@@ -88,8 +89,7 @@ const CACHE_TIME_KEY = "gmt_gelinler_cache_time";
 const CACHE_DURATION = 30 * 60 * 1000;
 
 export default function Home() {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const user = useAuth();
   const [gelinler, setGelinler] = useState<Gelin[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<string>("");
@@ -224,18 +224,6 @@ export default function Home() {
   };
 
   // Auth
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
-        setLoading(false);
-      } else {
-        navigate("/login");
-      }
-    });
-    return () => unsubscribe();
-  }, [navigate]);
-
   // Duyurular (announcements collection - İngilizce field'lar!)
   useEffect(() => {
     if (!user) return;
@@ -265,7 +253,6 @@ export default function Home() {
     onDortGunOnce.setDate(onDortGunOnce.getDate() - 14);
     const otuzGunSonra = new Date();
     otuzGunSonra.setDate(otuzGunSonra.getDate() + 30);
-
 
     const q = query(
       collection(db, "gelinler"),
@@ -395,7 +382,7 @@ export default function Home() {
       });
       setTimeout(() => setIzinEkleniyor(null), 1000);
     } catch (error) {
-      console.error("İzin ekleme hatası:", error);
+      Sentry.captureException(error);
       setIzinEkleniyor(null);
     }
   };
@@ -406,17 +393,6 @@ export default function Home() {
       await new Promise(resolve => setTimeout(resolve, 300));
     }
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-400 mx-auto"></div>
-          <p className="mt-4 text-stone-600">Yükleniyor...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-white">

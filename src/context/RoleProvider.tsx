@@ -3,6 +3,7 @@ import { doc, getDoc, query, where, collection, getDocs } from "firebase/firesto
 import { db } from "../lib/firebase";
 import { auth } from "../lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
+import * as Sentry from '@sentry/react';
 
 interface RolYetkileri {
   [key: string]: string[];
@@ -11,11 +12,12 @@ interface RolYetkileri {
 interface RoleContextType {
   rol: RolYetkileri | null;
   loading: boolean;
+  user: any;
 }
 
 const ROLE_CACHE_KEY = "cached_rol";
 
-const RoleContext = createContext<RoleContextType>({ rol: null, loading: true });
+const RoleContext = createContext<RoleContextType>({ rol: null, loading: true, user: null });
 
 // Cache'den hızlı yükle (sayfa yenilemede anında göster)
 function getCachedRol(): RolYetkileri | null {
@@ -102,7 +104,7 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
           localStorage.setItem(ROLE_CACHE_KEY, JSON.stringify(newRol));
         }
       } catch (e) {
-        console.error("❌ [ROLE] Rol yetkileri yüklenemedi:", e);
+        Sentry.captureException(e);
         if (cancelled === false) {
           setRol(null);
           localStorage.removeItem(ROLE_CACHE_KEY);
@@ -115,10 +117,15 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
     return () => { cancelled = true; };
   }, [user?.email, authReady]);
 
-  const value = useMemo(() => ({ rol, loading }), [rol, loading]);
+  const value = useMemo(() => ({ rol, loading, user }), [rol, loading, user]);
   return <RoleContext.Provider value={value}>{children}</RoleContext.Provider>;
 }
 
 export function useRole() {
   return useContext(RoleContext);
+}
+
+export function useAuth() {
+  const { user } = useContext(RoleContext);
+  return user;
 }

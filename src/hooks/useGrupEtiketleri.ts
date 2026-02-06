@@ -16,6 +16,7 @@ import {
   writeBatch,
   serverTimestamp
 } from "firebase/firestore";
+import * as Sentry from '@sentry/react';
 
 export interface GrupEtiketi {
   id: string;
@@ -53,7 +54,7 @@ export function useGrupEtiketleri() {
         setLoading(false);
       },
       (err) => {
-        console.error("Grup etiketleri yüklenirken hata:", err);
+        Sentry.captureException(err);
         setError("Grup etiketleri yüklenemedi");
         setLoading(false);
       }
@@ -88,7 +89,7 @@ export function useGrupEtiketleri() {
       });
       return { success: true };
     } catch (err) {
-      console.error("Etiket eklenirken hata:", err);
+      Sentry.captureException(err);
       return { success: false, error: "Etiket eklenemedi" };
     }
   };
@@ -103,7 +104,7 @@ export function useGrupEtiketleri() {
       });
       return { success: true };
     } catch (err) {
-      console.error("Etiket güncellenirken hata:", err);
+      Sentry.captureException(err);
       return { success: false, error: "Etiket güncellenemedi" };
     }
   };
@@ -114,7 +115,7 @@ export function useGrupEtiketleri() {
       await deleteDoc(doc(db, "groupTags", id));
       return { success: true };
     } catch (err) {
-      console.error("Etiket silinirken hata:", err);
+      Sentry.captureException(err);
       return { success: false, error: "Etiket silinemedi" };
     }
   };
@@ -152,7 +153,7 @@ export function useGrupEtiketleri() {
       await batch.commit();
       return { success: true, message: "Migration tamamlandı" };
     } catch (err) {
-      console.error("Migration hatası:", err);
+      Sentry.captureException(err);
       return { success: false, error: "Migration başarısız" };
     }
   };

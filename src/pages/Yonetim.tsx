@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { auth, db } from "../lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { db } from "../lib/firebase";
 import { useNavigate } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
 import { 
   collection, 
   query, 
@@ -13,6 +11,7 @@ import {
   orderBy,
   getDocs
 } from "firebase/firestore";
+import { useAuth } from "../context/RoleProvider";
 
 interface Gelin {
   id: string;
@@ -35,15 +34,13 @@ interface HedefAy {
 const CACHE_KEY_2025 = "yonetim_gelinler_2025";
 
 export default function YonetimPage() {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const user = useAuth();
   const [yetkisiz, setYetkisiz] = useState(false);
   const [gelinler, setGelinler] = useState<Gelin[]>([]);
   const [hedefler, setHedefler] = useState<HedefAy[]>([]);
   const [selectedAy, setSelectedAy] = useState("");
   const [hedefInput, setHedefInput] = useState("");
   const [saving, setSaving] = useState(false);
-  const [refreshing2025, setRefreshing2025] = useState(false);
   const navigate = useNavigate();
   
   // Bugünkü ay satırı için ref
@@ -53,36 +50,6 @@ export default function YonetimPage() {
   const buAy = new Date().toISOString().slice(0, 7);
 
   // Auth kontrolü
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setUser(user);
-        // Kullanıcı grup kontrolü
-        const q = query(
-          collection(db, "personnel"),
-          where("email", "==", user.email)
-        );
-        const unsubPersonel = onSnapshot(q, (snapshot) => {
-          if (!snapshot.empty) {
-            const data = snapshot.docs[0].data();
-            const gruplar = data.grupEtiketleri || [];
-            const isKurucu = gruplar.some((g: string) => g.toLowerCase() === "kurucu");
-            if (!isKurucu) {
-              setYetkisiz(true);
-            }
-          } else {
-            setYetkisiz(true);
-          }
-          setLoading(false);
-        });
-        return () => unsubPersonel();
-      } else {
-        navigate("/login");
-      }
-    });
-    return () => unsubscribe();
-  }, []);
-
   // ✅ Gelinler - 2025: localStorage cache, 2026+: Firestore real-time
   useEffect(() => {
     if (!user) return;
@@ -155,42 +122,6 @@ export default function YonetimPage() {
     return () => unsubscribe();
   }, [user]);
 
-  // 2025 cache yenileme
-  const refresh2025Cache = async () => {
-    setRefreshing2025(true);
-    try {
-      const q2025 = query(
-        collection(db, "gelinler"),
-        where("tarih", ">=", "2025-01-01"),
-        where("tarih", "<", "2026-01-01"),
-        orderBy("tarih", "asc")
-      );
-      
-      const snapshot = await getDocs(q2025);
-      const gelinler2025 = snapshot.docs.map(doc => ({
-        id: doc.id,
-        isim: doc.data().isim || "",
-        tarih: doc.data().tarih || "",
-        saat: doc.data().saat || "",
-        ucret: doc.data().ucret || 0,
-        kapora: doc.data().kapora || 0,
-        kalan: doc.data().kalan || 0,
-        makyaj: doc.data().makyaj || "",
-        turban: doc.data().turban || "",
-        anlasildigiTarih: doc.data().anlasildigiTarih || "",
-      } as Gelin));
-      
-      localStorage.setItem(CACHE_KEY_2025, JSON.stringify(gelinler2025));
-      
-      const gelinler2026 = gelinler.filter(g => g.tarih >= "2026-01-01");
-      setGelinler([...gelinler2025, ...gelinler2026]);
-    } catch (error) {
-      console.error('❌ Cache yenileme hatası:', error);
-    } finally {
-      setRefreshing2025(false);
-    }
-  };
-
   // Hedefleri Firebase'den çek
   useEffect(() => {
     if (!user) return;
@@ -234,8 +165,7 @@ export default function YonetimPage() {
       setSelectedAy("");
       setHedefInput("");
       alert("Hedef kaydedildi!");
-    } catch (error) {
-      console.error("Hedef kaydetme hatası:", error);
+    } catch {
       alert("Hedef kaydedilemedi!");
     }
     setSaving(false);
@@ -302,14 +232,6 @@ export default function YonetimPage() {
     return `${ayIsimleri[ay]} ${yil}`;
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500"></div>
-      </div>
-    );
-  }
-
   if (yetkisiz) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -330,8 +252,6 @@ export default function YonetimPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Sidebar user={user} />
-      
       <div className="pb-20 md:pb-0">
         <header className="bg-white border-b px-6 py-4 sticky top-0 z-30">
           <div className="flex items-center justify-between">
@@ -340,14 +260,6 @@ export default function YonetimPage() {
               <p className="text-sm text-gray-500">Finansal özet ve hedef yönetimi</p>
             </div>
             <div className="flex items-center gap-2">
-              <button
-                onClick={refresh2025Cache}
-                disabled={refreshing2025}
-                className="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 text-sm font-medium disabled:opacity-50"
-                title="2025 verilerini yeniden yükle"
-              >
-                {refreshing2025 ? "⏳" : "🔄"} 2025
-              </button>
               <button
                 onClick={() => navigate("/yonetim/compare")}
                 className="px-4 py-2 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 text-sm font-medium"

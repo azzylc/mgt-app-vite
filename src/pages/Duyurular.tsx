@@ -1,8 +1,5 @@
 import { useState, useEffect } from "react";
-import { auth, db } from "../lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
+import { db } from "../lib/firebase";
 import { useGrupEtiketleri } from "../hooks/useGrupEtiketleri";
 import { getRenkStilleri } from "../lib/grupEtiketleri";
 import { 
@@ -16,6 +13,8 @@ import {
   limit,
   serverTimestamp
 } from "firebase/firestore";
+import * as Sentry from '@sentry/react';
+import { useAuth } from "../context/RoleProvider";
 
 interface Announcement {
   id: string;
@@ -28,8 +27,7 @@ interface Announcement {
 }
 
 export default function DuyurularPage() {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const user = useAuth();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [filteredAnnouncements, setFilteredAnnouncements] = useState<Announcement[]>([]);
   const [activeFilter, setActiveFilter] = useState("tumu");
@@ -40,8 +38,6 @@ export default function DuyurularPage() {
     important: false,
     group: ''
   });
-  const navigate = useNavigate();
-  
   // Grup etiketlerini Firebase'den çek
   const { grupEtiketleri, loading: grupLoading } = useGrupEtiketleri();
 
@@ -51,18 +47,6 @@ export default function DuyurularPage() {
       setNewAnnouncement(prev => ({ ...prev, group: grupEtiketleri[0].grupAdi }));
     }
   }, [grupEtiketleri]);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-      } else {
-        navigate("/login");
-      }
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
 
   // Firestore'dan duyuruları dinle
   useEffect(() => {
@@ -110,7 +94,7 @@ export default function DuyurularPage() {
       setShowModal(false);
       setNewAnnouncement({ title: '', content: '', important: false, group: grupEtiketleri[0]?.grupAdi || '' });
     } catch (error) {
-      console.error("Duyuru eklenirken hata:", error);
+      Sentry.captureException(error);
       alert("Duyuru eklenemedi!");
     }
   };
@@ -120,7 +104,7 @@ export default function DuyurularPage() {
       try {
         await deleteDoc(doc(db, "announcements", id));
       } catch (error) {
-        console.error("Duyuru silinirken hata:", error);
+        Sentry.captureException(error);
         alert("Duyuru silinemedi!");
       }
     }
@@ -165,7 +149,7 @@ export default function DuyurularPage() {
 
   const counts = getGroupCounts();
 
-  if (loading || grupLoading) {
+  if (grupLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-stone-50">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500"></div>
@@ -175,8 +159,6 @@ export default function DuyurularPage() {
 
   return (
     <div className="min-h-screen bg-stone-50">
-      <Sidebar user={user} />
-      
       <div className="pb-20 md:pb-0">
         <header className="bg-white border-b px-6 py-4 sticky top-0 z-30">
           <div className="flex items-center justify-between mb-4">

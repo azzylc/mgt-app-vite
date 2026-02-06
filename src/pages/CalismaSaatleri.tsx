@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
-import { auth, db } from "../lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
+import { db } from "../lib/firebase";
 import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, serverTimestamp } from "firebase/firestore";
+import * as Sentry from '@sentry/react';
+import { useAuth } from "../context/RoleProvider";
 
 interface WorkHour {
   id: string;
@@ -19,8 +18,7 @@ interface WorkHour {
 }
 
 export default function CalismaSaatleriPage() {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const user = useAuth();
   const [schedules, setSchedules] = useState<WorkHour[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -38,8 +36,6 @@ export default function CalismaSaatleriPage() {
     aciklama: '',
     aktif: true
   });
-  const navigate = useNavigate();
-
   const turler = {
     sabit: { label: "Sabit Mesai", icon: "🕐", color: "bg-blue-100 text-blue-700", desc: "Belirli saatlerde çalışma" },
     esnek: { label: "Esnek Mesai", icon: "⏰", color: "bg-green-100 text-green-700", desc: "Esnek çalışma saatleri" },
@@ -47,18 +43,6 @@ export default function CalismaSaatleriPage() {
   };
 
   const gunler = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"];
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-      } else {
-        navigate("/login");
-      }
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -100,7 +84,7 @@ export default function CalismaSaatleriPage() {
       setShowModal(false);
       setFormData({ isim: '', tur: 'sabit', baslangic: '09:00', bitis: '18:00', gunler: [], haftalikSaat: 40, molaSuresi: 60, aciklama: '', aktif: true });
     } catch (error) {
-      console.error("Hata:", error);
+      Sentry.captureException(error);
       alert("Çalışma saati eklenemedi!");
     }
   };
@@ -116,7 +100,7 @@ export default function CalismaSaatleriPage() {
       setSelectedSchedule(null);
       setFormData({ isim: '', tur: 'sabit', baslangic: '09:00', bitis: '18:00', gunler: [], haftalikSaat: 40, molaSuresi: 60, aciklama: '', aktif: true });
     } catch (error) {
-      console.error("Hata:", error);
+      Sentry.captureException(error);
     }
   };
 
@@ -124,7 +108,7 @@ export default function CalismaSaatleriPage() {
     try {
       await updateDoc(doc(db, "workHours", schedule.id), { aktif: !schedule.aktif });
     } catch (error) {
-      console.error("Hata:", error);
+      Sentry.captureException(error);
     }
   };
 
@@ -133,7 +117,7 @@ export default function CalismaSaatleriPage() {
       try {
         await deleteDoc(doc(db, "workHours", id));
       } catch (error) {
-        console.error("Hata:", error);
+        Sentry.captureException(error);
       }
     }
   };
@@ -161,18 +145,8 @@ export default function CalismaSaatleriPage() {
     }));
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-stone-50">
-      <Sidebar user={user} />
-      
       <div className="pb-20 md:pb-0">
         <header className="bg-white border-b px-6 py-4 sticky top-0 z-30">
           <div className="flex items-center justify-between">

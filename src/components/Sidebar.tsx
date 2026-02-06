@@ -6,6 +6,7 @@ import { signOut } from "firebase/auth";
 import { auth, db } from "../lib/firebase";
 import { Capacitor } from "@capacitor/core";
 import { onSnapshot, doc, collection, query, where, getDocs } from "firebase/firestore";
+import * as Sentry from '@sentry/react';
 
 // Sidebar Context - mobilde açık/kapalı durumu için
 const SidebarContext = createContext<{
@@ -72,7 +73,7 @@ function SidebarContent({ user }: SidebarProps) {
         }
       },
       (error) => {
-        console.error("❌ [SIDEBAR] Personnel okuma hatası:", error.message);
+        Sentry.captureException(error);
         setPersonelData({
           ad: user.email?.split("@")[0] || "Kullanıcı",
           soyad: "",
@@ -186,7 +187,7 @@ function SidebarContent({ user }: SidebarProps) {
       await signOut(auth);
       window.location.href = "/#/login";
     } catch (error) {
-      console.error("Çıkış hatası:", error);
+      Sentry.captureException(error);
     }
   };
 

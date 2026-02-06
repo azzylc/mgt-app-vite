@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
 import { auth } from "../lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
 import { usePersoneller } from "../hooks/usePersoneller";
+import { useAuth } from "../context/RoleProvider";
 
 interface Gelin {
   id: string;
@@ -20,12 +18,9 @@ interface Gelin {
 const CACHE_KEY = "gmt_gelinler_cache";
 
 export default function RaporlarPage() {
-  const [user, setUser] = useState<any>(null);
+  const user = useAuth();
   const [gelinler, setGelinler] = useState<Gelin[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedAy, setSelectedAy] = useState(new Date().toISOString().slice(0, 7));
-  const navigate = useNavigate();
-
   // Personeller (Firebase'den)
   const { personeller } = usePersoneller();
 
@@ -37,22 +32,6 @@ export default function RaporlarPage() {
     { value: "2026-09", label: "Eylül 2026" }, { value: "2026-10", label: "Ekim 2026" },
     { value: "2026-11", label: "Kasım 2026" }, { value: "2026-12", label: "Aralık 2026" },
   ];
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-        try {
-          const cached = localStorage.getItem(CACHE_KEY);
-          if (cached) setGelinler(JSON.parse(cached));
-        } catch (e) {}
-      } else {
-        navigate("/login");
-      }
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
 
   // Seçili aya göre veriler
   const ayGelinler = gelinler.filter(g => g.tarih.startsWith(selectedAy));
@@ -75,18 +54,8 @@ export default function RaporlarPage() {
     sayi: ayGelinler.filter(g => new Date(g.tarih).getDay() === index).length
   }));
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-stone-50">
-      <Sidebar user={user} />
-      
       <div className="pb-20 md:pb-0">
         <header className="bg-white border-b px-6 py-4 sticky top-0 z-30">
           <div className="flex items-center justify-between">

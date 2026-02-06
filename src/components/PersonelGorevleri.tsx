@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { auth, db } from "../lib/firebase";
 import { collection, query, where, onSnapshot, orderBy, updateDoc, doc } from "firebase/firestore";
+import * as Sentry from '@sentry/react';
 
 interface Gorev {
   id: string;
@@ -58,7 +59,7 @@ export default function PersonelGorevleri({ personelId }: { personelId: string }
       
       await updateDoc(gorevRef, updateData);
     } catch (error) {
-      console.error("Durum güncelleme hatası:", error);
+      Sentry.captureException(error);
       alert("Durum güncellenemedi. Lütfen tekrar deneyin.");
     }
   };

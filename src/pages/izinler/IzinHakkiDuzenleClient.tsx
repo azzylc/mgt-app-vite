@@ -1,17 +1,16 @@
 import { useState, useEffect } from "react";
 import { useSearchParams , useNavigate } from "react-router-dom";
-import { auth, db } from "../../lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { db } from "../../lib/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import Sidebar from "../../components/Sidebar";
+import * as Sentry from '@sentry/react';
+import { useAuth } from "../../context/RoleProvider";
 
 export default function IzinHakkiDuzenleClient() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const kayitId = searchParams.get('id');
 
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const user = useAuth();
   const [saving, setSaving] = useState(false);
 
   // Form state
@@ -27,17 +26,6 @@ export default function IzinHakkiDuzenleClient() {
       handleSave();
     }
   };
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-      } else {
-        navigate("/login");
-      }
-    });
-    return () => unsubscribe();
-  }, []);
 
   // Kayıt verilerini çek
   useEffect(() => {
@@ -65,7 +53,7 @@ export default function IzinHakkiDuzenleClient() {
           navigate("/izinler/haklar");
         }
       } catch (error) {
-        console.error("Veri çekme hatası:", error);
+        Sentry.captureException(error);
         alert("Veri yüklenirken hata oluştu.");
       } finally {
         setLoading(false);
@@ -104,25 +92,15 @@ export default function IzinHakkiDuzenleClient() {
       alert("Kayıt başarıyla güncellendi.");
       navigate("/izinler/haklar");
     } catch (error) {
-      console.error("Güncelleme hatası:", error);
+      Sentry.captureException(error);
       alert("Güncelleme işlemi başarısız oldu.");
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-neutral-warm">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex min-h-screen bg-neutral-warm">
-      <Sidebar user={user} />
-
       <main className="flex-1 p-4 lg:p-6 md:ml-56 pb-20 md:pb-0">
         {/* Header */}
         <div className="mb-6 flex items-start justify-between">

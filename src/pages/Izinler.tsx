@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth, db } from "../lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { db } from "../lib/firebase";
 import { collection, query, orderBy, limit, onSnapshot, deleteDoc, doc, updateDoc, increment, addDoc } from "firebase/firestore";
-import Sidebar from "../components/Sidebar";
+import * as Sentry from '@sentry/react';
+import { useAuth } from "../context/RoleProvider";
 
 interface Izin {
   id: string;
@@ -24,8 +24,7 @@ interface Izin {
 
 export default function IzinListesi() {
   const navigate = useNavigate();
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const user = useAuth();
   const [izinler, setIzinler] = useState<Izin[]>([]);
   const [filteredIzinler, setFilteredIzinler] = useState<Izin[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -33,18 +32,6 @@ export default function IzinListesi() {
   const [itemsPerPage, setItemsPerPage] = useState(25);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedIzin, setSelectedIzin] = useState<Izin | null>(null);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-        setLoading(false);
-      } else {
-        navigate("/login");
-      }
-    });
-    return () => unsubscribe();
-  }, []);
 
   // Firebase'den izinleri çek
   useEffect(() => {
@@ -136,7 +123,7 @@ export default function IzinListesi() {
 
         await deleteDoc(doc(db, "izinler", id));
       } catch (error) {
-        console.error("Silme hatası:", error);
+        Sentry.captureException(error);
         alert("Silme işlemi başarısız oldu.");
       }
     }
@@ -173,18 +160,8 @@ export default function IzinListesi() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-neutral-warm">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex min-h-screen bg-neutral-warm">
-      <Sidebar user={user} />
-
       <main className="flex-1 p-4 lg:p-6 md:ml-56 pb-20 md:pb-0">
         {/* Header */}
         <div className="mb-6">

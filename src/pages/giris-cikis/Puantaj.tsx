@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { auth, db } from "../../lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { db } from "../../lib/firebase";
 import { collection, query, onSnapshot, orderBy, where, Timestamp, getDocs, getDoc, addDoc, deleteDoc, doc, updateDoc } from "firebase/firestore";
-import { useNavigate } from "react-router-dom";
-import Sidebar from "../../components/Sidebar";
 import { resmiTatiller } from "../../lib/data";
 import { izinMapOlustur } from "../../lib/izinHelper";
+import * as Sentry from '@sentry/react';
+import { useAuth } from "../../context/RoleProvider";
 
 interface Personel {
   id: string;
@@ -35,13 +34,10 @@ interface PersonelPuantaj {
 }
 
 export default function PuantajPage() {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const user = useAuth();
   const [personeller, setPersoneller] = useState<Personel[]>([]);
   const [puantajData, setPuantajData] = useState<PersonelPuantaj[]>([]);
   const [dataLoading, setDataLoading] = useState(false);
-  const navigate = useNavigate();
-
   // Ay seçimi
   const [seciliAy, setSeciliAy] = useState(new Date().getMonth());
   const [seciliYil, setSeciliYil] = useState(new Date().getFullYear());
@@ -75,18 +71,6 @@ export default function PuantajPage() {
 
   const aylar = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
   const gunIsimleri = ["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"];
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-      } else {
-        navigate("/login");
-      }
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
 
   // Personelleri çek
   useEffect(() => {
@@ -212,7 +196,7 @@ export default function PuantajPage() {
         });
         
       } catch (e) {
-        console.error("İzinleri çekerken hata:", e);
+        Sentry.captureException(e);
       }
 
       // Her personel için puantaj oluştur
@@ -295,7 +279,7 @@ export default function PuantajPage() {
       results.sort((a, b) => a.personelAd.localeCompare(b.personelAd, 'tr'));
       setPuantajData(results);
     } catch (error) {
-      console.error("Veri çekme hatası:", error);
+      Sentry.captureException(error);
       alert("Veri çekilirken hata oluştu!");
     } finally {
       setDataLoading(false);
@@ -400,7 +384,7 @@ export default function PuantajPage() {
 
       fetchData();
     } catch (error) {
-      console.error("Silme hatası:", error);
+      Sentry.captureException(error);
       alert("Silme işlemi başarısız!");
     }
   };
@@ -457,7 +441,7 @@ export default function PuantajPage() {
       
       fetchData();
     } catch (error) {
-      console.error("Resmi tatil toggle hatası:", error);
+      Sentry.captureException(error);
       alert("İşlem başarısız!");
     }
   };
@@ -668,7 +652,7 @@ export default function PuantajPage() {
       setIslemModal(null);
       fetchData();
     } catch (error) {
-      console.error("Kayıt hatası:", error);
+      Sentry.captureException(error);
       alert("Kayıt eklenirken hata oluştu!");
     } finally {
       setSaving(false);
@@ -774,18 +758,8 @@ export default function PuantajPage() {
     link.click();
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-stone-50">
-      <Sidebar user={user} />
-
       <div className="md:ml-56 pb-20 md:pb-0">
         <header className="bg-white border-b px-4 md:px-6 py-4 sticky top-0 z-30">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -1094,7 +1068,7 @@ export default function PuantajPage() {
                             
                             fetchData();
                           } catch (error) {
-                            console.error("Çıkış ekleme hatası:", error);
+                            Sentry.captureException(error);
                             alert("Çıkış eklenirken hata oluştu!");
                           }
                         }}

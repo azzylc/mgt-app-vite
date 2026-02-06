@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { auth, db } from "../../lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { db } from "../../lib/firebase";
 import { collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
-import Sidebar from "../../components/Sidebar";
+import { useAuth } from "../../context/RoleProvider";
 
 interface DegisiklikKaydi {
   id: string;
@@ -16,26 +14,12 @@ interface DegisiklikKaydi {
 }
 
 export default function IzinDegisiklikKayitlari() {
-  const navigate = useNavigate();
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const user = useAuth();
   const [kayitlar, setKayitlar] = useState<DegisiklikKaydi[]>([]);
   const [filteredKayitlar, setFilteredKayitlar] = useState<DegisiklikKaydi[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTur, setFilterTur] = useState("Tümü");
   const [selectedKayit, setSelectedKayit] = useState<DegisiklikKaydi | null>(null);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-        setLoading(false);
-      } else {
-        navigate("/login");
-      }
-    });
-    return () => unsubscribe();
-  }, []);
 
   // Firebase'den kayıtları çek
   useEffect(() => {
@@ -139,18 +123,8 @@ export default function IzinDegisiklikKayitlari() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-neutral-warm">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex min-h-screen bg-neutral-warm">
-      <Sidebar user={user} />
-
       <main className="flex-1 p-4 lg:p-6 md:ml-56 pb-20 md:pb-0">
         {/* Header */}
         <div className="mb-6">
