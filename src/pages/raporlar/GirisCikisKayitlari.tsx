@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { auth, db } from "../../lib/firebase";
-import { collection, query, onSnapshot, orderBy, where, Timestamp } from "firebase/firestore";
+import { collection, query, onSnapshot, orderBy, where, Timestamp, getDocs } from "firebase/firestore";
 
 interface AttendanceRecord {
   id: string;
@@ -99,33 +99,31 @@ export default function GirisCikisKayitlariPage() {
       orderBy("tarih", "desc")
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data: AttendanceRecord[] = [];
-      snapshot.forEach((doc) => {
-        const d = doc.data();
-        data.push({
-          id: doc.id,
-          personelId: d.personelId || "",
-          personelAd: d.personelAd || "",
-          personelEmail: d.personelEmail || "",
-          sicilNo: d.sicilNo || "",
-          tip: d.tip || "giris",
-          tarih: d.tarih,
-          konumAdi: d.konumAdi || "",
-          konumId: d.konumId || "",
-          lat: d.lat,
-          lng: d.lng,
-          mesafe: d.mesafe,
-          karekod: d.karekod || "",
-          mazeretNotu: d.mazeretNotu || "",
-          konumDisi: d.mesafe && d.mesafe > 100
-        });
-      });
-      setRecords(data);
-      setDataLoading(false);
-    });
+    const snapshot = await getDocs(q);
 
-    return () => unsubscribe();
+    const data: AttendanceRecord[] = [];
+    snapshot.forEach((doc) => {
+      const d = doc.data();
+      data.push({
+        id: doc.id,
+        personelId: d.personelId || "",
+        personelAd: d.personelAd || "",
+        personelEmail: d.personelEmail || "",
+        sicilNo: d.sicilNo || "",
+        tip: d.tip || "giris",
+        tarih: d.tarih,
+        konumAdi: d.konumAdi || "",
+        konumId: d.konumId || "",
+        lat: d.lat,
+        lng: d.lng,
+        mesafe: d.mesafe,
+        karekod: d.karekod || "",
+        mazeretNotu: d.mazeretNotu || "",
+        konumDisi: d.mesafe && d.mesafe > 100
+      });
+    });
+    setRecords(data);
+    setDataLoading(false);
   };
 
   // Filtreleme

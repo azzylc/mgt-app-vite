@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { auth, db } from "../../lib/firebase";
-import { collection, query, onSnapshot, orderBy, where, Timestamp } from "firebase/firestore";
+import { collection, query, onSnapshot, orderBy, where, Timestamp, getDocs } from "firebase/firestore";
 
 interface Personel {
   id: string;
@@ -65,74 +65,74 @@ export default function GunlukCalismaSureleriPage() {
       orderBy("tarih", "asc")
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      // Personel ve güne göre grupla
-      const grouped = new Map<string, any[]>();
+    const snapshot = await getDocs(q);
 
-      snapshot.forEach((doc) => {
-        const d = doc.data();
-        const tarih = d.tarih?.toDate?.();
-        if (!tarih) return;
+    // Personel ve güne göre grupla
+    const grouped = new Map<string, any[]>();
 
-        const gunStr = tarih.toISOString().split('T')[0];
-        const key = `${d.personelId}-${gunStr}`;
+    snapshot.forEach((doc) => {
+      const d = doc.data();
+      const tarih = d.tarih?.toDate?.();
+      if (!tarih) return;
 
-        if (!grouped.has(key)) {
-          grouped.set(key, []);
-        }
-        grouped.get(key)!.push({ ...d, tarihDate: tarih });
-      });
+      const gunStr = tarih.toISOString().split('T')[0];
+      const key = `${d.personelId}-${gunStr}`;
 
-      // Her grup için çalışma süresini hesapla
-      const results: CalismaSuresi[] = [];
+      if (!grouped.has(key)) {
+        grouped.set(key, []);
+      }
+      grouped.get(key)!.push({ ...d, tarihDate: tarih });
+    });
 
-      grouped.forEach((records, key) => {
-        const [personelId, tarihStr] = key.split('-');
-        const personel = personeller.find(p => p.id === personelId);
-        
-        // Giriş ve çıkışları ayır
-        const girisler = records.filter(r => r.tip === "giris").sort((a, b) => a.tarihDate - b.tarihDate);
-        const cikislar = records.filter(r => r.tip === "cikis").sort((a, b) => a.tarihDate - b.tarihDate);
+    // Her grup için çalışma süresini hesapla
+    const results: CalismaSuresi[] = [];
 
-        if (girisler.length === 0) return;
+    grouped.forEach((records, key) => {
+      const [personelId, tarihStr] = key.split('-');
+      const personel = personeller.find(p => p.id === personelId);
+      
+      // Giriş ve çıkışları ayır
+      const girisler = records.filter(r => r.tip === "giris").sort((a, b) => a.tarihDate - b.tarihDate);
+      const cikislar = records.filter(r => r.tip === "cikis").sort((a, b) => a.tarihDate - b.tarihDate);
 
-        const ilkGiris = girisler[0].tarihDate;
-        const sonCikis = cikislar.length > 0 ? cikislar[cikislar.length - 1].tarihDate : null;
+      if (girisler.length === 0) return;
 
-        // Çalışma süresini hesapla
-        let calismaDakika = 0;
-        if (sonCikis) {
-          calismaDakika = Math.floor((sonCikis - ilkGiris) / (1000 * 60)) - molaSuresi;
-          if (calismaDakika < 0) calismaDakika = 0;
-        }
+      const ilkGiris = girisler[0].tarihDate;
+      const sonCikis = cikislar.length > 0 ? cikislar[cikislar.length - 1].tarihDate : null;
 
-        const saat = Math.floor(calismaDakika / 60);
-        const dakika = calismaDakika % 60;
-        const saniye = sonCikis ? Math.floor(((sonCikis - ilkGiris) / 1000) % 60) : 0;
-
-        results.push({
-          personelId,
-          personelAd: records[0].personelAd || `${personel?.ad || ""} ${personel?.soyad || ""}`.trim(),
-          sicilNo: personel?.sicilNo || "",
-          tarih: tarihStr,
-          ilkGiris: ilkGiris.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-          sonCikis: sonCikis ? sonCikis.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "-",
-          calismaSuresi: sonCikis ? `${String(saat).padStart(2, '0')}:${String(dakika).padStart(2, '0')}:${String(saniye).padStart(2, '0')}` : "-"
-        });
-      });
-
-      // Filtrele
-      let filtered = results;
-      if (seciliKullanici !== "Tümü") {
-        filtered = results.filter(r => r.personelAd === seciliKullanici);
+      // Çalışma süresini hesapla
+      let calismaDakika = 0;
+      if (sonCikis) {
+        calismaDakika = Math.floor((sonCikis - ilkGiris) / (1000 * 60)) - molaSuresi;
+        if (calismaDakika < 0) calismaDakika = 0;
       }
 
-      // Tarihe göre sırala (yeniden eskiye)
-      filtered.sort((a, b) => b.tarih.localeCompare(a.tarih));
+      const saat = Math.floor(calismaDakika / 60);
+      const dakika = calismaDakika % 60;
+      const saniye = sonCikis ? Math.floor(((sonCikis - ilkGiris) / 1000) % 60) : 0;
 
-      setCalismalar(filtered);
-      setDataLoading(false);
+      results.push({
+        personelId,
+        personelAd: records[0].personelAd || `${personel?.ad || ""} ${personel?.soyad || ""}`.trim(),
+        sicilNo: personel?.sicilNo || "",
+        tarih: tarihStr,
+        ilkGiris: ilkGiris.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        sonCikis: sonCikis ? sonCikis.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "-",
+        calismaSuresi: sonCikis ? `${String(saat).padStart(2, '0')}:${String(dakika).padStart(2, '0')}:${String(saniye).padStart(2, '0')}` : "-"
+      });
     });
+
+    // Filtrele
+    let filtered = results;
+    if (seciliKullanici !== "Tümü") {
+      filtered = results.filter(r => r.personelAd === seciliKullanici);
+    }
+
+    // Tarihe göre sırala (yeniden eskiye)
+    filtered.sort((a, b) => b.tarih.localeCompare(a.tarih));
+
+    setCalismalar(filtered);
+    setDataLoading(false);
   };
 
   // Excel'e kopyala

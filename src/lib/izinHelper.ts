@@ -153,21 +153,30 @@ export async function izinMapOlustur(
 /**
  * Real-time izin dinleyici (onSnapshot)
  * Ana sayfa gibi real-time güncelleme gereken yerlerde kullan
+ * 
+ * NOT: İki listener paralel çalışır, biri tetiklendiğinde
+ * son bilinen veriler birleştirilip callback'e gönderilir.
  */
 export function izinleriDinle(
   callback: (izinler: IzinKaydi[]) => void
 ): () => void {
+  let izinlerData: IzinKaydi[] = [];
+  let vardiyaData: IzinKaydi[] = [];
+
+  const mergeAndCallback = () => {
+    callback([...izinlerData, ...vardiyaData]);
+  };
+
+  // 1. İzinler collection listener
   const izinlerUnsubscribe = onSnapshot(
     collection(db, "izinler"),
     (snapshot) => {
-      const tumIzinler: IzinKaydi[] = [];
-      
-      // İzinler
+      izinlerData = [];
       snapshot.forEach(doc => {
         const d = doc.data();
         const durum = (d.durum || "").toLowerCase();
         if (durum === "onaylandı" || durum === "onaylandi") {
-          tumIzinler.push({
+          izinlerData.push({
             id: doc.id,
             personelId: d.personelId || "",
             personelAd: d.personelAd || "",
@@ -180,36 +189,38 @@ export function izinleriDinle(
           });
         }
       });
-      
-      // VardiyaPlan'ı da dinle
-      const vardiyaUnsubscribe = onSnapshot(
-        collection(db, "vardiyaPlan"),
-        (vardiyaSnap) => {
-          vardiyaSnap.forEach(doc => {
-            const d = doc.data();
-            if (d.haftaTatili === true) {
-              tumIzinler.push({
-                id: doc.id,
-                personelId: d.personelId || "",
-                personelAd: d.personelAd || "",
-                baslangicTarihi: d.tarih || "",
-                bitisTarihi: d.tarih || "",
-                izinTuru: "Haftalık İzin",
-                durum: "Onaylandı",
-                aciklama: "Hafta tatili",
-                kaynak: "vardiyaPlan",
-              });
-            }
+      mergeAndCallback();
+    }
+  );
+
+  // 2. VardiyaPlan listener (paralel, nested DEĞİL)
+  const vardiyaUnsubscribe = onSnapshot(
+    collection(db, "vardiyaPlan"),
+    (vardiyaSnap) => {
+      vardiyaData = [];
+      vardiyaSnap.forEach(doc => {
+        const d = doc.data();
+        if (d.haftaTatili === true) {
+          vardiyaData.push({
+            id: doc.id,
+            personelId: d.personelId || "",
+            personelAd: d.personelAd || "",
+            baslangicTarihi: d.tarih || "",
+            bitisTarihi: d.tarih || "",
+            izinTuru: "Haftalık İzin",
+            durum: "Onaylandı",
+            aciklama: "Hafta tatili",
+            kaynak: "vardiyaPlan",
           });
-          
-          callback(tumIzinler);
         }
-      );
+      });
+      mergeAndCallback();
     }
   );
   
-  // Cleanup function
+  // Cleanup: İKİ listener'ı da kapat
   return () => {
     izinlerUnsubscribe();
+    vardiyaUnsubscribe();
   };
 }
