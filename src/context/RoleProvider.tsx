@@ -13,14 +13,27 @@ interface RoleContextType {
   loading: boolean;
 }
 
+const ROLE_CACHE_KEY = "cached_rol";
+
 const RoleContext = createContext<RoleContextType>({ rol: null, loading: true });
+
+// Cache'den hızlı yükle (sayfa yenilemede anında göster)
+function getCachedRol(): RolYetkileri | null {
+  try {
+    const cached = localStorage.getItem(ROLE_CACHE_KEY);
+    if (cached) return JSON.parse(cached);
+  } catch {}
+  return null;
+}
 
 export function RoleProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any>(null);
   const [authReady, setAuthReady] = useState(false);
-  const [rol, setRol] = useState<RolYetkileri | null>(null);
-  const [loading, setLoading] = useState(true);
-
+  
+  // Cache varsa hemen yükle → loading = false → sayfa anında açılır
+  const cachedRol = getCachedRol();
+  const [rol, setRol] = useState<RolYetkileri | null>(cachedRol);
+  const [loading, setLoading] = useState(cachedRol === null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -40,12 +53,15 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
       if (user?.email === undefined || user?.email === null) {
         setRol(null);
         setLoading(false);
+        localStorage.removeItem(ROLE_CACHE_KEY);
         return;
       }
 
-      setLoading(true);
+      // Cache yoksa loading göster, varsa arka planda güncelle
+      if (!cachedRol) setLoading(true);
+
       try {
-        // 1. Kullanıcının rolünü al (EMAIL FIELD'INDAN QUERY ile)
+        // 1. Kullanıcının rolünü al
         const personelQuery = query(
           collection(db, "personnel"),
           where("email", "==", user.email)
@@ -63,8 +79,7 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
           throw new Error("kullaniciTuru yok");
         }
 
-
-        // 2. Rol yetkilerini al (settings/permissions document'inden)
+        // 2. Rol yetkilerini al
         const permissionsSnap = await getDoc(doc(db, "settings", "permissions"));
         
         let menuItems: string[] = [];
@@ -73,7 +88,6 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
           const permissions = permissionsSnap.data() as RolYetkileri;
           menuItems = permissions[kullaniciTuru] || [];
         } else {
-          // Fallback: Firestore'da yoksa default yetkiler
           const defaultPermissions: RolYetkileri = {
             "Kurucu": ["genel-bakis", "giris-cikis-islemleri", "duyurular", "gorevler", "takvim", "personel", "izinler", "raporlar", "ayarlar", "yonetim-paneli"],
             "Yönetici": ["genel-bakis", "giris-cikis-islemleri", "duyurular", "gorevler", "takvim", "personel", "izinler", "raporlar", "ayarlar"],
@@ -83,11 +97,16 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
         }
         
         if (cancelled === false) {
-          setRol({ [kullaniciTuru]: menuItems });
+          const newRol = { [kullaniciTuru]: menuItems };
+          setRol(newRol);
+          localStorage.setItem(ROLE_CACHE_KEY, JSON.stringify(newRol));
         }
       } catch (e) {
         console.error("❌ [ROLE] Rol yetkileri yüklenemedi:", e);
-        if (cancelled === false) setRol(null);
+        if (cancelled === false) {
+          setRol(null);
+          localStorage.removeItem(ROLE_CACHE_KEY);
+        }
       } finally {
         if (cancelled === false) setLoading(false);
       }
