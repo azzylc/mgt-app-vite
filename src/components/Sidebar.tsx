@@ -150,7 +150,7 @@ function SidebarContent({ user }: SidebarProps) {
         submenu: [
           { label: "Günlük", type: "header" },
           { label: "Giriş - Çıkış Kayıtları", path: "/raporlar/giris-cikis-kayitlari" },
-          { label: "Günlük Çalışma Süreleri", path: "/raporlar/gunluk-calisma-sureleri" },
+
           { label: "Gelmeyenler", path: "/raporlar/gelmeyenler" },
           { label: "Geç Kalanlar", path: "/raporlar/gec-kalanlar" },
           { label: "Haftalık", type: "header" },

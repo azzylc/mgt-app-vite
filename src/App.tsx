@@ -58,7 +58,7 @@ const GirisCikisDegisiklikKayitlari = lazyWithRetry(() => import('./pages/giris-
 
 // Raporlar
 const Raporlar = lazyWithRetry(() => import('./pages/Raporlar'))
-const RaporlarGunlukCalismaSureleri = lazyWithRetry(() => import('./pages/raporlar/GunlukCalismaSureleri'))
+
 const RaporlarHaftalikCalismaSureleri = lazyWithRetry(() => import('./pages/raporlar/HaftalikCalismaSureleri'))
 const RaporlarGecKalanlar = lazyWithRetry(() => import('./pages/raporlar/GecKalanlar'))
 const RaporlarGelmeyenler = lazyWithRetry(() => import('./pages/raporlar/Gelmeyenler'))
@@ -126,7 +126,7 @@ export default function App() {
                 
                 {/* Raporlar routes */}
                 <Route path="/raporlar" element={<RouteGuard requiredPermission="raporlar"><Raporlar /></RouteGuard>} />
-                <Route path="/raporlar/gunluk-calisma-sureleri" element={<RouteGuard requiredPermission="raporlar"><RaporlarGunlukCalismaSureleri /></RouteGuard>} />
+
                 <Route path="/raporlar/haftalik-calisma-sureleri" element={<RouteGuard requiredPermission="raporlar"><RaporlarHaftalikCalismaSureleri /></RouteGuard>} />
                 <Route path="/raporlar/gec-kalanlar" element={<RouteGuard requiredPermission="raporlar"><RaporlarGecKalanlar /></RouteGuard>} />
                 <Route path="/raporlar/gelmeyenler" element={<RouteGuard requiredPermission="raporlar"><RaporlarGelmeyenler /></RouteGuard>} />

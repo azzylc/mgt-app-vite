@@ -414,9 +414,10 @@ export default function HaftalikCalismaSureleriPage() {
 
       <main className="p-4 md:p-6">
         {/* Filtreler */}
-        <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
-            <div className="col-span-2">
+        <div className="bg-white rounded-lg shadow-sm border p-4 mb-6 space-y-3">
+          {/* Satır 1: Hafta + Parametreler + Buton */}
+          <div className="flex flex-col md:flex-row gap-3">
+            <div className="flex-[2]">
               <label className="block text-xs text-stone-500 mb-1">Hafta seçiniz</label>
               <select
                 value={seciliHafta}
@@ -436,8 +437,8 @@ export default function HaftalikCalismaSureleriPage() {
                 )}
               </select>
             </div>
-            <div>
-              <label className="block text-xs text-stone-500 mb-1">Günlük çalışma süresi</label>
+            <div className="flex-1">
+              <label className="block text-xs text-stone-500 mb-1">Günlük çalışma</label>
               <select
                 value={gunlukCalismaSuresi}
                 onChange={(e) => setGunlukCalismaSuresi(Number(e.target.value))}
@@ -448,8 +449,8 @@ export default function HaftalikCalismaSureleriPage() {
                 <option value={10}>10 saat</option>
               </select>
             </div>
-            <div>
-              <label className="block text-xs text-stone-500 mb-1">Yemek + Mola süresi</label>
+            <div className="flex-1">
+              <label className="block text-xs text-stone-500 mb-1">Mola süresi (dk)</label>
               <input
                 type="number"
                 value={molaSuresi}
@@ -457,8 +458,8 @@ export default function HaftalikCalismaSureleriPage() {
                 className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
               />
             </div>
-            <div>
-              <label className="block text-xs text-stone-500 mb-1">Haftalık çalışma (sa)</label>
+            <div className="flex-1">
+              <label className="block text-xs text-stone-500 mb-1">Haftalık (sa)</label>
               <input
                 type="number"
                 value={haftalikCalismaSaati}
@@ -466,57 +467,8 @@ export default function HaftalikCalismaSureleriPage() {
                 className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
               />
             </div>
-            <div className="flex items-end">
-              <button
-                onClick={fetchData}
-                disabled={dataLoading}
-                className="w-full bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2"
-              >
-                {dataLoading ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                ) : (
-                  <>🔍 Sonuçları Getir</>
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* Firma + Grup Filtresi */}
-          <div className="mt-4 pt-4 border-t border-stone-100 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="md:col-span-2">
-              <label className="block text-xs text-stone-500 mb-2">Firma Filtresi</label>
-              <div className="flex flex-wrap gap-2">
-                {firmalar.map(firma => {
-                  const selected = seciliFirmalar.includes(firma.id);
-                  return (
-                    <button
-                      key={firma.id}
-                      onClick={() => toggleFirma(firma.id)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition ${
-                        selected
-                          ? "bg-rose-500 text-white"
-                          : "bg-stone-100 text-stone-600 hover:bg-stone-200"
-                      }`}
-                    >
-                      {firma.kisaltma || firma.firmaAdi}
-                    </button>
-                  );
-                })}
-                {seciliFirmalar.length > 0 && (
-                  <button
-                    onClick={() => setSeciliFirmalar([])}
-                    className="px-3 py-1.5 rounded-full text-xs font-medium bg-stone-200 text-stone-500 hover:bg-stone-300 transition"
-                  >
-                    ✕ Temizle
-                  </button>
-                )}
-                {firmalar.length === 0 && (
-                  <span className="text-xs text-stone-400">Firma tanımlanmamış</span>
-                )}
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs text-stone-500 mb-2">Grup Etiketi</label>
+            <div className="flex-1">
+              <label className="block text-xs text-stone-500 mb-1">Grup Etiketi</label>
               <select
                 value={seciliGrup}
                 onChange={(e) => setSeciliGrup(e.target.value)}
@@ -528,18 +480,62 @@ export default function HaftalikCalismaSureleriPage() {
                 ))}
               </select>
             </div>
+            <div className="flex items-end">
+              <button
+                onClick={fetchData}
+                disabled={dataLoading}
+                className="w-full bg-rose-500 hover:bg-rose-600 text-white px-5 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 whitespace-nowrap"
+              >
+                {dataLoading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                ) : (
+                  <>🔍 Getir</>
+                )}
+              </button>
+            </div>
           </div>
 
-          {/* Yöneticileri Göster */}
-          <div className="mt-3 pt-3 border-t border-stone-100">
-            <label className="flex items-center gap-2 text-sm text-stone-600 cursor-pointer">
+          {/* Satır 2: Firma + Yöneticiler */}
+          <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-stone-100">
+            <span className="text-xs text-stone-500 mr-1">Firma:</span>
+            {firmalar.map(firma => {
+              const selected = seciliFirmalar.includes(firma.id);
+              return (
+                <button
+                  key={firma.id}
+                  onClick={() => toggleFirma(firma.id)}
+                  className={`px-3 py-1 rounded-full text-xs font-medium transition ${
+                    selected
+                      ? "bg-rose-500 text-white"
+                      : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                  }`}
+                >
+                  {firma.kisaltma || firma.firmaAdi}
+                </button>
+              );
+            })}
+            {seciliFirmalar.length > 0 && (
+              <button
+                onClick={() => setSeciliFirmalar([])}
+                className="px-2 py-1 rounded-full text-xs text-stone-400 hover:text-stone-600 transition"
+              >
+                ✕
+              </button>
+            )}
+            {firmalar.length === 0 && (
+              <span className="text-xs text-stone-400">Tanımsız</span>
+            )}
+
+            <span className="mx-2 text-stone-200">|</span>
+
+            <label className="flex items-center gap-1.5 text-xs text-stone-600 cursor-pointer">
               <input
                 type="checkbox"
                 checked={showYoneticiler}
                 onChange={(e) => setShowYoneticiler(e.target.checked)}
-                className="rounded border-stone-300"
+                className="rounded border-stone-300 w-3.5 h-3.5"
               />
-              Yöneticileri de göster
+              Yöneticiler
             </label>
           </div>
         </div>
