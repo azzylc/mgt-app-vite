@@ -417,7 +417,7 @@ export default function IzinListesi() {
               </div>
 
               {/* Bilgi Satırları */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="bg-stone-50 rounded-lg px-4 py-3">
                   <span className="text-xs text-stone-400 block mb-1">Personel</span>
                   <span className="text-sm font-medium text-stone-800">{selectedIzin.personelAd} {selectedIzin.personelSoyad}</span>
@@ -428,7 +428,7 @@ export default function IzinListesi() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="bg-stone-50 rounded-lg px-4 py-3">
                   <span className="text-xs text-stone-400 block mb-1">Başlangıç</span>
                   <span className="text-sm font-medium text-stone-800">{formatDate(selectedIzin.baslangic)}</span>
@@ -453,7 +453,7 @@ export default function IzinListesi() {
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="bg-stone-50 rounded-lg px-4 py-3">
                   <span className="text-xs text-stone-400 block mb-1">Oluşturan Yönetici</span>
                   <span className="text-sm font-medium text-stone-800">{selectedIzin.olusturanYonetici || "-"}</span>

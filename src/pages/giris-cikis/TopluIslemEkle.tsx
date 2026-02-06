@@ -295,7 +295,7 @@ export default function TopluIslemEklePage() {
                 {calismaSaati} 
                 <span className="text-sm font-normal text-stone-500 ml-2">({personelList.length} kişi)</span>
               </h3>
-              <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+              <div className="bg-white rounded-lg shadow-sm border overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-stone-50 border-b">
                     <tr>

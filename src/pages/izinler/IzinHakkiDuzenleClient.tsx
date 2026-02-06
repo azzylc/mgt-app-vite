@@ -167,7 +167,7 @@ export default function IzinHakkiDuzenleClient() {
           {/* Form Content */}
           <div className="p-6 space-y-6">
             {/* Kullanıcı (readonly) */}
-            <div className="grid grid-cols-[200px_1fr] items-center gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
               <label className="text-sm font-medium text-stone-700">
                 Kullanıcı
               </label>
@@ -177,7 +177,7 @@ export default function IzinHakkiDuzenleClient() {
             </div>
 
             {/* Hak kazandığı gün */}
-            <div className="grid grid-cols-[200px_1fr] items-center gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
               <label className="text-sm font-medium text-stone-700">
                 Hak kazandığı gün <span className="text-red-500">(*)</span>
               </label>
@@ -192,7 +192,7 @@ export default function IzinHakkiDuzenleClient() {
             </div>
 
             {/* Kısa Açıklama */}
-            <div className="grid grid-cols-[200px_1fr] items-start gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-start gap-4">
               <label className="text-sm font-medium text-stone-700 pt-2">
                 Kısa Açıklama <span className="text-red-500">(*)</span>
               </label>

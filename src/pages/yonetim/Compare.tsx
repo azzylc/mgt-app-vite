@@ -195,7 +195,7 @@ export default function ComparePage() {
           </div>
         </header>
 
-        <main className="p-6">
+        <main className="p-4 md:p-6">
 
         {/* Karşılaştır Butonu */}
         <div className="bg-white rounded-lg shadow-sm border border-stone-100 p-6 mb-6">

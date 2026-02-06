@@ -1145,7 +1145,7 @@ export default function PuantajPage() {
 
             {/* İşlem Tipi Seçimi */}
             <div className="mb-4">
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <button
                   onClick={() => setIslemTipi("giriscikis")}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition ${

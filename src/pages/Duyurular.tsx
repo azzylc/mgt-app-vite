@@ -223,7 +223,7 @@ export default function DuyurularPage() {
           </div>
         </header>
 
-        <main className="p-6">
+        <main className="p-4 md:p-6">
           {filteredAnnouncements.length === 0 ? (
             <div className="bg-white rounded-lg p-12 text-center text-stone-500 border border-stone-100">
               <span className="text-5xl mb-4 block">📭</span>

@@ -186,9 +186,9 @@ export default function CalismaSaatleriPage() {
           </div>
         </header>
 
-        <main className="p-6">
+        <main className="p-4 md:p-6">
           {/* İstatistikler */}
-          <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
             <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-5 rounded-lg shadow-md text-white">
               <p className="text-blue-100 text-sm mb-1">Toplam Tanım</p>
               <p className="text-3xl font-bold">{schedules.length}</p>
@@ -288,7 +288,7 @@ export default function CalismaSaatleriPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-stone-700 mb-2">Mesai Türü *</label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {Object.entries(turler).map(([key, value]) => (
                     <button key={key} type="button" onClick={() => setFormData({...formData, tur: key as any})} className={`p-4 rounded-lg border-2 transition text-left ${formData.tur === key ? 'border-rose-500 bg-rose-50' : 'border-stone-200 hover:border-stone-300'}`}>
                       <div className="text-2xl mb-1">{value.icon}</div>
@@ -298,7 +298,7 @@ export default function CalismaSaatleriPage() {
                   ))}
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-stone-700 mb-2">Başlangıç Saati</label>
                   <input type="time" value={formData.baslangic} onChange={e => setFormData({...formData, baslangic: e.target.value})} className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
@@ -355,7 +355,7 @@ export default function CalismaSaatleriPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-stone-700 mb-2">Mesai Türü *</label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {Object.entries(turler).map(([key, value]) => (
                     <button key={key} type="button" onClick={() => setFormData({...formData, tur: key as any})} className={`p-4 rounded-lg border-2 transition text-left ${formData.tur === key ? 'border-rose-500 bg-rose-50' : 'border-stone-200'}`}>
                       <div className="text-2xl mb-1">{value.icon}</div>
@@ -364,7 +364,7 @@ export default function CalismaSaatleriPage() {
                   ))}
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-stone-700 mb-2">Başlangıç</label>
                   <input type="time" value={formData.baslangic} onChange={e => setFormData({...formData, baslangic: e.target.value})} className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
@@ -422,7 +422,7 @@ export default function CalismaSaatleriPage() {
                   {selectedSchedule.aktif ? '✅ Aktif' : '⏸️ Pasif'}
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="p-4 bg-green-50 rounded-lg">
                   <p className="text-sm text-green-600 mb-1">🕐 Başlangıç</p>
                   <p className="font-bold text-stone-800 text-xl">{selectedSchedule.baslangic}</p>

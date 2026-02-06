@@ -317,7 +317,7 @@ export default function YonetimPaneli() {
         </div>
       </header>
 
-      <main className="p-6">
+      <main className="p-4 md:p-6">
         {/* Üst Kartlar */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white rounded-2xl p-4 shadow-sm border border-stone-100">
@@ -490,28 +490,31 @@ export default function YonetimPaneli() {
           <h2 className="text-lg font-bold text-stone-800 mb-4 flex items-center gap-2">
             <span>📊</span> Aylık Finansal Özet
           </h2>
-          
-          {/* Header */}
-          <div className="flex bg-stone-50 px-4 py-3 border-b border-stone-200 rounded-t-lg">
-            <div className="w-[15%] text-left text-xs font-medium text-stone-500 uppercase">Ay</div>
-            <div className="w-[10%] text-center text-xs font-medium text-stone-500 uppercase">Gelin</div>
-            <div className="w-[15%] text-center text-xs font-medium text-stone-500 uppercase">Hedef</div>
-            <div className="w-[20%] text-right text-xs font-medium text-stone-500 uppercase">Toplam Ücret</div>
-            <div className="w-[20%] text-right text-xs font-medium text-stone-500 uppercase">Kapora</div>
-            <div className="w-[20%] text-right text-xs font-medium text-stone-500 uppercase">Kalan</div>
-          </div>
 
-          {/* Body - SADECE BU KISIM SCROLL */}
-          <div className="max-h-[400px] overflow-y-auto divide-y divide-stone-200">
-            {tumAylar.map(ay => {
-              const veri = getAyVerileri(ay);
-              const isBuAy = ay === buAy;
-              return (
-                <div
-                  key={ay}
-                  ref={isBuAy ? bugunAyRef : null}
-                  className={`flex px-4 py-3 ${isBuAy ? 'bg-amber-50' : 'hover:bg-stone-50'}`}
-                >
+          {/* Mobile: allow horizontal scroll for this wide summary table */}
+          <div className="overflow-x-auto -mx-2">
+            <div className="min-w-[680px] mx-2">
+              {/* Header */}
+              <div className="flex bg-stone-50 px-4 py-3 border-b border-stone-200 rounded-t-lg">
+                <div className="w-[15%] text-left text-xs font-medium text-stone-500 uppercase">Ay</div>
+                <div className="w-[10%] text-center text-xs font-medium text-stone-500 uppercase">Gelin</div>
+                <div className="w-[15%] text-center text-xs font-medium text-stone-500 uppercase">Hedef</div>
+                <div className="w-[20%] text-right text-xs font-medium text-stone-500 uppercase">Toplam Ücret</div>
+                <div className="w-[20%] text-right text-xs font-medium text-stone-500 uppercase">Kapora</div>
+                <div className="w-[20%] text-right text-xs font-medium text-stone-500 uppercase">Kalan</div>
+              </div>
+
+              {/* Body - vertical scroll */}
+              <div className="max-h-[400px] overflow-y-auto divide-y divide-stone-200">
+                {tumAylar.map(ay => {
+                  const veri = getAyVerileri(ay);
+                  const isBuAy = ay === buAy;
+                  return (
+                    <div
+                      key={ay}
+                      ref={isBuAy ? bugunAyRef : null}
+                      className={`flex px-4 py-3 ${isBuAy ? 'bg-amber-50' : 'hover:bg-stone-50'}`}
+                    >
                   <div className="w-[15%] text-left">
                     <span className={`font-medium ${isBuAy ? 'text-amber-600' : 'text-stone-700'}`}>
                       {formatAy(ay)}
@@ -547,9 +550,11 @@ export default function YonetimPaneli() {
                   <div className="w-[20%] text-right font-medium text-red-600">
                     {veri.toplamKalan.toLocaleString('tr-TR')} ₺
                   </div>
-                </div>
-              );
-            })}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
       </main>

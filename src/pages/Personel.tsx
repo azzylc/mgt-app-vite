@@ -1190,7 +1190,7 @@ function PersonelPageContent() {
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="p-4 bg-blue-50 rounded-lg">
                   <p className="text-sm text-blue-600 mb-1">📱 Telefon</p>
                   <p className="font-semibold text-stone-800">{selectedPersonel.telefon}</p>
@@ -1214,7 +1214,7 @@ function PersonelPageContent() {
                 </div>
               )}
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="p-4 bg-yellow-50 rounded-lg">
                   <p className="text-sm text-yellow-600 mb-1">🆔 Sicil No</p>
                   <p className="font-semibold text-stone-800">{selectedPersonel.sicilNo}</p>
@@ -1250,7 +1250,7 @@ function PersonelPageContent() {
 
               <div>
                 <p className="text-sm font-medium text-stone-700 mb-3">⚙️ Uygulama Ayarları:</p>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {Object.entries(ayarlarLabels).map(([key, label]) => (
                     <div key={key} className={`px-3 py-2 rounded-lg text-sm ${selectedPersonel.ayarlar[key as keyof typeof selectedPersonel.ayarlar] ? 'bg-green-100 text-green-700' : 'bg-stone-100 text-stone-500'}`}>
                       {selectedPersonel.ayarlar[key as keyof typeof selectedPersonel.ayarlar] ? '✅' : '⬜'} {label}

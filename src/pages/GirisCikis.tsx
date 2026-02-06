@@ -157,7 +157,7 @@ export default function GirisCikisPage() {
           </div>
         </header>
 
-        <main className="p-6">
+        <main className="p-4 md:p-6">
           {/* Filtreler */}
           <div className="bg-white p-4 rounded-lg shadow-sm border border-stone-100 mb-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

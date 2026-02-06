@@ -104,7 +104,7 @@ export default function RaporlarPage() {
           </div>
         </header>
 
-        <main className="p-6">
+        <main className="p-4 md:p-6">
           {/* Özet Kartları */}
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
             <div className="bg-white p-4 rounded-lg shadow-sm border border-stone-100">

@@ -224,8 +224,8 @@ function IzinHakkiEkleContent() {
             </div>
           </div>
 
-          <div className="p-6 space-y-6">
-            <div className="grid grid-cols-[200px_1fr] items-center gap-4">
+          <div className="p-4 md:p-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
               <label className="text-sm font-medium text-stone-700">
                 Kullanıcı <span className="text-red-500">(*)</span>
               </label>
@@ -244,10 +244,10 @@ function IzinHakkiEkleContent() {
             </div>
 
             {seciliPersonel && (
-              <div className="grid grid-cols-[200px_1fr] items-start gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-start gap-4">
                 <label className="text-sm font-medium text-stone-700">Personel Bilgisi</label>
                 <div className="bg-stone-50 rounded-lg p-4 max-w-md">
-                  <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                     <div>
                       <span className="text-stone-500">İşe Giriş Tarihi:</span>
                       <span className="ml-2 font-medium text-stone-800">
@@ -283,7 +283,7 @@ function IzinHakkiEkleContent() {
               </div>
             )}
 
-            <div className="grid grid-cols-[200px_1fr] items-center gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
               <label className="text-sm font-medium text-stone-700">
                 Hak kazandığı gün <span className="text-red-500">(*)</span>
               </label>
@@ -297,7 +297,7 @@ function IzinHakkiEkleContent() {
               />
             </div>
 
-            <div className="grid grid-cols-[200px_1fr] items-start gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-start gap-4">
               <label className="text-sm font-medium text-stone-700 pt-2">
                 Kısa Açıklama <span className="text-red-500">(*)</span>
               </label>

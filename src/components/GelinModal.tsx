@@ -87,7 +87,7 @@ export default function GelinModal({ gelin, onClose }: { gelin: Gelin; onClose: 
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-3 md:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               <div className="p-3 md:p-4 bg-rose-50 rounded-lg">
                 <p className="text-rose-600 text-xs md:text-sm font-medium mb-2">💄 Makyaj</p>
                 {makyajPersonel ? (
@@ -123,7 +123,7 @@ export default function GelinModal({ gelin, onClose }: { gelin: Gelin; onClose: 
             </div>
 
             {(gelin.fotografci || gelin.modaevi) && (
-              <div className="grid grid-cols-2 gap-3 md:gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                 {gelin.fotografci && (
                   <div className="bg-orange-50 p-3 md:p-4 rounded-lg">
                     <p className="text-orange-600 text-xs md:text-sm font-medium mb-1">📷 Fotoğrafçı</p>

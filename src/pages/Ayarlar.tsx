@@ -656,7 +656,7 @@ export default function AyarlarPage() {
           </div>
         </div>
 
-        <main className="p-6">
+        <main className="p-4 md:p-6">
           {/* TAB 0: Genel Ayarlar */}
           {activeTab === 0 && (
             <div className="space-y-6">
@@ -1106,7 +1106,7 @@ export default function AyarlarPage() {
             </div>
 
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-stone-700 mb-1">Karekod *</label>
                   <input type="text" value={konumFormData.karekod} onChange={(e) => setKonumFormData({ ...konumFormData, karekod: e.target.value })} className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" placeholder="110-OFİS" />
@@ -1147,7 +1147,7 @@ export default function AyarlarPage() {
                     📍 Mevcut Konumu Al
                   </button>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs text-stone-500 mb-1">Enlem (Lat)</label>
                     <input type="number" step="any" value={konumFormData.lat || ""} onChange={(e) => setKonumFormData({ ...konumFormData, lat: Number(e.target.value) })} className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" placeholder="41.0082" />
@@ -1162,7 +1162,7 @@ export default function AyarlarPage() {
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-stone-700 mb-1">Maksimum Okutma Uzaklığı (metre)</label>
                   <input type="number" value={konumFormData.maksimumOkutmaUzakligi} onChange={(e) => setKonumFormData({ ...konumFormData, maksimumOkutmaUzakligi: Number(e.target.value) })} className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />

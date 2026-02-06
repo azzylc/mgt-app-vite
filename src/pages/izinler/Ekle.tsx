@@ -247,9 +247,9 @@ export default function IzinEkle() {
           </div>
 
           {/* Form Content */}
-          <div className="p-6 space-y-6">
+          <div className="p-4 md:p-6 space-y-6">
             {/* Kullanıcı */}
-            <div className="grid grid-cols-[200px_1fr] items-center gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
               <label className="text-sm font-medium text-stone-700">
                 Kullanıcı <span className="text-red-500">(*)</span>
               </label>
@@ -268,7 +268,7 @@ export default function IzinEkle() {
             </div>
 
             {/* İzin Türü */}
-            <div className="grid grid-cols-[200px_1fr] items-center gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
               <label className="text-sm font-medium text-stone-700">
                 İzin Türü <span className="text-red-500">(*)</span>
               </label>
@@ -286,7 +286,7 @@ export default function IzinEkle() {
             </div>
 
             {/* Başlangıç */}
-            <div className="grid grid-cols-[200px_1fr] items-center gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
               <label className="text-sm font-medium text-stone-700">
                 Başlangıç (Dahil) <span className="text-red-500">(*)</span>
                 <span className="block text-xs text-stone-400 font-normal">İzin başlangıç günü dahildir</span>
@@ -300,7 +300,7 @@ export default function IzinEkle() {
             </div>
 
             {/* Bitiş */}
-            <div className="grid grid-cols-[200px_1fr] items-center gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
               <label className="text-sm font-medium text-stone-700">
                 Bitiş (Dahil)
                 <span className="block text-xs text-stone-400 font-normal">İzin bitiş günü dahildir</span>
@@ -315,7 +315,7 @@ export default function IzinEkle() {
 
             {/* Gün Sayısı Gösterimi */}
             {baslangic && bitis && (
-              <div className="grid grid-cols-[200px_1fr] items-center gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
                 <label className="text-sm font-medium text-stone-700">Toplam Gün</label>
                 <div className="px-3 py-2 bg-stone-50 rounded-lg text-sm font-semibold text-primary-600 w-fit">
                   {hesaplaGunSayisi()} gün
@@ -324,7 +324,7 @@ export default function IzinEkle() {
             )}
 
             {/* Kısa Açıklama */}
-            <div className="grid grid-cols-[200px_1fr] items-start gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-start gap-4">
               <label className="text-sm font-medium text-stone-700 pt-2">
                 Kısa Açıklama
               </label>

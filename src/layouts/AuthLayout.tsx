@@ -46,7 +46,13 @@ export default function AuthLayout() {
   return (
     <>
       <Sidebar user={user} />
-      <div className="md:ml-56">
+      {/*
+        Mobile UX:
+        - Sidebar shows a fixed bottom navigation (z-40). Add padding-bottom so page content
+          doesn't get hidden behind it on small screens.
+        - On md+ we keep the classic left sidebar layout.
+      */}
+      <div className="md:ml-56 pb-20 md:pb-0">
         <Outlet />
       </div>
     </>

@@ -531,66 +531,71 @@ export default function YonetimPage() {
             <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
               <span>📊</span> Aylık Finansal Özet
             </h2>
-            
-            {/* Header - SCROLL DIŞINDA */}
-            <div className="flex bg-gray-50 px-4 py-3 border-b border-gray-200 rounded-t-lg">
-              <div className="w-[15%] text-left text-xs font-medium text-gray-500 uppercase">Ay</div>
-              <div className="w-[10%] text-center text-xs font-medium text-gray-500 uppercase">Gelin</div>
-              <div className="w-[15%] text-center text-xs font-medium text-gray-500 uppercase">Hedef</div>
-              <div className="w-[20%] text-right text-xs font-medium text-gray-500 uppercase">Toplam Ücret</div>
-              <div className="w-[20%] text-right text-xs font-medium text-gray-500 uppercase">Kapora</div>
-              <div className="w-[20%] text-right text-xs font-medium text-gray-500 uppercase">Kalan</div>
-            </div>
 
-            {/* Body - SADECE BU KISIM SCROLL */}
-            <div className="max-h-[400px] overflow-y-auto divide-y divide-gray-200">
-              {tumAylar.map(ay => {
-                const veri = getAyVerileri(ay);
-                const isBuAy = ay === buAy;
-                return (
-                  <div
-                    key={ay}
-                    ref={isBuAy ? bugunAyRef : null}
-                    className={`flex px-4 py-3 ${isBuAy ? 'bg-pink-50' : 'hover:bg-gray-50'}`}
-                  >
-                    <div className="w-[15%] text-left">
-                      <span className={`font-medium ${isBuAy ? 'text-pink-600' : 'text-gray-700'}`}>
-                        {formatAy(ay)}
-                      </span>
-                    </div>
-                    <div className="w-[10%] text-center">
-                      <span className={`font-bold ${isBuAy ? 'text-pink-600' : 'text-gray-800'}`}>
-                        {veri.toplamGelin}
-                      </span>
-                    </div>
-                    <div className="w-[15%] text-center">
-                      {veri.hedef > 0 ? (
-                        <div className="flex items-center justify-center gap-2">
-                          <span className="text-gray-600">{veri.hedef}</span>
-                          <span className={`text-xs px-1.5 py-0.5 rounded whitespace-nowrap ${
-                            veri.toplamGelin >= veri.hedef 
-                              ? 'bg-green-100 text-green-700' 
-                              : 'bg-gray-100 text-gray-600'
-                          }`}>
-                            %{Math.round((veri.toplamGelin / veri.hedef) * 100)}
+            {/* Mobile: allow horizontal scroll for this wide summary table */}
+            <div className="overflow-x-auto -mx-2">
+              <div className="min-w-[680px] mx-2">
+                {/* Header */}
+                <div className="flex bg-gray-50 px-4 py-3 border-b border-gray-200 rounded-t-lg">
+                  <div className="w-[15%] text-left text-xs font-medium text-gray-500 uppercase">Ay</div>
+                  <div className="w-[10%] text-center text-xs font-medium text-gray-500 uppercase">Gelin</div>
+                  <div className="w-[15%] text-center text-xs font-medium text-gray-500 uppercase">Hedef</div>
+                  <div className="w-[20%] text-right text-xs font-medium text-gray-500 uppercase">Toplam Ücret</div>
+                  <div className="w-[20%] text-right text-xs font-medium text-gray-500 uppercase">Kapora</div>
+                  <div className="w-[20%] text-right text-xs font-medium text-gray-500 uppercase">Kalan</div>
+                </div>
+
+                {/* Body - vertical scroll */}
+                <div className="max-h-[400px] overflow-y-auto divide-y divide-gray-200">
+                  {tumAylar.map(ay => {
+                    const veri = getAyVerileri(ay);
+                    const isBuAy = ay === buAy;
+                    return (
+                      <div
+                        key={ay}
+                        ref={isBuAy ? bugunAyRef : null}
+                        className={`flex px-4 py-3 ${isBuAy ? 'bg-pink-50' : 'hover:bg-gray-50'}`}
+                      >
+                        <div className="w-[15%] text-left">
+                          <span className={`font-medium ${isBuAy ? 'text-pink-600' : 'text-gray-700'}`}>
+                            {formatAy(ay)}
                           </span>
                         </div>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </div>
-                    <div className="w-[20%] text-right font-medium text-gray-800">
-                      {veri.toplamUcret.toLocaleString('tr-TR')} ₺
-                    </div>
-                    <div className="w-[20%] text-right font-medium text-green-600">
-                      {veri.toplamKapora.toLocaleString('tr-TR')} ₺
-                    </div>
-                    <div className="w-[20%] text-right font-medium text-red-600">
-                      {veri.toplamKalan.toLocaleString('tr-TR')} ₺
-                    </div>
-                  </div>
-                );
-              })}
+                        <div className="w-[10%] text-center">
+                          <span className={`font-bold ${isBuAy ? 'text-pink-600' : 'text-gray-800'}`}>
+                            {veri.toplamGelin}
+                          </span>
+                        </div>
+                        <div className="w-[15%] text-center">
+                          {veri.hedef > 0 ? (
+                            <div className="flex items-center justify-center gap-2">
+                              <span className="text-gray-600">{veri.hedef}</span>
+                              <span className={`text-xs px-1.5 py-0.5 rounded whitespace-nowrap ${
+                                veri.toplamGelin >= veri.hedef
+                                  ? 'bg-green-100 text-green-700'
+                                  : 'bg-gray-100 text-gray-600'
+                              }`}>
+                                %{Math.round((veri.toplamGelin / veri.hedef) * 100)}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </div>
+                        <div className="w-[20%] text-right font-medium text-gray-800">
+                          {veri.toplamUcret.toLocaleString('tr-TR')} ₺
+                        </div>
+                        <div className="w-[20%] text-right font-medium text-green-600">
+                          {veri.toplamKapora.toLocaleString('tr-TR')} ₺
+                        </div>
+                        <div className="w-[20%] text-right font-medium text-red-600">
+                          {veri.toplamKalan.toLocaleString('tr-TR')} ₺
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
         </main>

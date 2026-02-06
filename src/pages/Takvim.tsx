@@ -354,7 +354,7 @@ export default function TakvimPage() {
 
         <main className="p-4">
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-3 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
             <div className="stat-card">
               <p className="stat-label">Gelin Sayısı</p>
               <p className="stat-value stat-value-primary">{ayGelinler.length}</p>
@@ -563,7 +563,7 @@ export default function TakvimPage() {
                         <h3 className="font-semibold text-lg">{gelin.isim}</h3>
                         <span className="text-sm text-stone-500">{gelin.saat}</span>
                       </div>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                         <div>
                           <span className="text-stone-500">Makyaj:</span>{' '}
                           <span className="font-medium">{gelin.makyaj || '-'}</span>
