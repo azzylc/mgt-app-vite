@@ -3,7 +3,14 @@ import { auth, db } from "../lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp, where } from "firebase/firestore";
+
+interface PersonelDoc {
+  id: string;
+  ad: string;
+  soyad: string;
+  aktif?: boolean;
+}
 
 interface Shift {
   id: string;
@@ -27,6 +34,7 @@ export default function VardiyaPage() {
   const [filterTarih, setFilterTarih] = useState("");
   const [filterPersonel, setFilterPersonel] = useState("hepsi");
   const [filterVardiya, setFilterVardiya] = useState("hepsi");
+  const [personelListesi, setPersonelListesi] = useState<string[]>([]);
   const [formData, setFormData] = useState({ 
     personel: '', 
     tarih: '', 
@@ -36,8 +44,6 @@ export default function VardiyaPage() {
     notlar: '' 
   });
   const navigate = useNavigate();
-
-  const personelListesi = ["Gizem", "Saliha", "Selen", "Betül", "Zehra"];
   
   const vardiyaTipleri = {
     sabah: { 
@@ -80,6 +86,22 @@ export default function VardiyaPage() {
     });
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db, "personnel"), where("aktif", "==", true));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const isimler = snapshot.docs
+        .map(doc => {
+          const d = doc.data();
+          return d.ad ? `${d.ad} ${d.soyad || ""}`.trim() : "";
+        })
+        .filter(Boolean)
+        .sort((a, b) => a.localeCompare(b, 'tr'));
+      setPersonelListesi(isimler);
+    });
+    return () => unsubscribe();
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
