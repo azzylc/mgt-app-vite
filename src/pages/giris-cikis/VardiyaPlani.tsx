@@ -255,16 +255,21 @@ export default function VardiyaPlaniPage() {
         });
       }
 
-      // Tüm vardiya kayıtlarını çek
+      // Tüm vardiya kayıtlarını çek (sadece bu hafta)
       const haftaBaslangicStr = formatTarihKey(haftaGunleri[0]);
       const haftaBitisStr = formatTarihKey(haftaGunleri[6]);
       
-      const vardiyaSnapshot = await getDocs(collection(db, "vardiyaPlan"));
+      const vardiyaQuery = query(
+        collection(db, "vardiyaPlan"),
+        where("tarih", ">=", haftaBaslangicStr),
+        where("tarih", "<=", haftaBitisStr)
+      );
+      const vardiyaSnapshot = await getDocs(vardiyaQuery);
       
       vardiyaSnapshot.forEach(docSnap => {
         const data = docSnap.data();
         const personelResult = results.find(r => r.personelId === data.personelId);
-        if (personelResult && data.tarih >= haftaBaslangicStr && data.tarih <= haftaBitisStr) {
+        if (personelResult) {
           // İzin varsa üzerine yazma, yoksa vardiya kaydını kullan
           const mevcutIzin = personelResult.gunler[data.tarih]?.izin;
           personelResult.gunler[data.tarih] = {
@@ -664,7 +669,7 @@ export default function VardiyaPlaniPage() {
 
             {/* Tip Seçimi */}
             <div className="mb-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => setIslemTipi("giriscikis")}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition ${

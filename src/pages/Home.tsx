@@ -344,9 +344,11 @@ export default function Home() {
   useEffect(() => {
     if (!user) return;
     
+    // Sadece bitişi bugün veya sonrası olan izinleri çek
     const q = query(
       collection(db, "izinler"),
-      where("durum", "==", "Onaylandı")
+      where("durum", "==", "Onaylandı"),
+      where("bitis", ">=", bugun)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -355,9 +357,9 @@ export default function Home() {
         ...doc.data(),
       })) as IzinKaydi[];
 
-      // Bugün izinli olanları filtrele
+      // Bugün izinli olanları filtrele (baslangic <= bugun kontrolü JS'te)
       const bugunIzinli = izinler.filter(izin => {
-        return izin.baslangic <= bugun && izin.bitis >= bugun;
+        return izin.baslangic <= bugun;
       });
 
       setBugunIzinliler(bugunIzinli);

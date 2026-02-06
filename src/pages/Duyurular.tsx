@@ -13,6 +13,7 @@ import {
   onSnapshot, 
   query, 
   orderBy,
+  limit,
   serverTimestamp
 } from "firebase/firestore";
 
@@ -67,7 +68,7 @@ export default function DuyurularPage() {
   useEffect(() => {
     if (!user) return;
 
-    const q = query(collection(db, "announcements"), orderBy("createdAt", "desc"));
+    const q = query(collection(db, "announcements"), orderBy("createdAt", "desc"), limit(50));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -223,7 +224,7 @@ export default function DuyurularPage() {
           </div>
         </header>
 
-        <main className="p-4 md:p-6">
+        <main className="p-6">
           {filteredAnnouncements.length === 0 ? (
             <div className="bg-white rounded-lg p-12 text-center text-stone-500 border border-stone-100">
               <span className="text-5xl mb-4 block">📭</span>

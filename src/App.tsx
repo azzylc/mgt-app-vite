@@ -1,7 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import * as Sentry from '@sentry/react'
-import { Capacitor } from '@capacitor/core'
 import { RoleProvider } from './context/RoleProvider'
 import AuthLayout from './layouts/AuthLayout'
 import RouteGuard from './components/RouteGuard'
@@ -10,48 +9,64 @@ import RouteGuard from './components/RouteGuard'
 import Login from './pages/Login'
 import Home from './pages/Home'
 
+// Chunk yükleme hatası olursa sayfayı yenile (deploy sonrası eski cache sorunu)
+function lazyWithRetry(importFn: () => Promise<any>) {
+  return lazy(() =>
+    importFn().catch(() => {
+      const lastReload = sessionStorage.getItem('chunk_reload');
+      const now = Date.now();
+      if (lastReload && now - Number(lastReload) < 10000) {
+        return Promise.reject(new Error('Sayfa yüklenemedi'));
+      }
+      sessionStorage.setItem('chunk_reload', String(now));
+      window.location.reload();
+      return new Promise(() => {});
+    })
+  );
+}
+
 // Geri kalan her şey LAZY — sadece tıklanınca yüklenir
 // Ana sayfalar
-const Takvim = lazy(() => import('./pages/Takvim'))
-const Personel = lazy(() => import('./pages/Personel'))
-const Gorevler = lazy(() => import('./pages/Gorevler'))
-const Ayarlar = lazy(() => import('./pages/Ayarlar'))
-const Duyurular = lazy(() => import('./pages/Duyurular'))
-const Vardiya = lazy(() => import('./pages/Vardiya'))
-const QRGiris = lazy(() => import('./pages/QRGiris'))
-const CalismaSaatleri = lazy(() => import('./pages/CalismaSaatleri'))
+const Takvim = lazyWithRetry(() => import('./pages/Takvim'))
+const Personel = lazyWithRetry(() => import('./pages/Personel'))
+const Gorevler = lazyWithRetry(() => import('./pages/Gorevler'))
+const Ayarlar = lazyWithRetry(() => import('./pages/Ayarlar'))
+const Duyurular = lazyWithRetry(() => import('./pages/Duyurular'))
+const Vardiya = lazyWithRetry(() => import('./pages/Vardiya'))
+const QRGiris = lazyWithRetry(() => import('./pages/QRGiris'))
+const CalismaSaatleri = lazyWithRetry(() => import('./pages/CalismaSaatleri'))
 
 // İzinler
-const Izinler = lazy(() => import('./pages/Izinler'))
-const IzinlerEkle = lazy(() => import('./pages/izinler/Ekle'))
-const IzinlerDuzenle = lazy(() => import('./pages/izinler/Duzenle'))
-const IzinlerTalepler = lazy(() => import('./pages/izinler/Talepler'))
-const IzinlerHaklar = lazy(() => import('./pages/izinler/Haklar'))
-const IzinlerHakkiEkle = lazy(() => import('./pages/izinler/HakkiEkle'))
-const IzinlerHakkiDuzenle = lazy(() => import('./pages/izinler/HakkiDuzenle'))
-const IzinlerDegisiklikler = lazy(() => import('./pages/izinler/Degisiklikler'))
-const IzinlerToplamlar = lazy(() => import('./pages/izinler/Toplamlar'))
+const Izinler = lazyWithRetry(() => import('./pages/Izinler'))
+const IzinlerEkle = lazyWithRetry(() => import('./pages/izinler/Ekle'))
+const IzinlerDuzenle = lazyWithRetry(() => import('./pages/izinler/Duzenle'))
+const IzinlerTalepler = lazyWithRetry(() => import('./pages/izinler/Talepler'))
+const IzinlerHaklar = lazyWithRetry(() => import('./pages/izinler/Haklar'))
+const IzinlerHakkiEkle = lazyWithRetry(() => import('./pages/izinler/HakkiEkle'))
+const IzinlerHakkiDuzenle = lazyWithRetry(() => import('./pages/izinler/HakkiDuzenle'))
+const IzinlerDegisiklikler = lazyWithRetry(() => import('./pages/izinler/Degisiklikler'))
+const IzinlerToplamlar = lazyWithRetry(() => import('./pages/izinler/Toplamlar'))
 
 // Giriş-Çıkış
-const GirisCikis = lazy(() => import('./pages/GirisCikis'))
-const GirisCikisPuantaj = lazy(() => import('./pages/giris-cikis/Puantaj'))
-const GirisCikisIslemEkle = lazy(() => import('./pages/giris-cikis/IslemEkle'))
-const GirisCikisIslemListesi = lazy(() => import('./pages/giris-cikis/IslemListesi'))
-const GirisCikisTopluIslemEkle = lazy(() => import('./pages/giris-cikis/TopluIslemEkle'))
-const GirisCikisVardiyaPlani = lazy(() => import('./pages/giris-cikis/VardiyaPlani'))
-const GirisCikisDegisiklikKayitlari = lazy(() => import('./pages/giris-cikis/DegisiklikKayitlari'))
+const GirisCikis = lazyWithRetry(() => import('./pages/GirisCikis'))
+const GirisCikisPuantaj = lazyWithRetry(() => import('./pages/giris-cikis/Puantaj'))
+const GirisCikisIslemEkle = lazyWithRetry(() => import('./pages/giris-cikis/IslemEkle'))
+const GirisCikisIslemListesi = lazyWithRetry(() => import('./pages/giris-cikis/IslemListesi'))
+const GirisCikisTopluIslemEkle = lazyWithRetry(() => import('./pages/giris-cikis/TopluIslemEkle'))
+const GirisCikisVardiyaPlani = lazyWithRetry(() => import('./pages/giris-cikis/VardiyaPlani'))
+const GirisCikisDegisiklikKayitlari = lazyWithRetry(() => import('./pages/giris-cikis/DegisiklikKayitlari'))
 
 // Raporlar
-const Raporlar = lazy(() => import('./pages/Raporlar'))
-const RaporlarGunlukCalismaSureleri = lazy(() => import('./pages/raporlar/GunlukCalismaSureleri'))
-const RaporlarHaftalikCalismaSureleri = lazy(() => import('./pages/raporlar/HaftalikCalismaSureleri'))
-const RaporlarGecKalanlar = lazy(() => import('./pages/raporlar/GecKalanlar'))
-const RaporlarGelmeyenler = lazy(() => import('./pages/raporlar/Gelmeyenler'))
-const RaporlarGirisCikisKayitlari = lazy(() => import('./pages/raporlar/GirisCikisKayitlari'))
+const Raporlar = lazyWithRetry(() => import('./pages/Raporlar'))
+const RaporlarGunlukCalismaSureleri = lazyWithRetry(() => import('./pages/raporlar/GunlukCalismaSureleri'))
+const RaporlarHaftalikCalismaSureleri = lazyWithRetry(() => import('./pages/raporlar/HaftalikCalismaSureleri'))
+const RaporlarGecKalanlar = lazyWithRetry(() => import('./pages/raporlar/GecKalanlar'))
+const RaporlarGelmeyenler = lazyWithRetry(() => import('./pages/raporlar/Gelmeyenler'))
+const RaporlarGirisCikisKayitlari = lazyWithRetry(() => import('./pages/raporlar/GirisCikisKayitlari'))
 
 // Yönetim
-const Yonetim = lazy(() => import('./pages/Yonetim'))
-const YonetimCompare = lazy(() => import('./pages/yonetim/Compare'))
+const Yonetim = lazyWithRetry(() => import('./pages/Yonetim'))
+const YonetimCompare = lazyWithRetry(() => import('./pages/yonetim/Compare'))
 
 // Sayfa yüklenirken gösterilecek loading spinner
 function PageLoader() {
@@ -86,7 +101,7 @@ export default function App() {
                 <Route path="/ayarlar" element={<RouteGuard requiredPermission="ayarlar"><Ayarlar /></RouteGuard>} />
                 <Route path="/duyurular" element={<RouteGuard requiredPermission="duyurular"><Duyurular /></RouteGuard>} />
                 <Route path="/vardiya" element={<RouteGuard requiredPermission="personel"><Vardiya /></RouteGuard>} />
-                <Route path="/qr-giris" element={Capacitor.isNativePlatform() ? <RouteGuard requiredPermission="qr-giris"><QRGiris /></RouteGuard> : <Navigate to="/" replace />} />
+                <Route path="/qr-giris" element={<RouteGuard requiredPermission="qr-giris"><QRGiris /></RouteGuard>} />
                 <Route path="/calisma-saatleri" element={<RouteGuard requiredPermission="personel"><CalismaSaatleri /></RouteGuard>} />
                 
                 {/* İzinler routes */}

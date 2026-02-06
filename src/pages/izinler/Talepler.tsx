@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../../lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, addDoc, increment } from "firebase/firestore";
+import { collection, query, orderBy, limit, onSnapshot, doc, updateDoc, addDoc, increment } from "firebase/firestore";
 import Sidebar from "../../components/Sidebar";
 
 interface IzinTalebi {
@@ -45,7 +45,8 @@ export default function IzinTalepleri() {
 
     const q = query(
       collection(db, "izinTalepleri"),
-      orderBy("talepTarihi", "desc")
+      orderBy("talepTarihi", "desc"),
+      limit(100)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
