@@ -12,6 +12,14 @@ import { collection, getDocs, query, where, onSnapshot, orderBy } from "firebase
 import { db } from "./firebase";
 import * as Sentry from '@sentry/react';
 
+/** Tarihi local timezone'da YYYY-MM-DD formatına çevir (UTC kayması yok) */
+function toLocalDateStr(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 export interface IzinKaydi {
   id: string;
   personelId: string;
@@ -100,7 +108,7 @@ export async function tumIzinleriGetir(
     haftaSnap.forEach(doc => {
       const d = doc.data() as any;
       const tarih = d.tarih?.toDate ? d.tarih.toDate() : new Date(d.tarih);
-      const tarihStr = tarih.toISOString().split("T")[0];
+      const tarihStr = toLocalDateStr(tarih);
       tumIzinler.push({
         id: doc.id,
         personelId: d.personelId || "",
@@ -155,8 +163,8 @@ export async function izinMapOlustur(
 ): Promise<Map<string, string>> {
   const izinMap = new Map<string, string>();
   
-  const aralikBas = baslangicTarihi.toISOString().split('T')[0];
-  const aralikBit = bitisTarihi.toISOString().split('T')[0];
+  const aralikBas = toLocalDateStr(baslangicTarihi);
+  const aralikBit = toLocalDateStr(bitisTarihi);
   
   const izinler = await tumIzinleriGetir(aralikBas, aralikBit);
 
@@ -179,7 +187,7 @@ export async function izinMapOlustur(
           tarihKey = date.getDate().toString();
         } else {
           // Tam tarih (haftalık raporlar için)
-          tarihKey = date.toISOString().split('T')[0];
+          tarihKey = toLocalDateStr(date);
         }
         
         const key = `${izin.personelId}-${tarihKey}`;
@@ -239,7 +247,7 @@ export function izinleriDinle(
       haftaSnap.forEach(doc => {
         const d = doc.data();
         const tarih = d.tarih?.toDate ? d.tarih.toDate() : new Date(d.tarih);
-        const tarihStr = tarih.toISOString().split("T")[0];
+        const tarihStr = toLocalDateStr(tarih);
         vardiyaData.push({
           id: doc.id,
           personelId: d.personelId || "",
