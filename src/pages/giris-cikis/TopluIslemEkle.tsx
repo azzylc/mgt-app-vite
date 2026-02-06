@@ -213,7 +213,7 @@ export default function TopluIslemEklePage() {
 
   return (
     <div className="min-h-screen bg-stone-50">
-      <div className="md:ml-56 pb-20 md:pb-0">
+      <div>
         <header className="bg-white border-b px-4 md:px-6 py-4 sticky top-0 z-30">
           <h1 className="text-xl font-bold text-stone-800">Toplu İşlem Ekle</h1>
           <p className="text-sm text-stone-500 mt-1">Bu sayfada, seçtiğiniz kullanıcılar için topluca Giriş veya Çıkış kaydı ekleyebilirsiniz.</p>

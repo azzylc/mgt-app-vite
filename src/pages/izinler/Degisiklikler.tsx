@@ -125,7 +125,7 @@ export default function IzinDegisiklikKayitlari() {
 
   return (
     <div className="flex min-h-screen bg-neutral-warm">
-      <main className="flex-1 p-4 lg:p-6 md:ml-56 pb-20 md:pb-0">
+      <main className="flex-1 p-4 lg:p-6 ">
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-xl font-bold text-stone-800">İzin Değişiklik Kayıtları</h1>

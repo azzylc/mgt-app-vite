@@ -102,7 +102,7 @@ export default function IzinHakkiDuzenleClient() {
 
   return (
     <div className="flex min-h-screen bg-neutral-warm">
-      <main className="flex-1 p-4 lg:p-6 md:ml-56 pb-20 md:pb-0">
+      <main className="flex-1 p-4 lg:p-6 ">
         {/* Header */}
         <div className="mb-6 flex items-start justify-between">
           <div>

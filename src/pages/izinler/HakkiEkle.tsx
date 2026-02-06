@@ -156,7 +156,7 @@ function IzinHakkiEkleContent() {
 
   return (
     <div className="flex min-h-screen bg-neutral-warm">
-      <main className="flex-1 p-4 lg:p-6 md:ml-56 pb-20 md:pb-0">
+      <main className="flex-1 p-4 lg:p-6 ">
         <div className="mb-6 flex items-start justify-between">
           <div>
             <h1 className="text-xl font-bold text-stone-800">İzin Hakkı Ekle</h1>
