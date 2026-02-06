@@ -8,7 +8,7 @@
  * Bu helper, her iki kaynaktan da izinleri birleştirerek tek bir arayüz sunar.
  */
 
-import { collection, getDocs, query, where, onSnapshot } from "firebase/firestore";
+import { collection, getDocs, query, where, onSnapshot, orderBy } from "firebase/firestore";
 import { db } from "./firebase";
 
 export interface IzinKaydi {
@@ -24,26 +24,51 @@ export interface IzinKaydi {
 }
 
 /**
- * Tüm izinleri getirir (hem izinler collection hem vardiyaPlan'daki hafta tatilleri)
+ * İzinleri getirir (hem izinler collection hem vardiyaPlan'daki hafta tatilleri)
+ * 
+ * @param aralikBas Opsiyonel başlangıç tarihi (YYYY-MM-DD). Verilirse sadece bu aralığa
+ *                  dokunan izinleri getirir (Firestore'da filtrelenir, çok daha az okuma).
+ * @param aralikBit Opsiyonel bitiş tarihi (YYYY-MM-DD).
  * @returns Promise<IzinKaydi[]>
  */
-export async function tumIzinleriGetir(): Promise<IzinKaydi[]> {
+export async function tumIzinleriGetir(
+  aralikBas?: string,
+  aralikBit?: string
+): Promise<IzinKaydi[]> {
   const tumIzinler: IzinKaydi[] = [];
 
   try {
     // 1. İzinler collection'ından
-    const izinSnap = await getDocs(collection(db, "izinler"));
+    // Tarih filtresi varsa: bitis >= aralikBas (bitişi aralık başından önce olanları atla)
+    // Firestore tek field'da range yapabilir, diğer koşulu JS'te kontrol ederiz
+    let izinQuery;
+    if (aralikBas) {
+      izinQuery = query(
+        collection(db, "izinler"),
+        where("bitis", ">=", aralikBas)
+      );
+    } else {
+      izinQuery = query(collection(db, "izinler"));
+    }
+
+    const izinSnap = await getDocs(izinQuery);
     izinSnap.forEach(doc => {
       const d = doc.data();
       // Sadece onaylanmış izinleri al
       const durum = (d.durum || "").toLowerCase();
       if (durum === "onaylandı" || durum === "onaylandi") {
+        const baslangic = d.baslangic || "";
+        const bitis = d.bitis || "";
+
+        // JS'te ikinci koşul: baslangic <= aralikBit (aralık bitişinden sonra başlayanları atla)
+        if (aralikBit && baslangic > aralikBit) return;
+
         tumIzinler.push({
           id: doc.id,
           personelId: d.personelId || "",
           personelAd: d.personelAd || "",
-          baslangicTarihi: d.baslangic || "",
-          bitisTarihi: d.bitis || "",
+          baslangicTarihi: baslangic,
+          bitisTarihi: bitis,
           izinTuru: d.izinTuru || "Yıllık İzin",
           durum: d.durum || "",
           aciklama: d.aciklama || "",
@@ -53,7 +78,24 @@ export async function tumIzinleriGetir(): Promise<IzinKaydi[]> {
     });
 
     // 2. VardiyaPlan'dan hafta tatilleri
-    const vardiyaSnap = await getDocs(collection(db, "vardiyaPlan"));
+    // Tarih filtresi varsa: tarih >= aralikBas AND tarih <= aralikBit
+    let vardiyaQuery;
+    if (aralikBas && aralikBit) {
+      vardiyaQuery = query(
+        collection(db, "vardiyaPlan"),
+        where("tarih", ">=", aralikBas),
+        where("tarih", "<=", aralikBit)
+      );
+    } else if (aralikBas) {
+      vardiyaQuery = query(
+        collection(db, "vardiyaPlan"),
+        where("tarih", ">=", aralikBas)
+      );
+    } else {
+      vardiyaQuery = query(collection(db, "vardiyaPlan"));
+    }
+
+    const vardiyaSnap = await getDocs(vardiyaQuery);
     vardiyaSnap.forEach(doc => {
       const d = doc.data();
       if (d.haftaTatili === true) {
@@ -86,20 +128,15 @@ export async function tarihAraligiIzinleriGetir(
   baslangic: string, 
   bitis: string
 ): Promise<IzinKaydi[]> {
-  const tumIzinler = await tumIzinleriGetir();
-  return tumIzinler.filter(izin => 
-    izin.baslangicTarihi <= bitis && izin.bitisTarihi >= baslangic
-  );
+  // Artık Firestore'da filtrelenmiş veri geliyor, ekstra JS filtresi gerekmiyor
+  return await tumIzinleriGetir(baslangic, bitis);
 }
 
 /**
  * Belirli bir günde izinli olan personelleri getirir
  */
 export async function gunIzinlileriGetir(tarih: string): Promise<IzinKaydi[]> {
-  const tumIzinler = await tumIzinleriGetir();
-  return tumIzinler.filter(izin => 
-    izin.baslangicTarihi <= tarih && izin.bitisTarihi >= tarih
-  );
+  return await tumIzinleriGetir(tarih, tarih);
 }
 
 /**
@@ -117,9 +154,15 @@ export async function izinMapOlustur(
   gunFormati: "gun" | "full" = "full"
 ): Promise<Map<string, string>> {
   const izinMap = new Map<string, string>();
-  const tumIzinler = await tumIzinleriGetir();
+  
+  // Date → "YYYY-MM-DD" string (Firestore filtresi için)
+  const aralikBas = baslangicTarihi.toISOString().split('T')[0];
+  const aralikBit = bitisTarihi.toISOString().split('T')[0];
+  
+  // Artık sadece bu aralığa dokunan izinler geliyor
+  const izinler = await tumIzinleriGetir(aralikBas, aralikBit);
 
-  tumIzinler.forEach(izin => {
+  izinler.forEach(izin => {
     const start = new Date(izin.baslangicTarihi);
     const end = new Date(izin.bitisTarihi);
 
