@@ -3,7 +3,7 @@ import { auth, db } from "../lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, where, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, where, serverTimestamp, Timestamp } from "firebase/firestore";
 
 interface Attendance {
   id: string;
@@ -31,6 +31,8 @@ export default function GirisCikisPage() {
   const [personeller, setPersoneller] = useState<Personel[]>([]);
   const [filterTarih, setFilterTarih] = useState(new Date().toISOString().split('T')[0]);
   const [filterPersonel, setFilterPersonel] = useState("hepsi");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -58,16 +60,29 @@ export default function GirisCikisPage() {
     return () => unsubscribe();
   }, [user]);
 
-  // Giriş-çıkış kayıtlarını çek
+  // Giriş-çıkış kayıtlarını çek (SEÇİLİ GÜNE GÖRE FİLTRELİ)
   useEffect(() => {
     if (!user) return;
-    const q = query(collection(db, "attendance"), orderBy("tarih", "desc"));
+
+    // Seçili günün başlangıç ve bitiş zamanları
+    const gunBaslangic = new Date(filterTarih);
+    gunBaslangic.setHours(0, 0, 0, 0);
+    const gunBitis = new Date(filterTarih);
+    gunBitis.setHours(23, 59, 59, 999);
+
+    const q = query(
+      collection(db, "attendance"),
+      where("tarih", ">=", Timestamp.fromDate(gunBaslangic)),
+      where("tarih", "<=", Timestamp.fromDate(gunBitis)),
+      orderBy("tarih", "desc")
+    );
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Attendance));
       setRecords(data);
+      setCurrentPage(1); // Tarih değişince ilk sayfaya dön
     });
     return () => unsubscribe();
-  }, [user]);
+  }, [user, filterTarih]);
 
   const handleDelete = async (id: string) => {
     if (confirm("Bu kaydı silmek istediğinize emin misiniz?")) {
@@ -79,15 +94,18 @@ export default function GirisCikisPage() {
     }
   };
 
-  // Tarihe göre filtrele
+  // Personel filtresi (tarih zaten Firestore'da filtrelendi)
   const filteredRecords = records.filter(r => {
-    if (!r.tarih) return false;
-    const recordDate = r.tarih.toDate ? r.tarih.toDate() : new Date(r.tarih);
-    const recordDateStr = recordDate.toISOString().split('T')[0];
-    const tarihMatch = recordDateStr === filterTarih;
-    const personelMatch = filterPersonel === "hepsi" || r.personelId === filterPersonel;
-    return tarihMatch && personelMatch;
+    if (filterPersonel === "hepsi") return true;
+    return r.personelId === filterPersonel;
   });
+
+  // Sayfalama
+  const totalPages = Math.ceil(filteredRecords.length / itemsPerPage);
+  const paginatedRecords = filteredRecords.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   // Personel bazında grupla (giriş-çıkış eşleştirme)
   const personelGunlukOzet = () => {
@@ -157,7 +175,7 @@ export default function GirisCikisPage() {
           </div>
         </header>
 
-        <main className="p-4 md:p-6">
+        <main className="p-6">
           {/* Filtreler */}
           <div className="bg-white p-4 rounded-lg shadow-sm border border-stone-100 mb-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -167,7 +185,7 @@ export default function GirisCikisPage() {
               </div>
               <div>
                 <label className="text-sm font-medium text-stone-700 mb-2 block">👤 Personel:</label>
-                <select value={filterPersonel} onChange={e => setFilterPersonel(e.target.value)} className="w-full px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white">
+                <select value={filterPersonel} onChange={e => { setFilterPersonel(e.target.value); setCurrentPage(1); }} className="w-full px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white">
                   <option value="hepsi">Tüm Personel</option>
                   {personeller.map(p => (
                     <option key={p.id} value={p.id}>{p.ad} {p.soyad}</option>
@@ -286,7 +304,7 @@ export default function GirisCikisPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-stone-200">
-                      {filteredRecords.map(record => (
+                      {paginatedRecords.map(record => (
                         <tr key={record.id} className="hover:bg-stone-50 transition">
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
@@ -312,6 +330,30 @@ export default function GirisCikisPage() {
                     </tbody>
                   </table>
                 </div>
+                {/* Sayfalama */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between px-6 py-3 bg-stone-50 border-t border-stone-100">
+                    <p className="text-sm text-stone-500">
+                      Toplam {filteredRecords.length} kayıt, Sayfa {currentPage}/{totalPages}
+                    </p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="px-3 py-1 text-sm rounded border border-stone-200 disabled:opacity-40 hover:bg-stone-100"
+                      >
+                        ← Önceki
+                      </button>
+                      <button
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className="px-3 py-1 text-sm rounded border border-stone-200 disabled:opacity-40 hover:bg-stone-100"
+                      >
+                        Sonraki →
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
