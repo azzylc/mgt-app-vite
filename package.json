@@ -11,10 +11,10 @@
   },
   "dependencies": {
     "@capacitor-firebase/authentication": "^8.0.1",
+    "@capacitor-firebase/messaging": "^8.0.1",
     "@capacitor/cli": "^8.0.2",
     "@capacitor/core": "^8.0.2",
     "@capacitor/ios": "^8.0.2",
-    "@capacitor/push-notifications": "^8.0.0",
     "@sentry/react": "^10.38.0",
     "@yudiel/react-qr-scanner": "^2.5.1",
     "date-fns": "^4.1.0",
