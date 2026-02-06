@@ -3,6 +3,7 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import * as Sentry from '@sentry/react'
 import { RoleProvider } from './context/RoleProvider'
 import AuthLayout from './layouts/AuthLayout'
+import RouteGuard from './components/RouteGuard'
 
 // Login ve Home hemen yüklenir (ilk açılışta lazım)
 import Login from './pages/Login'
@@ -78,46 +79,46 @@ export default function App() {
                 <Route path="/" element={<Home />} />
                 
                 {/* Ana sayfalar */}
-                <Route path="/takvim" element={<Takvim />} />
-                <Route path="/personel" element={<Personel />} />
-                <Route path="/gorevler" element={<Gorevler />} />
-                <Route path="/ayarlar" element={<Ayarlar />} />
-                <Route path="/duyurular" element={<Duyurular />} />
-                <Route path="/vardiya" element={<Vardiya />} />
-                <Route path="/qr-giris" element={<QRGiris />} />
-                <Route path="/calisma-saatleri" element={<CalismaSaatleri />} />
+                <Route path="/takvim" element={<RouteGuard requiredPermission="takvim"><Takvim /></RouteGuard>} />
+                <Route path="/personel" element={<RouteGuard requiredPermission="personel"><Personel /></RouteGuard>} />
+                <Route path="/gorevler" element={<RouteGuard requiredPermission="gorevler"><Gorevler /></RouteGuard>} />
+                <Route path="/ayarlar" element={<RouteGuard requiredPermission="ayarlar"><Ayarlar /></RouteGuard>} />
+                <Route path="/duyurular" element={<RouteGuard requiredPermission="duyurular"><Duyurular /></RouteGuard>} />
+                <Route path="/vardiya" element={<RouteGuard requiredPermission="personel"><Vardiya /></RouteGuard>} />
+                <Route path="/qr-giris" element={<RouteGuard requiredPermission="qr-giris"><QRGiris /></RouteGuard>} />
+                <Route path="/calisma-saatleri" element={<RouteGuard requiredPermission="personel"><CalismaSaatleri /></RouteGuard>} />
                 
                 {/* İzinler routes */}
-                <Route path="/izinler" element={<Izinler />} />
-                <Route path="/izinler/ekle" element={<IzinlerEkle />} />
-                <Route path="/izinler/talepler" element={<IzinlerTalepler />} />
-                <Route path="/izinler/haklar" element={<IzinlerHaklar />} />
-                <Route path="/izinler/hakki-ekle" element={<IzinlerHakkiEkle />} />
-                <Route path="/izinler/hakki-duzenle" element={<IzinlerHakkiDuzenle />} />
-                <Route path="/izinler/degisiklikler" element={<IzinlerDegisiklikler />} />
-                <Route path="/izinler/toplamlar" element={<IzinlerToplamlar />} />
-                <Route path="/izinler/:id/duzenle" element={<IzinlerDuzenle />} />
+                <Route path="/izinler" element={<RouteGuard requiredPermission="izinler"><Izinler /></RouteGuard>} />
+                <Route path="/izinler/ekle" element={<RouteGuard requiredPermission="izinler"><IzinlerEkle /></RouteGuard>} />
+                <Route path="/izinler/talepler" element={<RouteGuard requiredPermission="izinler"><IzinlerTalepler /></RouteGuard>} />
+                <Route path="/izinler/haklar" element={<RouteGuard requiredPermission="izinler"><IzinlerHaklar /></RouteGuard>} />
+                <Route path="/izinler/hakki-ekle" element={<RouteGuard requiredPermission="izinler"><IzinlerHakkiEkle /></RouteGuard>} />
+                <Route path="/izinler/hakki-duzenle" element={<RouteGuard requiredPermission="izinler"><IzinlerHakkiDuzenle /></RouteGuard>} />
+                <Route path="/izinler/degisiklikler" element={<RouteGuard requiredPermission="izinler"><IzinlerDegisiklikler /></RouteGuard>} />
+                <Route path="/izinler/toplamlar" element={<RouteGuard requiredPermission="izinler"><IzinlerToplamlar /></RouteGuard>} />
+                <Route path="/izinler/:id/duzenle" element={<RouteGuard requiredPermission="izinler"><IzinlerDuzenle /></RouteGuard>} />
                 
                 {/* Giriş-Çıkış routes */}
-                <Route path="/giris-cikis" element={<GirisCikis />} />
-                <Route path="/giris-cikis/puantaj" element={<GirisCikisPuantaj />} />
-                <Route path="/giris-cikis/islem-ekle" element={<GirisCikisIslemEkle />} />
-                <Route path="/giris-cikis/islem-listesi" element={<GirisCikisIslemListesi />} />
-                <Route path="/giris-cikis/toplu-islem-ekle" element={<GirisCikisTopluIslemEkle />} />
-                <Route path="/giris-cikis/vardiya-plani" element={<GirisCikisVardiyaPlani />} />
-                <Route path="/giris-cikis/degisiklik-kayitlari" element={<GirisCikisDegisiklikKayitlari />} />
+                <Route path="/giris-cikis" element={<RouteGuard requiredPermission="giris-cikis-islemleri"><GirisCikis /></RouteGuard>} />
+                <Route path="/giris-cikis/puantaj" element={<RouteGuard requiredPermission="giris-cikis-islemleri"><GirisCikisPuantaj /></RouteGuard>} />
+                <Route path="/giris-cikis/islem-ekle" element={<RouteGuard requiredPermission="giris-cikis-islemleri"><GirisCikisIslemEkle /></RouteGuard>} />
+                <Route path="/giris-cikis/islem-listesi" element={<RouteGuard requiredPermission="giris-cikis-islemleri"><GirisCikisIslemListesi /></RouteGuard>} />
+                <Route path="/giris-cikis/toplu-islem-ekle" element={<RouteGuard requiredPermission="giris-cikis-islemleri"><GirisCikisTopluIslemEkle /></RouteGuard>} />
+                <Route path="/giris-cikis/vardiya-plani" element={<RouteGuard requiredPermission="giris-cikis-islemleri"><GirisCikisVardiyaPlani /></RouteGuard>} />
+                <Route path="/giris-cikis/degisiklik-kayitlari" element={<RouteGuard requiredPermission="giris-cikis-islemleri"><GirisCikisDegisiklikKayitlari /></RouteGuard>} />
                 
                 {/* Raporlar routes */}
-                <Route path="/raporlar" element={<Raporlar />} />
-                <Route path="/raporlar/gunluk-calisma-sureleri" element={<RaporlarGunlukCalismaSureleri />} />
-                <Route path="/raporlar/haftalik-calisma-sureleri" element={<RaporlarHaftalikCalismaSureleri />} />
-                <Route path="/raporlar/gec-kalanlar" element={<RaporlarGecKalanlar />} />
-                <Route path="/raporlar/gelmeyenler" element={<RaporlarGelmeyenler />} />
-                <Route path="/raporlar/giris-cikis-kayitlari" element={<RaporlarGirisCikisKayitlari />} />
+                <Route path="/raporlar" element={<RouteGuard requiredPermission="raporlar"><Raporlar /></RouteGuard>} />
+                <Route path="/raporlar/gunluk-calisma-sureleri" element={<RouteGuard requiredPermission="raporlar"><RaporlarGunlukCalismaSureleri /></RouteGuard>} />
+                <Route path="/raporlar/haftalik-calisma-sureleri" element={<RouteGuard requiredPermission="raporlar"><RaporlarHaftalikCalismaSureleri /></RouteGuard>} />
+                <Route path="/raporlar/gec-kalanlar" element={<RouteGuard requiredPermission="raporlar"><RaporlarGecKalanlar /></RouteGuard>} />
+                <Route path="/raporlar/gelmeyenler" element={<RouteGuard requiredPermission="raporlar"><RaporlarGelmeyenler /></RouteGuard>} />
+                <Route path="/raporlar/giris-cikis-kayitlari" element={<RouteGuard requiredPermission="raporlar"><RaporlarGirisCikisKayitlari /></RouteGuard>} />
                 
                 {/* Yönetim routes */}
-                <Route path="/yonetim" element={<Yonetim />} />
-                <Route path="/yonetim/compare" element={<YonetimCompare />} />
+                <Route path="/yonetim" element={<RouteGuard requiredPermission="yonetim-paneli"><Yonetim /></RouteGuard>} />
+                <Route path="/yonetim/compare" element={<RouteGuard requiredPermission="yonetim-paneli"><YonetimCompare /></RouteGuard>} />
               </Route>
 
               {/* Catch all */}
