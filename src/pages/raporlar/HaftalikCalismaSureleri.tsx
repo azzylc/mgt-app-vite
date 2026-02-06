@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
-import { auth, db } from "../../lib/firebase";
+import { db } from "../../lib/firebase";
 import { collection, query, onSnapshot, orderBy, where, Timestamp, getDocs } from "firebase/firestore";
 import { resmiTatiller } from "../../lib/data";
 import { izinMapOlustur } from "../../lib/izinHelper";
+import { useAuth } from "../../context/RoleProvider";
+import * as Sentry from "@sentry/react";
 
 interface Personel {
   id: string;
@@ -11,6 +13,14 @@ interface Personel {
   sicilNo?: string;
   aktif: boolean;
   kullaniciTuru?: string;
+  firmalar?: string[];
+  grupEtiketleri?: string[];
+}
+
+interface Firma {
+  id: string;
+  firmaAdi: string;
+  kisaltma?: string;
 }
 
 interface GunData {
@@ -28,11 +38,30 @@ interface PersonelHaftalik {
   toplamSaat: string;
   geldigiGun: number;
   fazlaCalisma: string;
+  eksikCalisma: string;
+}
+
+interface EksikCikisUyari {
+  personelAd: string;
+  tarih: string;
+  girisSaati: string;
+}
+
+/** Local timezone'da YYYY-MM-DD */
+function toLocalDateStr(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 export default function HaftalikCalismaSureleriPage() {
+  const user = useAuth();
   const [personeller, setPersoneller] = useState<Personel[]>([]);
+  const [firmalar, setFirmalar] = useState<Firma[]>([]);
+  const [grupEtiketleri, setGrupEtiketleri] = useState<string[]>([]);
   const [haftalikData, setHaftalikData] = useState<PersonelHaftalik[]>([]);
+  const [eksikCikislar, setEksikCikislar] = useState<EksikCikisUyari[]>([]);
   const [haftalar, setHaftalar] = useState<{ value: string; label: string; year?: number; isYearHeader?: boolean }[]>([]);
   const [dataLoading, setDataLoading] = useState(false);
 
@@ -40,10 +69,10 @@ export default function HaftalikCalismaSureleriPage() {
   const [seciliHafta, setSeciliHafta] = useState("");
   const [gunlukCalismaSuresi, setGunlukCalismaSuresi] = useState(9);
   const [molaSuresi, setMolaSuresi] = useState(90);
-  const [gecKalmaToleransi, setGecKalmaToleransi] = useState(10);
-  const [erkenCikisToleransi, setErkenCikisToleransi] = useState(5);
   const [haftalikCalismaSaati, setHaftalikCalismaSaati] = useState(45);
   const [showYoneticiler, setShowYoneticiler] = useState(false);
+  const [seciliFirmalar, setSeciliFirmalar] = useState<string[]>([]);
+  const [seciliGrup, setSeciliGrup] = useState("tumu");
 
   // Hafta numarası hesapla
   const getWeekNumber = (date: Date): number => {
@@ -52,13 +81,12 @@ export default function HaftalikCalismaSureleriPage() {
     return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
   };
 
-  // Haftaları oluştur (patrondaki gibi)
+  // Haftaları oluştur
   useEffect(() => {
     const weeks: { value: string; label: string; year?: number; isYearHeader?: boolean }[] = [];
     const today = new Date();
     
-    // Son 52 hafta (1 yıl)
-    for (let i = 51; i >= 0; i--) {  // TERS SIRALAMA: geçmişten bugüne
+    for (let i = 51; i >= 0; i--) {
       const weekStart = new Date(today);
       weekStart.setDate(today.getDate() - today.getDay() + 1 - (i * 7));
       const weekEnd = new Date(weekStart);
@@ -69,46 +97,61 @@ export default function HaftalikCalismaSureleriPage() {
       const startStr = weekStart.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' });
       const endStr = weekEnd.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
       
-      // Yıl değiştiyse başlık ekle
       if (weeks.length === 0 || weeks[weeks.length - 1].year !== year) {
-        weeks.push({
-          value: `year-${year}`,
-          label: `${year} yılı`,
-          year: year,
-          isYearHeader: true
-        });
+        weeks.push({ value: `year-${year}`, label: `${year} yılı`, year, isYearHeader: true });
       }
       
       weeks.push({
-        value: weekStart.toISOString().split('T')[0],
+        value: toLocalDateStr(weekStart),
         label: `${String(weekNum).padStart(2, '0')}. Hafta (${startStr} - ${endStr})`,
-        year: year
+        year
       });
     }
     
     setHaftalar(weeks);
-    // Bu haftayı seç (en son eklenen, yıl başlığı olmayanlar arasında)
     const thisWeek = weeks.filter(w => !w.isYearHeader).pop();
     if (thisWeek) setSeciliHafta(thisWeek.value);
   }, []);
 
   // Personelleri çek
   useEffect(() => {
-    if (!auth.currentUser) return;
+    if (!user) return;
     const q = query(collection(db, "personnel"), orderBy("ad", "asc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ad: doc.data().ad || "",
-        soyad: doc.data().soyad || "",
-        sicilNo: doc.data().sicilNo || "",
-        aktif: doc.data().aktif !== false,
-        kullaniciTuru: doc.data().kullaniciTuru || ""
-      }));
+      const data = snapshot.docs.map(doc => {
+        const d = doc.data();
+        const ge = d.grupEtiketleri;
+        return {
+          id: doc.id,
+          ad: d.ad || "",
+          soyad: d.soyad || "",
+          sicilNo: d.sicilNo || "",
+          aktif: d.aktif !== false,
+          kullaniciTuru: d.kullaniciTuru || "",
+          firmalar: Array.isArray(d.firmalar) ? d.firmalar : (d.firma ? [d.firma] : []),
+          grupEtiketleri: Array.isArray(ge) ? ge : (ge ? [ge] : []),
+        };
+      });
       setPersoneller(data.filter(p => p.aktif));
+      const gruplar = [...new Set(data.flatMap(p => p.grupEtiketleri || []))].sort((a, b) => a.localeCompare(b, 'tr'));
+      setGrupEtiketleri(gruplar);
     });
     return () => unsubscribe();
-  }, []);
+  }, [user]);
+
+  // Firmaları çek
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db, "companies"), orderBy("firmaAdi", "asc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setFirmalar(snapshot.docs.map(doc => ({
+        id: doc.id,
+        firmaAdi: doc.data().firmaAdi || "",
+        kisaltma: doc.data().kisaltma || "",
+      })));
+    });
+    return () => unsubscribe();
+  }, [user]);
 
   // Resmi tatil kontrolü
   const isResmiTatil = (tarih: string): boolean => {
@@ -117,7 +160,7 @@ export default function HaftalikCalismaSureleriPage() {
       for (let i = 0; i < tatil.sure; i++) {
         const gun = new Date(tatilTarih);
         gun.setDate(tatilTarih.getDate() + i);
-        if (gun.toISOString().split('T')[0] === tarih) return true;
+        if (toLocalDateStr(gun) === tarih) return true;
       }
     }
     return false;
@@ -125,148 +168,180 @@ export default function HaftalikCalismaSureleriPage() {
 
   // Hafta tatili kontrolü
   const isHaftaTatili = (tarih: string): boolean => {
-    const gun = new Date(tarih).getDay();
+    const gun = new Date(tarih + "T12:00:00").getDay();
     return gun === 0 || gun === 6;
+  };
+
+  // Firma toggle
+  const toggleFirma = (firmaId: string) => {
+    setSeciliFirmalar(prev =>
+      prev.includes(firmaId) ? prev.filter(f => f !== firmaId) : [...prev, firmaId]
+    );
   };
 
   // Verileri getir
   const fetchData = async () => {
-    if (!auth.currentUser || !seciliHafta) return;
+    if (!user || !seciliHafta) return;
     setDataLoading(true);
 
-    const haftaBaslangic = new Date(seciliHafta);
-    haftaBaslangic.setHours(0, 0, 0, 0);
-    const haftaBitis = new Date(haftaBaslangic);
-    haftaBitis.setDate(haftaBaslangic.getDate() + 6);
-    haftaBitis.setHours(23, 59, 59, 999);
+    try {
+      const haftaBaslangic = new Date(seciliHafta + "T00:00:00");
+      const haftaBitis = new Date(haftaBaslangic);
+      haftaBitis.setDate(haftaBaslangic.getDate() + 6);
+      haftaBitis.setHours(23, 59, 59, 999);
 
-    // Attendance kayıtlarını çek
-    const attendanceQuery = query(
-      collection(db, "attendance"),
-      where("tarih", ">=", Timestamp.fromDate(haftaBaslangic)),
-      where("tarih", "<=", Timestamp.fromDate(haftaBitis)),
-      orderBy("tarih", "asc")
-    );
+      const attendanceQuery = query(
+        collection(db, "attendance"),
+        where("tarih", ">=", Timestamp.fromDate(haftaBaslangic)),
+        where("tarih", "<=", Timestamp.fromDate(haftaBitis)),
+        orderBy("tarih", "asc")
+      );
 
-    const attendanceSnap = await getDocs(attendanceQuery);
-    
-    // Kayıtları grupla
-    const kayitlar = new Map<string, any[]>();
-    attendanceSnap.forEach(doc => {
-      const d = doc.data();
-      const tarih = d.tarih?.toDate?.();
-      if (!tarih) return;
+      const attendanceSnap = await getDocs(attendanceQuery);
       
-      const gunStr = tarih.toISOString().split('T')[0];
-      const key = `${d.personelId}-${gunStr}`;
-      
-      if (!kayitlar.has(key)) kayitlar.set(key, []);
-      kayitlar.get(key)!.push({ ...d, tarihDate: tarih });
-    });
+      const kayitlar = new Map<string, any[]>();
+      attendanceSnap.forEach(docSnap => {
+        const d = docSnap.data();
+        const tarih = d.tarih?.toDate?.();
+        if (!tarih) return;
+        
+        const gunStr = toLocalDateStr(tarih);
+        const key = `${d.personelId}-${gunStr}`;
+        
+        if (!kayitlar.has(key)) kayitlar.set(key, []);
+        kayitlar.get(key)!.push({ ...d, tarihDate: tarih });
+      });
 
-    // İzinleri çek (hem izinler hem vardiyaPlan'daki hafta tatilleri)
-    const haftaSonu = new Date(haftaBaslangic);
-    haftaSonu.setDate(haftaBaslangic.getDate() + 6);
-    const izinMap = await izinMapOlustur(haftaBaslangic, haftaSonu, "full");
+      const haftaSonu = new Date(haftaBaslangic);
+      haftaSonu.setDate(haftaBaslangic.getDate() + 6);
+      const izinMap = await izinMapOlustur(haftaBaslangic, haftaSonu, "full");
 
-    // Her personel için haftalık veri oluştur
-    const results: PersonelHaftalik[] = [];
-    
-    const filteredPersonel = showYoneticiler 
-      ? personeller 
-      : personeller.filter(p => !["Yönetici", "Kurucu"].includes(p.kullaniciTuru || ""));
+      let filteredPersonel = showYoneticiler
+        ? personeller
+        : personeller.filter(p => !["Yönetici", "Kurucu"].includes(p.kullaniciTuru || ""));
 
-    for (const personel of filteredPersonel) {
-      const gunler: GunData[] = [];
-      let toplamDakika = 0;
-      let geldigiGun = 0;
+      if (seciliFirmalar.length > 0) {
+        filteredPersonel = filteredPersonel.filter(p =>
+          (p.firmalar || []).some(f => seciliFirmalar.includes(f))
+        );
+      }
 
-      for (let i = 0; i < 7; i++) {
-        const gun = new Date(haftaBaslangic);
-        gun.setDate(haftaBaslangic.getDate() + i);
-        const gunStr = gun.toISOString().split('T')[0];
-        const key = `${personel.id}-${gunStr}`;
+      if (seciliGrup !== "tumu") {
+        filteredPersonel = filteredPersonel.filter(p =>
+          (p.grupEtiketleri || []).includes(seciliGrup)
+        );
+      }
 
-        const gunKayitlari = kayitlar.get(key) || [];
-        const izin = izinMap.get(key);
+      const results: PersonelHaftalik[] = [];
+      const eksikler: EksikCikisUyari[] = [];
 
-        let gunData: GunData = {
-          tarih: gunStr,
-          girisSaati: "",
-          durum: "bos",
-          calismaDakika: 0
-        };
+      for (const personel of filteredPersonel) {
+        const gunler: GunData[] = [];
+        let toplamDakika = 0;
+        let geldigiGun = 0;
 
-        // Resmi tatil
-        if (isResmiTatil(gunStr)) {
-          gunData.durum = "resmiTatil";
-          gunData.girisSaati = "Resmi Tatili";
-        }
-        // Hafta tatili
-        else if (isHaftaTatili(gunStr)) {
-          gunData.durum = "tatil";
-          gunData.girisSaati = "Hafta Tatili";
-        }
-        // İzinli
-        else if (izin) {
-          gunData.durum = "izin";
-          gunData.girisSaati = izin;
-        }
-        // Giriş var
-        else if (gunKayitlari.length > 0) {
-          const girisler = gunKayitlari.filter(k => k.tip === "giris").sort((a, b) => a.tarihDate - b.tarihDate);
-          const cikislar = gunKayitlari.filter(k => k.tip === "cikis").sort((a, b) => a.tarihDate - b.tarihDate);
+        for (let i = 0; i < 7; i++) {
+          const gun = new Date(haftaBaslangic);
+          gun.setDate(haftaBaslangic.getDate() + i);
+          const gunStr = toLocalDateStr(gun);
+          const key = `${personel.id}-${gunStr}`;
 
-          if (girisler.length > 0) {
-            const ilkGiris = girisler[0].tarihDate;
-            gunData.girisSaati = ilkGiris.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-            gunData.durum = "calisma";
-            geldigiGun++;
+          const gunKayitlari = kayitlar.get(key) || [];
+          const izin = izinMap.get(key);
 
-            if (cikislar.length > 0) {
-              const sonCikis = cikislar[cikislar.length - 1].tarihDate;
-              let calismaDakika = Math.floor((sonCikis - ilkGiris) / (1000 * 60)) - molaSuresi;
-              if (calismaDakika < 0) calismaDakika = 0;
-              
-              toplamDakika += calismaDakika;
-              gunData.calismaDakika = calismaDakika;
+          let gunData: GunData = {
+            tarih: gunStr,
+            girisSaati: "",
+            durum: "bos",
+            calismaDakika: 0
+          };
 
-              // Eksik veya fazla
-              const hedefDakika = gunlukCalismaSuresi * 60;
-              if (calismaDakika < hedefDakika - 30) {
+          if (isResmiTatil(gunStr)) {
+            gunData.durum = "resmiTatil";
+            gunData.girisSaati = "Resmi Tatil";
+          }
+          else if (isHaftaTatili(gunStr)) {
+            gunData.durum = "tatil";
+            gunData.girisSaati = "Hafta Tatili";
+          }
+          else if (izin) {
+            gunData.durum = "izin";
+            gunData.girisSaati = izin;
+          }
+          else if (gunKayitlari.length > 0) {
+            const girisler = gunKayitlari.filter((k: any) => k.tip === "giris").sort((a: any, b: any) => a.tarihDate - b.tarihDate);
+            const cikislar = gunKayitlari.filter((k: any) => k.tip === "cikis").sort((a: any, b: any) => a.tarihDate - b.tarihDate);
+
+            if (girisler.length > 0) {
+              const ilkGiris = girisler[0].tarihDate;
+              geldigiGun++;
+
+              if (cikislar.length > 0) {
+                const sonCikis = cikislar[cikislar.length - 1].tarihDate;
+                let calismaDakika = Math.floor((sonCikis - ilkGiris) / (1000 * 60)) - molaSuresi;
+                if (calismaDakika < 0) calismaDakika = 0;
+                
+                toplamDakika += calismaDakika;
+                gunData.calismaDakika = calismaDakika;
+
+                const saatStr = Math.floor(calismaDakika / 60);
+                const dakikaStr = calismaDakika % 60;
+                gunData.girisSaati = `${String(saatStr).padStart(2, '0')}:${String(dakikaStr).padStart(2, '0')}`;
+
+                const hedefDakika = gunlukCalismaSuresi * 60;
+                if (calismaDakika < hedefDakika - 30) {
+                  gunData.durum = "eksik";
+                } else if (calismaDakika > hedefDakika + 30) {
+                  gunData.durum = "fazla";
+                } else {
+                  gunData.durum = "calisma";
+                }
+              } else {
+                gunData.girisSaati = ilkGiris.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) + " ⚠️";
                 gunData.durum = "eksik";
-              } else if (calismaDakika > hedefDakika + 30) {
-                gunData.durum = "fazla";
+                eksikler.push({
+                  personelAd: `${personel.ad} ${personel.soyad}`.trim(),
+                  tarih: gun.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' }),
+                  girisSaati: ilkGiris.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
+                });
               }
             }
           }
+
+          gunler.push(gunData);
         }
 
-        gunler.push(gunData);
+        const toplamSaat = Math.floor(toplamDakika / 60);
+        const toplamDakikaKalan = toplamDakika % 60;
+        
+        const hedefHaftalikDakika = haftalikCalismaSaati * 60;
+        const fazlaDakika = Math.max(0, toplamDakika - hedefHaftalikDakika);
+        const fazlaSaat = Math.floor(fazlaDakika / 60);
+        const fazlaDakikaKalan = fazlaDakika % 60;
+
+        const eksikDakika = Math.max(0, hedefHaftalikDakika - toplamDakika);
+        const eksikSaat = Math.floor(eksikDakika / 60);
+        const eksikDakikaKalan = eksikDakika % 60;
+
+        results.push({
+          personelId: personel.id,
+          personelAd: `${personel.ad} ${personel.soyad}`.trim(),
+          sicilNo: personel.sicilNo || "",
+          gunler,
+          toplamSaat: `${String(toplamSaat).padStart(2, '0')}:${String(toplamDakikaKalan).padStart(2, '0')}`,
+          geldigiGun,
+          fazlaCalisma: `${String(fazlaSaat).padStart(2, '0')}:${String(fazlaDakikaKalan).padStart(2, '0')}`,
+          eksikCalisma: `${String(eksikSaat).padStart(2, '0')}:${String(eksikDakikaKalan).padStart(2, '0')}`,
+        });
       }
 
-      // Toplam hesapla
-      const toplamSaat = Math.floor(toplamDakika / 60);
-      const toplamDakikaKalan = toplamDakika % 60;
-      
-      const hedefHaftalikDakika = haftalikCalismaSaati * 60;
-      const fazlaDakika = Math.max(0, toplamDakika - hedefHaftalikDakika);
-      const fazlaSaat = Math.floor(fazlaDakika / 60);
-      const fazlaDakikaKalan = fazlaDakika % 60;
-
-      results.push({
-        personelId: personel.id,
-        personelAd: `${personel.ad} ${personel.soyad}`.trim(),
-        sicilNo: personel.sicilNo || "",
-        gunler,
-        toplamSaat: `${String(toplamSaat).padStart(2, '0')}:${String(toplamDakikaKalan).padStart(2, '0')}`,
-        geldigiGun,
-        fazlaCalisma: `${String(fazlaSaat).padStart(2, '0')}:${String(fazlaDakikaKalan).padStart(2, '0')}`
-      });
+      results.sort((a, b) => a.personelAd.localeCompare(b.personelAd, 'tr'));
+      setHaftalikData(results);
+      setEksikCikislar(eksikler);
+    } catch (error) {
+      Sentry.captureException(error);
     }
 
-    results.sort((a, b) => a.personelAd.localeCompare(b.personelAd, 'tr'));
-    setHaftalikData(results);
     setDataLoading(false);
   };
 
@@ -274,7 +349,7 @@ export default function HaftalikCalismaSureleriPage() {
   const getGunBasliklari = () => {
     if (!seciliHafta) return [];
     const gunler = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'];
-    const baslangic = new Date(seciliHafta);
+    const baslangic = new Date(seciliHafta + "T12:00:00");
     
     return gunler.map((gun, i) => {
       const tarih = new Date(baslangic);
@@ -298,12 +373,12 @@ export default function HaftalikCalismaSureleriPage() {
 
   // Excel'e kopyala
   const copyToClipboard = async () => {
-    const gunBasliklari = getGunBasliklari();
-    let text = "Sicil No\tAd Soyad\t" + gunBasliklari.join("\t") + "\tToplam Saat\tGeldiği Gün\tFazla Çalışma\n";
+    const gb = getGunBasliklari();
+    let text = "Sicil No\tAd Soyad\t" + gb.join("\t") + "\tToplam Saat\tGeldiği Gün\tFazla Çalışma\tEksik Çalışma\n";
     
     haftalikData.forEach(h => {
       const gunVerileri = h.gunler.map(g => g.girisSaati || "-").join("\t");
-      text += `${h.sicilNo || "-"}\t${h.personelAd}\t${gunVerileri}\t${h.toplamSaat}\t${h.geldigiGun}\t${h.fazlaCalisma}\n`;
+      text += `${h.sicilNo || "-"}\t${h.personelAd}\t${gunVerileri}\t${h.toplamSaat}\t${h.geldigiGun}\t${h.fazlaCalisma}\t${h.eksikCalisma}\n`;
     });
 
     await navigator.clipboard.writeText(text);
@@ -312,12 +387,12 @@ export default function HaftalikCalismaSureleriPage() {
 
   // Excel indir
   const exportToExcel = () => {
-    const gunBasliklari = getGunBasliklari();
-    let csv = "Sicil No;Ad Soyad;" + gunBasliklari.join(";") + ";Toplam Saat;Geldiği Gün;Fazla Çalışma\n";
+    const gb = getGunBasliklari();
+    let csv = "Sicil No;Ad Soyad;" + gb.join(";") + ";Toplam Saat;Geldiği Gün;Fazla Çalışma;Eksik Çalışma\n";
     
     haftalikData.forEach(h => {
       const gunVerileri = h.gunler.map(g => g.girisSaati || "-").join(";");
-      csv += `${h.sicilNo || "-"};${h.personelAd};${gunVerileri};${h.toplamSaat};${h.geldigiGun};${h.fazlaCalisma}\n`;
+      csv += `${h.sicilNo || "-"};${h.personelAd};${gunVerileri};${h.toplamSaat};${h.geldigiGun};${h.fazlaCalisma};${h.eksikCalisma}\n`;
     });
 
     const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
@@ -328,19 +403,19 @@ export default function HaftalikCalismaSureleriPage() {
   };
 
   const gunBasliklari = getGunBasliklari();
-  const weekNum = seciliHafta ? getWeekNumber(new Date(seciliHafta)) : 0;
+  const weekNum = seciliHafta ? getWeekNumber(new Date(seciliHafta + "T12:00:00")) : 0;
 
   return (
     <div className="min-h-screen bg-stone-50">
       <header className="bg-white border-b px-4 md:px-6 py-4 sticky top-0 z-30">
         <h1 className="text-xl font-bold text-stone-800">Toplam Çalışma Süreleri (Haftalık)</h1>
-        <p className="text-sm text-stone-500 mt-1">Bu sayfada, belirlediğiniz parametre ve filtrelere göre "Toplam Çalışma Süreleri (Haftalık)" raporunu görüntüleyebilirsiniz.</p>
+        <p className="text-sm text-stone-500 mt-1">Bu sayfada, belirlediğiniz parametre ve filtrelere göre &quot;Toplam Çalışma Süreleri (Haftalık)&quot; raporunu görüntüleyebilirsiniz.</p>
       </header>
 
       <main className="p-4 md:p-6">
         {/* Filtreler */}
         <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
-          <div className="grid grid-cols-2 md:grid-cols-8 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
             <div className="col-span-2">
               <label className="block text-xs text-stone-500 mb-1">Hafta seçiniz</label>
               <select
@@ -374,29 +449,11 @@ export default function HaftalikCalismaSureleriPage() {
               </select>
             </div>
             <div>
-              <label className="block text-xs text-stone-500 mb-1">Yemek + Mola süre...</label>
+              <label className="block text-xs text-stone-500 mb-1">Yemek + Mola süresi</label>
               <input
                 type="number"
                 value={molaSuresi}
                 onChange={(e) => setMolaSuresi(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-stone-500 mb-1">Geç kal. toleransı</label>
-              <input
-                type="number"
-                value={gecKalmaToleransi}
-                onChange={(e) => setGecKalmaToleransi(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-stone-500 mb-1">Erken çık. toleransı</label>
-              <input
-                type="number"
-                value={erkenCikisToleransi}
-                onChange={(e) => setErkenCikisToleransi(Number(e.target.value))}
                 className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
               />
             </div>
@@ -423,15 +480,76 @@ export default function HaftalikCalismaSureleriPage() {
               </button>
             </div>
           </div>
+
+          {/* Firma + Grup Filtresi */}
+          <div className="mt-4 pt-4 border-t border-stone-100 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="md:col-span-2">
+              <label className="block text-xs text-stone-500 mb-2">Firma Filtresi</label>
+              <div className="flex flex-wrap gap-2">
+                {firmalar.map(firma => {
+                  const selected = seciliFirmalar.includes(firma.id);
+                  return (
+                    <button
+                      key={firma.id}
+                      onClick={() => toggleFirma(firma.id)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition ${
+                        selected
+                          ? "bg-rose-500 text-white"
+                          : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                      }`}
+                    >
+                      {firma.kisaltma || firma.firmaAdi}
+                    </button>
+                  );
+                })}
+                {seciliFirmalar.length > 0 && (
+                  <button
+                    onClick={() => setSeciliFirmalar([])}
+                    className="px-3 py-1.5 rounded-full text-xs font-medium bg-stone-200 text-stone-500 hover:bg-stone-300 transition"
+                  >
+                    ✕ Temizle
+                  </button>
+                )}
+                {firmalar.length === 0 && (
+                  <span className="text-xs text-stone-400">Firma tanımlanmamış</span>
+                )}
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs text-stone-500 mb-2">Grup Etiketi</label>
+              <select
+                value={seciliGrup}
+                onChange={(e) => setSeciliGrup(e.target.value)}
+                className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+              >
+                <option value="tumu">Tümü</option>
+                {grupEtiketleri.map(grup => (
+                  <option key={grup} value={grup}>{grup}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Yöneticileri Göster */}
+          <div className="mt-3 pt-3 border-t border-stone-100">
+            <label className="flex items-center gap-2 text-sm text-stone-600 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showYoneticiler}
+                onChange={(e) => setShowYoneticiler(e.target.checked)}
+                className="rounded border-stone-300"
+              />
+              Yöneticileri de göster
+            </label>
+          </div>
         </div>
 
         {/* Renk açıklamaları */}
         <div className="flex flex-wrap gap-3 mb-4 text-xs">
           <div className="flex items-center gap-1"><span className="w-4 h-4 bg-green-500 rounded"></span> Çalıştığı günler</div>
-          <div className="flex items-center gap-1"><span className="w-4 h-4 bg-stone-300 rounded"></span> Çalışmadığı günler</div>
+          <div className="flex items-center gap-1"><span className="w-4 h-4 bg-stone-300 rounded"></span> Hafta Tatili</div>
           <div className="flex items-center gap-1"><span className="w-4 h-4 bg-red-500 rounded"></span> Eksik çalışma</div>
           <div className="flex items-center gap-1"><span className="w-4 h-4 bg-orange-400 rounded"></span> Fazla çalışma</div>
-          <div className="flex items-center gap-1"><span className="w-4 h-4 bg-stone-300 rounded"></span> Hafta Tatili</div>
           <div className="flex items-center gap-1"><span className="w-4 h-4 bg-blue-400 rounded"></span> İzin ve Raporlar</div>
           <div className="flex items-center gap-1"><span className="w-4 h-4 bg-yellow-400 rounded"></span> Resmi Tatil</div>
         </div>
@@ -439,7 +557,7 @@ export default function HaftalikCalismaSureleriPage() {
         {/* Uyarı */}
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
           <p className="text-sm text-amber-800">
-            <span className="font-medium">ℹ️ Not:</span> Resmi tatil ve izin günleri toplam çalışma süresine dahil edilmez.
+            <span className="font-medium">ℹ️ Not:</span> Resmi tatil ve izin günleri toplam çalışma süresine dahil edilmez. Hücrelerdeki süreler mola düşülmüş net çalışma süresidir.
           </p>
         </div>
 
@@ -468,6 +586,7 @@ export default function HaftalikCalismaSureleriPage() {
                       <th className="px-3 py-2 text-center text-xs font-medium text-stone-500 whitespace-nowrap">Toplam Saat</th>
                       <th className="px-3 py-2 text-center text-xs font-medium text-stone-500 whitespace-nowrap">Geldiği Gün</th>
                       <th className="px-3 py-2 text-center text-xs font-medium text-stone-500 whitespace-nowrap">Fazla Çalışma</th>
+                      <th className="px-3 py-2 text-center text-xs font-medium text-stone-500 whitespace-nowrap">Eksik Çalışma</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-stone-100">
@@ -482,7 +601,12 @@ export default function HaftalikCalismaSureleriPage() {
                         ))}
                         <td className="px-3 py-2 text-center font-bold text-stone-800">{h.toplamSaat}</td>
                         <td className="px-3 py-2 text-center text-stone-600">{h.geldigiGun}</td>
-                        <td className="px-3 py-2 text-center text-stone-600">{h.fazlaCalisma}</td>
+                        <td className={`px-3 py-2 text-center font-medium ${h.fazlaCalisma !== "00:00" ? "text-orange-600" : "text-stone-400"}`}>
+                          {h.fazlaCalisma}
+                        </td>
+                        <td className={`px-3 py-2 text-center font-medium ${h.eksikCalisma !== "00:00" ? "text-red-600" : "text-stone-400"}`}>
+                          {h.eksikCalisma}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -490,11 +614,30 @@ export default function HaftalikCalismaSureleriPage() {
               </div>
             </div>
 
+            {/* Eksik Çıkış Uyarıları */}
+            {eksikCikislar.length > 0 && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <h3 className="text-sm font-bold text-red-800 mb-3">⚠️ Dikkat: Çıkış Kaydı Eksik ({eksikCikislar.length} kayıt)</h3>
+                <p className="text-xs text-red-600 mb-3">Aşağıdaki personellerin giriş kaydı var ancak çıkış kaydı bulunamadı. Bu günlerin çalışma süresi hesaplanamadı.</p>
+                <div className="space-y-1">
+                  {eksikCikislar.map((uyari, i) => (
+                    <div key={i} className="flex items-center gap-3 text-xs text-red-700 bg-red-100/50 rounded px-3 py-1.5">
+                      <span className="font-medium min-w-[150px]">{uyari.personelAd}</span>
+                      <span className="text-red-500">{uyari.tarih}</span>
+                      <span>Giriş: {uyari.girisSaati}</span>
+                      <span className="text-red-400">→ Çıkış yok</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Notlar */}
             <div className="bg-stone-50 border rounded-lg p-4 mb-6 text-center text-sm text-stone-600">
               <p className="font-medium mb-1">Notlar:</p>
               <p>Sadece gün içindeki <u>İlk Giriş</u> ve <u>Son Çıkış</u> işlemleri hesaba katılmaktadır.</p>
               <p>Toplam Saat ve Gün hesaplanırken Resmi Tatiller ve İzin Günleri, toplam sürelere eklenmemektedir.</p>
+              <p>Hücrelerdeki süreler yemek + mola süresi ({molaSuresi} dk) düşülmüş <strong>net çalışma süreleridir.</strong></p>
             </div>
 
             {/* Butonlar */}
@@ -509,7 +652,7 @@ export default function HaftalikCalismaSureleriPage() {
                 onClick={copyToClipboard}
                 className="bg-blue-100 hover:bg-blue-200 text-blue-700 px-6 py-3 rounded-lg font-medium transition flex items-center justify-center gap-2"
               >
-                📋 Excel'e Kopyala
+                📋 Excel&apos;e Kopyala
               </button>
               <button
                 onClick={exportToExcel}
@@ -522,7 +665,7 @@ export default function HaftalikCalismaSureleriPage() {
         ) : (
           <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
             <span className="text-5xl">📋</span>
-            <p className="text-stone-500 mt-4">Rapor oluşturmak için hafta seçin ve "Sonuçları Getir" butonuna tıklayın.</p>
+            <p className="text-stone-500 mt-4">Rapor oluşturmak için hafta seçin ve &quot;Sonuçları Getir&quot; butonuna tıklayın.</p>
           </div>
         )}
       </main>
