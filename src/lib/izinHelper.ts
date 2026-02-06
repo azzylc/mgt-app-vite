@@ -71,7 +71,6 @@ export async function tumIzinleriGetir(): Promise<IzinKaydi[]> {
       }
     });
 
-    console.log(`✅ Toplam izin: ${tumIzinler.length} (${tumIzinler.filter(i => i.kaynak === "izinler").length} izinler + ${tumIzinler.filter(i => i.kaynak === "vardiyaPlan").length} hafta tatili)`);
     
   } catch (error) {
     console.error("❌ İzinleri getirirken hata:", error);
@@ -126,7 +125,6 @@ export async function izinMapOlustur(
 
     // Geçersiz tarih kontrolü
     if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-      console.warn(`⚠️ Geçersiz tarih: ${izin.personelAd} - ${izin.baslangicTarihi} → ${izin.bitisTarihi}`);
       return;
     }
 

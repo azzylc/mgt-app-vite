@@ -229,7 +229,6 @@ export default function VardiyaPlaniPage() {
           }
         });
         
-        console.log("Final izinMap size:", izinMap.size);
       } catch (e) {
         console.error("İzin verisi çekilemedi:", e);
       }

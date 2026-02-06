@@ -14,9 +14,7 @@ export default function Login() {
     setError('');
 
     try {
-      console.log('🔥 [LOGIN] Attempting login...', email.trim());
       await signInWithEmailAndPassword(auth, email.trim(), password);
-      console.log('✅ [LOGIN] Success!');
       navigate('/');
     } catch (err: any) {
       console.error('❌ [LOGIN] Error:', err);

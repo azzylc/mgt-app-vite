@@ -92,9 +92,7 @@ export default function YonetimPaneli() {
       
       if (cached) {
         gelinler2025 = JSON.parse(cached);
-        console.log(`📦 2025: ${gelinler2025.length} gelin (cache'den)`);
       } else {
-        console.log("🔄 2025 verisi Firestore'dan yükleniyor...");
         const q = query(
           collection(db, "gelinler"),
           where("tarih", ">=", "2025-01-01"),
@@ -107,7 +105,6 @@ export default function YonetimPaneli() {
           ...doc.data()
         } as Gelin));
         localStorage.setItem(CACHE_KEY_2025, JSON.stringify(gelinler2025));
-        console.log(`✅ 2025: ${gelinler2025.length} gelin cache'e kaydedildi`);
       }
     };
 
@@ -127,7 +124,6 @@ export default function YonetimPaneli() {
         } as Gelin));
         
         setGelinler([...gelinler2025, ...gelinler2026Plus]);
-        console.log(`✅ Toplam: ${gelinler2025.length + gelinler2026Plus.length} gelin yüklendi`);
       });
 
       return unsubscribe;

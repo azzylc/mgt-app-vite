@@ -7,7 +7,6 @@ let cachedToken: string | null = null;
 export async function setToken(token: string): Promise<void> {
   cachedToken = token;
   localStorage.setItem('authToken', token);
-  console.log('✅ [AUTH STORE] Token saved');
 }
 
 export async function getToken(): Promise<string | null> {
@@ -23,5 +22,4 @@ export async function getToken(): Promise<string | null> {
 export async function clearToken(): Promise<void> {
   cachedToken = null;
   localStorage.removeItem('authToken');
-  console.log('✅ [AUTH STORE] Token cleared');
 }

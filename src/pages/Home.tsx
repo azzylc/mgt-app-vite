@@ -266,7 +266,6 @@ export default function Home() {
     const otuzGunSonra = new Date();
     otuzGunSonra.setDate(otuzGunSonra.getDate() + 30);
 
-    console.log(`🔥 Dashboard Firestore: ${onDortGunOnce.toISOString().split("T")[0]} → ${otuzGunSonra.toISOString().split("T")[0]}`);
 
     const q = query(
       collection(db, "gelinler"),

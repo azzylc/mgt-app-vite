@@ -211,7 +211,6 @@ export default function PuantajPage() {
           izinMap.set(key, value);
         });
         
-        console.log("Final izinMap size:", izinMap.size);
       } catch (e) {
         console.error("İzinleri çekerken hata:", e);
       }

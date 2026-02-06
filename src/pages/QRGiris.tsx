@@ -91,7 +91,6 @@ export default function QRGirisPage() {
         setSonIslem({ tip: data.tip, tarih: data.tarih, konumAdi: data.konumAdi });
       }
     } catch (error) {
-      console.log("Son islem cekilemedi:", error);
     }
   };
 

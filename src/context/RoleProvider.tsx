@@ -20,12 +20,9 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
   const [rol, setRol] = useState<RolYetkileri | null>(null);
   const [loading, setLoading] = useState(true);
 
-  console.log("🔵 [DEBUG] RoleProvider mounted!");
 
   useEffect(() => {
-    console.log("🔵 [DEBUG] Setting up auth observer...");
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      console.log("🔵 [DEBUG] Auth state changed:", currentUser?.email);
       setUser(currentUser);
     });
     return unsubscribe;
@@ -61,7 +58,6 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
           throw new Error("kullaniciTuru yok");
         }
 
-        console.log("✅ [ROLE] Kullanıcı türü:", kullaniciTuru);
 
         // 2. Rol yetkilerini al (settings/permissions document'inden)
         const permissionsSnap = await getDoc(doc(db, "settings", "permissions"));
@@ -71,22 +67,18 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
         if (permissionsSnap.exists()) {
           const permissions = permissionsSnap.data() as RolYetkileri;
           menuItems = permissions[kullaniciTuru] || [];
-          console.log("✅ [ROLE] Firestore'dan yetkiler:", menuItems);
         } else {
           // Fallback: Firestore'da yoksa default yetkiler
-          console.log("⚠️ [ROLE] settings/permissions bulunamadı, default yetkiler kullanılıyor");
           const defaultPermissions: RolYetkileri = {
             "Kurucu": ["genel-bakis", "giris-cikis-islemleri", "duyurular", "gorevler", "takvim", "personel", "izinler", "raporlar", "ayarlar", "yonetim-paneli"],
             "Yönetici": ["genel-bakis", "giris-cikis-islemleri", "duyurular", "gorevler", "takvim", "personel", "izinler", "raporlar", "ayarlar"],
             "Personel": ["genel-bakis", "qr-giris", "duyurular", "gorevler", "takvim", "izinler"]
           };
           menuItems = defaultPermissions[kullaniciTuru] || [];
-          console.log("✅ [ROLE] Default yetkiler:", menuItems);
         }
         
         if (cancelled === false) {
           setRol({ [kullaniciTuru]: menuItems });
-          console.log("✅ [ROLE] Rol set edildi:", { [kullaniciTuru]: menuItems });
         }
       } catch (e) {
         console.error("❌ [ROLE] Rol yetkileri yüklenemedi:", e);

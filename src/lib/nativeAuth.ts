@@ -8,7 +8,6 @@ import { auth } from './firebase';
  */
 export async function nativeSignIn(email: string, password: string) {
   try {
-    console.log('📱 [NATIVE] Starting native auth...');
     
     // 1. Native iOS/Android Login (Keychain'e yazar)
     const result = await FirebaseAuthentication.signInWithEmailAndPassword({
@@ -16,13 +15,11 @@ export async function nativeSignIn(email: string, password: string) {
       password,
     });
 
-    console.log('✅ [NATIVE] Native auth successful:', result.user?.uid);
 
     // 2. Web SDK Bridge (Firestore erişimi için ŞART)
     const credential = EmailAuthProvider.credential(email, password);
     const webResult = await signInWithCredential(auth, credential);
 
-    console.log('✅ [NATIVE] Web SDK bridge successful:', webResult.user.uid);
 
     // Firebase onAuthStateChanged otomatik tetiklenecek!
     return webResult;
@@ -40,7 +37,6 @@ export async function nativeSignOut(): Promise<void> {
   try {
     await FirebaseAuthentication.signOut();
     await auth.signOut();
-    console.log('✅ [NATIVE] Logout successful');
   } catch (error) {
     console.error('❌ [NATIVE] Logout failed:', error);
     throw error;

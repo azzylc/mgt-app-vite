@@ -69,10 +69,8 @@ export default function ComparePage() {
     setError(null);
 
     try {
-      console.log('🔍 Firestore vs Excel Karşılaştırma Başlıyor...');
       
       // 1. FIRESTORE'DAN GELİNLERİ ÇEK (2025+)
-      console.log('1️⃣ Firestore\'dan gelinler çekiliyor (2025+)...');
       
       const q = query(
         collection(db, 'gelinler'),
@@ -92,10 +90,8 @@ export default function ComparePage() {
         });
       });
       
-      console.log(`   ✅ ${firestoreGelinler.length} gelin (Firestore 2025+)`);
       
       // 2. EXCEL'DEN GELİNLERİ ÇEK
-      console.log('2️⃣ Excel\'den gelinler çekiliyor...');
       
       const response = await fetch(`${APPS_SCRIPT_URL}?action=gelinler`);
       const excelData = await response.json();
@@ -104,10 +100,8 @@ export default function ComparePage() {
       const excelGelinler = (Array.isArray(excelData) ? excelData : excelData.data || [])
         .filter((g: any) => g.tarih >= '2025-01-01');
       
-      console.log(`   ✅ ${excelGelinler.length} gelin (Excel 2025+)`);
       
       // 3. KARŞILAŞTIR
-      console.log('3️⃣ Karşılaştırılıyor...');
       
       const eslesenler: any[] = [];
       const sadeceFistore: any[] = [];
@@ -139,9 +133,6 @@ export default function ComparePage() {
         }
       });
       
-      console.log(`   ✅ Eşleşen: ${eslesenler.length}`);
-      console.log(`   ⚠️ Sadece Firestore: ${sadeceFistore.length}`);
-      console.log(`   ⚠️ Sadece Excel: ${sadeceExcel.length}`);
       
       setSonuc({
         firestoreCount: firestoreGelinler.length,

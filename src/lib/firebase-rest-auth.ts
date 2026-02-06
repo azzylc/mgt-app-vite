@@ -5,8 +5,6 @@
 import { setToken, clearToken } from './authStore';
 
 const FIREBASE_API_KEY = import.meta.env.VITE_FIREBASE_API_KEY;
-console.log('🔑 [DEBUG] FIREBASE_API_KEY:', FIREBASE_API_KEY);
-console.log('🔑 [DEBUG] FIREBASE_API_KEY:', FIREBASE_API_KEY);
 const BASE_URL = 'https://identitytoolkit.googleapis.com/v1/accounts';
 
 interface FirebaseAuthResponse {
@@ -39,7 +37,6 @@ export async function signInWithEmailPasswordREST(
 ): Promise<FirebaseAuthResponse> {
   const url = `${BASE_URL}:signInWithPassword?key=${FIREBASE_API_KEY}`;
   
-  console.log('🔥 [AUTH] Logging in:', email);
   
   try {
     const response = await fetch(url, {
@@ -61,7 +58,6 @@ export async function signInWithEmailPasswordREST(
 
     const data: FirebaseAuthResponse = await response.json();
     
-    console.log('✅ [AUTH] Login successful:', data.email);
     
     // 🔥 authStore ile yaz (verification dahil!)
     await setToken(data.idToken);
@@ -102,7 +98,6 @@ export async function getUserInfo(idToken: string) {
  */
 export async function signOutREST() {
   await clearToken();
-  console.log('✅ [AUTH] Logged out');
 }
 
 /**

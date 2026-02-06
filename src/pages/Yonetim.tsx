@@ -95,9 +95,7 @@ export default function YonetimPage() {
       
       if (cached) {
         gelinler2025 = JSON.parse(cached);
-        console.log(`📦 2025: ${gelinler2025.length} gelin (cache'den)`);
       } else {
-        console.log('🔄 2025: Firestore\'dan çekiliyor (ilk kez)...');
         const q2025 = query(
           collection(db, "gelinler"),
           where("tarih", ">=", "2025-01-01"),
@@ -120,7 +118,6 @@ export default function YonetimPage() {
         } as Gelin));
         
         localStorage.setItem(CACHE_KEY_2025, JSON.stringify(gelinler2025));
-        console.log(`✅ 2025: ${gelinler2025.length} gelin (Firestore → cache)`);
       }
       
       setGelinler(gelinler2025);
@@ -129,7 +126,6 @@ export default function YonetimPage() {
     load2025();
 
     // 2026+ verisi - Real-time listener
-    console.log('🔄 2026: Firestore listener başlatılıyor...');
     const q2026 = query(
       collection(db, "gelinler"),
       where("tarih", ">=", "2026-01-01"),
@@ -150,7 +146,6 @@ export default function YonetimPage() {
         anlasildigiTarih: doc.data().anlasildigiTarih || "",
       } as Gelin));
 
-      console.log(`✅ 2026: ${gelinler2026.length} gelin (real-time)`);
       
       const cached = localStorage.getItem(CACHE_KEY_2025);
       const cached2025 = cached ? JSON.parse(cached) : [];
@@ -164,7 +159,6 @@ export default function YonetimPage() {
   const refresh2025Cache = async () => {
     setRefreshing2025(true);
     try {
-      console.log('🔄 2025 cache yenileniyor...');
       const q2025 = query(
         collection(db, "gelinler"),
         where("tarih", ">=", "2025-01-01"),
@@ -187,7 +181,6 @@ export default function YonetimPage() {
       } as Gelin));
       
       localStorage.setItem(CACHE_KEY_2025, JSON.stringify(gelinler2025));
-      console.log(`✅ 2025 cache yenilendi: ${gelinler2025.length} gelin`);
       
       const gelinler2026 = gelinler.filter(g => g.tarih >= "2026-01-01");
       setGelinler([...gelinler2025, ...gelinler2026]);

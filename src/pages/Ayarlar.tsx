@@ -307,8 +307,6 @@ export default function AyarlarPage() {
           // Batch commit
           if (tagUpdateCount > 0 || personnelUpdateCount > 0) {
             await batch.commit();
-            if (tagUpdateCount > 0) console.log(`${tagUpdateCount} grup etiketine eksik field eklendi.`);
-            if (personnelUpdateCount > 0) console.log(`${personnelUpdateCount} personelden artık etiketler temizlendi.`);
           }
         } catch (error) {
           console.error("Otomatik düzeltme hatası:", error);

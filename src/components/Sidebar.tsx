@@ -1,4 +1,3 @@
-console.log("🚨🚨🚨 SIDEBAR DOSYASI YÜKLENDI!");
 
 import { useState, useEffect, Suspense, createContext, useContext } from "react";
 import { useRole } from "../context/RoleProvider";
@@ -48,7 +47,6 @@ function SidebarContent({ user }: SidebarProps) {
   useEffect(() => {
     if (!user?.email) return;
     
-    console.log("🔍 [SIDEBAR] Personnel aranıyor (email query):", user.email);
     
     const q = query(
       collection(db, "personnel"),
@@ -62,9 +60,7 @@ function SidebarContent({ user }: SidebarProps) {
           const data = snapshot.docs[0].data();
           setKullaniciGruplar(data.grupEtiketleri || []);
           setPersonelData(data);
-          console.log("✅ [SIDEBAR] Personnel data yüklendi:", data);
         } else {
-          console.warn("⚠️ [SIDEBAR] Personnel doc bulunamadı, fallback:", user.email);
           setPersonelData({
             ad: user.email?.split("@")[0] || "Kullanıcı",
             soyad: "",

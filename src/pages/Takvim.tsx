@@ -104,7 +104,6 @@ export default function TakvimPage() {
     const sonrakiYil = month === 11 ? year + 1 : year;
     const sonrakiAyBasi = `${sonrakiYil}-${String(sonrakiAy + 1).padStart(2, '0')}-01`;
 
-    console.log(`🔄 Firestore: ${ayBasi} → ${sonrakiAyBasi} arası çekiliyor...`);
     
     const q = query(
       collection(db, "gelinler"),
@@ -119,7 +118,6 @@ export default function TakvimPage() {
         ...doc.data()
       } as Gelin));
 
-      console.log(`✅ ${data.length} gelin yüklendi (${year}-${String(month + 1).padStart(2, '0')})`);
       setGelinler(data);
       setDataLoading(false);
     }, (error) => {

@@ -9,7 +9,6 @@ const logBuffer: string[] = [];
   const line = `[${new Date().toISOString().split('T')[1].substring(0, 12)}] ${args.map(a => String(a)).join(' ')}`;
   logBuffer.push(line);
   if (logBuffer.length > 100) logBuffer.shift();
-  console.log(...args);
 };
 
 export function DebugOverlay() {

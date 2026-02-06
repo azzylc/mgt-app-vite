@@ -121,7 +121,6 @@ export default function GelmeyenlerPage() {
           izinMap.set(key, value);
         });
       } catch (e) {
-        console.log("İzin verisi çekilemedi:", e);
       }
 
       // Gelmeyen personelleri bul
