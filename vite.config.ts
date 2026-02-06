@@ -13,6 +13,27 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'assets',
     sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // React core — değişmez, tarayıcı cache'ler
+          'vendor-react': [
+            'react',
+            'react-dom',
+            'react-router-dom',
+          ],
+          // Firebase Auth + Core
+          'vendor-firebase-core': [
+            'firebase/app',
+            'firebase/auth',
+          ],
+          // Firebase Firestore — en büyük parça
+          'vendor-firebase-firestore': [
+            'firebase/firestore',
+          ],
+        },
+      },
+    },
   },
   server: {
     port: 5173,
