@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import * as Sentry from '@sentry/react'
+import { Capacitor } from '@capacitor/core'
 import { RoleProvider } from './context/RoleProvider'
 import AuthLayout from './layouts/AuthLayout'
 import RouteGuard from './components/RouteGuard'
@@ -85,7 +86,7 @@ export default function App() {
                 <Route path="/ayarlar" element={<RouteGuard requiredPermission="ayarlar"><Ayarlar /></RouteGuard>} />
                 <Route path="/duyurular" element={<RouteGuard requiredPermission="duyurular"><Duyurular /></RouteGuard>} />
                 <Route path="/vardiya" element={<RouteGuard requiredPermission="personel"><Vardiya /></RouteGuard>} />
-                <Route path="/qr-giris" element={<RouteGuard requiredPermission="qr-giris"><QRGiris /></RouteGuard>} />
+                <Route path="/qr-giris" element={Capacitor.isNativePlatform() ? <RouteGuard requiredPermission="qr-giris"><QRGiris /></RouteGuard> : <Navigate to="/" replace />} />
                 <Route path="/calisma-saatleri" element={<RouteGuard requiredPermission="personel"><CalismaSaatleri /></RouteGuard>} />
                 
                 {/* İzinler routes */}

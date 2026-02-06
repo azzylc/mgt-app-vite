@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { auth, db } from "../../lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { collection, query, onSnapshot, doc, getDoc, updateDoc } from "firebase/firestore";
+import { collection, query, onSnapshot, doc, getDoc, updateDoc, increment, addDoc } from "firebase/firestore";
 import Sidebar from "../../components/Sidebar";
 
 interface Personel {
@@ -35,6 +35,11 @@ export default function IzinDuzenle() {
   const isUserEditedRef = useRef(false);
   // İlk veri yüklendi mi?
   const isDataLoadedRef = useRef(false);
+
+  // Eski izin değerleri (personnel sayaç düzeltmesi için)
+  const eskiPersonelIdRef = useRef("");
+  const eskiIzinTuruRef = useRef("");
+  const eskiGunSayisiRef = useRef(0);
 
   // Enter ile kaydet (textarea hariç)
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -100,6 +105,11 @@ export default function IzinDuzenle() {
           setAciklama(data.aciklama || "");
           setKaynak(data.kaynak || "manuel");
           isDataLoadedRef.current = true;
+
+          // Eski değerleri sakla (personnel sayaç düzeltmesi için)
+          eskiPersonelIdRef.current = data.personelId || "";
+          eskiIzinTuruRef.current = data.izinTuru || "Yıllık İzin";
+          eskiGunSayisiRef.current = data.gunSayisi || 0;
         } else {
           alert("İzin kaydı bulunamadı!");
           navigate("/izinler");
@@ -179,6 +189,42 @@ export default function IzinDuzenle() {
         kaynak,
         duzenleyenYonetici: user?.email?.split("@")[0] || "",
         duzenlenmeTarihi: new Date().toISOString(),
+      });
+
+      // Personnel sayaçlarını güncelle (eski değeri geri al, yeni değeri ekle)
+      const izinTuruField = (tur: string) => {
+        if (tur === "Yıllık İzin") return "kullanilanYillik";
+        if (tur === "Raporlu") return "raporlu";
+        if (tur === "Mazeret ve Diğer Ücretli İzinler") return "digerIzinler";
+        if (tur === "Ücretsiz İzin") return "ucretsizIzin";
+        return null;
+      };
+
+      const eskiField = izinTuruField(eskiIzinTuruRef.current);
+      const yeniField = izinTuruField(izinTuru);
+
+      // Eski personelden eski değeri düş
+      if (eskiField && eskiPersonelIdRef.current && eskiGunSayisiRef.current > 0) {
+        await updateDoc(doc(db, "personnel", eskiPersonelIdRef.current), {
+          [eskiField]: increment(-eskiGunSayisiRef.current),
+        });
+      }
+
+      // Yeni personele yeni değeri ekle
+      if (yeniField && selectedPersonel && gunSayisi > 0) {
+        await updateDoc(doc(db, "personnel", selectedPersonel), {
+          [yeniField]: increment(gunSayisi),
+        });
+      }
+
+      // Değişiklik kaydı oluştur
+      await addDoc(collection(db, "izinDegisiklikKayitlari"), {
+        degisikligiYapan: `${personel?.ad} ${personel?.soyad}`,
+        degisiklikTarihi: new Date().toISOString(),
+        degisiklikTuru: "İzin Düzenlendi",
+        degisiklikOncesi: `${eskiIzinTuruRef.current} | ${eskiGunSayisiRef.current} gün`,
+        degisiklikSonrasi: `${izinTuru} | ${baslangic} - ${bitis} | ${gunSayisi} gün${aciklama ? ' | ' + aciklama : ''}`,
+        kullaniciAdi: user?.email?.split("@")[0] || "",
       });
 
       alert("İzin kaydı güncellendi!");

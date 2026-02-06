@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { collection, query, orderBy, limit, onSnapshot, deleteDoc, doc } from "firebase/firestore";
+import { collection, query, orderBy, limit, onSnapshot, deleteDoc, doc, updateDoc, increment, addDoc } from "firebase/firestore";
 import Sidebar from "../components/Sidebar";
 
 interface Izin {
   id: string;
+  personelId: string;
   sicilNo: string;
   personelAd: string;
   personelSoyad: string;
@@ -17,6 +18,7 @@ interface Izin {
   aciklama?: string;
   olusturanYonetici?: string;
   olusturulmaTarihi: string;
+  durum?: string;
   kaynak?: string;
 }
 
@@ -51,7 +53,7 @@ export default function IzinListesi() {
     const q = query(
       collection(db, "izinler"),
       orderBy("olusturulmaTarihi", "desc"),
-      limit(100)
+      limit(500)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -100,6 +102,38 @@ export default function IzinListesi() {
   const handleDelete = async (id: string) => {
     if (window.confirm("Bu izin kaydını silmek istediğinize emin misiniz?")) {
       try {
+        // Silinecek izin verisini bul
+        const silinecekIzin = izinler.find(i => i.id === id);
+
+        // Personnel sayacını geri al
+        if (silinecekIzin?.personelId && silinecekIzin?.gunSayisi && silinecekIzin.gunSayisi > 0) {
+          const izinTuruField = (tur: string) => {
+            if (tur === "Yıllık İzin") return "kullanilanYillik";
+            if (tur === "Raporlu") return "raporlu";
+            if (tur === "Mazeret ve Diğer Ücretli İzinler") return "digerIzinler";
+            if (tur === "Ücretsiz İzin") return "ucretsizIzin";
+            return null;
+          };
+          const field = izinTuruField(silinecekIzin.izinTuru);
+          if (field) {
+            await updateDoc(doc(db, "personnel", silinecekIzin.personelId), {
+              [field]: increment(-silinecekIzin.gunSayisi),
+            });
+          }
+        }
+
+        // Değişiklik kaydı oluştur
+        if (silinecekIzin) {
+          await addDoc(collection(db, "izinDegisiklikKayitlari"), {
+            degisikligiYapan: `${silinecekIzin.personelAd} ${silinecekIzin.personelSoyad}`,
+            degisiklikTarihi: new Date().toISOString(),
+            degisiklikTuru: "İzin Silindi",
+            degisiklikOncesi: `${silinecekIzin.izinTuru} | ${silinecekIzin.baslangic} - ${silinecekIzin.bitis} | ${silinecekIzin.gunSayisi || 0} gün`,
+            degisiklikSonrasi: "",
+            kullaniciAdi: user?.email?.split("@")[0] || "",
+          });
+        }
+
         await deleteDoc(doc(db, "izinler", id));
       } catch (error) {
         console.error("Silme hatası:", error);
