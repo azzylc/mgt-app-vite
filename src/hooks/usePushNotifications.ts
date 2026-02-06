@@ -55,7 +55,7 @@ export function usePushNotifications(userEmail: string | null | undefined) {
 
         // Bildirime tıklandı
         FirebaseMessaging.addListener('notificationActionPerformed', (event) => {
-          const data = event.notification.data;
+          const data = event.notification.data as Record<string, string> | undefined;
           if (data?.route) {
             window.location.hash = data.route;
           }
