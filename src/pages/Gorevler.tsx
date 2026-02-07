@@ -34,7 +34,7 @@ interface Gorev {
   tamamlanmaTarihi?: any;
   gelinId?: string; // İlgili gelin
   otomatikMi?: boolean; // Sistem tarafından oluşturuldu mu?
-  gorevTuru?: "yorumIstesinMi" | "paylasimIzni" | "yorumIstendiMi"; // Görev türü
+  gorevTuru?: "yorumIstesinMi" | "paylasimIzni" | "yorumIstendiMi" | "odemeTakip"; // Görev türü
   // Embedded gelin bilgisi - ekstra okuma yapmamak için
   gelinBilgi?: {
     isim: string;
@@ -50,6 +50,7 @@ interface Gelin {
   saat: string;
   makyaj: string;
   turban: string;
+  odemeTamamlandi?: boolean;
   yorumIstesinMi?: string;
   paylasimIzni?: boolean;
   yorumIstendiMi?: boolean;
@@ -91,6 +92,7 @@ interface GorevAyarlari {
   yorumIstesinMi: GorevAyari;
   paylasimIzni: GorevAyari;
   yorumIstendiMi: GorevAyari;
+  odemeTakip: GorevAyari;
 }
 
 export default function GorevlerPage() {
@@ -104,7 +106,7 @@ export default function GorevlerPage() {
   const [filtre, setFiltre] = useState<"hepsi" | "bekliyor" | "devam-ediyor" | "tamamlandi">("hepsi");
   const [siralama, setSiralama] = useState<"yenidenEskiye" | "eskidenYeniye">("yenidenEskiye");
   const [aktifSekme, setAktifSekme] = useState<"gorevlerim" | "otomatik" | "tumgorevler">("gorevlerim");
-  const [otomatikAltSekme, setOtomatikAltSekme] = useState<"yorumIstesinMi" | "paylasimIzni" | "yorumIstendiMi">("yorumIstesinMi");
+  const [otomatikAltSekme, setOtomatikAltSekme] = useState<"yorumIstesinMi" | "paylasimIzni" | "yorumIstendiMi" | "odemeTakip">("yorumIstesinMi");
   const [seciliPersoneller, setSeciliPersoneller] = useState<string[]>([]); // Seçili personel email'leri
   const [selectedGorev, setSelectedGorev] = useState<Gorev | null>(null);
   const [selectedGelinId, setSelectedGelinId] = useState<string | null>(null);
@@ -113,7 +115,8 @@ export default function GorevlerPage() {
   const [gorevAyarlari, setGorevAyarlari] = useState<GorevAyarlari>({
     yorumIstesinMi: { aktif: false, baslangicTarihi: "", saatFarki: 1 },
     paylasimIzni: { aktif: false, baslangicTarihi: "", saatFarki: 2 },
-    yorumIstendiMi: { aktif: false, baslangicTarihi: "", saatFarki: 0 }
+    yorumIstendiMi: { aktif: false, baslangicTarihi: "", saatFarki: 0 },
+    odemeTakip: { aktif: false, baslangicTarihi: "", saatFarki: 72 }
   });
   // Auth kontrolü
   // Görev ayarlarını Firestore'dan çek
@@ -337,6 +340,7 @@ export default function GorevlerPage() {
     if (gorevAyarlari.yorumIstesinMi.baslangicTarihi) tarihliler.push("Yorum İstensin Mi");
     if (gorevAyarlari.paylasimIzni.baslangicTarihi) tarihliler.push("Paylaşım İzni");
     if (gorevAyarlari.yorumIstendiMi.baslangicTarihi) tarihliler.push("Yorum İstendi Mi");
+    if (gorevAyarlari.odemeTakip.baslangicTarihi) tarihliler.push("Ödeme Takip");
 
     if (tarihliler.length === 0) {
       alert("Lütfen en az bir görev türü için başlangıç tarihi girin!");
@@ -377,7 +381,7 @@ export default function GorevlerPage() {
       })) as Gelin[];
 
       // Her görev türü için yeni görevler oluştur
-      const gorevTurleri: ("yorumIstesinMi" | "paylasimIzni" | "yorumIstendiMi")[] = ["yorumIstesinMi", "paylasimIzni", "yorumIstendiMi"];
+      const gorevTurleri: ("yorumIstesinMi" | "paylasimIzni" | "yorumIstendiMi" | "odemeTakip")[] = ["yorumIstesinMi", "paylasimIzni", "yorumIstendiMi", "odemeTakip"];
       const yeniAyarlar = { ...gorevAyarlari };
 
       for (const gorevTuru of gorevTurleri) {
@@ -393,6 +397,47 @@ export default function GorevlerPage() {
           const gelinTarih = new Date(gelin.tarih);
           if (gelinTarih < baslangic) continue;
 
+          // ===== ÖDEME TAKİP: Farklı mantık =====
+          if (gorevTuru === "odemeTakip") {
+            // Düğün tarihinden 3 gün geçmiş mi?
+            const ucGunSonra = new Date(gelin.tarih);
+            ucGunSonra.setDate(ucGunSonra.getDate() + 3);
+            if (simdi < ucGunSonra) continue;
+
+            // Ödeme alınmış mı?
+            if (gelin.odemeTamamlandi === true) continue;
+
+            // Yöneticileri bul (Kurucu veya Yönetici)
+            const yoneticiler = personeller.filter(p => 
+              p.kullaniciTuru === "Kurucu" || p.kullaniciTuru === "Yönetici"
+            );
+
+            for (const yonetici of yoneticiler) {
+              await addDoc(gorevlerRef, {
+                baslik: `${gelin.isim} - Ödeme alınmadı!`,
+                aciklama: `${gelin.isim} gelinin düğünü ${gelin.tarih} tarihinde gerçekleşti ancak ödeme henüz alınmadı. Takvime "--" eklenmesi gerekiyor.`,
+                atayan: "Aziz",
+                atayanAd: "Aziz (Otomatik)",
+                atanan: yonetici.email,
+                atananAd: `${yonetici.ad} ${yonetici.soyad}`,
+                durum: "bekliyor",
+                oncelik: "acil",
+                olusturulmaTarihi: serverTimestamp(),
+                gelinId: gelin.id,
+                otomatikMi: true,
+                gorevTuru: "odemeTakip",
+                gelinBilgi: {
+                  isim: gelin.isim,
+                  tarih: gelin.tarih,
+                  saat: gelin.saat
+                }
+              });
+              toplamOlusturulan++;
+            }
+            continue;
+          }
+
+          // ===== DİĞER GÖREV TÜRLERİ (mevcut mantık) =====
           const gelinSaat = gelin.saat?.split(":") || ["10", "00"];
           const gelinDateTime = new Date(gelin.tarih);
           gelinDateTime.setHours(parseInt(gelinSaat[0]), parseInt(gelinSaat[1]));
@@ -437,7 +482,8 @@ export default function GorevlerPage() {
           const gorevBasliklar: Record<string, string> = {
             yorumIstesinMi: "Yorum istensin mi alanını doldur",
             paylasimIzni: "Paylaşım izni alanını doldur",
-            yorumIstendiMi: "Yorum istendi mi alanını doldur"
+            yorumIstendiMi: "Yorum istendi mi alanını doldur",
+            odemeTakip: "Ödeme alınmadı!"
           };
 
           for (const kisi of kisiler) {
@@ -689,6 +735,33 @@ export default function GorevlerPage() {
                   </div>
                 </div>
 
+                {/* Ödeme Takip */}
+                <div className={`p-3 rounded-lg border ${gorevAyarlari.odemeTakip.aktif ? "border-green-400 bg-green-50" : "border-stone-200 bg-stone-50"}`}>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg">💰</span>
+                      <div>
+                        <h3 className="font-semibold text-stone-800 text-sm">Ödeme Takip</h3>
+                        <p className="text-xs text-stone-500">Düğünden 3 gün sonra ödeme alınmadıysa → Yöneticilere acil görev</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="date" min="2020-01-01" max="2099-12-31"
+                        value={gorevAyarlari.odemeTakip.baslangicTarihi}
+                        onChange={(e) => setGorevAyarlari({
+                          ...gorevAyarlari,
+                          odemeTakip: { ...gorevAyarlari.odemeTakip, baslangicTarihi: e.target.value }
+                        })}
+                        className="px-2 py-1 border border-stone-300 rounded text-sm w-36"
+                      />
+                      {gorevAyarlari.odemeTakip.aktif && (
+                        <span className="px-2 py-0.5 bg-green-500 text-white text-xs rounded-full">✓</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
                 {/* Tek Senkronize Butonu */}
                 <div className="pt-3 border-t border-stone-200">
                   <button
@@ -749,16 +822,31 @@ export default function GorevlerPage() {
                     {gorevler.filter(g => g.otomatikMi && g.gorevTuru === "yorumIstendiMi").length}
                   </span>
                 </button>
+                <button
+                  onClick={() => setOtomatikAltSekme("odemeTakip")}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                    otomatikAltSekme === "odemeTakip"
+                      ? "bg-red-500 text-white"
+                      : "bg-white text-stone-600 border border-stone-200 hover:bg-stone-50"
+                  }`}
+                >
+                  💰 Ödeme Takip
+                  <span className="ml-1.5 px-1.5 py-0.5 bg-red-100 text-red-700 rounded-full text-xs">
+                    {gorevler.filter(g => g.otomatikMi && g.gorevTuru === "odemeTakip").length}
+                  </span>
+                </button>
               </div>
               
               <div className={`p-3 rounded-lg border ${
                 otomatikAltSekme === "yorumIstesinMi" ? "bg-purple-50 border-purple-200" :
                 otomatikAltSekme === "paylasimIzni" ? "bg-blue-50 border-blue-200" :
+                otomatikAltSekme === "odemeTakip" ? "bg-red-50 border-red-200" :
                 "bg-amber-50 border-amber-200"
               }`}>
                 <p className={`text-sm ${
                   otomatikAltSekme === "yorumIstesinMi" ? "text-purple-800" :
                   otomatikAltSekme === "paylasimIzni" ? "text-blue-800" :
+                  otomatikAltSekme === "odemeTakip" ? "text-red-800" :
                   "text-amber-800"
                 }`}>
                   {otomatikAltSekme === "yorumIstesinMi" && (
@@ -780,6 +868,13 @@ export default function GorevlerPage() {
                       <span className="font-medium">💬 Yorum İstenecekler listesi</span>
                       <br />
                       <span className="text-xs opacity-75">Hatırlatma yapılmaz. Yorum istenip istenmediğini takip etmek için.</span>
+                    </>
+                  )}
+                  {otomatikAltSekme === "odemeTakip" && (
+                    <>
+                      <span className="font-medium">💰 Ödeme Takip görevleri</span>
+                      <br />
+                      <span className="text-xs opacity-75">Düğünden 3 gün sonra ödeme alınmadıysa (takvimde -- yok) yöneticilere acil görev oluşturulur.</span>
                     </>
                   )}
                 </p>
