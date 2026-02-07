@@ -287,6 +287,150 @@ export const dailyHealthCheck = onSchedule({
 });
 
 // ============================================
+// 6b. SCHEDULED: Günlük otomatik görev kontrolü (4 tür birden)
+// ============================================
+export const dailyGorevKontrol = onSchedule({
+  region: 'europe-west1',
+  schedule: 'every day 09:00',
+  timeZone: 'Europe/Istanbul',
+}, async (event) => {
+  console.log('Daily görev kontrolü başladı...');
+
+  try {
+    const bugun = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
+    // 1. Görev ayarlarını oku
+    const ayarDoc = await adminDb.collection('settings').doc('gorevAyarlari').get();
+    if (!ayarDoc.exists) {
+      console.log('Görev ayarları bulunamadı, çıkılıyor.');
+      return;
+    }
+    const ayarlar = ayarDoc.data() as Record<string, { aktif: boolean; baslangicTarihi: string }>;
+
+    // 2. Personelleri çek
+    const personelSnap = await adminDb.collection('personnel')
+      .where('aktif', '==', true)
+      .get();
+    const personeller = personelSnap.docs.map(d => ({
+      email: d.data().email,
+      ad: d.data().ad,
+      soyad: d.data().soyad,
+      kullaniciTuru: d.data().kullaniciTuru || ''
+    }));
+    const yoneticiler = personeller.filter(p => p.kullaniciTuru === 'Kurucu' || p.kullaniciTuru === 'Yönetici');
+
+    // 3. Her görev türü için kontrol
+    const gorevTurleri = ['yorumIstesinMi', 'paylasimIzni', 'yorumIstendiMi', 'odemeTakip'] as const;
+    let toplamOlusturulan = 0, toplamSilinen = 0;
+
+    for (const gorevTuru of gorevTurleri) {
+      const ayar = ayarlar[gorevTuru];
+      if (!ayar?.aktif || !ayar.baslangicTarihi) continue;
+
+      // Başlangıç tarihi → bugüne kadar olan gelinleri çek
+      const gelinlerSnap = await adminDb.collection('gelinler')
+        .where('tarih', '>=', ayar.baslangicTarihi)
+        .where('tarih', '<=', bugun)
+        .get();
+
+      console.log(`[${gorevTuru}] ${gelinlerSnap.size} gelin kontrol ediliyor (${ayar.baslangicTarihi} → ${bugun})`);
+
+      for (const gelinDoc of gelinlerSnap.docs) {
+        const gelin = gelinDoc.data();
+        const gelinId = gelinDoc.id;
+
+        // Alan boş mu kontrol et
+        let alanBos = false;
+        if (gorevTuru === 'yorumIstesinMi') alanBos = !gelin.yorumIstesinMi || (gelin.yorumIstesinMi as string).trim() === '';
+        else if (gorevTuru === 'paylasimIzni') alanBos = !gelin.paylasimIzni;
+        else if (gorevTuru === 'yorumIstendiMi') alanBos = !gelin.yorumIstendiMi;
+        else if (gorevTuru === 'odemeTakip') alanBos = gelin.odemeTamamlandi !== true;
+
+        // Bu gelin+tür için mevcut görev var mı?
+        const mevcutSnap = await adminDb.collection('gorevler')
+          .where('gelinId', '==', gelinId)
+          .where('gorevTuru', '==', gorevTuru)
+          .where('otomatikMi', '==', true)
+          .get();
+
+        if (!alanBos) {
+          // Alan dolu → varsa görevleri sil
+          for (const gorevDoc of mevcutSnap.docs) {
+            await adminDb.collection('gorevler').doc(gorevDoc.id).delete();
+            toplamSilinen++;
+          }
+        } else if (mevcutSnap.empty) {
+          // Alan boş + görev yok → oluştur
+          const gorevBasliklar: Record<string, string> = {
+            yorumIstesinMi: 'Yorum istensin mi alanını doldur',
+            paylasimIzni: 'Paylaşım izni alanını doldur',
+            yorumIstendiMi: 'Yorum istendi mi alanını doldur',
+            odemeTakip: 'Ödeme alınmadı!'
+          };
+
+          if (gorevTuru === 'odemeTakip') {
+            // Yöneticilere ata
+            for (const yonetici of yoneticiler) {
+              await adminDb.collection('gorevler').add({
+                baslik: `${gelin.isim} - ${gorevBasliklar[gorevTuru]}`,
+                aciklama: `${gelin.isim} gelinin düğünü ${gelin.tarih} tarihinde gerçekleşti. Takvime "--" eklenmesi gerekiyor.`,
+                atayan: 'Aziz',
+                atayanAd: 'Aziz (Otomatik)',
+                atanan: yonetici.email,
+                atananAd: `${yonetici.ad} ${yonetici.soyad}`,
+                durum: 'bekliyor',
+                oncelik: 'acil',
+                olusturulmaTarihi: new Date(),
+                gelinId, otomatikMi: true, gorevTuru,
+                gelinBilgi: { isim: gelin.isim, tarih: gelin.tarih, saat: gelin.saat || '' }
+              });
+              toplamOlusturulan++;
+            }
+          } else {
+            // Makyajcı/türbancıya ata
+            const makyajci = personeller.find(p => p.ad.toLocaleLowerCase('tr-TR') === (gelin.makyaj || '').toLocaleLowerCase('tr-TR'));
+            const turbanci = personeller.find(p => p.ad.toLocaleLowerCase('tr-TR') === (gelin.turban || '').toLocaleLowerCase('tr-TR'));
+            const ayniKisi = makyajci?.email === turbanci?.email;
+
+            const kisiler: { email: string; ad: string; soyad: string; rol: string }[] = [];
+            if (makyajci?.email) kisiler.push({ ...makyajci, rol: 'Makyaj' });
+            if (turbanci?.email && !ayniKisi) kisiler.push({ ...turbanci, rol: 'Türban' });
+
+            for (const kisi of kisiler) {
+              await adminDb.collection('gorevler').add({
+                baslik: `${gelin.isim} - ${gorevBasliklar[gorevTuru]}`,
+                aciklama: `${gelin.isim} için "${gorevBasliklar[gorevTuru]}" alanı boş. Takvimden doldurun. (${kisi.rol})`,
+                atayan: 'Sistem',
+                atayanAd: 'Sistem (Otomatik)',
+                atanan: kisi.email,
+                atananAd: `${kisi.ad} ${kisi.soyad}`,
+                durum: 'bekliyor',
+                oncelik: 'yuksek',
+                olusturulmaTarihi: new Date(),
+                gelinId, otomatikMi: true, gorevTuru,
+                gelinBilgi: { isim: gelin.isim, tarih: gelin.tarih, saat: gelin.saat || '' }
+              });
+              toplamOlusturulan++;
+            }
+          }
+        }
+      }
+    }
+
+    console.log(`Görev kontrolü tamamlandı. Oluşturulan: ${toplamOlusturulan}, Silinen: ${toplamSilinen}`);
+
+    await adminDb.collection('system').doc('gorevKontrol').set({
+      lastRun: new Date().toISOString(),
+      olusturulan: toplamOlusturulan,
+      silinen: toplamSilinen
+    }, { merge: true });
+
+  } catch (error) {
+    console.error('Görev kontrolü hatası:', error);
+  }
+});
+
+// ============================================
 // 7. PERSONEL API (Yeni oluştur + Güncelle)
 // ============================================
 export const personelApi = onRequest({

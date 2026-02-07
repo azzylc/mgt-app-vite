@@ -85,7 +85,6 @@ interface Personel {
 interface GorevAyari {
   aktif: boolean;
   baslangicTarihi: string;
-  saatFarki: number;
 }
 
 interface GorevAyarlari {
@@ -113,10 +112,10 @@ export default function GorevlerPage() {
   const [showAyarlar, setShowAyarlar] = useState(false);
   const [senkronizeLoading, setSenkronizeLoading] = useState<string | null>(null);
   const [gorevAyarlari, setGorevAyarlari] = useState<GorevAyarlari>({
-    yorumIstesinMi: { aktif: false, baslangicTarihi: "", saatFarki: 1 },
-    paylasimIzni: { aktif: false, baslangicTarihi: "", saatFarki: 2 },
-    yorumIstendiMi: { aktif: false, baslangicTarihi: "", saatFarki: 0 },
-    odemeTakip: { aktif: false, baslangicTarihi: "", saatFarki: 72 }
+    yorumIstesinMi: { aktif: false, baslangicTarihi: "" },
+    paylasimIzni: { aktif: false, baslangicTarihi: "" },
+    yorumIstendiMi: { aktif: false, baslangicTarihi: "" },
+    odemeTakip: { aktif: false, baslangicTarihi: "" }
   });
   // Auth kontrolü
   // Görev ayarlarını Firestore'dan çek
@@ -257,10 +256,8 @@ export default function GorevlerPage() {
     return () => unsubscribe();
   }, [user, userRole]);
 
-  // ⚡ NOT: Otomatik görev oluşturma ve silme artık Cloud Function tarafından yapılıyor
-  // - checkAndCreateTasks: Her 15 dakikada bir çalışır
-  // - onGelinUpdate: Gelin güncellendiğinde çalışır
-  // Bu sayede sayfa açılışında yüzlerce gereksiz okuma yapılmıyor
+  // ⚡ Otomatik görev oluşturma/silme: dailyGorevKontrol Cloud Function tarafından her sabah 09:00'da yapılır
+  // "Senkronize Et" butonu sadece ilk kurulum ve ayar değişikliği için kullanılır
 
   // Ekip personellerini hesapla (Yönetici için kendi ekibi, Kurucu için herkes)
   const ekipPersonelleri = personeller.filter(p => {
@@ -347,19 +344,19 @@ export default function GorevlerPage() {
       return;
     }
 
-    if (!confirm(`⚠️ DİKKAT!\n\nTüm otomatik görevler silinecek ve seçilen tarihlerden itibaren yeniden oluşturulacak.\n\nSenkronize edilecek türler:\n${tarihliler.map(t => "• " + t).join("\n")}\n\nDevam etmek istiyor musunuz?`)) {
+    if (!confirm(`⚠️ DİKKAT!\n\nTüm otomatik görevler silinecek ve seçilen tarihlerden bugüne kadarki gelinler için yeniden oluşturulacak.\n\nSenkronize edilecek türler:\n${tarihliler.map(t => "• " + t).join("\n")}\n\nDevam etmek istiyor musunuz?`)) {
       return;
     }
 
     setSenkronizeLoading("tumu");
 
     try {
-      const simdi = new Date();
+      const bugun = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
       const gorevlerRef = collection(db, "gorevler");
       let toplamSilinen = 0;
       let toplamOlusturulan = 0;
 
-      // ÖNCELİKLE: Tüm otomatik görevleri sil (gorevTuru olsun olmasın)
+      // ÖNCELİKLE: Tüm otomatik görevleri sil
       const tumOtomatikQuery = query(gorevlerRef, where("otomatikMi", "==", true));
       const tumOtomatikSnapshot = await getDocs(tumOtomatikQuery);
       
@@ -368,54 +365,58 @@ export default function GorevlerPage() {
         toplamSilinen++;
       }
 
-      // 🔄 Gelinleri sadece bu fonksiyon için çek - 01.01.2025'ten itibaren
-      const gelinlerQuery = query(
-        collection(db, "gelinler"),
-        where("tarih", ">=", "2025-01-01"),
-        orderBy("tarih", "asc")
-      );
-      const gelinlerSnapshot = await getDocs(gelinlerQuery);
-      const gelinlerData = gelinlerSnapshot.docs.map(d => ({
-        id: d.id,
-        ...d.data()
-      })) as Gelin[];
-
       // Her görev türü için yeni görevler oluştur
       const gorevTurleri: ("yorumIstesinMi" | "paylasimIzni" | "yorumIstendiMi" | "odemeTakip")[] = ["yorumIstesinMi", "paylasimIzni", "yorumIstendiMi", "odemeTakip"];
       const yeniAyarlar = { ...gorevAyarlari };
 
       for (const gorevTuru of gorevTurleri) {
         const ayar = gorevAyarlari[gorevTuru];
-        
-        // Tarih girilmemişse bu türü atla
         if (!ayar.baslangicTarihi) continue;
 
-        const baslangic = new Date(ayar.baslangicTarihi);
+        // Başlangıç tarihi → bugüne kadar olan gelinleri çek (gelecek gelinler hariç)
+        const gelinlerQuery = query(
+          collection(db, "gelinler"),
+          where("tarih", ">=", ayar.baslangicTarihi),
+          where("tarih", "<=", bugun),
+          orderBy("tarih", "asc")
+        );
+        const gelinlerSnapshot = await getDocs(gelinlerQuery);
+        const gelinlerData = gelinlerSnapshot.docs.map(d => ({
+          id: d.id,
+          ...d.data()
+        })) as Gelin[];
 
-        // Yeni görevler oluştur
         for (const gelin of gelinlerData) {
-          const gelinTarih = new Date(gelin.tarih);
-          if (gelinTarih < baslangic) continue;
+          // Alan boş mu kontrol et
+          let alanBos = false;
+          if (gorevTuru === "yorumIstesinMi") {
+            alanBos = !gelin.yorumIstesinMi || gelin.yorumIstesinMi.trim() === "";
+          } else if (gorevTuru === "paylasimIzni") {
+            alanBos = !gelin.paylasimIzni;
+          } else if (gorevTuru === "yorumIstendiMi") {
+            alanBos = !gelin.yorumIstendiMi;
+          } else if (gorevTuru === "odemeTakip") {
+            alanBos = gelin.odemeTamamlandi !== true;
+          }
 
-          // ===== ÖDEME TAKİP: Farklı mantık =====
+          if (!alanBos) continue;
+
+          const gorevBasliklar: Record<string, string> = {
+            yorumIstesinMi: "Yorum istensin mi alanını doldur",
+            paylasimIzni: "Paylaşım izni alanını doldur",
+            yorumIstendiMi: "Yorum istendi mi alanını doldur",
+            odemeTakip: "Ödeme alınmadı!"
+          };
+
           if (gorevTuru === "odemeTakip") {
-            // Düğün tarihinden 3 gün geçmiş mi?
-            const ucGunSonra = new Date(gelin.tarih);
-            ucGunSonra.setDate(ucGunSonra.getDate() + 3);
-            if (simdi < ucGunSonra) continue;
-
-            // Ödeme alınmış mı?
-            if (gelin.odemeTamamlandi === true) continue;
-
-            // Yöneticileri bul (Kurucu veya Yönetici)
+            // Yöneticilere ata
             const yoneticiler = personeller.filter(p => 
               p.kullaniciTuru === "Kurucu" || p.kullaniciTuru === "Yönetici"
             );
-
             for (const yonetici of yoneticiler) {
               await addDoc(gorevlerRef, {
-                baslik: `${gelin.isim} - Ödeme alınmadı!`,
-                aciklama: `${gelin.isim} gelinin düğünü ${gelin.tarih} tarihinde gerçekleşti ancak ödeme henüz alınmadı. Takvime "--" eklenmesi gerekiyor.`,
+                baslik: `${gelin.isim} - ${gorevBasliklar[gorevTuru]}`,
+                aciklama: `${gelin.isim} gelinin düğünü ${gelin.tarih} tarihinde gerçekleşti. Takvime "--" eklenmesi gerekiyor.`,
                 atayan: "Aziz",
                 atayanAd: "Aziz (Otomatik)",
                 atanan: yonetici.email,
@@ -426,88 +427,44 @@ export default function GorevlerPage() {
                 gelinId: gelin.id,
                 otomatikMi: true,
                 gorevTuru: "odemeTakip",
-                gelinBilgi: {
-                  isim: gelin.isim,
-                  tarih: gelin.tarih,
-                  saat: gelin.saat
-                }
+                gelinBilgi: { isim: gelin.isim, tarih: gelin.tarih, saat: gelin.saat }
               });
               toplamOlusturulan++;
             }
-            continue;
-          }
+          } else {
+            // Makyajcı/türbancıya ata
+            const makyajci = personeller.find(p => 
+              p.ad.toLocaleLowerCase('tr-TR') === gelin.makyaj?.toLocaleLowerCase('tr-TR') ||
+              `${p.ad} ${p.soyad}`.toLocaleLowerCase('tr-TR') === gelin.makyaj?.toLocaleLowerCase('tr-TR')
+            );
+            const turbanci = personeller.find(p => 
+              p.ad.toLocaleLowerCase('tr-TR') === gelin.turban?.toLocaleLowerCase('tr-TR') ||
+              `${p.ad} ${p.soyad}`.toLocaleLowerCase('tr-TR') === gelin.turban?.toLocaleLowerCase('tr-TR')
+            );
 
-          // ===== DİĞER GÖREV TÜRLERİ (mevcut mantık) =====
-          const gelinSaat = gelin.saat?.split(":") || ["10", "00"];
-          const gelinDateTime = new Date(gelin.tarih);
-          gelinDateTime.setHours(parseInt(gelinSaat[0]), parseInt(gelinSaat[1]));
-          const bitisSaati = new Date(gelinDateTime.getTime() + 4 * 60 * 60 * 1000);
-          const hatirlatmaZamani = new Date(bitisSaati.getTime() + ayar.saatFarki * 60 * 60 * 1000);
+            const ayniKisi = makyajci?.email === turbanci?.email;
+            const kisiler: { email: string; ad: string; rol: string }[] = [];
+            if (makyajci?.email) kisiler.push({ email: makyajci.email, ad: `${makyajci.ad} ${makyajci.soyad}`, rol: "Makyaj" });
+            if (turbanci?.email && !ayniKisi) kisiler.push({ email: turbanci.email, ad: `${turbanci.ad} ${turbanci.soyad}`, rol: "Türban" });
 
-          // Yorum istendi mi için zaman kontrolü yok
-          if (gorevTuru !== "yorumIstendiMi" && simdi < hatirlatmaZamani) continue;
-
-          // Alan boş mu kontrol et
-          let alanBos = false;
-          if (gorevTuru === "yorumIstesinMi") {
-            alanBos = !gelin.yorumIstesinMi || gelin.yorumIstesinMi.trim() === "";
-          } else if (gorevTuru === "paylasimIzni") {
-            alanBos = !gelin.paylasimIzni;
-          } else if (gorevTuru === "yorumIstendiMi") {
-            alanBos = !gelin.yorumIstendiMi;
-          }
-
-          if (!alanBos) continue;
-
-          // Makyajcı ve türbancıyı bul
-          const makyajci = personeller.find(p => 
-            p.ad.toLocaleLowerCase('tr-TR') === gelin.makyaj?.toLocaleLowerCase('tr-TR') ||
-            `${p.ad} ${p.soyad}`.toLocaleLowerCase('tr-TR') === gelin.makyaj?.toLocaleLowerCase('tr-TR')
-          );
-          const turbanci = personeller.find(p => 
-            p.ad.toLocaleLowerCase('tr-TR') === gelin.turban?.toLocaleLowerCase('tr-TR') ||
-            `${p.ad} ${p.soyad}`.toLocaleLowerCase('tr-TR') === gelin.turban?.toLocaleLowerCase('tr-TR')
-          );
-
-          const ayniKisi = makyajci?.email === turbanci?.email;
-          const kisiler: { email: string; ad: string; rol: string }[] = [];
-
-          if (makyajci?.email) {
-            kisiler.push({ email: makyajci.email, ad: `${makyajci.ad} ${makyajci.soyad}`, rol: "Makyaj" });
-          }
-          if (turbanci?.email && !ayniKisi) {
-            kisiler.push({ email: turbanci.email, ad: `${turbanci.ad} ${turbanci.soyad}`, rol: "Türban" });
-          }
-
-          const gorevBasliklar: Record<string, string> = {
-            yorumIstesinMi: "Yorum istensin mi alanını doldur",
-            paylasimIzni: "Paylaşım izni alanını doldur",
-            yorumIstendiMi: "Yorum istendi mi alanını doldur",
-            odemeTakip: "Ödeme alınmadı!"
-          };
-
-          for (const kisi of kisiler) {
-            await addDoc(gorevlerRef, {
-              baslik: `${gelin.isim} - ${gorevBasliklar[gorevTuru]}`,
-              aciklama: `${gelin.isim} için "${gorevBasliklar[gorevTuru]}" alanı boş. Takvimden doldurun. (${kisi.rol})`,
-              atayan: "Sistem",
-              atayanAd: "Sistem (Otomatik)",
-              atanan: kisi.email,
-              atananAd: kisi.ad,
-              durum: "bekliyor",
-              oncelik: "yuksek",
-              olusturulmaTarihi: serverTimestamp(),
-              gelinId: gelin.id,
-              otomatikMi: true,
-              gorevTuru: gorevTuru,
-              // Embedded gelin bilgisi - ekstra okuma yapmamak için
-              gelinBilgi: {
-                isim: gelin.isim,
-                tarih: gelin.tarih,
-                saat: gelin.saat
-              }
-            });
-            toplamOlusturulan++;
+            for (const kisi of kisiler) {
+              await addDoc(gorevlerRef, {
+                baslik: `${gelin.isim} - ${gorevBasliklar[gorevTuru]}`,
+                aciklama: `${gelin.isim} için "${gorevBasliklar[gorevTuru]}" alanı boş. Takvimden doldurun. (${kisi.rol})`,
+                atayan: "Sistem",
+                atayanAd: "Sistem (Otomatik)",
+                atanan: kisi.email,
+                atananAd: kisi.ad,
+                durum: "bekliyor",
+                oncelik: "yuksek",
+                olusturulmaTarihi: serverTimestamp(),
+                gelinId: gelin.id,
+                otomatikMi: true,
+                gorevTuru: gorevTuru,
+                gelinBilgi: { isim: gelin.isim, tarih: gelin.tarih, saat: gelin.saat }
+              });
+              toplamOlusturulan++;
+            }
           }
         }
 
@@ -535,6 +492,54 @@ export default function GorevlerPage() {
       await deleteDoc(doc(db, "gorevler", gorevId));
     } catch (error) {
       Sentry.captureException(error);
+    }
+  };
+
+  // Otomatik görev: "Yaptım" butonu - gelini kontrol et, alan doluysa sil
+  const [yaptimLoading, setYaptimLoading] = useState<string | null>(null);
+  const handleYaptim = async (gorev: Gorev) => {
+    if (!gorev.gelinId || !gorev.gorevTuru) return;
+    setYaptimLoading(gorev.id);
+    try {
+      const gelinDoc = await getDoc(doc(db, "gelinler", gorev.gelinId));
+      if (!gelinDoc.exists()) {
+        alert("❌ Gelin kaydı bulunamadı!");
+        return;
+      }
+      const gelin = gelinDoc.data();
+
+      // Görev türüne göre alan kontrolü
+      let alanDolu = false;
+      let alanAdi = "";
+      if (gorev.gorevTuru === "yorumIstesinMi") {
+        alanDolu = !!gelin.yorumIstesinMi && gelin.yorumIstesinMi.trim() !== "";
+        alanAdi = "Yorum istensin mi";
+      } else if (gorev.gorevTuru === "paylasimIzni") {
+        alanDolu = !!gelin.paylasimIzni;
+        alanAdi = "Paylaşım izni";
+      } else if (gorev.gorevTuru === "yorumIstendiMi") {
+        alanDolu = !!gelin.yorumIstendiMi;
+        alanAdi = "Yorum istendi mi";
+      } else if (gorev.gorevTuru === "odemeTakip") {
+        alanDolu = gelin.odemeTamamlandi === true;
+        alanAdi = "Ödeme";
+      }
+
+      if (alanDolu) {
+        await deleteDoc(doc(db, "gorevler", gorev.id));
+        alert(`✅ "${alanAdi}" alanı dolu, görev silindi!`);
+      } else {
+        if (gorev.gorevTuru === "odemeTakip") {
+          alert(`⚠️ Takvime henüz "--" eklenmemiş! Önce takvimde ödeme işaretini ekleyin.`);
+        } else {
+          alert(`⚠️ "${alanAdi}" alanı henüz doldurulmamış! Önce takvimden doldurun.`);
+        }
+      }
+    } catch (error) {
+      Sentry.captureException(error);
+      alert("❌ Kontrol sırasında hata oluştu!");
+    } finally {
+      setYaptimLoading(null);
     }
   };
 
@@ -661,7 +666,7 @@ export default function GorevlerPage() {
                       <span className="text-lg">📝</span>
                       <div>
                         <h3 className="font-semibold text-stone-800 text-sm">Yorum İstensin Mi</h3>
-                        <p className="text-xs text-stone-500">Bitiş + 1 saat</p>
+                        <p className="text-xs text-stone-500">Düğünü geçmiş + alan boş → Makyajcı/Türbancıya görev</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -688,7 +693,7 @@ export default function GorevlerPage() {
                       <span className="text-lg">📸</span>
                       <div>
                         <h3 className="font-semibold text-stone-800 text-sm">Paylaşım İzni Var Mı</h3>
-                        <p className="text-xs text-stone-500">Bitiş + 2 saat</p>
+                        <p className="text-xs text-stone-500">Düğünü geçmiş + alan boş → Makyajcı/Türbancıya görev</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -715,7 +720,7 @@ export default function GorevlerPage() {
                       <span className="text-lg">💬</span>
                       <div>
                         <h3 className="font-semibold text-stone-800 text-sm">Yorum İstendi Mi</h3>
-                        <p className="text-xs text-stone-500">Hatırlatma yok</p>
+                        <p className="text-xs text-stone-500">Düğünü geçmiş + alan boş → Makyajcı/Türbancıya görev</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -742,7 +747,7 @@ export default function GorevlerPage() {
                       <span className="text-lg">💰</span>
                       <div>
                         <h3 className="font-semibold text-stone-800 text-sm">Ödeme Takip</h3>
-                        <p className="text-xs text-stone-500">Düğünden 3 gün sonra ödeme alınmadıysa → Yöneticilere acil görev</p>
+                        <p className="text-xs text-stone-500">Düğünü geçmiş + ödeme alınmamış → Yöneticilere acil görev</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -772,7 +777,10 @@ export default function GorevlerPage() {
                     {senkronizeLoading ? "⏳ İşleniyor..." : "🔄 Tümünü Kaydet & Senkronize Et"}
                   </button>
                   <p className="text-xs text-stone-500 mt-2 text-center">
-                    Tarih girilen alanlar aktifleşir. Önceki görevler silinir, sonraki gelinler için görev oluşturulur.
+                    Belirlediğiniz tarihten bugüne kadarki gelinler kontrol edilir. Gelecek gelinler hesaba katılmaz.
+                  </p>
+                  <p className="text-xs text-purple-600 mt-1 text-center font-medium">
+                    🔄 Senkronize ettikten sonra sistem her sabah 09:00'da, belirlediğiniz tarihten bugüne kadarki gelinleri otomatik kontrol edecektir.
                   </p>
                 </div>
               </div>
@@ -853,28 +861,28 @@ export default function GorevlerPage() {
                     <>
                       <span className="font-medium">📝 Yorum İstensin Mi görevleri</span>
                       <br />
-                      <span className="text-xs opacity-75">Gelin bitişinden 1 saat sonra oluşturulur. Alan doldurulunca otomatik silinir.</span>
+                      <span className="text-xs opacity-75">Düğünü geçmiş + alan boş → Makyajcı/Türbancıya atanır. "Yaptım"a basarak kontrol edebilirsiniz.</span>
                     </>
                   )}
                   {otomatikAltSekme === "paylasimIzni" && (
                     <>
                       <span className="font-medium">📸 Paylaşım İzni görevleri</span>
                       <br />
-                      <span className="text-xs opacity-75">Gelin bitişinden 2 saat sonra oluşturulur. Alan doldurulunca otomatik silinir.</span>
+                      <span className="text-xs opacity-75">Düğünü geçmiş + alan boş → Makyajcı/Türbancıya atanır. "Yaptım"a basarak kontrol edebilirsiniz.</span>
                     </>
                   )}
                   {otomatikAltSekme === "yorumIstendiMi" && (
                     <>
-                      <span className="font-medium">💬 Yorum İstenecekler listesi</span>
+                      <span className="font-medium">💬 Yorum İstendi Mi görevleri</span>
                       <br />
-                      <span className="text-xs opacity-75">Hatırlatma yapılmaz. Yorum istenip istenmediğini takip etmek için.</span>
+                      <span className="text-xs opacity-75">Düğünü geçmiş + alan boş → Makyajcı/Türbancıya atanır. "Yaptım"a basarak kontrol edebilirsiniz.</span>
                     </>
                   )}
                   {otomatikAltSekme === "odemeTakip" && (
                     <>
                       <span className="font-medium">💰 Ödeme Takip görevleri</span>
                       <br />
-                      <span className="text-xs opacity-75">Düğünden 3 gün sonra ödeme alınmadıysa (takvimde -- yok) yöneticilere acil görev oluşturulur.</span>
+                      <span className="text-xs opacity-75">Düğünü geçmiş + ödeme alınmamış → Yöneticilere acil görev atanır. "Yaptım"a basarak kontrol edebilirsiniz.</span>
                     </>
                   )}
                 </p>
@@ -1145,10 +1153,21 @@ export default function GorevlerPage() {
                     </div>
                   )}
                   
-                  {/* Otomatik görevlerde bilgi notu */}
+                  {/* Otomatik görevlerde Yaptım butonu */}
                   {gorev.otomatikMi && (
-                    <div className="mt-3 text-xs text-purple-500 italic">
-                      ℹ️ Bu görev, takvimde ilgili alan doldurulunca otomatik olarak silinecek.
+                    <div className="mt-3 flex items-center justify-between">
+                      <span className={`text-xs italic ${gorev.gorevTuru === "odemeTakip" ? "text-red-500" : "text-purple-500"}`}>
+                        {gorev.gorevTuru === "odemeTakip" 
+                          ? '💰 Takvime "--" eklenince otomatik silinir.'
+                          : "ℹ️ Takvimde alan doldurulunca otomatik silinir."}
+                      </span>
+                      <button
+                        onClick={() => handleYaptim(gorev)}
+                        disabled={yaptimLoading === gorev.id}
+                        className="px-3 py-1.5 bg-green-500 text-white rounded-lg text-sm font-medium hover:bg-green-600 disabled:opacity-50 transition"
+                      >
+                        {yaptimLoading === gorev.id ? "⏳ Kontrol..." : "✅ Yaptım"}
+                      </button>
                     </div>
                   )}
                 </div>
