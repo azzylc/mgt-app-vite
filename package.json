@@ -14,6 +14,7 @@
     "@capacitor-firebase/messaging": "^8.0.1",
     "@capacitor/cli": "^8.0.2",
     "@capacitor/core": "^8.0.2",
+    "@capacitor/device": "^8.0.0",
     "@capacitor/geolocation": "^8.0.0",
     "@capacitor/ios": "^8.0.2",
     "@sentry/react": "^10.38.0",

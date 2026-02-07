@@ -1,25 +1,54 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { auth } from '../lib/firebase';
+import { checkAndBindDevice } from '../lib/deviceBinding';
 import * as Sentry from '@sentry/react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
     try {
+      // 1. Firebase Auth ile giriş
       await signInWithEmailAndPassword(auth, email.trim(), password);
+
+      // 2. Cihaz kontrolü
+      const deviceResult = await checkAndBindDevice(email.trim());
+
+      if (deviceResult.status === "blocked") {
+        // Farklı cihaz → çıkış yap, hata göster
+        await signOut(auth);
+        setError(deviceResult.message);
+        setLoading(false);
+        return;
+      }
+
+      if (deviceResult.status === "error") {
+        // Hata durumunda yine de devam etsin (cihaz kontrolü kritik değilse)
+        // İsterseniz burayı da block yapabilirsiniz
+        console.warn("[DeviceBinding]", deviceResult.message);
+      }
+
+      // 3. Başarılı → ana sayfaya yönlendir
       navigate('/');
     } catch (err: any) {
       Sentry.captureException(err);
-      setError('Giriş başarısız. Lütfen bilgilerinizi kontrol edin.');
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+        setError('Giriş başarısız. Lütfen bilgilerinizi kontrol edin.');
+      } else {
+        setError('Giriş başarısız. Lütfen bilgilerinizi kontrol edin.');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -40,7 +69,7 @@ export default function Login() {
         </p>
 
         {error && (
-          <div className="bg-red-500/10 border border-red-500 text-red-500 px-4 py-3 rounded mb-4">
+          <div className="bg-red-500/10 border border-red-500 text-red-400 px-4 py-3 rounded mb-4 text-sm whitespace-pre-line">
             {error}
           </div>
         )}
@@ -61,6 +90,7 @@ export default function Login() {
               className="w-full px-4 py-3 bg-stone-700 border border-stone-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
               placeholder="ornek@email.com"
               required
+              disabled={loading}
             />
           </div>
 
@@ -75,14 +105,23 @@ export default function Login() {
               className="w-full px-4 py-3 bg-stone-700 border border-stone-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
               placeholder="••••••••••"
               required
+              disabled={loading}
             />
           </div>
 
           <button
             type="submit"
-            className="w-full bg-amber-500 hover:bg-amber-600 text-stone-900 font-semibold py-3 px-4 rounded-lg transition-colors"
+            disabled={loading}
+            className="w-full bg-amber-500 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-stone-900 font-semibold py-3 px-4 rounded-lg transition-colors"
           >
-            Giriş Yap
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="animate-spin rounded-full h-4 w-4 border-2 border-stone-900 border-t-transparent"></span>
+                Kontrol ediliyor...
+              </span>
+            ) : (
+              'Giriş Yap'
+            )}
           </button>
         </form>
 

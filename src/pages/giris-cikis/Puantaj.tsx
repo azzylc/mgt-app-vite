@@ -19,7 +19,7 @@ interface Personel {
 interface GunKayit {
   giris?: { id: string; saat: string };
   cikis?: { id: string; saat: string };
-  haftaTatili?: { id: string };
+  haftaTatili?: { id: string; kaynak: "attendance" | "vardiyaPlan" };
   resmiTatilIptal?: { id: string };
   durum: "normal" | "haftaTatili" | "resmiTatil" | "izin" | "mazeret";
   izinTuru?: string;
@@ -199,6 +199,30 @@ export default function PuantajPage() {
         Sentry.captureException(e);
       }
 
+      // VardiyaPlan'dan hafta tatillerini çek
+      const vardiyaHaftaTatilMap = new Map<string, string>(); // key: personelId-gun, value: docId
+      try {
+        const ayBasStr = `${seciliYil}-${String(seciliAy + 1).padStart(2, '0')}-01`;
+        const aySonGun = new Date(seciliYil, seciliAy + 1, 0).getDate();
+        const ayBitStr = `${seciliYil}-${String(seciliAy + 1).padStart(2, '0')}-${String(aySonGun).padStart(2, '0')}`;
+        
+        const vpQuery = query(
+          collection(db, "vardiyaPlan"),
+          where("haftaTatili", "==", true),
+          where("tarih", ">=", ayBasStr),
+          where("tarih", "<=", ayBitStr)
+        );
+        const vpSnap = await getDocs(vpQuery);
+        vpSnap.forEach(docSnap => {
+          const d = docSnap.data();
+          const gun = parseInt(d.tarih.split('-')[2]);
+          const key = `${d.personelId}-${gun}`;
+          vardiyaHaftaTatilMap.set(key, docSnap.id);
+        });
+      } catch (e) {
+        Sentry.captureException(e);
+      }
+
       // Her personel için puantaj oluştur
       const results: PersonelPuantaj[] = [];
 
@@ -228,21 +252,33 @@ export default function PuantajPage() {
               kayit.resmiTatilAdi = resmiTatil; // İptal edilmiş olsa bile adını tut
             }
           }
-          // İzinli mi?
+          // İzinli mi? (Haftalık İzin ise haftaTatili olarak göster)
           else if (izin) {
-            kayit.durum = "izin";
-            kayit.izinTuru = izin;
+            if (izin === "Haftalık İzin") {
+              // izinHelper'dan gelen hafta tatili — vardiyaPlan kaynaklı olabilir
+              const vpDocId = vardiyaHaftaTatilMap.get(key);
+              kayit.durum = "haftaTatili";
+              kayit.haftaTatili = { id: vpDocId || "", kaynak: "vardiyaPlan" };
+            } else {
+              kayit.durum = "izin";
+              kayit.izinTuru = izin;
+            }
           }
           // Mazeretli mi?
           else if (gunKayitlari.some((k: any) => k.mazeretNotu)) {
             kayit.durum = "mazeret";
           }
 
-          // Hafta tatili kaydı var mı?
+          // Hafta tatili kaydı var mı? (attendance'dan — Puantaj'dan eklenen)
           const haftaTatiliKayit = gunKayitlari.find((k: any) => k.tip === "haftaTatili");
           if (haftaTatiliKayit) {
             kayit.durum = "haftaTatili";
-            kayit.haftaTatili = { id: haftaTatiliKayit.id };
+            kayit.haftaTatili = { id: haftaTatiliKayit.id, kaynak: "attendance" };
+          }
+          // VardiyaPlan'dan hafta tatili var mı? (attendance'da yoksa)
+          else if (!kayit.haftaTatili && vardiyaHaftaTatilMap.has(key)) {
+            kayit.durum = "haftaTatili";
+            kayit.haftaTatili = { id: vardiyaHaftaTatilMap.get(key)!, kaynak: "vardiyaPlan" };
           }
 
           // Giriş kaydı
@@ -347,11 +383,12 @@ export default function PuantajPage() {
   };
 
   // Kayıt sil
-  const handleDelete = async (kayitId: string, personelAd: string, tip: string) => {
+  const handleDelete = async (kayitId: string, personelAd: string, tip: string, kaynak: "attendance" | "vardiyaPlan" = "attendance") => {
     if (!confirm(`${tip} kaydını silmek istediğinize emin misiniz?`)) return;
     
     try {
-      await deleteDoc(doc(db, "attendance", kayitId));
+      const collectionName = kaynak === "vardiyaPlan" ? "vardiyaPlan" : "attendance";
+      await deleteDoc(doc(db, collectionName, kayitId));
       
       await addDoc(collection(db, "attendanceChanges"), {
         degisiklikYapan: user.email,
@@ -878,11 +915,11 @@ export default function PuantajPage() {
                                   </button>
                                 )}
                                 {/* Silme butonu - hafta tatili varsa (sadece giriş hücresinde göster) */}
-                                {kayit.haftaTatili && hoverCell === cellKeyGiris && (
+                                {kayit.haftaTatili && kayit.haftaTatili.id && hoverCell === cellKeyGiris && (
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      handleDelete(kayit.haftaTatili!.id, personel.personelAd, "Hafta Tatili");
+                                      handleDelete(kayit.haftaTatili!.id, personel.personelAd, "Hafta Tatili", kayit.haftaTatili!.kaynak);
                                     }}
                                     className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600 shadow"
                                   >
@@ -925,11 +962,11 @@ export default function PuantajPage() {
                                   </button>
                                 )}
                                 {/* Silme butonu - hafta tatili varsa (çıkış hücresinden de silinebilir) */}
-                                {kayit.haftaTatili && hoverCell === cellKeyCikis && (
+                                {kayit.haftaTatili && kayit.haftaTatili.id && hoverCell === cellKeyCikis && (
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      handleDelete(kayit.haftaTatili!.id, personel.personelAd, "Hafta Tatili");
+                                      handleDelete(kayit.haftaTatili!.id, personel.personelAd, "Hafta Tatili", kayit.haftaTatili!.kaynak);
                                     }}
                                     className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600 shadow"
                                   >

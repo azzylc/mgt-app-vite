@@ -44,6 +44,13 @@ interface Personel {
   grupEtiketleri: string[];
   yetkiliGruplar: string[];
   aktif: boolean;
+  boundDeviceId?: string;
+  boundDeviceInfo?: {
+    model: string;
+    platform: string;
+    osVersion: string;
+    boundAt: string;
+  };
   ayarlar: {
     otoCikis: boolean;
     qrKamerali: boolean;
@@ -1210,6 +1217,38 @@ function PersonelPageContent() {
                   <p className="font-semibold text-stone-800">{selectedPersonel.istenAyrilma}</p>
                 </div>
               )}
+
+              {/* Bağlı Cihaz */}
+              <div className={`p-4 rounded-lg border ${selectedPersonel.boundDeviceId ? 'bg-indigo-50 border-indigo-200' : 'bg-stone-50 border-stone-200'}`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className={`text-sm mb-1 ${selectedPersonel.boundDeviceId ? 'text-indigo-600' : 'text-stone-500'}`}>📱 Bağlı Cihaz</p>
+                    {selectedPersonel.boundDeviceId ? (
+                      <>
+                        <p className="font-semibold text-stone-800">
+                          {selectedPersonel.boundDeviceInfo?.model || 'Cihaz bağlı'}
+                        </p>
+                        <p className="text-xs text-stone-500 mt-1">
+                          {selectedPersonel.boundDeviceInfo?.platform}
+                          {selectedPersonel.boundDeviceInfo?.boundAt &&
+                            ` • Bağlanma: ${new Date(selectedPersonel.boundDeviceInfo.boundAt).toLocaleDateString('tr-TR')}`
+                          }
+                        </p>
+                      </>
+                    ) : (
+                      <p className="font-semibold text-stone-500">Henüz cihaz bağlanmamış</p>
+                    )}
+                  </div>
+                  {selectedPersonel.boundDeviceId && (
+                    <button
+                      onClick={() => handleKoparTelefon(selectedPersonel.id)}
+                      className="px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-xs font-medium hover:bg-red-200 transition"
+                    >
+                      🔗 Bağı Kopar
+                    </button>
+                  )}
+                </div>
+              </div>
 
               <div>
                 <p className="text-sm font-medium text-stone-700 mb-3">⚙️ Uygulama Ayarları:</p>

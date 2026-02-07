@@ -266,6 +266,39 @@ export default function VardiyaPlaniPage() {
         }
       });
 
+      // Attendance'dan da hafta tatillerini çek (Puantaj'dan eklenmiş olanlar)
+      try {
+        const haftaBasDate = new Date(haftaBaslangicStr + "T00:00:00");
+        const haftaBitDate = new Date(haftaBitisStr + "T23:59:59");
+        const attHaftaQuery = query(
+          collection(db, "attendance"),
+          where("tip", "==", "haftaTatili"),
+          where("tarih", ">=", Timestamp.fromDate(haftaBasDate)),
+          where("tarih", "<=", Timestamp.fromDate(haftaBitDate))
+        );
+        const attHaftaSnap = await getDocs(attHaftaQuery);
+        
+        attHaftaSnap.forEach(docSnap => {
+          const d = docSnap.data();
+          const tarih = d.tarih?.toDate?.();
+          if (!tarih) return;
+          const tarihKey = formatTarihKey(tarih);
+          
+          const personelResult = results.find(r => r.personelId === d.personelId);
+          if (personelResult) {
+            // VardiyaPlan'da bu gün için zaten haftaTatili varsa dokunma
+            if (!personelResult.gunler[tarihKey]?.haftaTatili) {
+              personelResult.gunler[tarihKey] = {
+                ...personelResult.gunler[tarihKey],
+                haftaTatili: true,
+              };
+            }
+          }
+        });
+      } catch (e) {
+        // attendance haftaTatili çekilemezse sessizce devam et
+      }
+
       setVardiyaData(results);
     } catch (error) {
       Sentry.captureException(error);

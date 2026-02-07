@@ -35,6 +35,15 @@ export default function GelinModal({ gelin, onClose }: { gelin: Gelin; onClose: 
   const formatTarih = (tarih: string) => new Date(tarih).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
   const formatDateTime = (tarih: string) => new Date(tarih).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
+  // Telefon numarasını WhatsApp formatına çevir (0532xxx → 90532xxx)
+  const toWhatsApp = (tel: string) => {
+    const temiz = tel.replace(/[\s\-\(\)]/g, '');
+    if (temiz.startsWith('+')) return temiz.slice(1);
+    if (temiz.startsWith('0')) return '90' + temiz.slice(1);
+    if (temiz.startsWith('90')) return temiz;
+    return '90' + temiz;
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-end md:items-center justify-center z-50 md:p-4" onClick={onClose}>
       <div className="bg-white rounded-t-3xl md:rounded-lg shadow-xl max-w-2xl w-full max-h-[95vh] md:max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
@@ -69,12 +78,18 @@ export default function GelinModal({ gelin, onClose }: { gelin: Gelin; onClose: 
                     <div className="flex items-center gap-2">
                       <span className="text-blue-600 font-medium">Tel:</span>
                       <a href={`tel:${gelin.telefon}`} className="text-blue-700 hover:underline">{gelin.telefon}</a>
+                      <a href={`https://wa.me/${toWhatsApp(gelin.telefon)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center w-7 h-7 bg-green-500 hover:bg-green-600 text-white rounded-full transition-colors" title="WhatsApp ile yaz">
+                        <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                      </a>
                     </div>
                   )}
                   {gelin.esiTelefon && (
                     <div className="flex items-center gap-2">
                       <span className="text-blue-600 font-medium">Eşi Tel:</span>
                       <a href={`tel:${gelin.esiTelefon}`} className="text-blue-700 hover:underline">{gelin.esiTelefon}</a>
+                      <a href={`https://wa.me/${toWhatsApp(gelin.esiTelefon)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center w-7 h-7 bg-green-500 hover:bg-green-600 text-white rounded-full transition-colors" title="WhatsApp ile yaz">
+                        <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                      </a>
                     </div>
                   )}
                   {gelin.instagram && (
@@ -96,8 +111,15 @@ export default function GelinModal({ gelin, onClose }: { gelin: Gelin; onClose: 
                       <span className="text-xl">{makyajPersonel.emoji}</span>
                       <span className="font-semibold text-stone-800">{makyajPersonel.isim}</span>
                     </div>
-                    <p className="text-xs text-stone-500 mt-1">{makyajPersonel.instagram}</p>
-                    <p className="text-xs text-stone-500">{makyajPersonel.telefon}</p>
+                    {makyajPersonel.instagram && <p className="text-xs text-stone-500 mt-1">{makyajPersonel.instagram}</p>}
+                    {makyajPersonel.telefon && (
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <a href={`tel:${makyajPersonel.telefon}`} className="text-xs text-stone-500 hover:underline">{makyajPersonel.telefon}</a>
+                        <a href={`https://wa.me/${toWhatsApp(makyajPersonel.telefon)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center w-5 h-5 bg-green-500 hover:bg-green-600 text-white rounded-full transition-colors" title="WhatsApp">
+                          <svg viewBox="0 0 24 24" className="w-3 h-3 fill-current"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                        </a>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <p className="text-stone-500">Atanmamış</p>
@@ -111,8 +133,15 @@ export default function GelinModal({ gelin, onClose }: { gelin: Gelin; onClose: 
                       <span className="text-lg md:text-xl">{turbanPersonel.emoji}</span>
                       <span className="font-semibold text-stone-800 text-sm md:text-base">{turbanPersonel.isim}</span>
                     </div>
-                    <p className="text-xs text-stone-500 mt-1">{turbanPersonel.instagram}</p>
-                    <p className="text-xs text-stone-500">{turbanPersonel.telefon}</p>
+                    {turbanPersonel.instagram && <p className="text-xs text-stone-500 mt-1">{turbanPersonel.instagram}</p>}
+                    {turbanPersonel.telefon && (
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <a href={`tel:${turbanPersonel.telefon}`} className="text-xs text-stone-500 hover:underline">{turbanPersonel.telefon}</a>
+                        <a href={`https://wa.me/${toWhatsApp(turbanPersonel.telefon)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center w-5 h-5 bg-green-500 hover:bg-green-600 text-white rounded-full transition-colors" title="WhatsApp">
+                          <svg viewBox="0 0 24 24" className="w-3 h-3 fill-current"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                        </a>
+                      </div>
+                    )}
                   </>
                 ) : makyajPersonel && gelin.turban === gelin.makyaj ? (
                   <p className="text-stone-600 text-xs md:text-sm">Makyaj ile aynı kişi</p>
@@ -165,10 +194,31 @@ export default function GelinModal({ gelin, onClose }: { gelin: Gelin; onClose: 
             </div>
 
             {/* Takip Listesi - Takvimden Çekilen Checklist */}
+            {(() => {
+              const checkItems = [
+                gelin.bilgilendirmeGonderildi,
+                gelin.ucretYazildi,
+                gelin.malzemeListesiGonderildi,
+                gelin.paylasimIzni,
+                !!gelin.yorumIstesinMi,
+                gelin.yorumIstendiMi,
+              ];
+              const tamamlanan = checkItems.filter(Boolean).length;
+              const toplam = checkItems.length;
+              const yuzde = Math.round((tamamlanan / toplam) * 100);
+              return (
             <div className="bg-gradient-to-br from-green-50 to-teal-50 p-3 md:p-4 rounded-lg border border-green-100">
-              <h4 className="font-semibold text-green-900 mb-3 flex items-center gap-2 text-sm md:text-base">
-                <span>✅</span> Takip Listesi
-              </h4>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="font-semibold text-green-900 flex items-center gap-2 text-sm md:text-base">
+                  <span>✅</span> Takip Listesi
+                </h4>
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${tamamlanan === toplam ? 'bg-green-200 text-green-800' : 'bg-amber-100 text-amber-700'}`}>
+                  {tamamlanan}/{toplam}
+                </span>
+              </div>
+              <div className="w-full bg-green-200/50 rounded-full h-1.5 mb-3">
+                <div className={`h-1.5 rounded-full transition-all ${tamamlanan === toplam ? 'bg-green-500' : 'bg-amber-400'}`} style={{ width: `${yuzde}%` }} />
+              </div>
               <div className="space-y-2">
                 <div className="flex items-start gap-2">
                   <span className={`text-lg ${gelin.bilgilendirmeGonderildi ? 'opacity-100' : 'opacity-30'}`}>
@@ -268,6 +318,8 @@ export default function GelinModal({ gelin, onClose }: { gelin: Gelin; onClose: 
                 * Bu bilgiler takvimden otomatik çekilir
               </p>
             </div>
+              );
+            })()}
 
             <div className="bg-stone-50 p-3 md:p-4 rounded-lg">
               <h4 className="font-medium text-stone-700 mb-2 text-sm md:text-base">📝 Gelin Notu</h4>
@@ -277,6 +329,16 @@ export default function GelinModal({ gelin, onClose }: { gelin: Gelin; onClose: 
                 <p className="text-stone-400 text-sm italic">Henüz not eklenmemiş</p>
               )}
             </div>
+
+            {gelin.dekontGorseli && (
+              <div className="bg-emerald-50 p-3 md:p-4 rounded-lg border border-emerald-100">
+                <h4 className="font-medium text-emerald-700 mb-2 text-sm md:text-base">🧾 Dekont</h4>
+                <a href={gelin.dekontGorseli} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm text-emerald-700 hover:text-emerald-900 hover:underline font-medium">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                  Dekont görselini aç
+                </a>
+              </div>
+            )}
           </div>
         </div>
       </div>

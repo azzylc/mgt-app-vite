@@ -20,8 +20,17 @@ interface GelmeyenKayit {
   sicilNo: string;
   calismaSaati: string;
   planSaati: string;
+  planKaynak: "vardiya" | "sabit" | "";
   tarih: string;
   tatilVeyaIzin: string;
+}
+
+interface VardiyaPlanKayit {
+  personelId: string;
+  tarih: string;
+  giris: string | null;
+  cikis: string | null;
+  haftaTatili: boolean;
 }
 
 export default function GelmeyenlerPage() {
@@ -44,7 +53,7 @@ export default function GelmeyenlerPage() {
         ad: doc.data().ad || "",
         soyad: doc.data().soyad || "",
         sicilNo: doc.data().sicilNo || "",
-        calismaSaati: doc.data().calismaSaati || "her gün 9:00-18:00",
+        calismaSaati: doc.data().calismaSaati || "",
         aktif: doc.data().aktif !== false
       }));
       setPersoneller(data.filter(p => p.aktif));
@@ -59,18 +68,12 @@ export default function GelmeyenlerPage() {
       for (let i = 0; i < tatil.sure; i++) {
         const gun = new Date(tatilTarih);
         gun.setDate(tatilTarih.getDate() + i);
-        if (gun.toISOString().split('T')[0] === tarih) {
+        if (toDateStr(gun) === tarih) {
           return tatil.isim;
         }
       }
     }
     return null;
-  };
-
-  // Hafta tatili kontrolü
-  const isHaftaTatili = (tarih: string): boolean => {
-    const gun = new Date(tarih).getDay();
-    return gun === 0 || gun === 6;
   };
 
   // Verileri getir
@@ -90,7 +93,33 @@ export default function GelmeyenlerPage() {
       const bitis = new Date(bitisTarih);
       bitis.setHours(23, 59, 59, 999);
 
-      // Giriş yapan personelleri çek
+      // ============================
+      // 1. VardiyaPlan verilerini çek
+      // ============================
+      const vardiyaMap = new Map<string, VardiyaPlanKayit>();
+      
+      const vardiyaQuery = query(
+        collection(db, "vardiyaPlan"),
+        where("tarih", ">=", baslangicTarih),
+        where("tarih", "<=", bitisTarih)
+      );
+      const vardiyaSnapshot = await getDocs(vardiyaQuery);
+      
+      vardiyaSnapshot.forEach(docSnap => {
+        const d = docSnap.data();
+        const key = `${d.personelId}_${d.tarih}`;
+        vardiyaMap.set(key, {
+          personelId: d.personelId,
+          tarih: d.tarih,
+          giris: d.giris || null,
+          cikis: d.cikis || null,
+          haftaTatili: d.haftaTatili === true,
+        });
+      });
+
+      // ============================
+      // 2. Attendance giriş kayıtlarını çek
+      // ============================
       const q = query(
         collection(db, "attendance"),
         where("tarih", ">=", Timestamp.fromDate(baslangic)),
@@ -106,41 +135,47 @@ export default function GelmeyenlerPage() {
         const d = doc.data();
         const tarih = d.tarih?.toDate?.();
         if (tarih) {
-          const gunStr = tarih.toISOString().split('T')[0];
+          const gunStr = toDateStr(tarih);
           girisYapanlar.add(`${d.personelId}-${gunStr}`);
         }
       });
 
-      // İzinleri çek (hem izinler hem vardiyaPlan'daki hafta tatilleri)
+      // ============================
+      // 3. İzinleri çek
+      // ============================
       const izinMap = new Map<string, string>();
       try {
         const baslangicDate = new Date(baslangic);
         const bitisDate = new Date(bitis);
         const tempMap = await izinMapOlustur(baslangicDate, bitisDate, "full");
-        // Map'i kopyala (izinMapOlustur'dan gelen map'i kullan)
         tempMap.forEach((value, key) => {
           izinMap.set(key, value);
         });
       } catch (e) {
+        // izinHelper hatası
       }
 
-      // Gelmeyen personelleri bul
+      // ============================
+      // 4. Gelmeyen personelleri bul
+      // ============================
       const results: GelmeyenKayit[] = [];
       
       const currentDate = new Date(baslangic);
       while (currentDate <= bitis) {
-        const dateStr = currentDate.toISOString().split('T')[0];
+        const dateStr = toDateStr(currentDate);
         
         for (const personel of personeller) {
           const key = `${personel.id}-${dateStr}`;
+          const vardiyaKey = `${personel.id}_${dateStr}`;
+          const vardiya = vardiyaMap.get(vardiyaKey);
           
           // Giriş yapmadıysa
           if (!girisYapanlar.has(key)) {
             let tatilVeyaIzin = "";
             
-            // Hafta tatili mi?
-            if (isHaftaTatili(dateStr)) {
-              tatilVeyaIzin = "Hafta Tatili";
+            // VardiyaPlan'da hafta tatili mi?
+            if (vardiya?.haftaTatili) {
+              tatilVeyaIzin = "Hafta Tatili (VP)";
             }
             // Resmi tatil mi?
             const resmiTatil = isResmiTatil(dateStr);
@@ -157,11 +192,27 @@ export default function GelmeyenlerPage() {
               continue;
             }
 
-            // Plan saatini çıkar
+            // Plan saatini belirle: Önce vardiyaPlan, yoksa calismaSaati
             let planSaati = "";
-            const match = personel.calismaSaati?.match(/(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})/);
-            if (match) {
-              planSaati = `${match[1]} - ${match[2]}`;
+            let planKaynak: "vardiya" | "sabit" | "" = "";
+
+            if (vardiya?.giris && vardiya?.cikis && !vardiya.haftaTatili) {
+              planSaati = `${vardiya.giris} - ${vardiya.cikis}`;
+              planKaynak = "vardiya";
+            }
+
+            if (!planSaati) {
+              const match = personel.calismaSaati?.match(/(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})/);
+              if (match) {
+                planSaati = `${match[1]} - ${match[2]}`;
+                planKaynak = "sabit";
+              }
+            }
+
+            // calismaSaati "serbest" ve vardiyaPlan'da kaydı yoksa → gelmesi beklenmiyor, atla
+            const csSerbest = (personel.calismaSaati || "").toLowerCase() === "serbest";
+            if (csSerbest && !vardiya) {
+              continue;
             }
 
             results.push({
@@ -170,6 +221,7 @@ export default function GelmeyenlerPage() {
               sicilNo: personel.sicilNo || "",
               calismaSaati: personel.calismaSaati || "serbest",
               planSaati,
+              planKaynak,
               tarih: dateStr,
               tatilVeyaIzin
             });
@@ -179,7 +231,7 @@ export default function GelmeyenlerPage() {
         currentDate.setDate(currentDate.getDate() + 1);
       }
 
-      // Tarihe göre sırala
+      // Tarihe göre sırala (en yeni üstte)
       results.sort((a, b) => b.tarih.localeCompare(a.tarih));
 
       setGelmeyenler(results);
@@ -193,11 +245,12 @@ export default function GelmeyenlerPage() {
 
   // Excel'e kopyala
   const copyToClipboard = async () => {
-    let text = "Sıra\tSicil No\tKullanıcı\tÇalışma Saati\tPlan Saati\tTarih\tTatil/İzin\n";
+    let text = "Sıra\tSicil No\tKullanıcı\tÇalışma Saati\tPlan Saati\tKaynak\tTarih\tTatil/İzin\n";
     
     gelmeyenler.forEach((g, index) => {
       const tarihFormatted = new Date(g.tarih).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' });
-      text += `${index + 1}\t${g.sicilNo || "-"}\t${g.personelAd}\t${g.calismaSaati}\t${g.planSaati || "-"}\t${tarihFormatted}\t${g.tatilVeyaIzin || "-"}\n`;
+      const kaynak = g.planKaynak === "vardiya" ? "Vardiya Planı" : g.planKaynak === "sabit" ? "Sabit Saat" : "-";
+      text += `${index + 1}\t${g.sicilNo || "-"}\t${g.personelAd}\t${g.calismaSaati}\t${g.planSaati || "-"}\t${kaynak}\t${tarihFormatted}\t${g.tatilVeyaIzin || "-"}\n`;
     });
 
     await navigator.clipboard.writeText(text);
@@ -206,11 +259,12 @@ export default function GelmeyenlerPage() {
 
   // Excel indir
   const exportToExcel = () => {
-    let csv = "Sıra;Sicil No;Kullanıcı;Çalışma Saati;Plan Saati;Tarih;Tatil veya İzinler\n";
+    let csv = "Sıra;Sicil No;Kullanıcı;Çalışma Saati;Plan Saati;Kaynak;Tarih;Tatil veya İzinler\n";
     
     gelmeyenler.forEach((g, index) => {
       const tarihFormatted = new Date(g.tarih).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' });
-      csv += `${index + 1};${g.sicilNo || "-"};${g.personelAd};${g.calismaSaati};${g.planSaati || "-"};${tarihFormatted};${g.tatilVeyaIzin || "-"}\n`;
+      const kaynak = g.planKaynak === "vardiya" ? "Vardiya Planı" : g.planKaynak === "sabit" ? "Sabit Saat" : "-";
+      csv += `${index + 1};${g.sicilNo || "-"};${g.personelAd};${g.calismaSaati};${g.planSaati || "-"};${kaynak};${tarihFormatted};${g.tatilVeyaIzin || "-"}\n`;
     });
 
     const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
@@ -279,7 +333,7 @@ export default function GelmeyenlerPage() {
         {/* Uyarı Mesajı */}
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
           <p className="text-sm text-amber-800">
-            <span className="font-medium">ℹ️ Bilgilendirme:</span> Seçilen tarih aralığında hiç giriş yapmayan personeller listelenir.
+            <span className="font-medium">ℹ️ Bilgilendirme:</span> Seçilen tarih aralığında giriş yapmayan personeller listelenir. Plan saati öncelikle vardiya planından, yoksa sabit çalışma saatinden alınır. Serbest çalışanlar, vardiya planında kaydı yoksa listelenmez.
           </p>
         </div>
 
@@ -292,7 +346,6 @@ export default function GelmeyenlerPage() {
                   <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">#</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Sicil No</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Kullanıcı</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Çalışma Saati</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Plan Saati</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Tarih</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Tatil veya İzinler</th>
@@ -301,7 +354,7 @@ export default function GelmeyenlerPage() {
               <tbody className="divide-y divide-stone-100">
                 {gelmeyenler.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-12 text-center text-stone-500">
+                    <td colSpan={6} className="px-4 py-12 text-center text-stone-500">
                       Sonuçları görmek için 'Sonuçları Getir' butonuna tıklayın
                     </td>
                   </tr>
@@ -311,21 +364,33 @@ export default function GelmeyenlerPage() {
                       <td className="px-4 py-3 text-sm text-stone-600">{index + 1}</td>
                       <td className="px-4 py-3 text-sm text-stone-600">{g.sicilNo || "-"}</td>
                       <td className="px-4 py-3 text-sm font-medium text-stone-800">{g.personelAd}</td>
-                      <td className="px-4 py-3 text-sm text-stone-600">{g.calismaSaati}</td>
-                      <td className="px-4 py-3 text-sm text-stone-600">{g.planSaati || "-"}</td>
+                      <td className="px-4 py-3 text-sm text-stone-600">
+                        {g.planSaati ? (
+                          <>
+                            <span>{g.planSaati}</span>
+                            {g.planKaynak === "vardiya" && (
+                              <span className="ml-1.5 text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">VP</span>
+                            )}
+                          </>
+                        ) : "-"}
+                      </td>
                       <td className="px-4 py-3 text-sm text-stone-600">
                         {new Date(g.tarih).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' })}
                       </td>
                       <td className="px-4 py-3">
                         {g.tatilVeyaIzin ? (
                           <span className={`inline-flex px-2 py-1 rounded text-xs font-medium ${
-                            g.tatilVeyaIzin === "Hafta Tatili" ? "bg-blue-100 text-blue-700" :
+                            g.tatilVeyaIzin.includes("Hafta Tatili") ? "bg-blue-100 text-blue-700" :
                             g.tatilVeyaIzin.includes("İzin") ? "bg-orange-100 text-orange-700" :
                             "bg-purple-100 text-purple-700"
                           }`}>
                             {g.tatilVeyaIzin}
                           </span>
-                        ) : "-"}
+                        ) : (
+                          <span className="inline-flex px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-700">
+                            Mazeretsiz
+                          </span>
+                        )}
                       </td>
                     </tr>
                   ))
@@ -363,8 +428,17 @@ export default function GelmeyenlerPage() {
         <div className="mt-6 text-center text-sm text-stone-500">
           <p className="font-medium mb-2">Notlar:</p>
           <p>Seçilen günlerde hiçbir <u>Giriş İşlemi olmayanlar</u> listelenmektedir.</p>
+          <p className="mt-1">Serbest çalışanlar, vardiya planında o güne kayıt yoksa listede görünmez.</p>
         </div>
       </main>
     </div>
   );
+}
+
+// YYYY-MM-DD (local timezone)
+function toDateStr(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }

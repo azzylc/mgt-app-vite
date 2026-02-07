@@ -12,6 +12,7 @@ import {
   doc,
   updateDoc,
   increment,
+  Timestamp,
 } from "firebase/firestore";
 import GelinModal from "../components/GelinModal";
 import MetricCard from "../components/dashboard/MetricCard";
@@ -278,13 +279,15 @@ export default function Home() {
   // Attendance
   useEffect(() => {
     if (!user) return;
-    const bugunBasi = `${bugun}T00:00:00.000Z`;
-    const bugunSonu = `${bugun}T23:59:59.999Z`;
+    const bugunBasi = new Date();
+    bugunBasi.setHours(0, 0, 0, 0);
+    const bugunSonu = new Date();
+    bugunSonu.setHours(23, 59, 59, 999);
 
     const q = query(
       collection(db, "attendance"),
-      where("tarih", ">=", bugunBasi),
-      where("tarih", "<=", bugunSonu),
+      where("tarih", ">=", Timestamp.fromDate(bugunBasi)),
+      where("tarih", "<=", Timestamp.fromDate(bugunSonu)),
       orderBy("tarih", "desc")
     );
 

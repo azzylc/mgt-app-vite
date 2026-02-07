@@ -63,15 +63,18 @@ function parseDescription(description: string) {
 function parsePersonel(title: string) {
   const kisaltmaMap: Record<string, string> = { SA: 'Saliha', SE: 'Selen', T: 'Tansu', K: 'Kübra', R: 'Rümeysa', B: 'Bahar', Z: 'Zehra' };
   const temizle = (s: string) => { const t = s.replace(/[-–—]/g, '').trim().toUpperCase(); return kisaltmaMap[t] || t; };
-  const parts = title.split('✅'), isim = (parts[0] || '').trim(), pStr = (parts[1] || '').replace(/[-–—]/g, ' ').trim();
+  const parts = title.split('✅'), isim = (parts[0] || '').trim(), pRaw = (parts[1] || '').trim();
+  // ✅ ÖDEME KONTROLÜ: -- (iki tire) varsa ödeme alınmış demek
+  const odemeTamamlandi = pRaw.includes('--');
+  const pStr = pRaw.replace(/[-–—]/g, ' ').trim();
   let makyaj = '', turban = '';
   if (pStr.includes('&')) { const k = pStr.split('&').map(x => temizle(x.trim())); makyaj = k[0] || ''; turban = k[1] || ''; }
   else if (pStr) { makyaj = turban = temizle(pStr); }
-  return { isim, makyaj, turban };
+  return { isim, makyaj, turban, odemeTamamlandi };
 }
 
 type CalendarEvent = calendar_v3.Schema$Event;
-interface GelinData { id: string; isim: string; tarih: string; saat: string; ucret: number; kapora: number; kalan: number; makyaj: string; turban: string; kinaGunu: string; telefon: string; esiTelefon: string; instagram: string; fotografci: string; modaevi: string; anlasildigiTarih: string; bilgilendirmeGonderildi: boolean; ucretYazildi: boolean; malzemeListesiGonderildi: boolean; paylasimIzni: boolean; yorumIstesinMi: string; yorumIstendiMi: boolean; gelinNotu: string; dekontGorseli: string; updatedAt: string; __delete?: boolean; reason?: string; }
+interface GelinData { id: string; isim: string; tarih: string; saat: string; ucret: number; kapora: number; kalan: number; makyaj: string; turban: string; odemeTamamlandi: boolean; kinaGunu: string; telefon: string; esiTelefon: string; instagram: string; fotografci: string; modaevi: string; anlasildigiTarih: string; bilgilendirmeGonderildi: boolean; ucretYazildi: boolean; malzemeListesiGonderildi: boolean; paylasimIzni: boolean; yorumIstesinMi: string; yorumIstendiMi: boolean; gelinNotu: string; dekontGorseli: string; updatedAt: string; __delete?: boolean; reason?: string; }
 
 function eventToGelin(event: CalendarEvent): GelinData | null {
   const title = event.summary || '', description = event.description || '', startDate = event.start?.dateTime || event.start?.date;
@@ -79,8 +82,8 @@ function eventToGelin(event: CalendarEvent): GelinData | null {
   if (isErtelendi(title)) return { __delete: true, id: event.id!, reason: 'ertelendi' } as GelinData;
   if (!hasFinancialMarkers(description) && !title.toUpperCase().includes('REF')) return null;
   const date = new Date(startDate);
-  const parsedData = parseDescription(description), { isim, makyaj, turban } = parsePersonel(title);
-  return { id: event.id!, isim, tarih: date.toLocaleDateString('en-CA', { timeZone: 'Europe/Istanbul' }), saat: date.toLocaleTimeString('en-GB', { timeZone: 'Europe/Istanbul', hour: '2-digit', minute: '2-digit', hour12: false }), ucret: parsedData.ucret as number, kapora: parsedData.kapora as number, kalan: parsedData.kalan as number, makyaj, turban, kinaGunu: parsedData.kinaGunu as string, telefon: parsedData.telefon as string, esiTelefon: parsedData.esiTelefon as string, instagram: parsedData.instagram as string, fotografci: parsedData.fotografci as string, modaevi: parsedData.modaevi as string, anlasildigiTarih: parsedData.anlasildigiTarih as string, bilgilendirmeGonderildi: parsedData.bilgilendirmeGonderildi as boolean, ucretYazildi: parsedData.ucretYazildi as boolean, malzemeListesiGonderildi: parsedData.malzemeListesiGonderildi as boolean, paylasimIzni: parsedData.paylasimIzni as boolean, yorumIstesinMi: parsedData.yorumIstesinMi as string, yorumIstendiMi: parsedData.yorumIstendiMi as boolean, gelinNotu: parsedData.gelinNotu as string, dekontGorseli: parsedData.dekontGorseli as string, updatedAt: new Date().toISOString() };
+  const parsedData = parseDescription(description), { isim, makyaj, turban, odemeTamamlandi } = parsePersonel(title);
+  return { id: event.id!, isim, tarih: date.toLocaleDateString('en-CA', { timeZone: 'Europe/Istanbul' }), saat: date.toLocaleTimeString('en-GB', { timeZone: 'Europe/Istanbul', hour: '2-digit', minute: '2-digit', hour12: false }), ucret: parsedData.ucret as number, kapora: parsedData.kapora as number, kalan: parsedData.kalan as number, makyaj, turban, odemeTamamlandi, kinaGunu: parsedData.kinaGunu as string, telefon: parsedData.telefon as string, esiTelefon: parsedData.esiTelefon as string, instagram: parsedData.instagram as string, fotografci: parsedData.fotografci as string, modaevi: parsedData.modaevi as string, anlasildigiTarih: parsedData.anlasildigiTarih as string, bilgilendirmeGonderildi: parsedData.bilgilendirmeGonderildi as boolean, ucretYazildi: parsedData.ucretYazildi as boolean, malzemeListesiGonderildi: parsedData.malzemeListesiGonderildi as boolean, paylasimIzni: parsedData.paylasimIzni as boolean, yorumIstesinMi: parsedData.yorumIstesinMi as string, yorumIstendiMi: parsedData.yorumIstendiMi as boolean, gelinNotu: parsedData.gelinNotu as string, dekontGorseli: parsedData.dekontGorseli as string, updatedAt: new Date().toISOString() };
 }
 
 export async function incrementalSync(syncToken?: string) {

@@ -11,6 +11,7 @@ interface Personel {
   ad: string;
   soyad: string;
   sicilNo?: string;
+  calismaSaati?: string;
   aktif: boolean;
   kullaniciTuru?: string;
   firmalar?: string[];
@@ -36,6 +37,7 @@ interface PersonelHaftalik {
   sicilNo: string;
   gunler: GunData[];
   toplamSaat: string;
+  beklenenSaat: string;
   geldigiGun: number;
   fazlaCalisma: string;
   eksikCalisma: string;
@@ -47,12 +49,33 @@ interface EksikCikisUyari {
   girisSaati: string;
 }
 
+interface GelmeyenUyari {
+  personelAd: string;
+  tarih: string;
+  mesaj: string;
+}
+
 /** Local timezone'da YYYY-MM-DD */
 function toLocalDateStr(date: Date): string {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
   const d = String(date.getDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
+}
+
+/** "HH:MM" formatından dakika hesapla */
+function saatToDakika(saat: string): number | null {
+  const match = saat.match(/(\d{1,2}):(\d{2})/);
+  if (!match) return null;
+  return parseInt(match[1]) * 60 + parseInt(match[2]);
+}
+
+/** İki saat arasındaki farkı dakika olarak hesapla (giriş-çıkış) */
+function saatFarkiDakika(giris: string, cikis: string): number | null {
+  const girisDk = saatToDakika(giris);
+  const cikisDk = saatToDakika(cikis);
+  if (girisDk === null || cikisDk === null) return null;
+  return cikisDk - girisDk;
 }
 
 export default function HaftalikCalismaSureleriPage() {
@@ -62,14 +85,13 @@ export default function HaftalikCalismaSureleriPage() {
   const [grupEtiketleri, setGrupEtiketleri] = useState<string[]>([]);
   const [haftalikData, setHaftalikData] = useState<PersonelHaftalik[]>([]);
   const [eksikCikislar, setEksikCikislar] = useState<EksikCikisUyari[]>([]);
+  const [gelmeyenUyarilar, setGelmeyenUyarilar] = useState<GelmeyenUyari[]>([]);
   const [haftalar, setHaftalar] = useState<{ value: string; label: string; year?: number; isYearHeader?: boolean }[]>([]);
   const [dataLoading, setDataLoading] = useState(false);
 
   // Filtreler
   const [seciliHafta, setSeciliHafta] = useState("");
-  const [gunlukCalismaSuresi, setGunlukCalismaSuresi] = useState(9);
   const [molaSuresi, setMolaSuresi] = useState(90);
-  const [haftalikCalismaSaati, setHaftalikCalismaSaati] = useState(45);
   const [showYoneticiler, setShowYoneticiler] = useState(false);
   const [seciliFirmalar, setSeciliFirmalar] = useState<string[]>([]);
   const [seciliGrup, setSeciliGrup] = useState("tumu");
@@ -126,6 +148,7 @@ export default function HaftalikCalismaSureleriPage() {
           ad: d.ad || "",
           soyad: d.soyad || "",
           sicilNo: d.sicilNo || "",
+          calismaSaati: d.calismaSaati || "",
           aktif: d.aktif !== false,
           kullaniciTuru: d.kullaniciTuru || "",
           firmalar: Array.isArray(d.firmalar) ? d.firmalar : (d.firma ? [d.firma] : []),
@@ -164,12 +187,6 @@ export default function HaftalikCalismaSureleriPage() {
       }
     }
     return false;
-  };
-
-  // Hafta tatili kontrolü
-  const isHaftaTatili = (tarih: string): boolean => {
-    const gun = new Date(tarih + "T12:00:00").getDay();
-    return gun === 0 || gun === 6;
   };
 
   // Firma toggle
@@ -212,8 +229,32 @@ export default function HaftalikCalismaSureleriPage() {
         kayitlar.get(key)!.push({ ...d, tarihDate: tarih });
       });
 
+      // VardiyaPlan verilerini çek
       const haftaSonu = new Date(haftaBaslangic);
       haftaSonu.setDate(haftaBaslangic.getDate() + 6);
+      
+      const vardiyaMap = new Map<string, { giris: string | null; cikis: string | null; haftaTatili: boolean }>();
+      try {
+        const haftaBasStr = toLocalDateStr(haftaBaslangic);
+        const haftaBitStr = toLocalDateStr(haftaSonu);
+        const vpQuery = query(
+          collection(db, "vardiyaPlan"),
+          where("tarih", ">=", haftaBasStr),
+          where("tarih", "<=", haftaBitStr)
+        );
+        const vpSnap = await getDocs(vpQuery);
+        vpSnap.forEach(docSnap => {
+          const d = docSnap.data();
+          vardiyaMap.set(`${d.personelId}_${d.tarih}`, {
+            giris: d.giris || null,
+            cikis: d.cikis || null,
+            haftaTatili: d.haftaTatili === true,
+          });
+        });
+      } catch (e) {
+        Sentry.captureException(e);
+      }
+
       const izinMap = await izinMapOlustur(haftaBaslangic, haftaSonu, "full");
 
       let filteredPersonel = showYoneticiler
@@ -234,10 +275,12 @@ export default function HaftalikCalismaSureleriPage() {
 
       const results: PersonelHaftalik[] = [];
       const eksikler: EksikCikisUyari[] = [];
+      const gelmeyenler: GelmeyenUyari[] = [];
 
       for (const personel of filteredPersonel) {
         const gunler: GunData[] = [];
         let toplamDakika = 0;
+        let beklenenToplamDakika = 0;
         let geldigiGun = 0;
 
         for (let i = 0; i < 7; i++) {
@@ -245,9 +288,11 @@ export default function HaftalikCalismaSureleriPage() {
           gun.setDate(haftaBaslangic.getDate() + i);
           const gunStr = toLocalDateStr(gun);
           const key = `${personel.id}-${gunStr}`;
+          const vpKey = `${personel.id}_${gunStr}`;
 
           const gunKayitlari = kayitlar.get(key) || [];
           const izin = izinMap.get(key);
+          const vardiya = vardiyaMap.get(vpKey);
 
           let gunData: GunData = {
             tarih: gunStr,
@@ -256,19 +301,47 @@ export default function HaftalikCalismaSureleriPage() {
             calismaDakika: 0
           };
 
+          // Günlük beklenen çalışma süresini hesapla
+          // HER ZAMAN personel.calismaSaati'nden (çıkış - giriş - mola)
+          let gunlukBeklenenDakika = 0;
+          let beklenenHesaplanabildi = false;
+          
+          const csMatch = (personel.calismaSaati || "").match(/(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})/);
+          if (csMatch) {
+            const fark = saatFarkiDakika(csMatch[1], csMatch[2]);
+            if (fark !== null) {
+              gunlukBeklenenDakika = fark - molaSuresi;
+              beklenenHesaplanabildi = true;
+            }
+          }
+          // calismaSaati parse edilemiyorsa veya "serbest" ise → beklenen 0, hesaplanamadı
+
+          if (gunlukBeklenenDakika < 0) gunlukBeklenenDakika = 0;
+
           if (isResmiTatil(gunStr)) {
             gunData.durum = "resmiTatil";
             gunData.girisSaati = "Resmi Tatil";
+            // Resmi tatil → beklenen 0
           }
-          else if (isHaftaTatili(gunStr)) {
+          else if (vardiya?.haftaTatili) {
             gunData.durum = "tatil";
             gunData.girisSaati = "Hafta Tatili";
+            // Hafta tatili → beklenen 0
           }
           else if (izin) {
-            gunData.durum = "izin";
-            gunData.girisSaati = izin;
+            if (izin === "Haftalık İzin") {
+              gunData.durum = "tatil";
+              gunData.girisSaati = "Hafta Tatili";
+            } else {
+              gunData.durum = "izin";
+              gunData.girisSaati = izin;
+            }
+            // İzin/tatil → beklenen 0
           }
           else if (gunKayitlari.length > 0) {
+            // Beklenen süreyi haftalık toplama ekle
+            beklenenToplamDakika += gunlukBeklenenDakika;
+
             const girisler = gunKayitlari.filter((k: any) => k.tip === "giris").sort((a: any, b: any) => a.tarihDate - b.tarihDate);
             const cikislar = gunKayitlari.filter((k: any) => k.tip === "cikis").sort((a: any, b: any) => a.tarihDate - b.tarihDate);
 
@@ -288,11 +361,14 @@ export default function HaftalikCalismaSureleriPage() {
                 const dakikaStr = calismaDakika % 60;
                 gunData.girisSaati = `${String(saatStr).padStart(2, '0')}:${String(dakikaStr).padStart(2, '0')}`;
 
-                const hedefDakika = gunlukCalismaSuresi * 60;
-                if (calismaDakika < hedefDakika - 30) {
-                  gunData.durum = "eksik";
-                } else if (calismaDakika > hedefDakika + 30) {
-                  gunData.durum = "fazla";
+                if (gunlukBeklenenDakika > 0) {
+                  if (calismaDakika < gunlukBeklenenDakika - 30) {
+                    gunData.durum = "eksik";
+                  } else if (calismaDakika > gunlukBeklenenDakika + 30) {
+                    gunData.durum = "fazla";
+                  } else {
+                    gunData.durum = "calisma";
+                  }
                 } else {
                   gunData.durum = "calisma";
                 }
@@ -306,6 +382,24 @@ export default function HaftalikCalismaSureleriPage() {
                 });
               }
             }
+          } else {
+            // Gelmemiş - hiç QR kaydı yok
+            if (beklenenHesaplanabildi && gunlukBeklenenDakika > 0) {
+              // calismaSaati tanımlı ama gelmemiş → beklenen'e ekle (eksik çıkacak) + uyarı
+              beklenenToplamDakika += gunlukBeklenenDakika;
+              gelmeyenler.push({
+                personelAd: `${personel.ad} ${personel.soyad}`.trim(),
+                tarih: gun.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' }),
+                mesaj: "Gelmedi — haftalık tatil de girilmemiş",
+              });
+            } else if (!beklenenHesaplanabildi) {
+              // calismaSaati parse edilemedi → beklenen'e ekleme, sadece uyarı
+              gelmeyenler.push({
+                personelAd: `${personel.ad} ${personel.soyad}`.trim(),
+                tarih: gun.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' }),
+                mesaj: "Çalışma saati tanımsız",
+              });
+            }
           }
 
           gunler.push(gunData);
@@ -314,12 +408,14 @@ export default function HaftalikCalismaSureleriPage() {
         const toplamSaat = Math.floor(toplamDakika / 60);
         const toplamDakikaKalan = toplamDakika % 60;
         
-        const hedefHaftalikDakika = haftalikCalismaSaati * 60;
-        const fazlaDakika = Math.max(0, toplamDakika - hedefHaftalikDakika);
+        const beklenenSaat = Math.floor(beklenenToplamDakika / 60);
+        const beklenenDakikaKalan = beklenenToplamDakika % 60;
+
+        const fazlaDakika = Math.max(0, toplamDakika - beklenenToplamDakika);
         const fazlaSaat = Math.floor(fazlaDakika / 60);
         const fazlaDakikaKalan = fazlaDakika % 60;
 
-        const eksikDakika = Math.max(0, hedefHaftalikDakika - toplamDakika);
+        const eksikDakika = Math.max(0, beklenenToplamDakika - toplamDakika);
         const eksikSaat = Math.floor(eksikDakika / 60);
         const eksikDakikaKalan = eksikDakika % 60;
 
@@ -329,6 +425,7 @@ export default function HaftalikCalismaSureleriPage() {
           sicilNo: personel.sicilNo || "",
           gunler,
           toplamSaat: `${String(toplamSaat).padStart(2, '0')}:${String(toplamDakikaKalan).padStart(2, '0')}`,
+          beklenenSaat: `${String(beklenenSaat).padStart(2, '0')}:${String(beklenenDakikaKalan).padStart(2, '0')}`,
           geldigiGun,
           fazlaCalisma: `${String(fazlaSaat).padStart(2, '0')}:${String(fazlaDakikaKalan).padStart(2, '0')}`,
           eksikCalisma: `${String(eksikSaat).padStart(2, '0')}:${String(eksikDakikaKalan).padStart(2, '0')}`,
@@ -338,6 +435,7 @@ export default function HaftalikCalismaSureleriPage() {
       results.sort((a, b) => a.personelAd.localeCompare(b.personelAd, 'tr'));
       setHaftalikData(results);
       setEksikCikislar(eksikler);
+      setGelmeyenUyarilar(gelmeyenler);
     } catch (error) {
       Sentry.captureException(error);
     }
@@ -374,11 +472,11 @@ export default function HaftalikCalismaSureleriPage() {
   // Excel'e kopyala
   const copyToClipboard = async () => {
     const gb = getGunBasliklari();
-    let text = "Sicil No\tAd Soyad\t" + gb.join("\t") + "\tToplam Saat\tGeldiği Gün\tFazla Çalışma\tEksik Çalışma\n";
+    let text = "Sicil No\tAd Soyad\t" + gb.join("\t") + "\tToplam Saat\tBeklenen\tGeldiği Gün\tFazla Çalışma\tEksik Çalışma\n";
     
     haftalikData.forEach(h => {
       const gunVerileri = h.gunler.map(g => g.girisSaati || "-").join("\t");
-      text += `${h.sicilNo || "-"}\t${h.personelAd}\t${gunVerileri}\t${h.toplamSaat}\t${h.geldigiGun}\t${h.fazlaCalisma}\t${h.eksikCalisma}\n`;
+      text += `${h.sicilNo || "-"}\t${h.personelAd}\t${gunVerileri}\t${h.toplamSaat}\t${h.beklenenSaat}\t${h.geldigiGun}\t${h.fazlaCalisma}\t${h.eksikCalisma}\n`;
     });
 
     await navigator.clipboard.writeText(text);
@@ -388,11 +486,11 @@ export default function HaftalikCalismaSureleriPage() {
   // Excel indir
   const exportToExcel = () => {
     const gb = getGunBasliklari();
-    let csv = "Sicil No;Ad Soyad;" + gb.join(";") + ";Toplam Saat;Geldiği Gün;Fazla Çalışma;Eksik Çalışma\n";
+    let csv = "Sicil No;Ad Soyad;" + gb.join(";") + ";Toplam Saat;Beklenen;Geldiği Gün;Fazla Çalışma;Eksik Çalışma\n";
     
     haftalikData.forEach(h => {
       const gunVerileri = h.gunler.map(g => g.girisSaati || "-").join(";");
-      csv += `${h.sicilNo || "-"};${h.personelAd};${gunVerileri};${h.toplamSaat};${h.geldigiGun};${h.fazlaCalisma};${h.eksikCalisma}\n`;
+      csv += `${h.sicilNo || "-"};${h.personelAd};${gunVerileri};${h.toplamSaat};${h.beklenenSaat};${h.geldigiGun};${h.fazlaCalisma};${h.eksikCalisma}\n`;
     });
 
     const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
@@ -438,32 +536,11 @@ export default function HaftalikCalismaSureleriPage() {
               </select>
             </div>
             <div className="flex-1">
-              <label className="block text-xs text-stone-500 mb-1">Günlük çalışma</label>
-              <select
-                value={gunlukCalismaSuresi}
-                onChange={(e) => setGunlukCalismaSuresi(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
-              >
-                <option value={8}>8 saat</option>
-                <option value={9}>9 saat</option>
-                <option value={10}>10 saat</option>
-              </select>
-            </div>
-            <div className="flex-1">
               <label className="block text-xs text-stone-500 mb-1">Mola süresi (dk)</label>
               <input
                 type="number"
                 value={molaSuresi}
                 onChange={(e) => setMolaSuresi(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
-              />
-            </div>
-            <div className="flex-1">
-              <label className="block text-xs text-stone-500 mb-1">Haftalık (sa)</label>
-              <input
-                type="number"
-                value={haftalikCalismaSaati}
-                onChange={(e) => setHaftalikCalismaSaati(Number(e.target.value))}
                 className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
               />
             </div>
@@ -580,6 +657,7 @@ export default function HaftalikCalismaSureleriPage() {
                         </th>
                       ))}
                       <th className="px-3 py-2 text-center text-xs font-medium text-stone-500 whitespace-nowrap">Toplam Saat</th>
+                      <th className="px-3 py-2 text-center text-xs font-medium text-stone-500 whitespace-nowrap">Beklenen</th>
                       <th className="px-3 py-2 text-center text-xs font-medium text-stone-500 whitespace-nowrap">Geldiği Gün</th>
                       <th className="px-3 py-2 text-center text-xs font-medium text-stone-500 whitespace-nowrap">Fazla Çalışma</th>
                       <th className="px-3 py-2 text-center text-xs font-medium text-stone-500 whitespace-nowrap">Eksik Çalışma</th>
@@ -596,6 +674,7 @@ export default function HaftalikCalismaSureleriPage() {
                           </td>
                         ))}
                         <td className="px-3 py-2 text-center font-bold text-stone-800">{h.toplamSaat}</td>
+                        <td className="px-3 py-2 text-center text-stone-500">{h.beklenenSaat}</td>
                         <td className="px-3 py-2 text-center text-stone-600">{h.geldigiGun}</td>
                         <td className={`px-3 py-2 text-center font-medium ${h.fazlaCalisma !== "00:00" ? "text-orange-600" : "text-stone-400"}`}>
                           {h.fazlaCalisma}
@@ -628,11 +707,27 @@ export default function HaftalikCalismaSureleriPage() {
               </div>
             )}
 
+            {gelmeyenUyarilar.length > 0 && (
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+                <h3 className="text-sm font-bold text-orange-800 mb-3">⚠️ Notlar: Gelmeyenler ({gelmeyenUyarilar.length} kayıt)</h3>
+                <p className="text-xs text-orange-600 mb-3">Aşağıdaki personeller belirtilen günlerde gelmedi ve haftalık tatil/izin kaydı da bulunamadı.</p>
+                <div className="space-y-1">
+                  {gelmeyenUyarilar.map((uyari, i) => (
+                    <div key={i} className="flex items-center gap-3 text-xs text-orange-700 bg-orange-100/50 rounded px-3 py-1.5">
+                      <span className="font-medium min-w-[150px]">{uyari.personelAd}</span>
+                      <span className="text-orange-500">{uyari.tarih}</span>
+                      <span>{uyari.mesaj}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Notlar */}
             <div className="bg-stone-50 border rounded-lg p-4 mb-6 text-center text-sm text-stone-600">
               <p className="font-medium mb-1">Notlar:</p>
               <p>Sadece gün içindeki <u>İlk Giriş</u> ve <u>Son Çıkış</u> işlemleri hesaba katılmaktadır.</p>
-              <p>Toplam Saat ve Gün hesaplanırken Resmi Tatiller ve İzin Günleri, toplam sürelere eklenmemektedir.</p>
+              <p>Beklenen saat, personelin çalışma saatinden hesaplanır (çıkış - giriş - mola). Tatil ve izin günleri sayılmaz.</p>
               <p>Hücrelerdeki süreler yemek + mola süresi ({molaSuresi} dk) düşülmüş <strong>net çalışma süreleridir.</strong></p>
             </div>
 
