@@ -79,7 +79,8 @@ export default function VardiyaPlaniPage() {
     const dow = simple.getDay();
     const ISOweekStart = simple;
     if (dow <= 4) {
-      ISOweekStart.setDate(simple.getDate() - simple.getDay() + 1);
+      // Pazar (0) → 6 geri, Pazartesi (1) → 0, Salı (2) → 1, ...
+      ISOweekStart.setDate(simple.getDate() - (dow === 0 ? 6 : dow - 1));
     } else {
       ISOweekStart.setDate(simple.getDate() + 8 - simple.getDay());
     }

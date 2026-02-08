@@ -110,7 +110,8 @@ export default function HaftalikCalismaSureleriPage() {
     
     for (let i = 51; i >= 0; i--) {
       const weekStart = new Date(today);
-      weekStart.setDate(today.getDate() - today.getDay() + 1 - (i * 7));
+      const dayOfWeek = today.getDay();
+      weekStart.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1) - (i * 7));
       const weekEnd = new Date(weekStart);
       weekEnd.setDate(weekStart.getDate() + 6);
       

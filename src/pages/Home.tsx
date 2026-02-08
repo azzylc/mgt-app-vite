@@ -144,7 +144,9 @@ export default function Home() {
 
   const buHaftaGelinler = useMemo(() => {
     const haftaBasi = new Date();
-    haftaBasi.setDate(haftaBasi.getDate() - haftaBasi.getDay() + 1);
+    const gun = haftaBasi.getDay(); // 0=Pazar, 1=Pazartesi, ...
+    // Pazar günü (0) → 6 gün geri git, diğer günler → (gun-1) geri git
+    haftaBasi.setDate(haftaBasi.getDate() - (gun === 0 ? 6 : gun - 1));
     const haftaSonu = new Date(haftaBasi);
     haftaSonu.setDate(haftaSonu.getDate() + 6);
     return gelinler.filter(g => 
