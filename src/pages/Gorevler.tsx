@@ -122,7 +122,7 @@ export default function GorevlerPage() {
   const [filtreliGorevler, setFiltreliGorevler] = useState<Gorev[]>([]);
   const [filtre, setFiltre] = useState<"hepsi" | "bekliyor" | "devam-ediyor" | "tamamlandi">("hepsi");
   const [siralama, setSiralama] = useState<"yenidenEskiye" | "eskidenYeniye">("yenidenEskiye");
-  const [aktifSekme, setAktifSekme] = useState<"gorevlerim" | "otomatik" | "tumgorevler">("gorevlerim");
+  const [aktifSekme, setAktifSekme] = useState<"gorevlerim" | "verdigim" | "otomatik" | "tumgorevler">("gorevlerim");
   const [otomatikAltSekme, setOtomatikAltSekme] = useState<"yorumIstesinMi" | "paylasimIzni" | "yorumIstendiMi" | "odemeTakip">("yorumIstesinMi");
   const [seciliPersoneller, setSeciliPersoneller] = useState<string[]>([]); // Seçili personel email'leri
   const [selectedGorev, setSelectedGorev] = useState<Gorev | null>(null);
@@ -338,6 +338,9 @@ export default function GorevlerPage() {
       if (seciliPersoneller.length > 0) {
         sonuc = sonuc.filter(g => seciliPersoneller.includes(g.atanan));
       }
+    } else if (aktifSekme === "verdigim") {
+      // Kullanıcının atadığı manuel görevler
+      sonuc = tumGorevler.filter(g => g.atayan === user?.email && !g.otomatikMi);
     } else if (aktifSekme === "otomatik") {
       // Otomatik sekmede alt sekmeye göre filtrele
       sonuc = gorevler.filter(g => g.otomatikMi === true && g.gorevTuru === otomatikAltSekme);
@@ -366,7 +369,7 @@ export default function GorevlerPage() {
     });
     
     setFiltreliGorevler(sonuc);
-  }, [gorevler, tumGorevler, filtre, aktifSekme, seciliPersoneller, otomatikAltSekme, siralama]);
+  }, [gorevler, tumGorevler, filtre, aktifSekme, seciliPersoneller, otomatikAltSekme, siralama, user?.email]);
 
   // Görev durumu değiştir
   const handleDurumDegistir = async (gorevId: string, yeniDurum: Gorev["durum"]) => {
@@ -562,7 +565,8 @@ export default function GorevlerPage() {
     setGorevEkleLoading(true);
     try {
       const atayanPersonel = personeller.find(p => p.email === user?.email);
-      const grupId = Date.now().toString(); // Çoklu atamada grup takibi için
+      const atayanAd = atayanPersonel ? `${atayanPersonel.ad} ${atayanPersonel.soyad}` : user?.email || "";
+      const grupId = Date.now().toString();
       
       for (const atananEmail of yeniGorev.atananlar) {
         const atananPersonel = personeller.find(p => p.email === atananEmail);
@@ -571,7 +575,7 @@ export default function GorevlerPage() {
           baslik: yeniGorev.baslik.trim(),
           aciklama: yeniGorev.aciklama.trim(),
           atayan: user?.email || "",
-          atayanAd: atayanPersonel ? `${atayanPersonel.ad} ${atayanPersonel.soyad}` : user?.email || "",
+          atayanAd,
           atanan: atananEmail,
           atananAd: atananPersonel ? `${atananPersonel.ad} ${atananPersonel.soyad}` : atananEmail,
           durum: "bekliyor",
@@ -582,6 +586,24 @@ export default function GorevlerPage() {
           grupId: yeniGorev.atananlar.length > 1 ? grupId : "",
           olusturulmaTarihi: serverTimestamp()
         });
+
+        // Push bildirim gönder (kendine atamadıysa)
+        if (atananEmail !== user?.email) {
+          try {
+            await fetch('https://europe-west1-gmt-test-99b30.cloudfunctions.net/sendGorevBildirim', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                atanan: atananEmail,
+                atayanAd,
+                baslik: yeniGorev.baslik.trim(),
+                oncelik: yeniGorev.oncelik
+              })
+            });
+          } catch (pushErr) {
+            console.warn('[PUSH] Bildirim gönderilemedi:', pushErr);
+          }
+        }
       }
 
       setYeniGorev({ baslik: "", aciklama: "", atananlar: [], oncelik: "normal", sonTarih: "" });
@@ -780,6 +802,26 @@ export default function GorevlerPage() {
                 {gorevler.filter(g => !g.otomatikMi).length}
               </span>
             </button>
+            
+            {/* Kurucu ve Yönetici için Verdiğim Görevler sekmesi */}
+            {(userRole === "Kurucu" || userRole === "Yönetici") && (
+              <button
+                onClick={() => { setAktifSekme("verdigim"); setFiltre("hepsi"); }}
+                className={`px-2.5 md:px-4 py-2 md:py-2.5 font-medium text-xs md:text-sm transition border-b-2 whitespace-nowrap ${
+                  aktifSekme === "verdigim"
+                    ? "border-sky-500 text-sky-600 bg-sky-50/50"
+                    : "border-transparent text-stone-500 hover:text-stone-700"
+                }`}
+              >
+                📤 <span className="hidden md:inline">Verdiğim </span>Görevler
+                <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs ${
+                  aktifSekme === "verdigim" ? "bg-sky-100 text-sky-700" : "bg-stone-100 text-stone-500"
+                }`}>
+                  {tumGorevler.filter(g => g.atayan === user?.email && !g.otomatikMi).length}
+                </span>
+              </button>
+            )}
+
             <button
               onClick={() => { setAktifSekme("otomatik"); setFiltre("hepsi"); }}
               className={`px-2.5 md:px-4 py-2 md:py-2.5 font-medium text-xs md:text-sm transition border-b-2 whitespace-nowrap ${
@@ -1229,8 +1271,8 @@ export default function GorevlerPage() {
 
                       {/* Meta Bilgiler */}
                       <div className="flex flex-wrap items-center gap-2 md:gap-3 text-[10px] md:text-xs text-stone-500">
-                        {/* Tüm Görevler sekmesinde atanan kişiyi göster */}
-                        {aktifSekme === "tumgorevler" && (
+                        {/* Tüm Görevler veya Verdiğim sekmesinde atanan kişiyi göster */}
+                        {(aktifSekme === "tumgorevler" || aktifSekme === "verdigim") && (
                           <div className="flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-full">
                             <span>🎯</span>
                             <span className="font-medium text-emerald-700">Atanan: {gorev.atananAd}</span>

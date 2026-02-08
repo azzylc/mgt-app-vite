@@ -1,9 +1,8 @@
 import { onRequest } from 'firebase-functions/v2/https';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
-import { onDocumentUpdated } from 'firebase-functions/v2/firestore';
 import { defineSecret } from 'firebase-functions/params';
 import { incrementalSync, fullSync } from './lib/calendar-sync';
-import { adminDb, adminAuth } from './lib/firestore-admin';
+import { adminDb, adminAuth, adminMessaging } from './lib/firestore-admin';
 import { sendPasswordResetEmail } from './lib/email';
 
 // Secret tanımları
@@ -284,242 +283,6 @@ export const dailyHealthCheck = onSchedule({
 
   } catch (error) {
     console.error('Health check failed:', error);
-  }
-});
-
-// ============================================
-// HELPER: Email'i doc ID'de kullanılabilir hale getir
-// ============================================
-function sanitizeEmail(email: string): string {
-  return email.replace(/[^a-zA-Z0-9]/g, '_');
-}
-
-// ============================================
-// HELPER: Görev composite ID oluştur
-// ============================================
-function gorevId(gelinId: string, gorevTuru: string, atananEmail: string): string {
-  return `${gelinId}_${gorevTuru}_${sanitizeEmail(atananEmail)}`;
-}
-
-// ============================================
-// HELPER: Alan boş mu kontrol et
-// ============================================
-function alanBosMu(gelin: Record<string, unknown>, gorevTuru: string): boolean {
-  if (gorevTuru === 'yorumIstesinMi') return !gelin.yorumIstesinMi || (gelin.yorumIstesinMi as string).trim() === '';
-  if (gorevTuru === 'paylasimIzni') return !gelin.paylasimIzni;
-  if (gorevTuru === 'yorumIstendiMi') return !gelin.yorumIstendiMi;
-  if (gorevTuru === 'odemeTakip') return gelin.odemeTamamlandi !== true;
-  return false;
-}
-
-// ============================================
-// 6b. SHARED: Görev oluşturma mantığı (reconcile)
-// ============================================
-async function gorevReconcile() {
-  const simdi = new Date();
-  const bugun = simdi.toISOString().split('T')[0];
-
-  // 1. Görev ayarlarını oku
-  const ayarDoc = await adminDb.collection('settings').doc('gorevAyarlari').get();
-  if (!ayarDoc.exists) {
-    console.log('[Reconcile] Görev ayarları bulunamadı, çıkılıyor.');
-    return { olusturulan: 0, silinen: 0 };
-  }
-  const ayarlar = ayarDoc.data() as Record<string, { aktif: boolean; baslangicTarihi: string }>;
-
-  // 2. Personelleri çek
-  const personelSnap = await adminDb.collection('personnel').where('aktif', '==', true).get();
-  const personeller = personelSnap.docs.map(d => ({
-    email: d.data().email,
-    ad: d.data().ad,
-    soyad: d.data().soyad,
-    kullaniciTuru: d.data().kullaniciTuru || ''
-  }));
-  const yoneticiler = personeller.filter(p => p.kullaniciTuru === 'Kurucu' || p.kullaniciTuru === 'Yönetici');
-
-  // 3. Kontrol zamanı geçmiş + henüz görev kontrolü yapılmamış gelinleri çek
-  const gelinlerSnap = await adminDb.collection('gelinler')
-    .where('kontrolZamani', '<=', simdi.toISOString())
-    .get();
-
-  // 4. Mevcut otomatik görevleri çek (bir kere, hepsini)
-  const mevcutGorevlerSnap = await adminDb.collection('gorevler')
-    .where('otomatikMi', '==', true)
-    .get();
-  const mevcutGorevIds = new Set(mevcutGorevlerSnap.docs.map(d => d.id));
-
-  const gorevTurleri = ['yorumIstesinMi', 'paylasimIzni', 'yorumIstendiMi', 'odemeTakip'] as const;
-  const gorevBasliklar: Record<string, string> = {
-    yorumIstesinMi: 'Yorum istensin mi alanını doldur',
-    paylasimIzni: 'Paylaşım izni alanını doldur',
-    yorumIstendiMi: 'Yorum istendi mi alanını doldur',
-    odemeTakip: 'Ödeme alınmadı!'
-  };
-
-  let toplamOlusturulan = 0;
-  let toplamSilinen = 0;
-
-  for (const gelinDoc of gelinlerSnap.docs) {
-    const gelin = gelinDoc.data();
-    const gelinId = gelinDoc.id;
-    const gelinTarih = gelin.tarih as string;
-
-    for (const gorevTuru of gorevTurleri) {
-      const ayar = ayarlar[gorevTuru];
-      if (!ayar?.aktif || !ayar.baslangicTarihi) continue;
-
-      // Başlangıç tarihinden önce veya gelecekteki gelin → atla
-      if (gelinTarih < ayar.baslangicTarihi || gelinTarih > bugun) continue;
-
-      const bos = alanBosMu(gelin, gorevTuru);
-
-      if (gorevTuru === 'odemeTakip') {
-        // Yöneticilere ata
-        for (const yonetici of yoneticiler) {
-          const compositeId = gorevId(gelinId, gorevTuru, yonetici.email);
-          if (bos && !mevcutGorevIds.has(compositeId)) {
-            await adminDb.collection('gorevler').doc(compositeId).set({
-              baslik: `${gelin.isim} - ${gorevBasliklar[gorevTuru]}`,
-              aciklama: `${gelin.isim} gelinin düğünü ${gelinTarih} tarihinde gerçekleşti. Takvime "--" eklenmesi gerekiyor.`,
-              atayan: 'Aziz', atayanAd: 'Aziz (Otomatik)',
-              atanan: yonetici.email, atananAd: `${yonetici.ad} ${yonetici.soyad}`,
-              durum: 'bekliyor', oncelik: 'acil', olusturulmaTarihi: new Date(),
-              gelinId, otomatikMi: true, gorevTuru,
-              gelinBilgi: { isim: gelin.isim, tarih: gelinTarih, saat: gelin.saat || '' }
-            });
-            toplamOlusturulan++;
-          } else if (!bos && mevcutGorevIds.has(compositeId)) {
-            await adminDb.collection('gorevler').doc(compositeId).delete();
-            toplamSilinen++;
-          }
-        }
-      } else {
-        // Makyajcı/türbancıya ata
-        const makyajci = personeller.find(p => p.ad.toLocaleLowerCase('tr-TR') === (gelin.makyaj || '').toLocaleLowerCase('tr-TR'));
-        const turbanci = personeller.find(p => p.ad.toLocaleLowerCase('tr-TR') === (gelin.turban || '').toLocaleLowerCase('tr-TR'));
-        const ayniKisi = makyajci?.email === turbanci?.email;
-
-        const kisiler: { email: string; ad: string; soyad: string; rol: string }[] = [];
-        if (makyajci?.email) kisiler.push({ ...makyajci, rol: 'Makyaj' });
-        if (turbanci?.email && !ayniKisi) kisiler.push({ ...turbanci, rol: 'Türban' });
-
-        for (const kisi of kisiler) {
-          const compositeId = gorevId(gelinId, gorevTuru, kisi.email);
-          if (bos && !mevcutGorevIds.has(compositeId)) {
-            await adminDb.collection('gorevler').doc(compositeId).set({
-              baslik: `${gelin.isim} - ${gorevBasliklar[gorevTuru]}`,
-              aciklama: `${gelin.isim} için "${gorevBasliklar[gorevTuru]}" alanı boş. Takvimden doldurun. (${kisi.rol})`,
-              atayan: 'Sistem', atayanAd: 'Sistem (Otomatik)',
-              atanan: kisi.email, atananAd: `${kisi.ad} ${kisi.soyad}`,
-              durum: 'bekliyor', oncelik: 'yuksek', olusturulmaTarihi: new Date(),
-              gelinId, otomatikMi: true, gorevTuru,
-              gelinBilgi: { isim: gelin.isim, tarih: gelinTarih, saat: gelin.saat || '' }
-            });
-            toplamOlusturulan++;
-          } else if (!bos && mevcutGorevIds.has(compositeId)) {
-            await adminDb.collection('gorevler').doc(compositeId).delete();
-            toplamSilinen++;
-          }
-        }
-      }
-    }
-  }
-
-  return { olusturulan: toplamOlusturulan, silinen: toplamSilinen };
-}
-
-// ============================================
-// 6b. SCHEDULED: Saatlik görev reconcile (yedek mekanizma)
-// ============================================
-export const hourlyGorevReconcile = onSchedule({
-  region: 'europe-west1',
-  schedule: 'every 1 hours',
-  timeZone: 'Europe/Istanbul',
-}, async (event) => {
-  console.log('Saatlik görev reconcile başladı...');
-  try {
-    const result = await gorevReconcile();
-    console.log(`Reconcile tamamlandı. Oluşturulan: ${result.olusturulan}, Silinen: ${result.silinen}`);
-    await adminDb.collection('system').doc('gorevKontrol').set({
-      lastRun: new Date().toISOString(),
-      ...result
-    }, { merge: true });
-  } catch (error) {
-    console.error('Görev reconcile hatası:', error);
-  }
-});
-
-// ============================================
-// 6c. TRIGGER: Gelin güncellendiğinde görev sil (real-time)
-// ============================================
-export const onGelinUpdated = onDocumentUpdated({
-  document: 'gelinler/{gelinId}',
-  region: 'europe-west1',
-}, async (event) => {
-  if (!event.data) return;
-  const before = event.data.before.data();
-  const after = event.data.after.data();
-  const gelinId = event.params.gelinId;
-
-  // Takip edilen alanlar ve karşılık gelen görev türleri
-  const alanlar: { alan: string; gorevTuru: string; beforeVal: unknown; afterVal: unknown }[] = [
-    {
-      alan: 'yorumIstesinMi',
-      gorevTuru: 'yorumIstesinMi',
-      beforeVal: before.yorumIstesinMi,
-      afterVal: after.yorumIstesinMi
-    },
-    {
-      alan: 'paylasimIzni',
-      gorevTuru: 'paylasimIzni',
-      beforeVal: before.paylasimIzni,
-      afterVal: after.paylasimIzni
-    },
-    {
-      alan: 'yorumIstendiMi',
-      gorevTuru: 'yorumIstendiMi',
-      beforeVal: before.yorumIstendiMi,
-      afterVal: after.yorumIstendiMi
-    },
-    {
-      alan: 'odemeTamamlandi',
-      gorevTuru: 'odemeTakip',
-      beforeVal: before.odemeTamamlandi,
-      afterVal: after.odemeTamamlandi
-    }
-  ];
-
-  // İlgili alanlardan herhangi biri değişti mi?
-  const degisen = alanlar.filter(a => {
-    // Basit karşılaştırma (string/boolean)
-    return String(a.beforeVal ?? '') !== String(a.afterVal ?? '');
-  });
-
-  // Hiçbir ilgili alan değişmediyse → early return (0 okuma, 0 yazma)
-  if (degisen.length === 0) return;
-
-  for (const { gorevTuru, afterVal } of degisen) {
-    // Alan artık DOLU mu kontrol et
-    let alanDolu = false;
-    if (gorevTuru === 'yorumIstesinMi') alanDolu = !!afterVal && String(afterVal).trim() !== '';
-    else if (gorevTuru === 'paylasimIzni') alanDolu = !!afterVal;
-    else if (gorevTuru === 'yorumIstendiMi') alanDolu = !!afterVal;
-    else if (gorevTuru === 'odemeTakip') alanDolu = afterVal === true;
-
-    if (alanDolu) {
-      // Alan doldurulmuş → bu türün görevlerini sil
-      const gorevlerSnap = await adminDb.collection('gorevler')
-        .where('gelinId', '==', gelinId)
-        .where('gorevTuru', '==', gorevTuru)
-        .where('otomatikMi', '==', true)
-        .get();
-
-      for (const gorevDoc of gorevlerSnap.docs) {
-        await adminDb.collection('gorevler').doc(gorevDoc.id).delete();
-        console.log(`[Trigger] Görev silindi: ${gorevDoc.id} (${gorevTuru})`);
-      }
-    }
-    // Alan boşaldıysa (geri alındıysa) → görev oluşturmayı reconcile'a bırak
   }
 });
 
@@ -899,3 +662,156 @@ async function createWebhookChannel(calId: string, token: string) {
     expiration: response.data.expiration
   };
 }
+
+// ============================================
+// HELPER: Push bildirim gönder
+// ============================================
+async function sendPushToUser(email: string, title: string, body: string, data?: Record<string, string>): Promise<boolean> {
+  try {
+    const tokenDoc = await adminDb.collection('pushTokens').doc(email).get();
+    if (!tokenDoc.exists) {
+      console.log(`[PUSH] No token for ${email}`);
+      return false;
+    }
+
+    const token = tokenDoc.data()?.token;
+    if (!token) {
+      console.log(`[PUSH] Empty token for ${email}`);
+      return false;
+    }
+
+    await adminMessaging.send({
+      token,
+      notification: { title, body },
+      data: data || {},
+      android: { priority: 'high' },
+      apns: { payload: { aps: { sound: 'default', badge: 1 } } }
+    });
+
+    console.log(`[PUSH] ✅ Sent to ${email}: ${title}`);
+    return true;
+  } catch (error: any) {
+    // Token geçersizse sil
+    if (error.code === 'messaging/registration-token-not-registered' ||
+        error.code === 'messaging/invalid-registration-token') {
+      console.log(`[PUSH] Invalid token for ${email}, deleting...`);
+      await adminDb.collection('pushTokens').doc(email).delete();
+    } else {
+      console.error(`[PUSH] Error sending to ${email}:`, error);
+    }
+    return false;
+  }
+}
+
+// ============================================
+// 9. GÖREV BİLDİRİM: Yeni görev oluşturulunca push
+// ============================================
+export const sendGorevBildirim = onRequest({
+  region: 'europe-west1',
+  cors: true
+}, async (req, res) => {
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
+  }
+
+  try {
+    const { atanan, atayanAd, baslik, oncelik } = req.body;
+
+    if (!atanan || !baslik) {
+      res.status(400).json({ error: 'atanan ve baslik gerekli' });
+      return;
+    }
+
+    console.log(`[GOREV-BILDIRIM] ${atayanAd} → ${atanan}: ${baslik}`);
+
+    const oncelikEmoji = oncelik === 'acil' ? '🔴' : oncelik === 'yuksek' ? '🟠' : '';
+    const title = `${oncelikEmoji} Yeni Görev Atandı`.trim();
+    const body = `${atayanAd || 'Birisi'} size bir görev atadı: ${baslik}`;
+
+    const sent = await sendPushToUser(atanan, title, body, { route: '/gorevler' });
+
+    res.json({ success: true, sent, atanan });
+  } catch (error) {
+    console.error('[GOREV-BILDIRIM] Hata:', error);
+    res.status(500).json({ error: 'Bildirim gönderilemedi', details: String(error) });
+  }
+});
+
+// ============================================
+// 10. SCHEDULED: Günlük görev hatırlatma (09:00)
+// ============================================
+export const dailyGorevHatirlatma = onSchedule({
+  region: 'europe-west1',
+  schedule: 'every day 09:00',
+  timeZone: 'Europe/Istanbul'
+}, async (event) => {
+  console.log('[HATIRLATMA] Günlük görev hatırlatma başladı...');
+
+  try {
+    // Yarınki tarih (YYYY-MM-DD)
+    const yarin = new Date();
+    yarin.setDate(yarin.getDate() + 1);
+    const yarinStr = yarin.toISOString().split('T')[0];
+
+    // Bugünkü tarih
+    const bugun = new Date().toISOString().split('T')[0];
+
+    // Aktif görevleri çek (bekliyor + devam-ediyor)
+    const gorevlerSnapshot = await adminDb.collection('gorevler')
+      .where('durum', 'in', ['bekliyor', 'devam-ediyor'])
+      .get();
+
+    let yarinHatirlatma = 0;
+    let gecikmisBildirim = 0;
+
+    for (const gorevDoc of gorevlerSnapshot.docs) {
+      const gorev = gorevDoc.data();
+      const sonTarih = gorev.sonTarih;
+      const atanan = gorev.atanan; // email
+
+      if (!sonTarih || !atanan) continue;
+
+      // Yarın son tarihli görevler → hatırlatma
+      if (sonTarih === yarinStr) {
+        await sendPushToUser(
+          atanan,
+          '⏰ Görev Hatırlatma',
+          `"${gorev.baslik}" görevinin son tarihi yarın!`,
+          { route: '/gorevler' }
+        );
+        yarinHatirlatma++;
+      }
+
+      // Gecikmiş görevler → uyarı (sadece bugün gecikmeye başlayanlar)
+      if (sonTarih === bugun) {
+        // Bugün son gün olanlar için sabah uyarısı
+        await sendPushToUser(
+          atanan,
+          '⚠️ Son Gün!',
+          `"${gorev.baslik}" görevinin son tarihi bugün!`,
+          { route: '/gorevler' }
+        );
+        gecikmisBildirim++;
+      }
+    }
+
+    console.log(`[HATIRLATMA] ✅ Tamamlandı: ${yarinHatirlatma} yarın, ${gecikmisBildirim} bugün son gün`);
+
+    // Log kaydet
+    await adminDb.collection('system').doc('gorevHatirlatma').set({
+      lastRun: new Date().toISOString(),
+      yarinHatirlatma,
+      gecikmisBildirim,
+      toplamAktifGorev: gorevlerSnapshot.size
+    }, { merge: true });
+
+  } catch (error) {
+    console.error('[HATIRLATMA] Hata:', error);
+    await adminDb.collection('system').doc('errors').set({
+      lastError: new Date().toISOString(),
+      type: 'gorevHatirlatma',
+      message: String(error)
+    }, { merge: true });
+  }
+});
