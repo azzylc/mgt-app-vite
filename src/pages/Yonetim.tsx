@@ -47,7 +47,9 @@ export default function YonetimPage() {
   const bugunAyRef = useRef<HTMLDivElement>(null);
 
   const bugun = new Date().toISOString().split('T')[0];
+  const yarin = new Date(Date.now() + 86400000).toISOString().split('T')[0];
   const buAy = new Date().toISOString().slice(0, 7);
+  const [odemeSekme, setOdemeSekme] = useState<'bugun' | 'yarin'>('bugun');
 
   // Auth kontrolü
   // ✅ Gelinler - 2025: localStorage cache, 2026+: Firestore real-time
@@ -220,6 +222,12 @@ export default function YonetimPage() {
   // Bugün ödeme bekleyenler
   const bugunGelinler = gelinler.filter(g => g.tarih === bugun);
   const bugunOdemeBekleyen = bugunGelinler.filter(g => g.kalan > 0);
+
+  // Yarın ödeme bekleyenler
+  const yarinGelinler = gelinler.filter(g => g.tarih === yarin);
+  const yarinOdemeBekleyen = yarinGelinler.filter(g => g.kalan > 0);
+
+  const aktifOdemeBekleyen = odemeSekme === 'bugun' ? bugunOdemeBekleyen : yarinOdemeBekleyen;
 
   // Bu ayın verileri
   const buAyVerileri = getAyVerileri(buAy);
@@ -427,25 +435,45 @@ export default function YonetimPage() {
               </div>
             </div>
 
-            {/* Sağ: Bugün Ödeme Bekleyen */}
+            {/* Sağ: Ödeme Bekleyen */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-              <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <span>💰</span> Bugün Ödeme Bekleyen
-                {bugunOdemeBekleyen.length > 0 && (
-                  <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                    {bugunOdemeBekleyen.length}
-                  </span>
-                )}
-              </h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                  <span>💰</span> Ödeme Bekleyen
+                  {aktifOdemeBekleyen.length > 0 && (
+                    <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                      {aktifOdemeBekleyen.length}
+                    </span>
+                  )}
+                </h2>
+                <div className="flex bg-gray-100 rounded-lg p-0.5">
+                  <button
+                    onClick={() => setOdemeSekme('bugun')}
+                    className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+                      odemeSekme === 'bugun' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500'
+                    }`}
+                  >
+                    Bugün
+                  </button>
+                  <button
+                    onClick={() => setOdemeSekme('yarin')}
+                    className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+                      odemeSekme === 'yarin' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500'
+                    }`}
+                  >
+                    Yarın
+                  </button>
+                </div>
+              </div>
 
-              {bugunOdemeBekleyen.length === 0 ? (
+              {aktifOdemeBekleyen.length === 0 ? (
                 <div className="text-center py-8 text-gray-400">
                   <span className="text-4xl">✅</span>
-                  <p className="mt-2">Bugün ödeme bekleyen yok</p>
+                  <p className="mt-2">{odemeSekme === 'bugun' ? 'Bugün' : 'Yarın'} ödeme bekleyen yok</p>
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {bugunOdemeBekleyen.map(g => (
+                  {aktifOdemeBekleyen.map(g => (
                     <div key={g.id} className="flex items-center justify-between p-3 bg-red-50 rounded-xl border border-red-100">
                       <div>
                         <p className="font-medium text-gray-800">{g.isim}</p>
@@ -460,7 +488,7 @@ export default function YonetimPage() {
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-gray-600">Toplam</span>
                       <span className="text-xl font-bold text-red-600">
-                        {bugunOdemeBekleyen.reduce((sum, g) => sum + Number(g.kalan || 0), 0).toLocaleString('tr-TR')} ₺
+                        {aktifOdemeBekleyen.reduce((sum, g) => sum + Number(g.kalan || 0), 0).toLocaleString('tr-TR')} ₺
                       </span>
                     </div>
                   </div>
