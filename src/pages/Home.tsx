@@ -529,13 +529,9 @@ export default function Home() {
             />
           </div>
 
-          {/* Row 2: Bildirimler — Duyurular + Görevler + Dikkat */}
-          {(duyurular.length > 0 || gorevSayisi > 0 || toplamDikkat > 0) && (
-            <div className={`grid grid-cols-1 gap-2.5 ${
-              [duyurular.length > 0, gorevSayisi > 0, toplamDikkat > 0].filter(Boolean).length >= 2
-                ? 'md:grid-cols-2 lg:grid-cols-3' 
-                : ''
-            }`}>
+          {/* Row 2: Duyurular + Görevler (50/50) */}
+          {(duyurular.length > 0 || gorevSayisi > 0) && (
+            <div className={`grid grid-cols-1 ${duyurular.length > 0 && gorevSayisi > 0 ? 'md:grid-cols-2' : ''} gap-2.5`}>
               {/* Duyurular */}
               {duyurular.length > 0 && (
                 <div className="bg-white rounded-xl border border-stone-100 overflow-hidden">
@@ -574,19 +570,19 @@ export default function Home() {
 
               {/* Görev Widget */}
               <GorevWidget onCount={setGorevSayisi} />
-
-              {/* Dikkat Paneli */}
-              <DikkatPanel
-                islenmemisUcretler={islenmemisUcretler}
-                eksikIzinler={eksikIzinler}
-                onGelinClick={(g) => setSelectedGelin(g)}
-                onIzinEkle={handleIzinEkle}
-                onTumIzinleriEkle={handleTumIzinleriEkle}
-                izinEkleniyor={izinEkleniyor}
-                onIslenmemisUcretlerClick={() => navigate("/takvim")}
-              />
             </div>
           )}
+
+          {/* Row 2b: Dikkat Paneli */}
+          <DikkatPanel
+            islenmemisUcretler={islenmemisUcretler}
+            eksikIzinler={eksikIzinler}
+            onGelinClick={(g) => setSelectedGelin(g)}
+            onIzinEkle={handleIzinEkle}
+            onTumIzinleriEkle={handleTumIzinleriEkle}
+            izinEkleniyor={izinEkleniyor}
+            onIslenmemisUcretlerClick={() => navigate("/takvim")}
+          />
 
           {/* Row 3: Operasyonel Paneller */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-2.5">
