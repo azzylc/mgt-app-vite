@@ -26,7 +26,7 @@ export function usePushNotifications(userEmail: string | null | undefined) {
         const permission = await FirebaseMessaging.requestPermissions();
         
         if (permission.receive !== 'granted') {
-          Sentry.captureException(new Error('Push notification izni reddedildi'));
+          console.warn('Push notification izni reddedildi');
           return;
         }
 

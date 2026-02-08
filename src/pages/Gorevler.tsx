@@ -282,7 +282,7 @@ export default function GorevlerPage() {
   // Ekip personellerini hesapla (Yönetici için kendi ekibi, Kurucu için herkes)
   const ekipPersonelleri = personeller.filter(p => {
     if (userRole === "Kurucu") return true; // Kurucu herkesi görür
-    if (userRole === "Yönetici" && userFirmalar.length > 0) {
+    if ((userRole === "Yönetici") && userFirmalar.length > 0) {
       // Yönetici sadece kendi firmalarındaki personeli görür
       return p.firmalar?.some(f => userFirmalar.includes(f));
     }

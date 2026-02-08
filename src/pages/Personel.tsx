@@ -109,7 +109,7 @@ function PersonelPageContent() {
   const [yonettigiFirmalar, setYonettigiFirmalar] = useState<string[]>([]); // Yönetici için hangi firmaları yönetiyor
   
   const calismaSaatleri = ["serbest", "her gün 9:00-18:00", "hafta içi 9:00-18:00", "hafta sonu 10:00-17:00"];
-  const kullaniciTurleri = ["Kurucu", "Yönetici", "Personel"];
+  const kullaniciTurleri = ["Kurucu", "Yönetici", "Yetkili", "Personel"];
   const ayarlarLabels = {
     otoCikis: "Oto. Çıkış",
     qrKamerali: "QR Kameralı İşlem İzni",
@@ -261,7 +261,12 @@ function PersonelPageContent() {
         const result = await response.json();
         
         if (!response.ok) {
-          throw new Error(result.error || 'Güncelleme başarısız');
+          // Auth'ta kullanıcı yoksa sadece uyarı ver (Firestore güncellendi)
+          if (result.error?.includes("no user record") || result.error?.includes("There is no user record")) {
+            console.warn("Auth kullanıcısı bulunamadı, sadece Firestore güncellendi");
+          } else {
+            throw new Error(result.error || 'Güncelleme başarısız');
+          }
         }
       } else {
         // 🔥 Firebase ID token al

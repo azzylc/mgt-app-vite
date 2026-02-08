@@ -1,3 +1,4 @@
+
 import { useState, useEffect, Suspense, createContext, useContext } from "react";
 import { useRole } from "../context/RoleProvider";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
@@ -87,12 +88,13 @@ function SidebarContent({ user }: SidebarProps) {
   }, [user?.email]);
 
   const isKurucu = personelData?.kullaniciTuru === "Kurucu";
-  const isYonetici = personelData?.kullaniciTuru === "Yönetici";
+  const isYonetici = personelData?.kullaniciTuru === "Yönetici" || personelData?.kullaniciTuru === "Yetkili";
   const isPersonel = personelData?.kullaniciTuru === "Personel" || (!isKurucu && !isYonetici);
 
   const DEFAULT_MENU: Record<string, string[]> = {
     Kurucu: ["genel-bakis", "giris-cikis-islemleri", "personel", "duyurular", "gorevler", "takvim", "izinler", "raporlar", "ayarlar", "yonetim-paneli"],
     Yönetici: ["genel-bakis", "giris-cikis-islemleri", "duyurular", "gorevler", "takvim", "izinler", "raporlar", "qr-giris"],
+    Yetkili: ["genel-bakis", "giris-cikis-islemleri", "duyurular", "gorevler", "takvim", "izinler", "raporlar", "qr-giris"],
     Personel: ["genel-bakis", "qr-giris", "duyurular", "gorevler", "takvim", "izinler"],
   };
 
