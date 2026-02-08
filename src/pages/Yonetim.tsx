@@ -193,9 +193,20 @@ export default function YonetimPage() {
     })
     .reduce((sum, g) => sum + Number(g.kapora || 0), 0);
 
-  // Bugün ve sonrası için kalan bakiye
+  // Şu andan itibaren kalan bakiye (bugün saati geçmemiş + yarın ve sonrası)
+  const simdikiSaat = new Date().getHours() * 60 + new Date().getMinutes(); // dakika cinsinden
   const buAyKalanBakiye = gelinler
-    .filter(g => g.tarih.startsWith(buAy) && g.tarih >= bugun)
+    .filter(g => {
+      if (!g.tarih.startsWith(buAy)) return false;
+      if (g.tarih > bugun) return true; // yarın ve sonrası → dahil
+      if (g.tarih === bugun && g.saat) {
+        // bugünkü gelinlerden saati henüz geçmemiş olanlar
+        const [s, d] = g.saat.split(':').map(Number);
+        return (s * 60 + (d || 0)) >= simdikiSaat;
+      }
+      if (g.tarih === bugun && !g.saat) return true; // saati yoksa dahil et
+      return false; // geçmiş günler → hariç
+    })
     .reduce((sum, g) => sum + Number(g.kalan || 0), 0);
 
   // Bugün ödeme bekleyenler
@@ -317,7 +328,7 @@ export default function YonetimPage() {
               <p className="text-lg md:text-2xl font-bold text-red-600 mt-1">
                 {buAyKalanBakiye.toLocaleString('tr-TR')} ₺
               </p>
-              <p className="text-[10px] md:text-xs text-gray-400 mt-1">Bugün ve sonrası</p>
+              <p className="text-[10px] md:text-xs text-gray-400 mt-1">Şu andan itibaren</p>
             </div>
           </div>
 
