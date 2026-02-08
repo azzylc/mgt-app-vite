@@ -932,6 +932,83 @@ export const sendGorevBildirim = onRequest({
 });
 
 // ============================================
+// 9b. GÖREV TAMAMLANDI BİLDİRİMİ: Atayan kişiye push
+// ============================================
+export const sendGorevTamamBildirim = onRequest({
+  region: 'europe-west1',
+  cors: true
+}, async (req, res) => {
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
+  }
+
+  try {
+    const { atayan, tamamlayanAd, baslik } = req.body;
+
+    if (!atayan || !baslik) {
+      res.status(400).json({ error: 'atayan ve baslik gerekli' });
+      return;
+    }
+
+    console.log(`[GOREV-TAMAM] ${tamamlayanAd} tamamladı → ${atayan}: ${baslik}`);
+
+    const title = '✅ Görev Tamamlandı';
+    const body = `${tamamlayanAd || 'Birisi'} görevi tamamladı: ${baslik}`;
+
+    const sent = await sendPushToUser(atayan, title, body, { route: '/gorevler' });
+
+    res.json({ success: true, sent, atayan });
+  } catch (error) {
+    console.error('[GOREV-TAMAM] Hata:', error);
+    res.status(500).json({ error: 'Bildirim gönderilemedi', details: String(error) });
+  }
+});
+
+// ============================================
+// 9c. GÖREV YORUM BİLDİRİMİ: Görevdeki herkese (yorum yapan hariç) push
+// ============================================
+export const sendGorevYorumBildirim = onRequest({
+  region: 'europe-west1',
+  cors: true
+}, async (req, res) => {
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
+  }
+
+  try {
+    const { yorumYapan, yorumYapanAd, atayan, atanan, baslik } = req.body;
+
+    if (!yorumYapan || !baslik) {
+      res.status(400).json({ error: 'yorumYapan ve baslik gerekli' });
+      return;
+    }
+
+    console.log(`[GOREV-YORUM] ${yorumYapanAd} yorum yaptı: ${baslik}`);
+
+    const title = '💬 Göreve Yorum Yapıldı';
+    const body = `${yorumYapanAd || 'Birisi'} yorum yaptı: ${baslik}`;
+
+    // Görevdeki herkese gönder (yorum yapan hariç)
+    const bildirimAlacaklar = new Set<string>();
+    if (atayan && atayan !== yorumYapan && atayan !== 'Sistem') bildirimAlacaklar.add(atayan);
+    if (atanan && atanan !== yorumYapan) bildirimAlacaklar.add(atanan);
+
+    let sentCount = 0;
+    for (const email of bildirimAlacaklar) {
+      const sent = await sendPushToUser(email, title, body, { route: '/gorevler' });
+      if (sent) sentCount++;
+    }
+
+    res.json({ success: true, sentCount, recipients: Array.from(bildirimAlacaklar) });
+  } catch (error) {
+    console.error('[GOREV-YORUM] Hata:', error);
+    res.status(500).json({ error: 'Bildirim gönderilemedi', details: String(error) });
+  }
+});
+
+// ============================================
 // 10. SCHEDULED: Günlük görev hatırlatma (09:00)
 // ============================================
 export const dailyGorevHatirlatma = onSchedule({
