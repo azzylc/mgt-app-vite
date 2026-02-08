@@ -39,87 +39,73 @@ export default function PersonelDurumPanel({
   tumPersoneller
 }: PersonelDurumPanelProps) {
   return (
-    <div className="space-y-3">
-      <div className="bg-white rounded-lg border border-stone-100 overflow-hidden">
-        <div className="px-3 py-2 border-b border-stone-50">
-          <h2 className="font-medium text-stone-800 flex items-center gap-1.5 text-xs">
-            <span>🟢</span> Şu An {aktifPersoneller.length} Kişi Çalışıyor
-          </h2>
-        </div>
-        <div className="p-2.5">
-          {aktifPersoneller.length === 0 ? (
-            <div className="text-center py-4 text-stone-500">
-              <span className="text-2xl">😴</span>
-              <p className="mt-1 text-xs">Şu anda aktif çalışan yok</p>
-            </div>
-          ) : (
-            <div className="space-y-1.5">
-              {aktifPersoneller.map((p) => {
-                const personel = tumPersoneller.find(per => per.id === p.personelId);
-                return (
-                  <div key={p.personelId} className="flex items-center justify-between p-1.5 bg-emerald-50 rounded-md border border-emerald-100">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-sm">{personel?.emoji || "👤"}</span>
-                      <span className="text-xs font-medium text-stone-700">{p.personelAd}</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-[10px] text-emerald-600 font-medium">Giriş: {p.girisSaati}</span>
-                    </div>
+    <div className="bg-white rounded-xl overflow-hidden" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)' }}>
+      {/* Aktif Çalışanlar */}
+      <div className="px-3 py-2 border-b border-stone-50 flex items-center gap-2">
+        <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+        <span className="text-xs font-semibold text-stone-700">Şu An Çalışıyor</span>
+        <span className="text-[10px] text-stone-400">{aktifPersoneller.length}</span>
+      </div>
+      <div className="p-2.5">
+        {aktifPersoneller.length === 0 ? (
+          <p className="text-center py-3 text-stone-400 text-xs">Aktif çalışan yok</p>
+        ) : (
+          <div className="space-y-1">
+            {aktifPersoneller.map((p) => {
+              const personel = tumPersoneller.find(per => per.id === p.personelId);
+              return (
+                <div key={p.personelId} className="flex items-center justify-between py-1 px-2 rounded-lg bg-emerald-50/50">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs">{personel?.emoji || "👤"}</span>
+                    <span className="text-xs text-stone-700">{p.personelAd}</span>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                  <span className="text-[10px] text-emerald-600 font-medium">{p.girisSaati}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      <div className="bg-white rounded-lg border border-stone-100 overflow-hidden">
-        <div className="px-3 py-2 border-b border-stone-50">
-          <h2 className="font-medium text-stone-800 flex items-center gap-1.5 text-xs">
-            <span>📋</span> Bugün {bugunGelenler.length} Kişi Geldi
-          </h2>
-        </div>
-        <div className="p-2.5">
-          {bugunGelenler.length === 0 ? (
-            <div className="text-center py-4 text-stone-500">
-              <span className="text-2xl">🕐</span>
-              <p className="mt-1 text-xs">Henüz kimse giriş yapmadı</p>
-            </div>
-          ) : (
-            <div className="space-y-1.5">
-              {bugunGelenler.map((p) => {
-                const personel = tumPersoneller.find(per => per.id === p.personelId);
-                return (
-                  <div key={p.personelId} className="flex items-center justify-between p-1.5 bg-stone-50 rounded-md">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-sm">{personel?.emoji || "👤"}</span>
-                      <span className="text-xs font-medium text-stone-700">{p.personelAd}</span>
-                    </div>
-                    <div className="text-right text-[10px]">
-                      <p className="text-emerald-600">Giriş: {p.girisSaati}</p>
-                      {p.cikisSaati && <p className="text-red-500">Çıkış: {p.cikisSaati}</p>}
-                      {!p.cikisSaati && <p className="text-stone-400">Çıkış: -</p>}
-                    </div>
+      {/* Bugün Gelenler */}
+      <div className="px-3 py-2 border-t border-b border-stone-50 flex items-center gap-2">
+        <span className="text-xs font-semibold text-stone-700">Bugün Geldi</span>
+        <span className="text-[10px] text-stone-400">{bugunGelenler.length}</span>
+      </div>
+      <div className="p-2.5">
+        {bugunGelenler.length === 0 ? (
+          <p className="text-center py-3 text-stone-400 text-xs">Henüz kimse gelmedi</p>
+        ) : (
+          <div className="space-y-1">
+            {bugunGelenler.map((p) => {
+              const personel = tumPersoneller.find(per => per.id === p.personelId);
+              return (
+                <div key={p.personelId} className="flex items-center justify-between py-1 px-2 rounded-lg hover:bg-stone-50">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs">{personel?.emoji || "👤"}</span>
+                    <span className="text-xs text-stone-700">{p.personelAd}</span>
                   </div>
-                );
-              })}
-            </div>
-          )}
-          
-          {izinliler.length > 0 && (
-            <div className="mt-2 pt-2 border-t border-stone-100">
-              <p className="text-[10px] text-stone-500 mb-1.5">İzinli ({izinliler.length})</p>
-              <div className="space-y-1">
-                {izinliler.map((izin) => (
-                  <div key={izin.id} className="flex items-center justify-between p-1.5 bg-amber-50 rounded-md border border-amber-100">
-                    <span className="text-xs font-medium text-amber-800">{izin.personelAd} {izin.personelSoyad}</span>
-                    <span className="text-[10px] text-amber-600">{izin.izinTuru}</span>
+                  <div className="text-[10px] text-right">
+                    <span className="text-emerald-600">{p.girisSaati}</span>
+                    {p.cikisSaati && <span className="text-red-400 ml-1.5">{p.cikisSaati}</span>}
                   </div>
-                ))}
+                </div>
+              );
+            })}
+          </div>
+        )}
+        
+        {izinliler.length > 0 && (
+          <div className="mt-2 pt-2 border-t border-stone-50">
+            <p className="text-[10px] text-stone-400 mb-1">İzinli ({izinliler.length})</p>
+            {izinliler.map((izin) => (
+              <div key={izin.id} className="flex items-center justify-between py-1 px-2 rounded-lg bg-amber-50/50">
+                <span className="text-xs text-stone-600">{izin.personelAd} {izin.personelSoyad}</span>
+                <span className="text-[10px] text-amber-500">{izin.izinTuru}</span>
               </div>
-            </div>
-          )}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

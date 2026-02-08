@@ -3,66 +3,44 @@ interface MetricCardProps {
   value: number;
   subtitle?: string;
   icon: string;
-  color: 'pink' | 'purple' | 'blue' | 'green';
   onClick?: () => void;
   progress?: { current: number; target: number };
+  accent?: string;
 }
-
-const colorClasses = {
-  pink: 'bg-rose-50 text-rose-500',
-  purple: 'bg-violet-50 text-violet-500',
-  blue: 'bg-sky-50 text-sky-500',
-  green: 'bg-emerald-50 text-emerald-500',
-};
-
-const textColorClasses = {
-  pink: 'text-rose-500',
-  purple: 'text-violet-500',
-  blue: 'text-sky-500',
-  green: 'text-emerald-500',
-};
-
-const progressColors = {
-  pink: 'bg-rose-400',
-  purple: 'bg-violet-400',
-  blue: 'bg-sky-400',
-  green: 'bg-emerald-400',
-};
 
 export default function MetricCard({ 
   title, 
   value, 
   subtitle = 'gelin', 
   icon, 
-  color,
   onClick,
-  progress 
+  progress,
+  accent = 'text-stone-800'
 }: MetricCardProps) {
   return (
     <div 
       onClick={onClick}
-      className={`bg-white p-2.5 md:p-3 rounded-lg border border-stone-100 ${onClick ? 'cursor-pointer hover:border-stone-200 hover:shadow-sm transition' : ''}`}
+      className={`bg-white rounded-xl p-3 ${onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}
+      style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)' }}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between">
         <div>
-          <p className="text-stone-500 text-[10px] md:text-[11px] font-medium">{title}</p>
-          <p className={`text-lg md:text-xl font-semibold mt-0.5 ${textColorClasses[color]}`}>
+          <p className="text-stone-400 text-[10px] font-medium uppercase tracking-wide">{title}</p>
+          <p className={`text-2xl font-bold mt-0.5 ${accent}`}>
             {value}
             {progress && (
-              <span className="text-xs text-stone-400 font-normal">/{progress.target}</span>
+              <span className="text-xs text-stone-300 font-normal ml-0.5">/{progress.target}</span>
             )}
           </p>
-          <p className="text-stone-400 text-[10px]">{subtitle}</p>
+          <p className="text-stone-400 text-[10px] mt-0.5">{subtitle}</p>
         </div>
-        <div className={`w-8 h-8 ${colorClasses[color]} rounded-lg flex items-center justify-center`}>
-          <span className="text-sm">{icon}</span>
-        </div>
+        <span className="text-lg opacity-60">{icon}</span>
       </div>
       {progress && progress.target > 0 && (
-        <div className="mt-1.5">
+        <div className="mt-2">
           <div className="h-1 bg-stone-100 rounded-full overflow-hidden">
             <div 
-              className={`h-full ${progressColors[color]} rounded-full transition-all`}
+              className="h-full bg-amber-400 rounded-full transition-all"
               style={{ width: `${Math.min((progress.current / progress.target) * 100, 100)}%` }}
             />
           </div>
