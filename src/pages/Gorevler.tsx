@@ -133,7 +133,18 @@ export default function GorevlerPage() {
       try {
         const ayarDoc = await getDoc(doc(db, "settings", "gorevAyarlari"));
         if (ayarDoc.exists()) {
-          setGorevAyarlari(ayarDoc.data() as GorevAyarlari);
+          const data = ayarDoc.data();
+          // Firestore'daki eski/eksik format için güvenli okuma
+          const guvenliAyar = (key: string) => ({
+            aktif: data[key]?.aktif ?? false,
+            baslangicTarihi: data[key]?.baslangicTarihi ?? ""
+          });
+          setGorevAyarlari({
+            yorumIstesinMi: guvenliAyar("yorumIstesinMi"),
+            paylasimIzni: guvenliAyar("paylasimIzni"),
+            yorumIstendiMi: guvenliAyar("yorumIstendiMi"),
+            odemeTakip: guvenliAyar("odemeTakip")
+          });
         }
       } catch (error) {
         Sentry.captureException(error);

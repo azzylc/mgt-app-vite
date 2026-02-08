@@ -28,7 +28,7 @@ export async function getDeviceId(): Promise<string> {
   if (Capacitor.isNativePlatform()) {
     try {
       const info = await Device.getId();
-      return info.identifier || info.uuid || "";
+      return info.identifier || "";
     } catch {
       return getOrCreateWebDeviceId();
     }
