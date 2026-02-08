@@ -6,6 +6,7 @@ import {
   query,
   where,
   onSnapshot,
+  addDoc,
   updateDoc,
   deleteDoc,
   doc,
@@ -18,14 +19,6 @@ import {
 } from "firebase/firestore";
 import * as Sentry from '@sentry/react';
 import { useAuth } from "../context/RoleProvider";
-
-// Composite key helper: görev ID = gelinId_gorevTuru_email
-function sanitizeEmail(email: string): string {
-  return email.replace(/[^a-zA-Z0-9]/g, '_');
-}
-function compositeGorevId(gelinId: string, gorevTuru: string, atananEmail: string): string {
-  return `${gelinId}_${gorevTuru}_${sanitizeEmail(atananEmail)}`;
-}
 
 interface Gorev {
   id: string;
@@ -263,10 +256,8 @@ export default function GorevlerPage() {
     return () => unsubscribe();
   }, [user, userRole]);
 
-  // ⚡ Otomatik görev sistemi:
-  // - Oluşturma: hourlyGorevReconcile Cloud Function saatte bir kontrol eder
-  // - Silme: onGelinUpdated Firestore trigger → alan doldurulunca anında siler
-  // - "Senkronize Et" butonu: ilk kurulum ve acil durum için
+  // ⚡ Otomatik görev oluşturma/silme: dailyGorevKontrol Cloud Function tarafından her sabah 09:00'da yapılır
+  // "Senkronize Et" butonu sadece ilk kurulum ve ayar değişikliği için kullanılır
 
   // Ekip personellerini hesapla (Yönetici için kendi ekibi, Kurucu için herkes)
   const ekipPersonelleri = personeller.filter(p => {
@@ -423,8 +414,7 @@ export default function GorevlerPage() {
               p.kullaniciTuru === "Kurucu" || p.kullaniciTuru === "Yönetici"
             );
             for (const yonetici of yoneticiler) {
-              const cId = compositeGorevId(gelin.id, gorevTuru, yonetici.email);
-              await setDoc(doc(db, "gorevler", cId), {
+              await addDoc(gorevlerRef, {
                 baslik: `${gelin.isim} - ${gorevBasliklar[gorevTuru]}`,
                 aciklama: `${gelin.isim} gelinin düğünü ${gelin.tarih} tarihinde gerçekleşti. Takvime "--" eklenmesi gerekiyor.`,
                 atayan: "Aziz",
@@ -458,8 +448,7 @@ export default function GorevlerPage() {
             if (turbanci?.email && !ayniKisi) kisiler.push({ email: turbanci.email, ad: `${turbanci.ad} ${turbanci.soyad}`, rol: "Türban" });
 
             for (const kisi of kisiler) {
-              const cId = compositeGorevId(gelin.id, gorevTuru, kisi.email);
-              await setDoc(doc(db, "gorevler", cId), {
+              await addDoc(gorevlerRef, {
                 baslik: `${gelin.isim} - ${gorevBasliklar[gorevTuru]}`,
                 aciklama: `${gelin.isim} için "${gorevBasliklar[gorevTuru]}" alanı boş. Takvimden doldurun. (${kisi.rol})`,
                 atayan: "Sistem",
@@ -791,7 +780,7 @@ export default function GorevlerPage() {
                     Belirlediğiniz tarihten bugüne kadarki gelinler kontrol edilir. Gelecek gelinler hesaba katılmaz.
                   </p>
                   <p className="text-xs text-purple-600 mt-1 text-center font-medium">
-                    🔄 Senkronize ettikten sonra sistem saatte bir otomatik kontrol yapacaktır. Alan doldurulunca görevler anında silinir.
+                    🔄 Senkronize ettikten sonra sistem her sabah 09:00'da, belirlediğiniz tarihten bugüne kadarki gelinleri otomatik kontrol edecektir.
                   </p>
                 </div>
               </div>
