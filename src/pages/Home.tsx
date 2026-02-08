@@ -667,7 +667,7 @@ export default function Home() {
       )}
 
       {showMobileSearch && (
-        <div className="fixed inset-0 bg-white z-50 md:hidden">
+        <div className="fixed inset-0 bg-white z-50 md:hidden" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
           <div className="p-4">
             <div className="flex items-center gap-2 mb-4">
               <input
