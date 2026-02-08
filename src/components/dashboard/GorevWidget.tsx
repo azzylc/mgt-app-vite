@@ -55,16 +55,16 @@ export default function GorevWidget({ onCount }: { onCount?: (count: number) => 
 
   const oncelikAccent = (oncelik: string) => {
     switch (oncelik) {
-      case "acil": return "border-l-red-400";
-      case "yuksek": return "border-l-amber-400";
-      case "dusuk": return "border-l-sky-300";
+      case "acil": return "border-l-red-400 bg-red-50/30";
+      case "yuksek": return "border-l-amber-400 bg-amber-50/30";
+      case "dusuk": return "border-l-sky-300 bg-sky-50/20";
       default: return "border-l-stone-200";
     }
   };
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl p-4" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+      <div className="bg-white rounded-xl border border-stone-100 p-4">
         <div className="animate-pulse flex items-center gap-2">
           <div className="w-4 h-4 bg-stone-100 rounded"></div>
           <div className="h-3 bg-stone-100 rounded w-20"></div>
@@ -76,26 +76,36 @@ export default function GorevWidget({ onCount }: { onCount?: (count: number) => 
   if (aktifGorevler.length === 0) return null;
 
   return (
-    <div className="bg-white rounded-xl overflow-hidden" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)' }}>
+    <div className="bg-white rounded-xl border border-stone-100 overflow-hidden">
       <div 
         onClick={() => navigate("/gorevler")}
-        className="px-3 py-2 flex items-center justify-between cursor-pointer hover:bg-stone-50 transition border-b border-stone-50"
+        className="px-3 py-2 flex items-center justify-between cursor-pointer hover:bg-stone-50 transition border-b border-stone-100"
       >
         <div className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>
+          <span className="text-sm">📋</span>
           <span className="text-xs font-semibold text-stone-700">Görevlerim</span>
-          <span className="text-[10px] text-stone-400">{aktifGorevler.length}</span>
+          <span className="text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full font-medium">{aktifGorevler.length}</span>
         </div>
         <div className="flex items-center gap-2">
           {gecikmisGorevler.length > 0 && (
-            <span className="text-[10px] text-red-500 font-medium animate-pulse">{gecikmisGorevler.length} gecikmiş</span>
+            <span className="text-[10px] text-red-600 bg-red-50 px-1.5 py-0.5 rounded-full font-medium animate-pulse">
+              ⚠️ {gecikmisGorevler.length} gecikmiş
+            </span>
           )}
           {acilGorevler.length > 0 && gecikmisGorevler.length === 0 && (
-            <span className="text-[10px] text-red-400 font-medium">{acilGorevler.length} acil</span>
+            <span className="text-[10px] text-red-500 bg-red-50 px-1.5 py-0.5 rounded-full font-medium">
+              🔴 {acilGorevler.length} acil
+            </span>
           )}
-          <span className="text-stone-300 text-xs">→</span>
+          <span className="text-stone-300 text-xs">Tümü →</span>
         </div>
       </div>
+
+      {gecikmisGorevler.length > 0 && (
+        <div className="px-3 py-1.5 bg-red-50 border-b border-red-100">
+          <p className="text-[10px] text-red-600 font-medium">⚠️ {gecikmisGorevler.length} görevin son tarihi geçmiş!</p>
+        </div>
+      )}
 
       <div className="divide-y divide-stone-50">
         {aktifGorevler.slice(0, 4).map((gorev) => (
@@ -106,17 +116,19 @@ export default function GorevWidget({ onCount }: { onCount?: (count: number) => 
           >
             <p className="text-xs font-medium text-stone-700 truncate">{gorev.baslik}</p>
             <div className="flex items-center gap-2 mt-0.5">
-              <span className={`text-[10px] ${
-                gorev.durum === "devam-ediyor" ? "text-sky-500" : "text-stone-400"
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                gorev.durum === "devam-ediyor" 
+                  ? "bg-blue-50 text-blue-600" 
+                  : "bg-yellow-50 text-yellow-600"
               }`}>
                 {gorev.durum === "devam-ediyor" ? "Devam" : "Bekliyor"}
               </span>
               {gorev.sonTarih && (
-                <span className={`text-[10px] ${gorev.sonTarih < bugun ? "text-red-400" : "text-stone-400"}`}>
-                  {gorev.sonTarih < bugun ? "Gecikmiş" : new Date(gorev.sonTarih).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
+                <span className={`text-[10px] ${gorev.sonTarih < bugun ? "text-red-500 font-medium" : "text-stone-400"}`}>
+                  {gorev.sonTarih < bugun ? "⚠️ Gecikmiş" : `📅 ${new Date(gorev.sonTarih).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}`}
                 </span>
               )}
-              {!gorev.otomatikMi && <span className="text-[10px] text-stone-300">{gorev.atayanAd}</span>}
+              {!gorev.otomatikMi && <span className="text-[10px] text-stone-400">👤 {gorev.atayanAd}</span>}
             </div>
           </div>
         ))}
@@ -125,9 +137,9 @@ export default function GorevWidget({ onCount }: { onCount?: (count: number) => 
       {aktifGorevler.length > 4 && (
         <div 
           onClick={() => navigate("/gorevler")}
-          className="px-3 py-1.5 text-center text-[10px] text-stone-400 hover:bg-stone-50 cursor-pointer transition border-t border-stone-50"
+          className="px-3 py-1.5 text-center text-[10px] text-amber-500 hover:bg-amber-50/50 cursor-pointer transition border-t border-stone-100 font-medium"
         >
-          +{aktifGorevler.length - 4} görev daha
+          +{aktifGorevler.length - 4} görev daha →
         </div>
       )}
     </div>

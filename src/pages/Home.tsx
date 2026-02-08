@@ -499,7 +499,7 @@ export default function Home() {
               title={gelinGunSecim === 'bugun' ? "Bugün" : "Yarın"}
               value={gelinGunSecim === 'bugun' ? bugunGelinler.length : yarinGelinler.length}
               icon="💄"
-              accent="text-rose-500"
+              color="pink"
               onClick={() => setGelinListeModal({ 
                 open: true, 
                 title: gelinGunSecim === 'bugun' ? "Bugünkü Gelinler" : "Yarının Gelinler", 
@@ -510,14 +510,14 @@ export default function Home() {
               title="Bu Hafta"
               value={buHaftaGelinler.length}
               icon="📅"
-              accent="text-violet-500"
+              color="purple"
               onClick={() => setGelinListeModal({ open: true, title: "Bu Haftaki Gelinler", gelinler: buHaftaGelinler })}
             />
             <MetricCard
               title={["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"][bugunDate.getMonth()]}
               value={buAyGelinler.length}
               icon="👰"
-              accent="text-sky-500"
+              color="blue"
               progress={aylikHedef > 0 ? { current: buAyGelinler.length, target: aylikHedef } : undefined}
               onClick={() => setGelinListeModal({ open: true, title: `${["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"][bugunDate.getMonth()]} Gelinleri`, gelinler: buAyGelinler })}
             />
@@ -525,7 +525,7 @@ export default function Home() {
               title="Aktif"
               value={suAnCalisanlar.length}
               icon="🟢"
-              accent="text-emerald-500"
+              color="green"
             />
           </div>
 
@@ -538,16 +538,16 @@ export default function Home() {
             }`}>
               {/* Duyurular */}
               {duyurular.length > 0 && (
-                <div className="bg-white rounded-xl overflow-hidden" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)' }}>
-                  <div className="px-3 py-2 border-b border-stone-50 flex items-center justify-between">
+                <div className="bg-white rounded-xl border border-stone-100 overflow-hidden">
+                  <div className="px-3 py-2 border-b border-stone-100 flex items-center justify-between bg-gradient-to-r from-amber-50/50 to-transparent">
                     <div className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>
+                      <span className="text-sm">📢</span>
                       <span className="text-xs font-semibold text-stone-700">Duyurular</span>
-                      <span className="text-[10px] text-stone-400">{duyurular.length}</span>
+                      <span className="text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full font-medium">{duyurular.length}</span>
                     </div>
                     <button
                       onClick={() => navigate("/duyurular")}
-                      className="text-[10px] text-stone-400 hover:text-stone-600"
+                      className="text-[10px] text-stone-400 hover:text-amber-500 font-medium transition"
                     >
                       Tümü →
                     </button>
@@ -557,14 +557,14 @@ export default function Home() {
                       <div 
                         key={d.id} 
                         onClick={() => setSelectedDuyuru(d)}
-                        className="py-1.5 px-2 rounded-lg cursor-pointer hover:bg-stone-50 transition"
+                        className="py-1.5 px-2.5 rounded-lg cursor-pointer hover:bg-amber-50/40 transition"
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
                             <p className="text-xs text-stone-700 font-medium truncate">{d.title}</p>
                             <p className="text-[10px] text-stone-400 mt-0.5 line-clamp-1">{d.content}</p>
                           </div>
-                          {d.important && <span className="text-[10px] text-amber-400">●</span>}
+                          {d.important && <span className="text-[10px] text-amber-400">🔥</span>}
                         </div>
                       </div>
                     ))}
