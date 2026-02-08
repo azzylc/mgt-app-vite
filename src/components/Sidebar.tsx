@@ -88,13 +88,12 @@ function SidebarContent({ user }: SidebarProps) {
   }, [user?.email]);
 
   const isKurucu = personelData?.kullaniciTuru === "Kurucu";
-  const isYonetici = personelData?.kullaniciTuru === "Yönetici" || personelData?.kullaniciTuru === "Yetkili";
+  const isYonetici = personelData?.kullaniciTuru === "Yönetici";
   const isPersonel = personelData?.kullaniciTuru === "Personel" || (!isKurucu && !isYonetici);
 
   const DEFAULT_MENU: Record<string, string[]> = {
     Kurucu: ["genel-bakis", "giris-cikis-islemleri", "personel", "duyurular", "gorevler", "takvim", "izinler", "raporlar", "ayarlar", "yonetim-paneli"],
     Yönetici: ["genel-bakis", "giris-cikis-islemleri", "duyurular", "gorevler", "takvim", "izinler", "raporlar", "qr-giris"],
-    Yetkili: ["genel-bakis", "giris-cikis-islemleri", "duyurular", "gorevler", "takvim", "izinler", "raporlar", "qr-giris"],
     Personel: ["genel-bakis", "qr-giris", "duyurular", "gorevler", "takvim", "izinler"],
   };
 
@@ -103,7 +102,7 @@ function SidebarContent({ user }: SidebarProps) {
     
     const allowedIds = (rolYetkileri && rolYetkileri[kullaniciTuru]) 
       ? rolYetkileri[kullaniciTuru] 
-      : DEFAULT_MENU[kullaniciTuru] || DEFAULT_MENU.Kurucu;
+      : DEFAULT_MENU[kullaniciTuru] || DEFAULT_MENU.Personel;
 
     let items = [
       { id: "genel-bakis", label: "Genel Bakış", icon: "📊", path: "/" },

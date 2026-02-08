@@ -89,15 +89,14 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
         
         if (permissionsSnap.exists()) {
           const permissions = permissionsSnap.data() as RolYetkileri;
-          menuItems = permissions[kullaniciTuru] || [];
+          menuItems = permissions[kullaniciTuru] || permissions["Personel"] || [];
         } else {
           const defaultPermissions: RolYetkileri = {
             "Kurucu": ["genel-bakis", "giris-cikis-islemleri", "duyurular", "gorevler", "takvim", "personel", "izinler", "raporlar", "ayarlar", "yonetim-paneli"],
             "Yönetici": ["genel-bakis", "giris-cikis-islemleri", "duyurular", "gorevler", "takvim", "personel", "izinler", "raporlar", "ayarlar"],
-            "Yetkili": ["genel-bakis", "giris-cikis-islemleri", "duyurular", "gorevler", "takvim", "izinler", "raporlar", "qr-giris"],
             "Personel": ["genel-bakis", "qr-giris", "duyurular", "gorevler", "takvim", "izinler"]
           };
-          menuItems = defaultPermissions[kullaniciTuru] || [];
+          menuItems = defaultPermissions[kullaniciTuru] || defaultPermissions["Personel"] || [];
         }
         
         if (cancelled === false) {
