@@ -123,7 +123,7 @@ export default function GorevlerPage() {
   const [filtre, setFiltre] = useState<"hepsi" | "bekliyor" | "devam-ediyor" | "tamamlandi">("hepsi");
   const [siralama, setSiralama] = useState<"yenidenEskiye" | "eskidenYeniye">("yenidenEskiye");
   const [aktifSekme, setAktifSekme] = useState<"gorevlerim" | "verdigim" | "otomatik" | "tumgorevler">("gorevlerim");
-  const [otomatikAltSekme, setOtomatikAltSekme] = useState<"yorumIstesinMi" | "paylasimIzni" | "yorumIstendiMi" | "odemeTakip">("yorumIstesinMi");
+  const [otomatikAltSekme, setOtomatikAltSekme] = useState<"hepsi" | "yorumIstesinMi" | "paylasimIzni" | "yorumIstendiMi" | "odemeTakip">("hepsi");
   const [seciliPersoneller, setSeciliPersoneller] = useState<string[]>([]); // Seçili personel email'leri
   const [selectedGorev, setSelectedGorev] = useState<Gorev | null>(null);
   const [selectedGelinId, setSelectedGelinId] = useState<string | null>(null);
@@ -345,7 +345,7 @@ export default function GorevlerPage() {
       sonuc = tumGorevler.filter(g => g.atayan === user?.email && !g.otomatikMi);
     } else if (aktifSekme === "otomatik") {
       // Otomatik sekmede alt sekmeye göre filtrele
-      sonuc = gorevler.filter(g => g.otomatikMi === true && g.gorevTuru === otomatikAltSekme);
+      sonuc = gorevler.filter(g => g.otomatikMi === true && (otomatikAltSekme === "hepsi" || g.gorevTuru === otomatikAltSekme));
     } else {
       sonuc = gorevler.filter(g => !g.otomatikMi);
     }
@@ -1073,104 +1073,94 @@ export default function GorevlerPage() {
 
           {/* Otomatik sekmede alt sekmeler */}
           {aktifSekme === "otomatik" && (
-            <div className="mb-4">
-              <div className="flex flex-wrap gap-1.5 md:gap-2 mb-3">
+            <div className="mb-3">
+              <div className="flex flex-wrap items-center gap-1 mb-2">
                 <button
-                  onClick={() => setOtomatikAltSekme("yorumIstesinMi")}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
-                    otomatikAltSekme === "yorumIstesinMi"
-                      ? "bg-purple-500 text-white"
-                      : "bg-white text-stone-600 border border-stone-200 hover:bg-stone-50"
+                  onClick={() => setOtomatikAltSekme("hepsi")}
+                  className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition ${
+                    otomatikAltSekme === "hepsi"
+                      ? "bg-stone-700 text-white"
+                      : "bg-white text-stone-500 border border-stone-200 hover:bg-stone-50"
                   }`}
                 >
-                  📝 <span className="hidden md:inline">Yorum </span>İstensin Mi
-                  <span className="ml-1 px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded-full text-[10px] md:text-xs">
+                  Hepsi
+                  <span className={`ml-1 px-1 rounded-full text-[10px] ${otomatikAltSekme === "hepsi" ? "bg-white/20" : "bg-stone-100"}`}>
+                    {gorevler.filter(g => g.otomatikMi).length}
+                  </span>
+                </button>
+                <button
+                  onClick={() => setOtomatikAltSekme("yorumIstesinMi")}
+                  className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition ${
+                    otomatikAltSekme === "yorumIstesinMi"
+                      ? "bg-purple-500 text-white"
+                      : "bg-white text-stone-500 border border-stone-200 hover:bg-stone-50"
+                  }`}
+                >
+                  📝 Yorum İstensin
+                  <span className={`ml-1 px-1 rounded-full text-[10px] ${otomatikAltSekme === "yorumIstesinMi" ? "bg-white/20" : "bg-purple-50 text-purple-600"}`}>
                     {gorevler.filter(g => g.otomatikMi && g.gorevTuru === "yorumIstesinMi").length}
                   </span>
                 </button>
                 <button
                   onClick={() => setOtomatikAltSekme("paylasimIzni")}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+                  className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition ${
                     otomatikAltSekme === "paylasimIzni"
                       ? "bg-blue-500 text-white"
-                      : "bg-white text-stone-600 border border-stone-200 hover:bg-stone-50"
+                      : "bg-white text-stone-500 border border-stone-200 hover:bg-stone-50"
                   }`}
                 >
-                  📸 Paylaşım İzni
-                  <span className="ml-1 px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded-full text-[10px] md:text-xs">
+                  📸 Paylaşım
+                  <span className={`ml-1 px-1 rounded-full text-[10px] ${otomatikAltSekme === "paylasimIzni" ? "bg-white/20" : "bg-blue-50 text-blue-600"}`}>
                     {gorevler.filter(g => g.otomatikMi && g.gorevTuru === "paylasimIzni").length}
                   </span>
                 </button>
                 <button
                   onClick={() => setOtomatikAltSekme("yorumIstendiMi")}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+                  className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition ${
                     otomatikAltSekme === "yorumIstendiMi"
                       ? "bg-amber-500 text-white"
-                      : "bg-white text-stone-600 border border-stone-200 hover:bg-stone-50"
+                      : "bg-white text-stone-500 border border-stone-200 hover:bg-stone-50"
                   }`}
                 >
-                  💬 <span className="hidden md:inline">Yorum </span>İstenecekler
-                  <span className="ml-1 px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded-full text-[10px] md:text-xs">
+                  💬 Yorum İstendi
+                  <span className={`ml-1 px-1 rounded-full text-[10px] ${otomatikAltSekme === "yorumIstendiMi" ? "bg-white/20" : "bg-amber-50 text-amber-600"}`}>
                     {gorevler.filter(g => g.otomatikMi && g.gorevTuru === "yorumIstendiMi").length}
                   </span>
                 </button>
                 <button
                   onClick={() => setOtomatikAltSekme("odemeTakip")}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+                  className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition ${
                     otomatikAltSekme === "odemeTakip"
                       ? "bg-red-500 text-white"
-                      : "bg-white text-stone-600 border border-stone-200 hover:bg-stone-50"
+                      : "bg-white text-stone-500 border border-stone-200 hover:bg-stone-50"
                   }`}
                 >
-                  💰 Ödeme Takip
-                  <span className="ml-1 px-1.5 py-0.5 bg-red-100 text-red-700 rounded-full text-[10px] md:text-xs">
+                  💰 Ödeme
+                  <span className={`ml-1 px-1 rounded-full text-[10px] ${otomatikAltSekme === "odemeTakip" ? "bg-white/20" : "bg-red-50 text-red-600"}`}>
                     {gorevler.filter(g => g.otomatikMi && g.gorevTuru === "odemeTakip").length}
                   </span>
                 </button>
+                
+                <button
+                  onClick={() => setSiralama(siralama === "yenidenEskiye" ? "eskidenYeniye" : "yenidenEskiye")}
+                  className="ml-auto px-2 py-0.5 rounded-md text-[11px] font-medium bg-stone-50 text-stone-400 hover:bg-stone-100 transition"
+                >
+                  {siralama === "yenidenEskiye" ? "Yeni → Eski" : "Eski → Yeni"}
+                </button>
               </div>
               
-              <div className={`p-3 rounded-lg border ${
-                otomatikAltSekme === "yorumIstesinMi" ? "bg-purple-50 border-purple-200" :
-                otomatikAltSekme === "paylasimIzni" ? "bg-blue-50 border-blue-200" :
-                otomatikAltSekme === "odemeTakip" ? "bg-red-50 border-red-200" :
-                "bg-amber-50 border-amber-200"
+              {otomatikAltSekme !== "hepsi" && (
+              <p className={`text-[10px] px-2 py-1 rounded-md ${
+                otomatikAltSekme === "yorumIstesinMi" ? "bg-purple-50/50 text-purple-500" :
+                otomatikAltSekme === "paylasimIzni" ? "bg-blue-50/50 text-blue-500" :
+                otomatikAltSekme === "odemeTakip" ? "bg-red-50/50 text-red-500" :
+                "bg-amber-50/50 text-amber-500"
               }`}>
-                <p className={`text-sm ${
-                  otomatikAltSekme === "yorumIstesinMi" ? "text-purple-800" :
-                  otomatikAltSekme === "paylasimIzni" ? "text-blue-800" :
-                  otomatikAltSekme === "odemeTakip" ? "text-red-800" :
-                  "text-amber-800"
-                }`}>
-                  {otomatikAltSekme === "yorumIstesinMi" && (
-                    <>
-                      <span className="font-medium">📝 Yorum İstensin Mi görevleri</span>
-                      <br />
-                      <span className="text-xs opacity-75">Düğünü geçmiş + alan boş → Makyajcı/Türbancıya atanır. "Yaptım"a basarak kontrol edebilirsiniz.</span>
-                    </>
-                  )}
-                  {otomatikAltSekme === "paylasimIzni" && (
-                    <>
-                      <span className="font-medium">📸 Paylaşım İzni görevleri</span>
-                      <br />
-                      <span className="text-xs opacity-75">Düğünü geçmiş + alan boş → Makyajcı/Türbancıya atanır. "Yaptım"a basarak kontrol edebilirsiniz.</span>
-                    </>
-                  )}
-                  {otomatikAltSekme === "yorumIstendiMi" && (
-                    <>
-                      <span className="font-medium">💬 Yorum İstendi Mi görevleri</span>
-                      <br />
-                      <span className="text-xs opacity-75">Düğünü geçmiş + alan boş → Makyajcı/Türbancıya atanır. "Yaptım"a basarak kontrol edebilirsiniz.</span>
-                    </>
-                  )}
-                  {otomatikAltSekme === "odemeTakip" && (
-                    <>
-                      <span className="font-medium">💰 Ödeme Takip görevleri</span>
-                      <br />
-                      <span className="text-xs opacity-75">Düğünü geçmiş + ödeme alınmamış → Yöneticilere acil görev atanır. "Yaptım"a basarak kontrol edebilirsiniz.</span>
-                    </>
-                  )}
-                </p>
-              </div>
+                {otomatikAltSekme === "odemeTakip" 
+                  ? "Ödeme alınmamış → Yöneticilere atanır. \"Yaptım\" ile kontrol edin."
+                  : "Alan boş → Makyajcı/Türbancıya atanır. \"Yaptım\" ile kontrol edin."}
+              </p>
+              )}
             </div>
           )}
           
@@ -1239,21 +1229,20 @@ export default function GorevlerPage() {
             </div>
           )}
 
-          {/* Filtre Butonları */}
+          {/* Filtre Butonları - otomatik sekmede gösterme */}
+          {aktifSekme !== "otomatik" && (
           <div className="mb-3 md:mb-4 flex flex-wrap gap-1.5 md:gap-2">
             <button
               onClick={() => setFiltre("hepsi")}
               className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
                 filtre === "hepsi"
-                  ? aktifSekme === "otomatik" ? "bg-purple-500 text-white" 
-                    : aktifSekme === "tumgorevler" ? "bg-emerald-500 text-white"
+                  ? aktifSekme === "tumgorevler" ? "bg-emerald-500 text-white"
                     : "bg-amber-500 text-white"
                   : "bg-white text-stone-600 hover:bg-stone-50 border border-stone-200"
               }`}
             >
               Hepsi ({
                 aktifSekme === "tumgorevler" ? tumGorevler.length 
-                : aktifSekme === "otomatik" ? gorevler.filter(g => g.otomatikMi).length 
                 : gorevler.filter(g => !g.otomatikMi).length
               })
             </button>
@@ -1261,8 +1250,7 @@ export default function GorevlerPage() {
               onClick={() => setFiltre("bekliyor")}
               className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
                 filtre === "bekliyor"
-                  ? aktifSekme === "otomatik" ? "bg-purple-500 text-white" 
-                    : aktifSekme === "tumgorevler" ? "bg-emerald-500 text-white"
+                  ? aktifSekme === "tumgorevler" ? "bg-emerald-500 text-white"
                     : "bg-amber-500 text-white"
                   : "bg-white text-stone-600 hover:bg-stone-50 border border-stone-200"
               }`}
@@ -1273,8 +1261,7 @@ export default function GorevlerPage() {
               onClick={() => setFiltre("tamamlandi")}
               className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
                 filtre === "tamamlandi"
-                  ? aktifSekme === "otomatik" ? "bg-purple-500 text-white" 
-                    : aktifSekme === "tumgorevler" ? "bg-emerald-500 text-white"
+                  ? aktifSekme === "tumgorevler" ? "bg-emerald-500 text-white"
                     : "bg-amber-500 text-white"
                   : "bg-white text-stone-600 hover:bg-stone-50 border border-stone-200"
               }`}
@@ -1290,6 +1277,7 @@ export default function GorevlerPage() {
               {siralama === "yenidenEskiye" ? "📅 Yeni → Eski" : "📅 Eski → Yeni"}
             </button>
           </div>
+          )}
 
           {/* Görev Listesi */}
           <div className="space-y-2">
