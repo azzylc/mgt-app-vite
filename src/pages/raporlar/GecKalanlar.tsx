@@ -53,11 +53,10 @@ export default function GecKalanlarPage() {
   const [dataLoading, setDataLoading] = useState(false);
 
   // Filtreler - 2 ay geriye
-  const ikiAyOnce = new Date();
-  ikiAyOnce.setMonth(ikiAyOnce.getMonth() - 2);
+  // Başlangıç tarih filtresi: 2 ay önce
   
-  const [baslangicTarih, setBaslangicTarih] = useState(ikiAyOnce.toISOString().split('T')[0]);
-  const [bitisTarih, setBitisTarih] = useState(new Date().toISOString().split('T')[0]);
+  const [baslangicTarih, setBaslangicTarih] = useState((() => { const d = new Date(); d.setMonth(d.getMonth() - 2); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })());
+  const [bitisTarih, setBitisTarih] = useState((() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })());
   const [seciliKonum, setSeciliKonum] = useState("Tümü");
   const [gecKalmaToleransi, setGecKalmaToleransi] = useState(10); // dakika
 

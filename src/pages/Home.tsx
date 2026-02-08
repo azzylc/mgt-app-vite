@@ -124,7 +124,10 @@ export default function Home() {
   const [personelDurumlar, setPersonelDurumlar] = useState<PersonelGunlukDurum[]>([]);
   const [bugunIzinliler, setBugunIzinliler] = useState<IzinKaydi[]>([]);
 
-  const bugun = new Date().toISOString().split("T")[0];
+  // Lokal tarih helper (UTC bug fix)
+  const toLocalDateStr = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+  const bugun = toLocalDateStr(new Date());
   const bugunDate = new Date();
 
   // Date helpers
@@ -141,7 +144,7 @@ export default function Home() {
   const yarinGelinler = useMemo(() => {
     const yarin = new Date();
     yarin.setDate(yarin.getDate() + 1);
-    return gelinler.filter(g => g.tarih === yarin.toISOString().split("T")[0]);
+    return gelinler.filter(g => g.tarih === toLocalDateStr(yarin));
   }, [gelinler]);
 
   const buHaftaGelinler = useMemo(() => {
@@ -152,14 +155,14 @@ export default function Home() {
     const haftaSonu = new Date(haftaBasi);
     haftaSonu.setDate(haftaSonu.getDate() + 6);
     return gelinler.filter(g => 
-      g.tarih >= haftaBasi.toISOString().split("T")[0] && 
-      g.tarih <= haftaSonu.toISOString().split("T")[0]
+      g.tarih >= toLocalDateStr(haftaBasi) && 
+      g.tarih <= toLocalDateStr(haftaSonu)
     );
   }, [gelinler]);
 
   const buAyGelinler = useMemo(() => {
     const ayBasi = `${bugun.slice(0, 7)}-01`;
-    const ayBiti = new Date(bugunDate.getFullYear(), bugunDate.getMonth() + 1, 0).toISOString().split("T")[0];
+    const ayBiti = toLocalDateStr(new Date(bugunDate.getFullYear(), bugunDate.getMonth() + 1, 0));
     return gelinler.filter(g => g.tarih >= ayBasi && g.tarih <= ayBiti);
   }, [gelinler, bugun]);
 
@@ -174,7 +177,7 @@ export default function Home() {
     for (let i = 0; i < 60; i++) {
       const tarih = new Date(baslangic);
       tarih.setDate(tarih.getDate() + i);
-      const tarihStr = tarih.toISOString().split("T")[0];
+      const tarihStr = toLocalDateStr(tarih);
       const gunGelinleri = gelinler.filter(g => g.tarih === tarihStr);
       if (gunGelinleri.length <= sakinGunFiltre) {
         gunler.push({ tarih: tarihStr, gelinSayisi: gunGelinleri.length });
@@ -261,8 +264,8 @@ export default function Home() {
 
     const q = query(
       collection(db, "gelinler"),
-      where("tarih", ">=", onDortGunOnce.toISOString().split("T")[0]),
-      where("tarih", "<=", otuzGunSonra.toISOString().split("T")[0]),
+      where("tarih", ">=", toLocalDateStr(onDortGunOnce)),
+      where("tarih", "<=", toLocalDateStr(otuzGunSonra)),
       orderBy("tarih", "asc")
     );
 

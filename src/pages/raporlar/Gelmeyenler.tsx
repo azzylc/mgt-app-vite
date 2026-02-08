@@ -39,8 +39,8 @@ export default function GelmeyenlerPage() {
   const [dataLoading, setDataLoading] = useState(false);
 
   // Filtreler
-  const [baslangicTarih, setBaslangicTarih] = useState(new Date().toISOString().split('T')[0]);
-  const [bitisTarih, setBitisTarih] = useState(new Date().toISOString().split('T')[0]);
+  const [baslangicTarih, setBaslangicTarih] = useState((() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })());
+  const [bitisTarih, setBitisTarih] = useState((() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })());
   const [tatilGoster, setTatilGoster] = useState("Göster");
 
   // Personelleri çek

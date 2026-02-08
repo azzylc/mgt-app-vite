@@ -114,7 +114,7 @@ export function getYaklasanDogumGunleri(personeller: PersonelWithBirthday[]): Pe
         id: p.id,
         isim: `${p.ad} ${p.soyad}`,
         emoji: p.emoji || '🎂',
-        yaklasanTarih: yaklasanDogumGunu.toISOString().split('T')[0],
+        yaklasanTarih: `${yaklasanDogumGunu.getFullYear()}-${String(yaklasanDogumGunu.getMonth()+1).padStart(2,'0')}-${String(yaklasanDogumGunu.getDate()).padStart(2,'0')}`,
         kalanGun
       };
     })
@@ -158,8 +158,9 @@ export const getYaklasanTatiller = () => {
   const onAySonra = new Date();
   onAySonra.setMonth(bugun.getMonth() + 10);
   
-  const bugunStr = bugun.toISOString().split('T')[0];
-  const onAySonraStr = onAySonra.toISOString().split('T')[0];
+  const _fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const bugunStr = _fmt(bugun);
+  const onAySonraStr = _fmt(onAySonra);
   
   return resmiTatiller
     .filter(t => t.tarih >= bugunStr && t.tarih <= onAySonraStr)

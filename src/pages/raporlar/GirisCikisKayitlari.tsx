@@ -42,8 +42,8 @@ export default function GirisCikisKayitlariPage() {
   const [filteredRecords, setFilteredRecords] = useState<AttendanceRecord[]>([]);
 
   // Filtreler
-  const [baslangicTarih, setBaslangicTarih] = useState(new Date().toISOString().split('T')[0]);
-  const [bitisTarih, setBitisTarih] = useState(new Date().toISOString().split('T')[0]);
+  const [baslangicTarih, setBaslangicTarih] = useState((() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })());
+  const [bitisTarih, setBitisTarih] = useState((() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })());
   const [seciliKullanici, setSeciliKullanici] = useState("Tümü");
   const [seciliKonum, setSeciliKonum] = useState("Tümü");
   const [seciliIslemTuru, setSeciliIslemTuru] = useState("Tümü");

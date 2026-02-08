@@ -27,7 +27,7 @@ export default function GirisCikisPage() {
   const user = useAuth();
   const [records, setRecords] = useState<Attendance[]>([]);
   const [personeller, setPersoneller] = useState<Personel[]>([]);
-  const [filterTarih, setFilterTarih] = useState(new Date().toISOString().split('T')[0]);
+  const [filterTarih, setFilterTarih] = useState((() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })());
   const [filterPersonel, setFilterPersonel] = useState("hepsi");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;

@@ -160,7 +160,7 @@ export default function TakvimPage() {
   const daysInMonth = lastDayOfMonth.getDate();
   const totalCells = Math.ceil((startDay + daysInMonth) / 7) * 7;
 
-  const bugun = new Date().toISOString().split('T')[0];
+  const bugun = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
   
   // 3 ay öncesi limiti
   const ucAyOnce = new Date();
@@ -180,13 +180,15 @@ export default function TakvimPage() {
 
   const getGelinlerForDate = (date: string) => gelinler.filter(g => g.tarih === date);
 
+  const toLocalDateStr = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
   const isTatil = (tarih: string) => {
     return resmiTatiller.some(t => {
       const tatilTarih = new Date(t.tarih);
       for (let i = 0; i < t.sure; i++) {
         const gun = new Date(tatilTarih);
         gun.setDate(tatilTarih.getDate() + i);
-        if (gun.toISOString().split('T')[0] === tarih) return true;
+        if (toLocalDateStr(gun) === tarih) return true;
       }
       return false;
     });
@@ -198,7 +200,7 @@ export default function TakvimPage() {
       for (let i = 0; i < t.sure; i++) {
         const gun = new Date(tatilTarih);
         gun.setDate(tatilTarih.getDate() + i);
-        if (gun.toISOString().split('T')[0] === tarih) return t.isim;
+        if (toLocalDateStr(gun) === tarih) return t.isim;
       }
     }
     return null;

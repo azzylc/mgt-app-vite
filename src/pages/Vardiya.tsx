@@ -97,7 +97,7 @@ export default function VardiyaPage() {
     return () => unsubscribe();
   }, [user]);
 
-  const bugun = new Date().toISOString().split('T')[0];
+  const bugun = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
   const planliVardiyalar = shifts.filter(s => s.durum === 'planli');
   const devamEden = shifts.filter(s => s.durum === 'devam');
   const tamamlanan = shifts.filter(s => s.durum === 'tamamlandi');
