@@ -302,9 +302,16 @@ export default function Home() {
 
       setBugunAttendance(records);
 
+      // Tarihe göre sırala (eskiden yeniye)
+      const sortedRecords = [...records].sort((a: any, b: any) => {
+        const ta = a.tarih?.toDate ? a.tarih.toDate().getTime() : new Date(a.tarih).getTime();
+        const tb = b.tarih?.toDate ? b.tarih.toDate().getTime() : new Date(b.tarih).getTime();
+        return ta - tb;
+      });
+
       const personelMap = new Map<string, PersonelGunlukDurum>();
 
-      records.forEach((r: any) => {
+      sortedRecords.forEach((r: any) => {
         if (!personelMap.has(r.personelId)) {
           personelMap.set(r.personelId, {
             personelId: r.personelId,
