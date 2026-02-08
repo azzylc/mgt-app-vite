@@ -20,6 +20,7 @@ import GelinListPanel from "../components/dashboard/GelinListPanel";
 import PersonelDurumPanel from "../components/dashboard/PersonelDurumPanel";
 import DikkatPanel from "../components/dashboard/DikkatPanel";
 import SakinGunlerPanel from "../components/dashboard/SakinGunlerPanel";
+import GorevWidget from "../components/dashboard/GorevWidget";
 import { usePersoneller } from "../hooks/usePersoneller";
 import * as Sentry from '@sentry/react';
 import { useAuth } from "../context/RoleProvider";
@@ -591,6 +592,11 @@ export default function Home() {
               icon="🟢"
               color="green"
             />
+          </div>
+
+          {/* Görev Widget */}
+          <div className="mb-4">
+            <GorevWidget />
           </div>
 
           {/* Alt Paneller */}
