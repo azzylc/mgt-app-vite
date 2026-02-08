@@ -316,7 +316,10 @@ export default function Home() {
         }
 
         const durum = personelMap.get(r.personelId)!;
-        const saat = new Date(r.tarih).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
+        const tarihObj = r.tarih?.toDate ? r.tarih.toDate() : new Date(r.tarih);
+        const saat = tarihObj instanceof Date && !isNaN(tarihObj.getTime()) 
+          ? tarihObj.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })
+          : "-";
         
         if (r.tip === "giris") {
           durum.girisSaati = saat;
