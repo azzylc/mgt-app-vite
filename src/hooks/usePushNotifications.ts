@@ -48,10 +48,10 @@ export function usePushNotifications(userEmail: string | null | undefined) {
         }
 
         // Uygulama açıkken bildirim geldi (foreground)
-        FirebaseMessaging.addListener('notificationReceived', (event) => {
-          if (event.notification.title || event.notification.body) {
-            alert(`${event.notification.title || ''}\n${event.notification.body || ''}`);
-          }
+        // Artık alert göstermiyoruz - bildirim paneli real-time güncellenecek
+        FirebaseMessaging.addListener('notificationReceived', (_event) => {
+          // Bildirim paneli Firestore listener ile otomatik güncellenir
+          // İsteğe bağlı: console.log('[FCM] Foreground bildirim:', _event.notification);
         });
 
         // Bildirime tıklandı

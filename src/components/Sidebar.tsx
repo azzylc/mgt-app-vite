@@ -7,6 +7,7 @@ import { auth, db } from "../lib/firebase";
 
 import { onSnapshot, doc, collection, query, where, getDocs } from "firebase/firestore";
 import * as Sentry from '@sentry/react';
+import BildirimPaneli from './BildirimPaneli';
 
 // Sidebar Context - mobilde açık/kapalı durumu için
 const SidebarContext = createContext<{
@@ -229,6 +230,7 @@ function SidebarContent({ user }: SidebarProps) {
             </p>
             <p className="text-xs text-stone-500">{personelData?.kullaniciTuru || "Personel"}</p>
           </div>
+          <BildirimPaneli userEmail={user?.email} kompakt />
         </div>
       </div>
 
@@ -309,14 +311,17 @@ function SidebarContent({ user }: SidebarProps) {
             </div>
             <span className="font-medium text-stone-800 text-sm">GYS Studio</span>
           </div>
-          <button 
-            onClick={() => setIsMobileOpen(true)}
-            className="w-9 h-9 flex items-center justify-center text-stone-500 hover:bg-stone-100 rounded-lg transition"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
+          <div className="flex items-center gap-1">
+            <BildirimPaneli userEmail={user?.email} />
+            <button 
+              onClick={() => setIsMobileOpen(true)}
+              className="w-9 h-9 flex items-center justify-center text-stone-500 hover:bg-stone-100 rounded-lg transition"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
         </header>
 
         {/* Mobil Drawer Overlay */}

@@ -20,6 +20,7 @@ import {
 } from "firebase/firestore";
 import * as Sentry from '@sentry/react';
 import { useAuth } from "../context/RoleProvider";
+import { bildirimYaz } from "../lib/bildirimHelper";
 
 // Composite key helper: görev ID = gelinId_gorevTuru_email
 function sanitizeEmail(email: string): string {
@@ -408,7 +409,7 @@ export default function GorevlerPage() {
         })
       });
 
-      // Push bildirim: atayan kişiye
+      // Push bildirim + uygulama içi bildirim: atayan kişiye
       if (tamamlananGorev && tamamlananGorev.atayan !== user?.email && tamamlananGorev.atayan !== "Sistem") {
         try {
           await fetch('https://europe-west1-gmt-test-99b30.cloudfunctions.net/sendGorevTamamBildirim', {
@@ -423,6 +424,17 @@ export default function GorevlerPage() {
         } catch (pushErr) {
           console.warn('[PUSH] Tamamlama bildirimi gönderilemedi:', pushErr);
         }
+
+        // Uygulama içi bildirim
+        bildirimYaz({
+          alici: tamamlananGorev.atayan,
+          baslik: "✅ Görev Tamamlandı",
+          mesaj: `${yorumEkleyen} görevi tamamladı: ${tamamlananGorev.baslik}`,
+          tip: "gorev_tamam",
+          route: "/gorevler",
+          gonderen: user?.email || "",
+          gonderenAd: yorumEkleyen,
+        });
       }
       
       setTamamlaGorevId(null);
@@ -637,7 +649,7 @@ export default function GorevlerPage() {
           olusturulmaTarihi: serverTimestamp()
         });
 
-        // Push bildirim gönder (kendine atamadıysa)
+        // Push bildirim + uygulama içi bildirim (kendine atamadıysa)
         if (atananEmail !== user?.email) {
           try {
             await fetch('https://europe-west1-gmt-test-99b30.cloudfunctions.net/sendGorevBildirim', {
@@ -653,6 +665,17 @@ export default function GorevlerPage() {
           } catch (pushErr) {
             console.warn('[PUSH] Bildirim gönderilemedi:', pushErr);
           }
+
+          // Uygulama içi bildirim
+          bildirimYaz({
+            alici: atananEmail,
+            baslik: "📋 Yeni Görev Atandı",
+            mesaj: `${atayanAd} size bir görev atadı: ${yeniGorev.baslik.trim()}`,
+            tip: "gorev_atama",
+            route: "/gorevler",
+            gonderen: user?.email || "",
+            gonderenAd: atayanAd,
+          });
         }
       }
 
@@ -701,6 +724,22 @@ export default function GorevlerPage() {
         });
       } catch (pushErr) {
         console.warn('[PUSH] Yorum bildirimi gönderilemedi:', pushErr);
+      }
+
+      // Uygulama içi bildirim: görevdeki herkese (yorum yapan hariç)
+      const bildirimAlicilar = [detayGorev.atayan, detayGorev.atanan]
+        .filter((email): email is string => !!email && email !== user?.email && email !== "Sistem");
+      const uniqueAlicilar = [...new Set(bildirimAlicilar)];
+      for (const alici of uniqueAlicilar) {
+        bildirimYaz({
+          alici,
+          baslik: "💬 Göreve Yorum Yapıldı",
+          mesaj: `${yorumData.yazanAd}: "${yeniYorum.trim().slice(0, 80)}${yeniYorum.trim().length > 80 ? "..." : ""}"`,
+          tip: "gorev_yorum",
+          route: "/gorevler",
+          gonderen: user?.email || "",
+          gonderenAd: yorumData.yazanAd,
+        });
       }
 
       setDetayGorev({

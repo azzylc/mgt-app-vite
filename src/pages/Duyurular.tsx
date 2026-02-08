@@ -9,12 +9,15 @@ import {
   doc, 
   onSnapshot, 
   query, 
+  where,
+  getDocs,
   orderBy,
   limit,
   serverTimestamp
 } from "firebase/firestore";
 import * as Sentry from '@sentry/react';
 import { useAuth } from "../context/RoleProvider";
+import { bildirimYazCoklu } from "../lib/bildirimHelper";
 
 interface Announcement {
   id: string;
@@ -90,6 +93,33 @@ export default function DuyurularPage() {
         author: user?.email?.split('@')[0] || 'Admin',
         createdAt: serverTimestamp()
       });
+
+      // Uygulama içi bildirim: gruptaki tüm personele
+      try {
+        const grupQuery = query(
+          collection(db, "personnel"),
+          where("grupEtiketleri", "array-contains", newAnnouncement.group),
+          where("aktif", "==", true)
+        );
+        const personelSnapshot = await getDocs(grupQuery);
+        const alicilar = personelSnapshot.docs
+          .map(d => d.data().email as string)
+          .filter(email => email && email !== user?.email);
+
+        if (alicilar.length > 0) {
+          const yazarAd = user?.email?.split('@')[0] || 'Admin';
+          bildirimYazCoklu(alicilar, {
+            baslik: newAnnouncement.important ? "🔴 Önemli Duyuru" : "📢 Yeni Duyuru",
+            mesaj: `${newAnnouncement.title}`,
+            tip: "duyuru",
+            route: "/duyurular",
+            gonderen: user?.email || "",
+            gonderenAd: yazarAd,
+          });
+        }
+      } catch (bildirimErr) {
+        console.warn("[Duyuru] Bildirim gönderilemedi:", bildirimErr);
+      }
 
       setShowModal(false);
       setNewAnnouncement({ title: '', content: '', important: false, group: grupEtiketleri[0]?.grupAdi || '' });
