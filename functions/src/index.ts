@@ -1,5 +1,6 @@
 import { onRequest } from 'firebase-functions/v2/https';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
+import { onDocumentUpdated } from 'firebase-functions/v2/firestore';
 import { defineSecret } from 'firebase-functions/params';
 import { incrementalSync, fullSync } from './lib/calendar-sync';
 import { adminDb, adminAuth, adminMessaging } from './lib/firestore-admin';
@@ -283,6 +284,198 @@ export const dailyHealthCheck = onSchedule({
 
   } catch (error) {
     console.error('Health check failed:', error);
+  }
+});
+
+// ============================================
+// HELPER: Email'i doc ID'de kullanılabilir hale getir
+// ============================================
+function sanitizeEmailForId(email: string): string {
+  return email.replace(/[^a-zA-Z0-9]/g, '_');
+}
+
+function gorevCompositeId(gelinId: string, gorevTuru: string, atananEmail: string): string {
+  return `${gelinId}_${gorevTuru}_${sanitizeEmailForId(atananEmail)}`;
+}
+
+function alanBosMu(gelin: Record<string, unknown>, gorevTuru: string): boolean {
+  if (gorevTuru === 'yorumIstesinMi') return !gelin.yorumIstesinMi || (gelin.yorumIstesinMi as string).trim() === '';
+  if (gorevTuru === 'paylasimIzni') return !gelin.paylasimIzni;
+  if (gorevTuru === 'yorumIstendiMi') return !gelin.yorumIstendiMi;
+  if (gorevTuru === 'odemeTakip') return gelin.odemeTamamlandi !== true;
+  return false;
+}
+
+// ============================================
+// 6b. SHARED: Görev oluşturma mantığı (reconcile)
+// ============================================
+async function gorevReconcile() {
+  const simdi = new Date();
+  const bugun = simdi.toISOString().split('T')[0];
+
+  const ayarDoc = await adminDb.collection('settings').doc('gorevAyarlari').get();
+  if (!ayarDoc.exists) {
+    console.log('[Reconcile] Görev ayarları bulunamadı.');
+    return { olusturulan: 0, silinen: 0 };
+  }
+  const ayarlar = ayarDoc.data() as Record<string, { aktif: boolean; baslangicTarihi: string }>;
+
+  const personelSnap = await adminDb.collection('personnel').where('aktif', '==', true).get();
+  const personeller = personelSnap.docs.map(d => ({
+    email: d.data().email,
+    ad: d.data().ad,
+    soyad: d.data().soyad,
+    kullaniciTuru: d.data().kullaniciTuru || ''
+  }));
+  const yoneticiler = personeller.filter(p => p.kullaniciTuru === 'Kurucu' || p.kullaniciTuru === 'Yönetici');
+
+  const gelinlerSnap = await adminDb.collection('gelinler')
+    .where('kontrolZamani', '<=', simdi.toISOString())
+    .get();
+
+  const mevcutGorevlerSnap = await adminDb.collection('gorevler')
+    .where('otomatikMi', '==', true)
+    .get();
+  const mevcutGorevIds = new Set(mevcutGorevlerSnap.docs.map(d => d.id));
+
+  const gorevTurleri = ['yorumIstesinMi', 'paylasimIzni', 'yorumIstendiMi', 'odemeTakip'] as const;
+  const gorevBasliklar: Record<string, string> = {
+    yorumIstesinMi: 'Yorum istensin mi alanını doldur',
+    paylasimIzni: 'Paylaşım izni alanını doldur',
+    yorumIstendiMi: 'Yorum istendi mi alanını doldur',
+    odemeTakip: 'Ödeme alınmadı!'
+  };
+
+  let toplamOlusturulan = 0;
+  let toplamSilinen = 0;
+
+  for (const gelinDoc of gelinlerSnap.docs) {
+    const gelin = gelinDoc.data();
+    const gelinId = gelinDoc.id;
+    const gelinTarih = gelin.tarih as string;
+
+    for (const gorevTuru of gorevTurleri) {
+      const ayar = ayarlar[gorevTuru];
+      if (!ayar?.aktif || !ayar.baslangicTarihi) continue;
+      if (gelinTarih < ayar.baslangicTarihi || gelinTarih > bugun) continue;
+
+      const bos = alanBosMu(gelin, gorevTuru);
+
+      if (gorevTuru === 'odemeTakip') {
+        for (const yonetici of yoneticiler) {
+          const compositeId = gorevCompositeId(gelinId, gorevTuru, yonetici.email);
+          if (bos && !mevcutGorevIds.has(compositeId)) {
+            await adminDb.collection('gorevler').doc(compositeId).set({
+              baslik: `${gelin.isim} - ${gorevBasliklar[gorevTuru]}`,
+              aciklama: `${gelin.isim} gelinin düğünü ${gelinTarih} tarihinde gerçekleşti. Takvime "--" eklenmesi gerekiyor.`,
+              atayan: 'Sistem', atayanAd: 'Sistem (Otomatik)',
+              atanan: yonetici.email, atananAd: `${yonetici.ad} ${yonetici.soyad}`,
+              durum: 'bekliyor', oncelik: 'acil', olusturulmaTarihi: new Date(),
+              gelinId, otomatikMi: true, gorevTuru,
+              gelinBilgi: { isim: gelin.isim, tarih: gelinTarih, saat: gelin.saat || '' }
+            });
+            toplamOlusturulan++;
+          } else if (!bos && mevcutGorevIds.has(compositeId)) {
+            await adminDb.collection('gorevler').doc(compositeId).delete();
+            toplamSilinen++;
+          }
+        }
+      } else {
+        const makyajci = personeller.find(p => p.ad.toLocaleLowerCase('tr-TR') === (gelin.makyaj || '').toLocaleLowerCase('tr-TR'));
+        const turbanci = personeller.find(p => p.ad.toLocaleLowerCase('tr-TR') === (gelin.turban || '').toLocaleLowerCase('tr-TR'));
+        const ayniKisi = makyajci?.email === turbanci?.email;
+
+        const kisiler: { email: string; ad: string; soyad: string; rol: string }[] = [];
+        if (makyajci?.email) kisiler.push({ ...makyajci, rol: 'Makyaj' });
+        if (turbanci?.email && !ayniKisi) kisiler.push({ ...turbanci, rol: 'Türban' });
+
+        for (const kisi of kisiler) {
+          const compositeId = gorevCompositeId(gelinId, gorevTuru, kisi.email);
+          if (bos && !mevcutGorevIds.has(compositeId)) {
+            await adminDb.collection('gorevler').doc(compositeId).set({
+              baslik: `${gelin.isim} - ${gorevBasliklar[gorevTuru]}`,
+              aciklama: `${gelin.isim} için "${gorevBasliklar[gorevTuru]}" alanı boş. Takvimden doldurun. (${kisi.rol})`,
+              atayan: 'Sistem', atayanAd: 'Sistem (Otomatik)',
+              atanan: kisi.email, atananAd: `${kisi.ad} ${kisi.soyad}`,
+              durum: 'bekliyor', oncelik: 'yuksek', olusturulmaTarihi: new Date(),
+              gelinId, otomatikMi: true, gorevTuru,
+              gelinBilgi: { isim: gelin.isim, tarih: gelinTarih, saat: gelin.saat || '' }
+            });
+            toplamOlusturulan++;
+          } else if (!bos && mevcutGorevIds.has(compositeId)) {
+            await adminDb.collection('gorevler').doc(compositeId).delete();
+            toplamSilinen++;
+          }
+        }
+      }
+    }
+  }
+
+  return { olusturulan: toplamOlusturulan, silinen: toplamSilinen };
+}
+
+// ============================================
+// 6b. SCHEDULED: Saatlik görev reconcile
+// ============================================
+export const hourlyGorevReconcile = onSchedule({
+  region: 'europe-west1',
+  schedule: 'every 1 hours',
+  timeZone: 'Europe/Istanbul',
+}, async (event) => {
+  console.log('Saatlik görev reconcile başladı...');
+  try {
+    const result = await gorevReconcile();
+    console.log(`Reconcile tamamlandı. Oluşturulan: ${result.olusturulan}, Silinen: ${result.silinen}`);
+    await adminDb.collection('system').doc('gorevKontrol').set({
+      lastRun: new Date().toISOString(),
+      ...result
+    }, { merge: true });
+  } catch (error) {
+    console.error('Görev reconcile hatası:', error);
+  }
+});
+
+// ============================================
+// 6c. TRIGGER: Gelin güncellendiğinde görev sil (real-time)
+// ============================================
+export const onGelinUpdated = onDocumentUpdated({
+  document: 'gelinler/{gelinId}',
+  region: 'europe-west1',
+}, async (event) => {
+  if (!event.data) return;
+  const before = event.data.before.data();
+  const after = event.data.after.data();
+  const gelinId = event.params.gelinId;
+
+  const alanlar: { alan: string; gorevTuru: string; beforeVal: unknown; afterVal: unknown }[] = [
+    { alan: 'yorumIstesinMi', gorevTuru: 'yorumIstesinMi', beforeVal: before.yorumIstesinMi, afterVal: after.yorumIstesinMi },
+    { alan: 'paylasimIzni', gorevTuru: 'paylasimIzni', beforeVal: before.paylasimIzni, afterVal: after.paylasimIzni },
+    { alan: 'yorumIstendiMi', gorevTuru: 'yorumIstendiMi', beforeVal: before.yorumIstendiMi, afterVal: after.yorumIstendiMi },
+    { alan: 'odemeTamamlandi', gorevTuru: 'odemeTakip', beforeVal: before.odemeTamamlandi, afterVal: after.odemeTamamlandi }
+  ];
+
+  const degisen = alanlar.filter(a => String(a.beforeVal ?? '') !== String(a.afterVal ?? ''));
+  if (degisen.length === 0) return;
+
+  for (const { gorevTuru, afterVal } of degisen) {
+    let alanDolu = false;
+    if (gorevTuru === 'yorumIstesinMi') alanDolu = !!afterVal && String(afterVal).trim() !== '';
+    else if (gorevTuru === 'paylasimIzni') alanDolu = !!afterVal;
+    else if (gorevTuru === 'yorumIstendiMi') alanDolu = !!afterVal;
+    else if (gorevTuru === 'odemeTakip') alanDolu = afterVal === true;
+
+    if (alanDolu) {
+      const gorevlerSnap = await adminDb.collection('gorevler')
+        .where('gelinId', '==', gelinId)
+        .where('gorevTuru', '==', gorevTuru)
+        .where('otomatikMi', '==', true)
+        .get();
+
+      for (const gorevDoc of gorevlerSnap.docs) {
+        await adminDb.collection('gorevler').doc(gorevDoc.id).delete();
+        console.log(`[Trigger] Görev silindi: ${gorevDoc.id} (${gorevTuru})`);
+      }
+    }
   }
 });
 
