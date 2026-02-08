@@ -14,7 +14,9 @@ import {
   orderBy,
   getDocs,
   setDoc,
-  getDoc
+  getDoc,
+  addDoc,
+  arrayUnion
 } from "firebase/firestore";
 import * as Sentry from '@sentry/react';
 import { useAuth } from "../context/RoleProvider";
@@ -27,22 +29,31 @@ function compositeGorevId(gelinId: string, gorevTuru: string, atananEmail: strin
   return `${gelinId}_${gorevTuru}_${sanitizeEmail(atananEmail)}`;
 }
 
+interface GorevYorum {
+  id: string;
+  yazan: string;
+  yazanAd: string;
+  yorum: string;
+  tarih: any;
+}
+
 interface Gorev {
   id: string;
   baslik: string;
   aciklama: string;
-  atayan: string; // "Sistem" veya user.uid
+  atayan: string;
   atayanAd: string;
-  atanan: string; // Personel ID
+  atanan: string;
   atananAd: string;
   durum: "bekliyor" | "devam-ediyor" | "tamamlandi" | "iptal";
   oncelik: "dusuk" | "normal" | "yuksek" | "acil";
   olusturulmaTarihi: any;
   tamamlanmaTarihi?: any;
-  gelinId?: string; // İlgili gelin
-  otomatikMi?: boolean; // Sistem tarafından oluşturuldu mu?
-  gorevTuru?: "yorumIstesinMi" | "paylasimIzni" | "yorumIstendiMi" | "odemeTakip"; // Görev türü
-  // Embedded gelin bilgisi - ekstra okuma yapmamak için
+  sonTarih?: string;
+  gelinId?: string;
+  otomatikMi?: boolean;
+  gorevTuru?: "yorumIstesinMi" | "paylasimIzni" | "yorumIstendiMi" | "odemeTakip";
+  yorumlar?: GorevYorum[];
   gelinBilgi?: {
     isim: string;
     tarih: string;
@@ -118,6 +129,22 @@ export default function GorevlerPage() {
   const [selectedGelinId, setSelectedGelinId] = useState<string | null>(null);
   const [showAyarlar, setShowAyarlar] = useState(false);
   const [senkronizeLoading, setSenkronizeLoading] = useState<string | null>(null);
+  
+  // Manuel görev ekleme
+  const [showGorevEkle, setShowGorevEkle] = useState(false);
+  const [yeniGorev, setYeniGorev] = useState({
+    baslik: "",
+    aciklama: "",
+    atanan: "",
+    oncelik: "normal" as Gorev["oncelik"],
+    sonTarih: ""
+  });
+  const [gorevEkleLoading, setGorevEkleLoading] = useState(false);
+  
+  // Görev detay & yorum
+  const [detayGorev, setDetayGorev] = useState<Gorev | null>(null);
+  const [yeniYorum, setYeniYorum] = useState("");
+  const [yorumLoading, setYorumLoading] = useState(false);
   const [gorevAyarlari, setGorevAyarlari] = useState<GorevAyarlari>({
     yorumIstesinMi: { aktif: false, baslangicTarihi: "" },
     paylasimIzni: { aktif: false, baslangicTarihi: "" },
@@ -517,6 +544,81 @@ export default function GorevlerPage() {
     }
   };
 
+  // Manuel görev oluştur
+  const handleGorevOlustur = async () => {
+    if (!yeniGorev.baslik.trim()) {
+      alert("Lütfen görev başlığı girin!");
+      return;
+    }
+    if (!yeniGorev.atanan) {
+      alert("Lütfen görev atanacak kişiyi seçin!");
+      return;
+    }
+
+    setGorevEkleLoading(true);
+    try {
+      const atananPersonel = personeller.find(p => p.email === yeniGorev.atanan);
+      const atayanPersonel = personeller.find(p => p.email === user?.email);
+      
+      await addDoc(collection(db, "gorevler"), {
+        baslik: yeniGorev.baslik.trim(),
+        aciklama: yeniGorev.aciklama.trim(),
+        atayan: user?.email || "",
+        atayanAd: atayanPersonel ? `${atayanPersonel.ad} ${atayanPersonel.soyad}` : user?.email || "",
+        atanan: yeniGorev.atanan,
+        atananAd: atananPersonel ? `${atananPersonel.ad} ${atananPersonel.soyad}` : yeniGorev.atanan,
+        durum: "bekliyor",
+        oncelik: yeniGorev.oncelik,
+        sonTarih: yeniGorev.sonTarih || "",
+        otomatikMi: false,
+        yorumlar: [],
+        olusturulmaTarihi: serverTimestamp()
+      });
+
+      setYeniGorev({ baslik: "", aciklama: "", atanan: "", oncelik: "normal", sonTarih: "" });
+      setShowGorevEkle(false);
+      alert("✅ Görev başarıyla oluşturuldu!");
+    } catch (error) {
+      Sentry.captureException(error);
+      alert("❌ Görev oluşturulamadı!");
+    } finally {
+      setGorevEkleLoading(false);
+    }
+  };
+
+  // Göreve yorum ekle
+  const handleYorumEkle = async () => {
+    if (!detayGorev || !yeniYorum.trim()) return;
+    
+    setYorumLoading(true);
+    try {
+      const yazanPersonel = personeller.find(p => p.email === user?.email);
+      const yorumData = {
+        id: Date.now().toString(),
+        yazan: user?.email || "",
+        yazanAd: yazanPersonel ? `${yazanPersonel.ad} ${yazanPersonel.soyad}` : user?.email || "",
+        yorum: yeniYorum.trim(),
+        tarih: new Date().toISOString()
+      };
+
+      await updateDoc(doc(db, "gorevler", detayGorev.id), {
+        yorumlar: arrayUnion(yorumData)
+      });
+
+      // Lokal state güncelle
+      setDetayGorev({
+        ...detayGorev,
+        yorumlar: [...(detayGorev.yorumlar || []), yorumData]
+      });
+      setYeniYorum("");
+    } catch (error) {
+      Sentry.captureException(error);
+      alert("❌ Yorum eklenemedi!");
+    } finally {
+      setYorumLoading(false);
+    }
+  };
+
   // Otomatik görev: "Yaptım" butonu - gelini kontrol et, alan doluysa sil
   const [yaptimLoading, setYaptimLoading] = useState<string | null>(null);
   const handleYaptim = async (gorev: Gorev) => {
@@ -603,18 +705,28 @@ export default function GorevlerPage() {
             <h1 className="text-base md:text-xl font-bold text-stone-800">✅ Görevler</h1>
             
             {/* Kurucu için Ayarlar Butonu */}
-            {userRole === "Kurucu" && (
-              <button
-                onClick={() => setShowAyarlar(!showAyarlar)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
-                  showAyarlar 
-                    ? "bg-stone-800 text-white" 
-                    : "bg-stone-100 text-stone-600 hover:bg-stone-200"
-                }`}
-              >
-                ⚙️ Görev Ayarları
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              {(userRole === "Kurucu" || userRole === "Yönetici") && (
+                <button
+                  onClick={() => setShowGorevEkle(true)}
+                  className="px-3 py-1.5 rounded-lg text-sm font-medium bg-amber-500 text-white hover:bg-amber-600 transition"
+                >
+                  ➕ Görev Ata
+                </button>
+              )}
+              {userRole === "Kurucu" && (
+                <button
+                  onClick={() => setShowAyarlar(!showAyarlar)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                    showAyarlar 
+                      ? "bg-stone-800 text-white" 
+                      : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                  }`}
+                >
+                  ⚙️ <span className="hidden md:inline">Görev </span>Ayarları
+                </button>
+              )}
+            </div>
           </div>
           
           {/* Ana Sekmeler */}
@@ -1054,22 +1166,32 @@ export default function GorevlerPage() {
               filtreliGorevler.map((gorev) => (
                 <div
                   key={gorev.id}
-                  className={`bg-white rounded-lg shadow-sm border-2 p-3 md:p-5 transition hover:shadow-md ${oncelikRenk(gorev.oncelik)}`}
+                  onClick={() => setDetayGorev(gorev)}
+                  className={`bg-white rounded-lg shadow-sm border-2 p-3 md:p-5 transition hover:shadow-md cursor-pointer ${oncelikRenk(gorev.oncelik)}`}
                 >
                   <div className="flex items-start justify-between gap-2 md:gap-4">
                     <div className="flex-1 min-w-0">
-                      {/* Başlık + Otomatik Badge */}
-                      <div className="flex items-start gap-2 mb-1 md:mb-2">
+                      {/* Başlık + Badge'ler */}
+                      <div className="flex items-start gap-2 mb-1 md:mb-2 flex-wrap">
                         <h3 className="text-sm md:text-lg font-semibold text-stone-800 flex-1">{gorev.baslik}</h3>
                         {gorev.otomatikMi && (
                           <span className="bg-purple-100 text-purple-700 text-[10px] md:text-xs px-1.5 md:px-2 py-0.5 rounded-full font-medium shrink-0">
                             🤖 Otomatik
                           </span>
                         )}
+                        {!gorev.otomatikMi && gorev.oncelik && gorev.oncelik !== "normal" && (
+                          <span className={`text-[10px] md:text-xs px-1.5 md:px-2 py-0.5 rounded-full font-medium shrink-0 ${
+                            gorev.oncelik === "acil" ? "bg-red-100 text-red-700" :
+                            gorev.oncelik === "yuksek" ? "bg-orange-100 text-orange-700" :
+                            "bg-blue-100 text-blue-700"
+                          }`}>
+                            {gorev.oncelik === "acil" ? "🔴 Acil" : gorev.oncelik === "yuksek" ? "🟠 Yüksek" : "🔵 Düşük"}
+                          </span>
+                        )}
                       </div>
 
                       {/* Açıklama */}
-                      <p className="text-xs md:text-sm text-stone-600 mb-2 md:mb-3">{gorev.aciklama}</p>
+                      <p className="text-xs md:text-sm text-stone-600 mb-2 md:mb-3 line-clamp-2">{gorev.aciklama}</p>
 
                       {/* Meta Bilgiler */}
                       <div className="flex flex-wrap items-center gap-2 md:gap-3 text-[10px] md:text-xs text-stone-500">
@@ -1094,10 +1216,26 @@ export default function GorevlerPage() {
                           <span>📅</span>
                           <span>{gorev.olusturulmaTarihi?.toDate?.().toLocaleDateString('tr-TR')}</span>
                         </div>
+                        {gorev.sonTarih && (
+                          <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${
+                            new Date(gorev.sonTarih) < new Date() && gorev.durum !== "tamamlandi" 
+                              ? "bg-red-50 text-red-600 font-medium" 
+                              : "bg-stone-50"
+                          }`}>
+                            <span>⏰</span>
+                            <span>Son: {new Date(gorev.sonTarih).toLocaleDateString('tr-TR')}</span>
+                          </div>
+                        )}
                         {gorev.gelinId && (
                           <div className="flex items-center gap-1">
                             <span>💄</span>
                             <span className="text-rose-600">Gelin görevi</span>
+                          </div>
+                        )}
+                        {(gorev.yorumlar?.length || 0) > 0 && (
+                          <div className="flex items-center gap-1 bg-blue-50 px-2 py-0.5 rounded-full">
+                            <span>💬</span>
+                            <span className="text-blue-600 font-medium">{gorev.yorumlar!.length} yorum</span>
                           </div>
                         )}
                       </div>
@@ -1113,7 +1251,7 @@ export default function GorevlerPage() {
 
                   {/* Otomatik görevlerde gelin bilgisi - tıklanabilir */}
                   {gorev.otomatikMi && gorev.gelinId && (
-                    <div className="mt-3 p-3 bg-purple-50 rounded-lg border border-purple-100">
+                    <div className="mt-3 p-3 bg-purple-50 rounded-lg border border-purple-100" onClick={e => e.stopPropagation()}>
                       <p className="text-xs text-purple-600 mb-1">📅 Gelin Bilgisi:</p>
                       {gorev.gelinBilgi ? (
                         <button 
@@ -1142,7 +1280,7 @@ export default function GorevlerPage() {
 
                   {/* Aksiyon Butonları - SADECE OTOMATİK OLMAYAN GÖREVLER İÇİN */}
                   {!gorev.otomatikMi && (
-                    <div className="mt-4 flex flex-wrap items-center gap-2">
+                    <div className="mt-4 flex flex-wrap items-center gap-2" onClick={e => e.stopPropagation()}>
                       {gorev.durum === "bekliyor" && (
                         <button
                           onClick={() => handleDurumDegistir(gorev.id, "devam-ediyor")}
@@ -1167,18 +1305,20 @@ export default function GorevlerPage() {
                           ❌ İptal Et
                         </button>
                       )}
-                      <button
-                        onClick={() => handleGorevSil(gorev.id)}
-                        className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition"
-                      >
-                        🗑️ Sil
-                      </button>
+                      {(userRole === "Kurucu" || userRole === "Yönetici") && (
+                        <button
+                          onClick={() => handleGorevSil(gorev.id)}
+                          className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition"
+                        >
+                          🗑️ Sil
+                        </button>
+                      )}
                     </div>
                   )}
                   
                   {/* Otomatik görevlerde Yaptım butonu */}
                   {gorev.otomatikMi && (
-                    <div className="mt-3 flex items-center justify-between">
+                    <div className="mt-3 flex items-center justify-between" onClick={e => e.stopPropagation()}>
                       <span className={`text-xs italic ${gorev.gorevTuru === "odemeTakip" ? "text-red-500" : "text-purple-500"}`}>
                         {gorev.gorevTuru === "odemeTakip" 
                           ? '💰 Takvime "--" eklenince otomatik silinir.'
@@ -1216,6 +1356,247 @@ export default function GorevlerPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg">
             <p className="text-stone-600">⏳ Gelin bilgisi yükleniyor...</p>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== GÖREV EKLE MODAL ==================== */}
+      {showGorevEkle && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowGorevEkle(false)}>
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="bg-amber-500 text-white px-5 py-4 rounded-t-xl flex items-center justify-between">
+              <h2 className="font-bold text-lg">➕ Yeni Görev Ata</h2>
+              <button onClick={() => setShowGorevEkle(false)} className="text-white/80 hover:text-white text-xl">✕</button>
+            </div>
+            
+            <div className="p-5 space-y-4">
+              {/* Başlık */}
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">Görev Başlığı *</label>
+                <input
+                  type="text"
+                  value={yeniGorev.baslik}
+                  onChange={e => setYeniGorev({...yeniGorev, baslik: e.target.value})}
+                  placeholder="Görev başlığını yazın..."
+                  className="w-full px-4 py-2.5 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+
+              {/* Açıklama */}
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">Açıklama</label>
+                <textarea
+                  value={yeniGorev.aciklama}
+                  onChange={e => setYeniGorev({...yeniGorev, aciklama: e.target.value})}
+                  placeholder="Görev detaylarını yazın..."
+                  rows={3}
+                  className="w-full px-4 py-2.5 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
+                />
+              </div>
+
+              {/* Atanacak Kişi */}
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">Atanacak Kişi *</label>
+                <select
+                  value={yeniGorev.atanan}
+                  onChange={e => setYeniGorev({...yeniGorev, atanan: e.target.value})}
+                  className="w-full px-4 py-2.5 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+                >
+                  <option value="">Kişi seçin...</option>
+                  {ekipPersonelleri.map(p => (
+                    <option key={p.id} value={p.email}>{p.ad} {p.soyad}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Aciliyet + Son Tarih */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-stone-700 mb-1">Aciliyet</label>
+                  <select
+                    value={yeniGorev.oncelik}
+                    onChange={e => setYeniGorev({...yeniGorev, oncelik: e.target.value as Gorev["oncelik"]})}
+                    className="w-full px-4 py-2.5 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+                  >
+                    <option value="dusuk">🔵 Düşük</option>
+                    <option value="normal">⚪ Normal</option>
+                    <option value="yuksek">🟠 Yüksek</option>
+                    <option value="acil">🔴 Acil</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-stone-700 mb-1">Son Tarih</label>
+                  <input
+                    type="date"
+                    value={yeniGorev.sonTarih}
+                    onChange={e => setYeniGorev({...yeniGorev, sonTarih: e.target.value})}
+                    className="w-full px-4 py-2.5 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
+              </div>
+
+              {/* Kaydet */}
+              <button
+                onClick={handleGorevOlustur}
+                disabled={gorevEkleLoading}
+                className="w-full py-3 bg-amber-500 text-white rounded-lg font-semibold hover:bg-amber-600 disabled:opacity-50 transition text-sm"
+              >
+                {gorevEkleLoading ? "⏳ Oluşturuluyor..." : "✅ Görev Oluştur"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== GÖREV DETAY MODAL ==================== */}
+      {detayGorev && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => { setDetayGorev(null); setYeniYorum(""); }}>
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div className={`px-5 py-4 rounded-t-xl flex items-center justify-between ${
+              detayGorev.oncelik === "acil" ? "bg-red-500 text-white" :
+              detayGorev.oncelik === "yuksek" ? "bg-orange-500 text-white" :
+              detayGorev.oncelik === "dusuk" ? "bg-blue-500 text-white" :
+              "bg-stone-700 text-white"
+            }`}>
+              <div>
+                <h2 className="font-bold text-lg">{detayGorev.baslik}</h2>
+                <p className="text-sm opacity-80">
+                  {detayGorev.oncelik === "acil" ? "🔴 Acil" : detayGorev.oncelik === "yuksek" ? "🟠 Yüksek" : detayGorev.oncelik === "dusuk" ? "🔵 Düşük" : "⚪ Normal"} 
+                  {" • "}
+                  <span className={`px-2 py-0.5 rounded-full text-xs ${
+                    detayGorev.durum === "tamamlandi" ? "bg-white/20" : 
+                    detayGorev.durum === "devam-ediyor" ? "bg-white/20" : "bg-white/20"
+                  }`}>
+                    {durumEmojiyon(detayGorev.durum)} {detayGorev.durum.charAt(0).toUpperCase() + detayGorev.durum.slice(1).replace("-", " ")}
+                  </span>
+                </p>
+              </div>
+              <button onClick={() => { setDetayGorev(null); setYeniYorum(""); }} className="text-white/80 hover:text-white text-xl">✕</button>
+            </div>
+
+            <div className="p-5 space-y-5">
+              {/* Detaylar */}
+              <div className="space-y-3">
+                {detayGorev.aciklama && (
+                  <div className="p-3 bg-stone-50 rounded-lg">
+                    <p className="text-xs font-medium text-stone-500 mb-1">📝 Açıklama</p>
+                    <p className="text-sm text-stone-700 whitespace-pre-wrap">{detayGorev.aciklama}</p>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="p-3 bg-stone-50 rounded-lg">
+                    <p className="text-xs font-medium text-stone-500 mb-1">🎯 Atanan</p>
+                    <p className="text-stone-700 font-medium">{detayGorev.atananAd}</p>
+                  </div>
+                  <div className="p-3 bg-stone-50 rounded-lg">
+                    <p className="text-xs font-medium text-stone-500 mb-1">👤 Atayan</p>
+                    <p className="text-stone-700 font-medium">
+                      {detayGorev.atayan === "Sistem" ? "🤖 Sistem (Otomatik)" : detayGorev.atayanAd}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-stone-50 rounded-lg">
+                    <p className="text-xs font-medium text-stone-500 mb-1">📅 Oluşturulma</p>
+                    <p className="text-stone-700">{detayGorev.olusturulmaTarihi?.toDate?.().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                  </div>
+                  {detayGorev.sonTarih && (
+                    <div className={`p-3 rounded-lg ${
+                      new Date(detayGorev.sonTarih) < new Date() && detayGorev.durum !== "tamamlandi"
+                        ? "bg-red-50 border border-red-200"
+                        : "bg-stone-50"
+                    }`}>
+                      <p className="text-xs font-medium text-stone-500 mb-1">⏰ Son Tarih</p>
+                      <p className={`font-medium ${
+                        new Date(detayGorev.sonTarih) < new Date() && detayGorev.durum !== "tamamlandi"
+                          ? "text-red-600" : "text-stone-700"
+                      }`}>
+                        {new Date(detayGorev.sonTarih).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        {new Date(detayGorev.sonTarih) < new Date() && detayGorev.durum !== "tamamlandi" && " ⚠️ Gecikmiş!"}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Durum Değiştirme */}
+              {!detayGorev.otomatikMi && (
+                <div className="flex flex-wrap gap-2 p-3 bg-stone-50 rounded-lg">
+                  <span className="text-xs text-stone-500 w-full mb-1">Durumu Değiştir:</span>
+                  {detayGorev.durum !== "bekliyor" && (
+                    <button onClick={() => { handleDurumDegistir(detayGorev.id, "bekliyor"); setDetayGorev({...detayGorev, durum: "bekliyor"}); }}
+                      className="px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-lg text-xs font-medium hover:bg-yellow-200 transition">
+                      ⏳ Bekliyor
+                    </button>
+                  )}
+                  {detayGorev.durum !== "devam-ediyor" && (
+                    <button onClick={() => { handleDurumDegistir(detayGorev.id, "devam-ediyor"); setDetayGorev({...detayGorev, durum: "devam-ediyor"}); }}
+                      className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs font-medium hover:bg-blue-200 transition">
+                      🔄 Devam Ediyor
+                    </button>
+                  )}
+                  {detayGorev.durum !== "tamamlandi" && (
+                    <button onClick={() => { handleDurumDegistir(detayGorev.id, "tamamlandi"); setDetayGorev({...detayGorev, durum: "tamamlandi"}); }}
+                      className="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-xs font-medium hover:bg-green-200 transition">
+                      ✅ Tamamlandı
+                    </button>
+                  )}
+                  {detayGorev.durum !== "iptal" && (
+                    <button onClick={() => { handleDurumDegistir(detayGorev.id, "iptal"); setDetayGorev({...detayGorev, durum: "iptal"}); }}
+                      className="px-3 py-1.5 bg-stone-100 text-stone-600 rounded-lg text-xs font-medium hover:bg-stone-200 transition">
+                      ❌ İptal
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Yorumlar */}
+              <div>
+                <h3 className="font-semibold text-stone-800 mb-3 flex items-center gap-2">
+                  💬 Yorumlar & Notlar
+                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded-full text-stone-500">
+                    {detayGorev.yorumlar?.length || 0}
+                  </span>
+                </h3>
+
+                {/* Yorum Listesi */}
+                <div className="space-y-3 mb-4 max-h-60 overflow-y-auto">
+                  {(!detayGorev.yorumlar || detayGorev.yorumlar.length === 0) ? (
+                    <p className="text-sm text-stone-400 text-center py-4">Henüz yorum yok. İlk yorumu ekleyin!</p>
+                  ) : (
+                    detayGorev.yorumlar.map((yorum) => (
+                      <div key={yorum.id} className="p-3 bg-stone-50 rounded-lg border border-stone-100">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-semibold text-stone-700">👤 {yorum.yazanAd}</span>
+                          <span className="text-[10px] text-stone-400">
+                            {new Date(yorum.tarih).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })} {new Date(yorum.tarih).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                        <p className="text-sm text-stone-600 whitespace-pre-wrap">{yorum.yorum}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* Yorum Ekle */}
+                <div className="flex gap-2">
+                  <textarea
+                    value={yeniYorum}
+                    onChange={e => setYeniYorum(e.target.value)}
+                    placeholder="Yorum veya not ekleyin... (ne yaptınız, nasıl yaptınız)"
+                    rows={2}
+                    className="flex-1 px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm resize-none"
+                  />
+                  <button
+                    onClick={handleYorumEkle}
+                    disabled={yorumLoading || !yeniYorum.trim()}
+                    className="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm font-medium hover:bg-amber-600 disabled:opacity-50 transition self-end"
+                  >
+                    {yorumLoading ? "⏳" : "Gönder"}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
