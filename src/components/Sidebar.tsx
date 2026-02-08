@@ -1,10 +1,9 @@
-
 import { useState, useEffect, Suspense, createContext, useContext } from "react";
 import { useRole } from "../context/RoleProvider";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth, db } from "../lib/firebase";
-import { Capacitor } from "@capacitor/core";
+
 import { onSnapshot, doc, collection, query, where, getDocs } from "firebase/firestore";
 import * as Sentry from '@sentry/react';
 
@@ -106,7 +105,7 @@ function SidebarContent({ user }: SidebarProps) {
 
     let items = [
       { id: "genel-bakis", label: "Genel Bakış", icon: "📊", path: "/" },
-      { id: "qr-giris", label: "Giriş-Çıkış", icon: "📱", path: "/qr-giris", excludeKurucu: true, nativeOnly: true },
+      { id: "qr-giris", label: "Giriş-Çıkış", icon: "📱", path: "/qr-giris", excludeKurucu: true, mobileOnly: true },
       {
         id: "giris-cikis-islemleri", label: "Giriş - Çıkış / Vardiya", icon: "🔄",
         submenu: [
@@ -161,9 +160,11 @@ function SidebarContent({ user }: SidebarProps) {
       { id: "ayarlar", label: "Ayarlar", icon: "⚙️", path: "/ayarlar" },
     ];
 
+    const isMobile = window.innerWidth < 768;
+
     return items.filter(item => {
       if (isKurucu && (item as any).excludeKurucu) return false;
-      if ((item as any).nativeOnly && !Capacitor.isNativePlatform()) return false;
+      if ((item as any).mobileOnly && !isMobile) return false;
       return allowedIds.includes(item.id);
     });
   };
@@ -172,7 +173,7 @@ function SidebarContent({ user }: SidebarProps) {
 
   const bottomNavItems = [
     { icon: "🏠", label: "Ana Sayfa", path: "/" },
-    ...(Capacitor.isNativePlatform() ? [{ icon: "📱", label: "Giriş-Çıkış", path: "/qr-giris" }] : []),
+    ...(window.innerWidth < 768 ? [{ icon: "📱", label: "Giriş-Çıkış", path: "/qr-giris" }] : []),
     { icon: "📅", label: "Takvim", path: "/takvim" },
     { icon: "✅", label: "Görevler", path: "/gorevler" },
     { icon: "☰", label: "Menü", action: "menu" },
