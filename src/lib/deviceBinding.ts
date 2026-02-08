@@ -68,12 +68,18 @@ export interface DeviceCheckResult {
 
 /**
  * Cihaz kontrolü yapar:
- * - deviceId boş/null → bu cihazı bağla, "bound" döndür
- * - deviceId eşleşiyor → "ok" döndür
- * - deviceId farklı → "blocked" döndür
+ * - Web'den giriş → her zaman "ok" (web serbest)
+ * - Native: deviceId boş/null → bu cihazı bağla, "bound" döndür
+ * - Native: deviceId eşleşiyor → "ok" döndür
+ * - Native: deviceId farklı → "blocked" döndür
  */
 export async function checkAndBindDevice(userEmail: string): Promise<DeviceCheckResult> {
   try {
+    // Web'den girişlerde device binding kontrolü yapma
+    if (!Capacitor.isNativePlatform()) {
+      return { status: "ok", message: "Web girişi serbest." };
+    }
+
     const currentDeviceId = await getDeviceId();
     
     // Personeli bul
