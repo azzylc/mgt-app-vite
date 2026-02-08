@@ -261,7 +261,7 @@ export default function YonetimPage() {
 
   if (yetkisiz) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="text-center">
           <span className="text-6xl">🚫</span>
           <h1 className="text-2xl font-bold text-gray-800 mt-4">Yetkisiz Erişim</h1>

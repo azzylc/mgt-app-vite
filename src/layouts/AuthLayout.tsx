@@ -26,7 +26,7 @@ export default function AuthLayout() {
   return (
     <>
       <Sidebar user={user} />
-      <div className="md:ml-56 pb-20 md:pb-0">
+      <div className="md:ml-56 pb-20 md:pb-0 min-h-screen bg-gray-100">
         <Outlet />
       </div>
     </>

@@ -138,7 +138,7 @@ export default function GirisCikisPage() {
   const cikisYapanlar = Object.values(ozet).filter(o => o.cikis).length;
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen bg-gray-100">
       <div>
         <header className="bg-white border-b px-6 py-4 sticky top-0 z-30">
           <div className="flex items-center justify-between">
@@ -170,22 +170,22 @@ export default function GirisCikisPage() {
           </div>
 
           {/* İstatistikler */}
-          <div className="grid grid-cols-4 gap-4 mb-6">
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-5 rounded-lg shadow-md text-white">
-              <p className="text-blue-100 text-sm mb-1">Toplam Kayıt</p>
-              <p className="text-3xl font-bold">{toplamKayit}</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-3 md:p-5 rounded-lg shadow-md text-white">
+              <p className="text-blue-100 text-xs md:text-sm mb-1">Toplam Kayıt</p>
+              <p className="text-xl md:text-3xl font-bold">{toplamKayit}</p>
             </div>
-            <div className="bg-gradient-to-br from-green-500 to-green-600 p-5 rounded-lg shadow-md text-white">
-              <p className="text-green-100 text-sm mb-1">Giriş Yapan</p>
-              <p className="text-3xl font-bold">{girisYapanlar}</p>
+            <div className="bg-gradient-to-br from-green-500 to-green-600 p-3 md:p-5 rounded-lg shadow-md text-white">
+              <p className="text-green-100 text-xs md:text-sm mb-1">Giriş Yapan</p>
+              <p className="text-xl md:text-3xl font-bold">{girisYapanlar}</p>
             </div>
-            <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-5 rounded-lg shadow-md text-white">
-              <p className="text-orange-100 text-sm mb-1">Çıkış Yapan</p>
-              <p className="text-3xl font-bold">{cikisYapanlar}</p>
+            <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-3 md:p-5 rounded-lg shadow-md text-white">
+              <p className="text-orange-100 text-xs md:text-sm mb-1">Çıkış Yapan</p>
+              <p className="text-xl md:text-3xl font-bold">{cikisYapanlar}</p>
             </div>
-            <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-5 rounded-lg shadow-md text-white">
-              <p className="text-purple-100 text-sm mb-1">Aktif Personel</p>
-              <p className="text-3xl font-bold">{personeller.length}</p>
+            <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-3 md:p-5 rounded-lg shadow-md text-white">
+              <p className="text-purple-100 text-xs md:text-sm mb-1">Aktif Personel</p>
+              <p className="text-xl md:text-3xl font-bold">{personeller.length}</p>
             </div>
           </div>
 

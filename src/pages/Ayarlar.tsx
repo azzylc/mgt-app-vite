@@ -602,7 +602,7 @@ export default function AyarlarPage() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen bg-gray-100">
       <div>
         <header className="bg-white border-b px-6 py-4 sticky top-0 z-30">
           <div>
@@ -878,8 +878,8 @@ export default function AyarlarPage() {
                   <p className="text-lg font-medium">Konum bulunamadı</p>
                 </div>
               ) : (
-                <div className="bg-white rounded-lg shadow-sm border border-stone-100 overflow-hidden">
-                  <table className="w-full">
+                <div className="bg-white rounded-lg shadow-sm border border-stone-100 overflow-hidden overflow-x-auto">
+                  <table className="w-full min-w-[600px]">
                     <thead className="bg-stone-50">
                       <tr>
                         <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">QR Kod</th>
@@ -961,8 +961,8 @@ export default function AyarlarPage() {
                   <p className="text-sm mt-2">Yukarıdaki butona tıklayarak firma ekleyin</p>
                 </div>
               ) : (
-                <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-stone-100">
-                  <table className="w-full">
+                <div className="bg-white rounded-lg shadow-sm overflow-hidden overflow-x-auto border border-stone-100">
+                  <table className="w-full min-w-[400px]">
                     <thead className="bg-stone-50">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase">Firma</th>
@@ -1024,8 +1024,8 @@ export default function AyarlarPage() {
                   <p className="text-lg font-medium">Grup etiketi bulunamadı</p>
                 </div>
               ) : (
-                <div className="bg-white rounded-lg shadow-sm border border-stone-100 overflow-hidden">
-                  <table className="w-full">
+                <div className="bg-white rounded-lg shadow-sm border border-stone-100 overflow-hidden overflow-x-auto">
+                  <table className="w-full min-w-[500px]">
                     <thead className="bg-stone-50">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase">Grup Adı</th>

@@ -230,7 +230,7 @@ export default function TakvimPage() {
     .slice(0, 4); // En yoğun 4 gün
 
   return (
-    <div className="min-h-screen bg-neutral-warm">
+    <div className="min-h-screen bg-gray-100">
       <div>
         <header className="page-header">
           <div className="flex items-center justify-between gap-3">

@@ -71,7 +71,7 @@ const YonetimCompare = lazyWithRetry(() => import('./pages/yonetim/Compare'))
 // Sayfa yüklenirken gösterilecek loading spinner
 function PageLoader() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="text-center">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-amber-400 mx-auto"></div>
         <p className="mt-3 text-stone-500 text-sm">Yükleniyor...</p>

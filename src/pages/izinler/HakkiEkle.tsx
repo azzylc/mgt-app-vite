@@ -155,7 +155,7 @@ function IzinHakkiEkleContent() {
   };
 
   return (
-    <div className="flex min-h-screen bg-neutral-warm">
+    <div className="flex min-h-screen bg-gray-100">
       <main className="flex-1 p-4 lg:p-6 ">
         <div className="mb-6 flex items-start justify-between">
           <div>
@@ -322,7 +322,7 @@ function IzinHakkiEkleContent() {
 export default function IzinHakkiEkle() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-neutral-warm">
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
       </div>
     }>

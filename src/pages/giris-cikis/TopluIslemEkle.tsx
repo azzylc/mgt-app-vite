@@ -212,7 +212,7 @@ export default function TopluIslemEklePage() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen bg-gray-100">
       <div>
         <header className="bg-white border-b px-4 md:px-6 py-4 sticky top-0 z-30">
           <h1 className="text-xl font-bold text-stone-800">Toplu İşlem Ekle</h1>

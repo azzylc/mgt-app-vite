@@ -120,7 +120,7 @@ export default function ComparePage() {
 
   if (yetkisiz) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="text-center">
           <div className="text-6xl mb-4">🔒</div>
           <h2 className="text-2xl font-bold text-stone-800">Yetkisiz Erişim</h2>
