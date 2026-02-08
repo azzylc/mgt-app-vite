@@ -311,7 +311,8 @@ function alanBosMu(gelin: Record<string, unknown>, gorevTuru: string): boolean {
 // ============================================
 async function gorevReconcile() {
   const simdi = new Date();
-  const bugun = simdi.toISOString().split('T')[0];
+  const trNow = new Date(simdi.toLocaleString('en-US', { timeZone: 'Europe/Istanbul' }));
+  const bugun = `${trNow.getFullYear()}-${String(trNow.getMonth()+1).padStart(2,'0')}-${String(trNow.getDate()).padStart(2,'0')}`;
 
   const ayarDoc = await adminDb.collection('settings').doc('gorevAyarlari').get();
   if (!ayarDoc.exists) {
@@ -924,6 +925,19 @@ export const sendGorevBildirim = onRequest({
 
     const sent = await sendPushToUser(atanan, title, body, { route: '/gorevler' });
 
+    // Uygulama içi bildirim de yaz
+    await adminDb.collection('bildirimler').add({
+      alici: atanan,
+      baslik: title,
+      mesaj: body,
+      tip: 'gorev_atama',
+      okundu: false,
+      tarih: new Date(),
+      route: '/gorevler',
+      gonderen: req.body.atayanEmail || null,
+      gonderenAd: atayanAd || null,
+    });
+
     res.json({ success: true, sent, atanan });
   } catch (error) {
     console.error('[GOREV-BILDIRIM] Hata:', error);
@@ -957,6 +971,19 @@ export const sendGorevTamamBildirim = onRequest({
     const body = `${tamamlayanAd || 'Birisi'} görevi tamamladı: ${baslik}`;
 
     const sent = await sendPushToUser(atayan, title, body, { route: '/gorevler' });
+
+    // Uygulama içi bildirim
+    await adminDb.collection('bildirimler').add({
+      alici: atayan,
+      baslik: title,
+      mesaj: body,
+      tip: 'gorev_tamam',
+      okundu: false,
+      tarih: new Date(),
+      route: '/gorevler',
+      gonderen: null,
+      gonderenAd: tamamlayanAd || null,
+    });
 
     res.json({ success: true, sent, atayan });
   } catch (error) {
@@ -999,6 +1026,19 @@ export const sendGorevYorumBildirim = onRequest({
     for (const email of bildirimAlacaklar) {
       const sent = await sendPushToUser(email, title, body, { route: '/gorevler' });
       if (sent) sentCount++;
+
+      // Uygulama içi bildirim
+      await adminDb.collection('bildirimler').add({
+        alici: email,
+        baslik: title,
+        mesaj: body,
+        tip: 'gorev_yorum',
+        okundu: false,
+        tarih: new Date(),
+        route: '/gorevler',
+        gonderen: yorumYapan || null,
+        gonderenAd: yorumYapanAd || null,
+      });
     }
 
     res.json({ success: true, sentCount, recipients: Array.from(bildirimAlacaklar) });
@@ -1019,13 +1059,14 @@ export const dailyGorevHatirlatma = onSchedule({
   console.log('[HATIRLATMA] Günlük görev hatırlatma başladı...');
 
   try {
-    // Yarınki tarih (YYYY-MM-DD)
-    const yarin = new Date();
+    // Yarınki tarih (YYYY-MM-DD) - Türkiye saati
+    const now = new Date();
+    const trNow = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Istanbul' }));
+    const yarin = new Date(trNow);
     yarin.setDate(yarin.getDate() + 1);
-    const yarinStr = yarin.toISOString().split('T')[0];
-
-    // Bugünkü tarih
-    const bugun = new Date().toISOString().split('T')[0];
+    const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const yarinStr = fmt(yarin);
+    const bugun = fmt(trNow);
 
     // Aktif görevleri çek (bekliyor + devam-ediyor)
     const gorevlerSnapshot = await adminDb.collection('gorevler')
@@ -1050,6 +1091,18 @@ export const dailyGorevHatirlatma = onSchedule({
           `"${gorev.baslik}" görevinin son tarihi yarın!`,
           { route: '/gorevler' }
         );
+        // Uygulama içi bildirim
+        await adminDb.collection('bildirimler').add({
+          alici: atanan,
+          baslik: '⏰ Görev Hatırlatma',
+          mesaj: `"${gorev.baslik}" görevinin son tarihi yarın!`,
+          tip: 'gorev_atama',
+          okundu: false,
+          tarih: new Date(),
+          route: '/gorevler',
+          gonderen: 'sistem',
+          gonderenAd: 'Sistem',
+        });
         yarinHatirlatma++;
       }
 
@@ -1062,6 +1115,18 @@ export const dailyGorevHatirlatma = onSchedule({
           `"${gorev.baslik}" görevinin son tarihi bugün!`,
           { route: '/gorevler' }
         );
+        // Uygulama içi bildirim
+        await adminDb.collection('bildirimler').add({
+          alici: atanan,
+          baslik: '⚠️ Son Gün!',
+          mesaj: `"${gorev.baslik}" görevinin son tarihi bugün!`,
+          tip: 'gorev_atama',
+          okundu: false,
+          tarih: new Date(),
+          route: '/gorevler',
+          gonderen: 'sistem',
+          gonderenAd: 'Sistem',
+        });
         gecikmisBildirim++;
       }
     }
@@ -1081,6 +1146,57 @@ export const dailyGorevHatirlatma = onSchedule({
     await adminDb.collection('system').doc('errors').set({
       lastError: new Date().toISOString(),
       type: 'gorevHatirlatma',
+      message: String(error)
+    }, { merge: true });
+  }
+});
+
+// ============================================
+// 11. SCHEDULED: Eski bildirimleri temizle (30 gün)
+// ============================================
+export const cleanOldNotifications = onSchedule({
+  region: 'europe-west1',
+  schedule: 'every 24 hours',
+  timeZone: 'Europe/Istanbul',
+}, async (event) => {
+  console.log('[TEMIZLIK] Eski bildirim temizleme başladı...');
+
+  try {
+    const otuzGunOnce = new Date();
+    otuzGunOnce.setDate(otuzGunOnce.getDate() - 30);
+
+    let toplamSilinen = 0;
+
+    // Firestore batch max 500, loop ile temizle
+    while (true) {
+      const snapshot = await adminDb.collection('bildirimler')
+        .where('tarih', '<', otuzGunOnce)
+        .limit(500)
+        .get();
+
+      if (snapshot.empty) break;
+
+      const batch = adminDb.batch();
+      snapshot.docs.forEach((doc: any) => batch.delete(doc.ref));
+      await batch.commit();
+      toplamSilinen += snapshot.size;
+
+      // 500'den az geldiyse bitmiştir
+      if (snapshot.size < 500) break;
+    }
+
+    console.log(`[TEMIZLIK] ✅ ${toplamSilinen} eski bildirim silindi`);
+
+    await adminDb.collection('system').doc('bildirimTemizlik').set({
+      lastRun: new Date().toISOString(),
+      silinen: toplamSilinen
+    }, { merge: true });
+
+  } catch (error) {
+    console.error('[TEMIZLIK] Hata:', error);
+    await adminDb.collection('system').doc('errors').set({
+      lastError: new Date().toISOString(),
+      type: 'bildirimTemizlik',
       message: String(error)
     }, { merge: true });
   }
