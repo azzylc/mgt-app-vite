@@ -192,6 +192,15 @@ export default function YonetimPage() {
   });
   const buAyAnlasanKapora = buAyAnlasanGelinler.reduce((sum, g) => sum + Number(g.kapora || 0), 0);
 
+  // Ay sonu tahmini (lineer projeksiyon)
+  const bugunGun = new Date().getDate();
+  const ayToplamGun = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+  const kalanGun = ayToplamGun - bugunGun;
+  const gunlukOrtalamaGelin = bugunGun > 0 ? buAyAnlasanGelinler.length / bugunGun : 0;
+  const gunlukOrtalamaKapora = bugunGun > 0 ? buAyAnlasanKapora / bugunGun : 0;
+  const tahminiAySonuGelin = Math.round(buAyAnlasanGelinler.length + (gunlukOrtalamaGelin * kalanGun));
+  const tahminiAySonuKapora = Math.round(buAyAnlasanKapora + (gunlukOrtalamaKapora * kalanGun));
+
   // Şu andan itibaren kalan bakiye (gelinin bitiş saatine göre, başlangıç + 2 saat)
   const simdikiSaat = new Date().getHours() * 60 + new Date().getMinutes();
   const buAyKalanBakiye = gelinler
@@ -322,6 +331,16 @@ export default function YonetimPage() {
                 {buAyAnlasanKapora.toLocaleString('tr-TR')} ₺
               </p>
               <p className="text-[10px] md:text-xs text-gray-400 mt-1">{buAyAnlasanGelinler.length} gelin anlaştı</p>
+              {kalanGun > 0 && buAyAnlasanGelinler.length > 0 && (
+                <div className="mt-2 pt-2 border-t border-gray-100">
+                  <p className="text-[10px] md:text-xs text-orange-500 font-medium">
+                    📈 Ay sonu tahmini: <span className="text-purple-600">{tahminiAySonuGelin}</span>
+                    <span className="text-gray-400 mx-1">/</span>
+                    <span className="text-green-600">{tahminiAySonuKapora.toLocaleString('tr-TR')} ₺</span>
+                  </p>
+                  <p className="text-[9px] md:text-[10px] text-gray-400">Günlük ort. {gunlukOrtalamaGelin.toFixed(1)} gelin • {kalanGun} gün kaldı</p>
+                </div>
+              )}
             </div>
 
             <div className="bg-white rounded-2xl p-3 md:p-4 shadow-sm border border-gray-100">
