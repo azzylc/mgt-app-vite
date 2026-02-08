@@ -354,10 +354,10 @@ export default function GorevlerPage() {
   const handleTumunuSenkronizeEt = async () => {
     // En az bir tarih girilmiş mi kontrol et
     const tarihliler = [];
-    if (gorevAyarlari.yorumIstesinMi.baslangicTarihi) tarihliler.push("Yorum İstensin Mi");
-    if (gorevAyarlari.paylasimIzni.baslangicTarihi) tarihliler.push("Paylaşım İzni");
-    if (gorevAyarlari.yorumIstendiMi.baslangicTarihi) tarihliler.push("Yorum İstendi Mi");
-    if (gorevAyarlari.odemeTakip.baslangicTarihi) tarihliler.push("Ödeme Takip");
+    if (gorevAyarlari?.yorumIstesinMi?.baslangicTarihi) tarihliler.push("Yorum İstensin Mi");
+    if (gorevAyarlari?.paylasimIzni?.baslangicTarihi) tarihliler.push("Paylaşım İzni");
+    if (gorevAyarlari?.yorumIstendiMi?.baslangicTarihi) tarihliler.push("Yorum İstendi Mi");
+    if (gorevAyarlari?.odemeTakip?.baslangicTarihi) tarihliler.push("Ödeme Takip");
 
     if (tarihliler.length === 0) {
       alert("Lütfen en az bir görev türü için başlangıç tarihi girin!");
@@ -390,8 +390,8 @@ export default function GorevlerPage() {
       const yeniAyarlar = { ...gorevAyarlari };
 
       for (const gorevTuru of gorevTurleri) {
-        const ayar = gorevAyarlari[gorevTuru];
-        if (!ayar.baslangicTarihi) continue;
+        const ayar = gorevAyarlari?.[gorevTuru];
+        if (!ayar?.baslangicTarihi) continue;
 
         // Başlangıç tarihi → bugüne kadar olan gelinleri çek (gelecek gelinler hariç)
         const gelinlerQuery = query(
@@ -683,7 +683,7 @@ export default function GorevlerPage() {
               
               <div className="p-4 space-y-4">
                 {/* Yorum İstensin Mi */}
-                <div className={`p-3 rounded-lg border ${gorevAyarlari.yorumIstesinMi.aktif ? "border-green-400 bg-green-50" : "border-stone-200 bg-stone-50"}`}>
+                <div className={`p-3 rounded-lg border ${gorevAyarlari?.yorumIstesinMi?.aktif ? "border-green-400 bg-green-50" : "border-stone-200 bg-stone-50"}`}>
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <span className="text-lg">📝</span>
@@ -695,14 +695,14 @@ export default function GorevlerPage() {
                     <div className="flex items-center gap-2">
                       <input
                         type="date" min="2020-01-01" max="2099-12-31"
-                        value={gorevAyarlari.yorumIstesinMi.baslangicTarihi}
+                        value={gorevAyarlari?.yorumIstesinMi?.baslangicTarihi}
                         onChange={(e) => setGorevAyarlari({
                           ...gorevAyarlari,
                           yorumIstesinMi: { ...gorevAyarlari.yorumIstesinMi, baslangicTarihi: e.target.value }
                         })}
                         className="px-2 py-1 border border-stone-300 rounded text-sm w-36"
                       />
-                      {gorevAyarlari.yorumIstesinMi.aktif && (
+                      {gorevAyarlari?.yorumIstesinMi?.aktif && (
                         <span className="px-2 py-0.5 bg-green-500 text-white text-xs rounded-full">✓</span>
                       )}
                     </div>
@@ -710,7 +710,7 @@ export default function GorevlerPage() {
                 </div>
 
                 {/* Paylaşım İzni */}
-                <div className={`p-3 rounded-lg border ${gorevAyarlari.paylasimIzni.aktif ? "border-green-400 bg-green-50" : "border-stone-200 bg-stone-50"}`}>
+                <div className={`p-3 rounded-lg border ${gorevAyarlari?.paylasimIzni?.aktif ? "border-green-400 bg-green-50" : "border-stone-200 bg-stone-50"}`}>
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <span className="text-lg">📸</span>
@@ -722,14 +722,14 @@ export default function GorevlerPage() {
                     <div className="flex items-center gap-2">
                       <input
                         type="date" min="2020-01-01" max="2099-12-31"
-                        value={gorevAyarlari.paylasimIzni.baslangicTarihi}
+                        value={gorevAyarlari?.paylasimIzni?.baslangicTarihi}
                         onChange={(e) => setGorevAyarlari({
                           ...gorevAyarlari,
                           paylasimIzni: { ...gorevAyarlari.paylasimIzni, baslangicTarihi: e.target.value }
                         })}
                         className="px-2 py-1 border border-stone-300 rounded text-sm w-36"
                       />
-                      {gorevAyarlari.paylasimIzni.aktif && (
+                      {gorevAyarlari?.paylasimIzni?.aktif && (
                         <span className="px-2 py-0.5 bg-green-500 text-white text-xs rounded-full">✓</span>
                       )}
                     </div>
@@ -737,7 +737,7 @@ export default function GorevlerPage() {
                 </div>
 
                 {/* Yorum İstendi Mi */}
-                <div className={`p-3 rounded-lg border ${gorevAyarlari.yorumIstendiMi.aktif ? "border-green-400 bg-green-50" : "border-stone-200 bg-stone-50"}`}>
+                <div className={`p-3 rounded-lg border ${gorevAyarlari?.yorumIstendiMi?.aktif ? "border-green-400 bg-green-50" : "border-stone-200 bg-stone-50"}`}>
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <span className="text-lg">💬</span>
@@ -749,14 +749,14 @@ export default function GorevlerPage() {
                     <div className="flex items-center gap-2">
                       <input
                         type="date" min="2020-01-01" max="2099-12-31"
-                        value={gorevAyarlari.yorumIstendiMi.baslangicTarihi}
+                        value={gorevAyarlari?.yorumIstendiMi?.baslangicTarihi}
                         onChange={(e) => setGorevAyarlari({
                           ...gorevAyarlari,
                           yorumIstendiMi: { ...gorevAyarlari.yorumIstendiMi, baslangicTarihi: e.target.value }
                         })}
                         className="px-2 py-1 border border-stone-300 rounded text-sm w-36"
                       />
-                      {gorevAyarlari.yorumIstendiMi.aktif && (
+                      {gorevAyarlari?.yorumIstendiMi?.aktif && (
                         <span className="px-2 py-0.5 bg-green-500 text-white text-xs rounded-full">✓</span>
                       )}
                     </div>
@@ -764,7 +764,7 @@ export default function GorevlerPage() {
                 </div>
 
                 {/* Ödeme Takip */}
-                <div className={`p-3 rounded-lg border ${gorevAyarlari.odemeTakip.aktif ? "border-green-400 bg-green-50" : "border-stone-200 bg-stone-50"}`}>
+                <div className={`p-3 rounded-lg border ${gorevAyarlari?.odemeTakip?.aktif ? "border-green-400 bg-green-50" : "border-stone-200 bg-stone-50"}`}>
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <span className="text-lg">💰</span>
@@ -776,14 +776,14 @@ export default function GorevlerPage() {
                     <div className="flex items-center gap-2">
                       <input
                         type="date" min="2020-01-01" max="2099-12-31"
-                        value={gorevAyarlari.odemeTakip.baslangicTarihi}
+                        value={gorevAyarlari?.odemeTakip?.baslangicTarihi}
                         onChange={(e) => setGorevAyarlari({
                           ...gorevAyarlari,
                           odemeTakip: { ...gorevAyarlari.odemeTakip, baslangicTarihi: e.target.value }
                         })}
                         className="px-2 py-1 border border-stone-300 rounded text-sm w-36"
                       />
-                      {gorevAyarlari.odemeTakip.aktif && (
+                      {gorevAyarlari?.odemeTakip?.aktif && (
                         <span className="px-2 py-0.5 bg-green-500 text-white text-xs rounded-full">✓</span>
                       )}
                     </div>
