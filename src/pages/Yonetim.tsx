@@ -270,15 +270,15 @@ export default function YonetimPage() {
           </div>
         </header>
 
-        <main className="p-6">
+        <main className="p-3 md:p-6">
           {/* Üst Kartlar */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-              <p className="text-gray-500 text-xs">Bu Ay Gelin</p>
-              <p className="text-2xl font-bold text-pink-600 mt-1">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-4 md:mb-6">
+            <div className="bg-white rounded-2xl p-3 md:p-4 shadow-sm border border-gray-100">
+              <p className="text-gray-500 text-[10px] md:text-xs">Bu Ay Gelin</p>
+              <p className="text-lg md:text-2xl font-bold text-pink-600 mt-1">
                 {buAyVerileri.toplamGelin}
                 {buAyVerileri.hedef > 0 && (
-                  <span className="text-sm text-gray-400 font-normal">/{buAyVerileri.hedef}</span>
+                  <span className="text-xs md:text-sm text-gray-400 font-normal">/{buAyVerileri.hedef}</span>
                 )}
               </p>
               {buAyVerileri.hedef > 0 && (
@@ -289,35 +289,35 @@ export default function YonetimPage() {
                       style={{ width: `${Math.min((buAyVerileri.toplamGelin / buAyVerileri.hedef) * 100, 100)}%` }}
                     />
                   </div>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-[10px] md:text-xs text-gray-400 mt-1">
                     %{Math.round((buAyVerileri.toplamGelin / buAyVerileri.hedef) * 100)} tamamlandı
                   </p>
                 </div>
               )}
             </div>
 
-            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-              <p className="text-gray-500 text-xs">Bu Ayın Cirosu</p>
-              <p className="text-2xl font-bold text-blue-600 mt-1">
+            <div className="bg-white rounded-2xl p-3 md:p-4 shadow-sm border border-gray-100">
+              <p className="text-gray-500 text-[10px] md:text-xs">Bu Ayın Cirosu</p>
+              <p className="text-lg md:text-2xl font-bold text-blue-600 mt-1">
                 {buAyVerileri.toplamUcret.toLocaleString('tr-TR')} ₺
               </p>
-              <p className="text-xs text-gray-400 mt-1">Anlaşılan ücret</p>
+              <p className="text-[10px] md:text-xs text-gray-400 mt-1">Anlaşılan ücret</p>
             </div>
 
-            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-              <p className="text-gray-500 text-xs">Bu Ay Kapora</p>
-              <p className="text-2xl font-bold text-green-600 mt-1">
+            <div className="bg-white rounded-2xl p-3 md:p-4 shadow-sm border border-gray-100">
+              <p className="text-gray-500 text-[10px] md:text-xs">Bu Ay Kapora</p>
+              <p className="text-lg md:text-2xl font-bold text-green-600 mt-1">
                 {buAyAnlasanKapora.toLocaleString('tr-TR')} ₺
               </p>
-              <p className="text-xs text-gray-400 mt-1">Anlaşan gelinlerden</p>
+              <p className="text-[10px] md:text-xs text-gray-400 mt-1">Anlaşan gelinlerden</p>
             </div>
 
-            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-              <p className="text-gray-500 text-xs">Bu Ay Kalan Bakiye</p>
-              <p className="text-2xl font-bold text-red-600 mt-1">
+            <div className="bg-white rounded-2xl p-3 md:p-4 shadow-sm border border-gray-100">
+              <p className="text-gray-500 text-[10px] md:text-xs">Bu Ay Kalan Bakiye</p>
+              <p className="text-lg md:text-2xl font-bold text-red-600 mt-1">
                 {buAyKalanBakiye.toLocaleString('tr-TR')} ₺
               </p>
-              <p className="text-xs text-gray-400 mt-1">Bugün ve sonrası</p>
+              <p className="text-[10px] md:text-xs text-gray-400 mt-1">Bugün ve sonrası</p>
             </div>
           </div>
 
@@ -444,8 +444,9 @@ export default function YonetimPage() {
               <span>📊</span> Aylık Finansal Özet
             </h2>
 
-            {/* Mobile: allow horizontal scroll for this wide summary table */}
-            <div className="overflow-x-auto -mx-2">
+            {/* Mobile: card view, Desktop: table view */}
+            {/* Desktop tablo */}
+            <div className="hidden md:block overflow-x-auto -mx-2">
               <div className="min-w-[680px] mx-2">
                 {/* Header */}
                 <div className="flex bg-gray-50 px-4 py-3 border-b border-gray-200 rounded-t-lg">
@@ -508,6 +509,53 @@ export default function YonetimPage() {
                   })}
                 </div>
               </div>
+            </div>
+
+            {/* Mobile kart görünümü */}
+            <div className="md:hidden max-h-[400px] overflow-y-auto space-y-2">
+              {tumAylar.map(ay => {
+                const veri = getAyVerileri(ay);
+                const isBuAy = ay === buAy;
+                return (
+                  <div
+                    key={ay}
+                    ref={isBuAy ? bugunAyRef : null}
+                    className={`p-3 rounded-lg border ${isBuAy ? 'bg-pink-50 border-pink-200' : 'bg-gray-50 border-gray-200'}`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className={`font-bold text-sm ${isBuAy ? 'text-pink-600' : 'text-gray-700'}`}>
+                        {formatAy(ay)}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className={`font-bold ${isBuAy ? 'text-pink-600' : 'text-gray-800'}`}>
+                          {veri.toplamGelin} gelin
+                        </span>
+                        {veri.hedef > 0 && (
+                          <span className={`text-xs px-1.5 py-0.5 rounded ${
+                            veri.toplamGelin >= veri.hedef ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'
+                          }`}>
+                            %{Math.round((veri.toplamGelin / veri.hedef) * 100)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-xs">
+                      <div>
+                        <span className="text-gray-500">Toplam</span>
+                        <p className="font-semibold text-gray-800">{veri.toplamUcret.toLocaleString('tr-TR')} ₺</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Kapora</span>
+                        <p className="font-semibold text-green-600">{veri.toplamKapora.toLocaleString('tr-TR')} ₺</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Kalan</span>
+                        <p className="font-semibold text-red-600">{veri.toplamKalan.toLocaleString('tr-TR')} ₺</p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </main>

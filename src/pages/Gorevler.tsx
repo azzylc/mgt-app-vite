@@ -599,8 +599,8 @@ export default function GorevlerPage() {
     <div className="min-h-screen bg-stone-50 flex">
       <div className="flex-1">
         <header className="bg-white shadow-sm sticky top-0 z-10 border-b border-stone-200">
-          <div className="px-4 md:px-6 py-3 flex items-center justify-between">
-            <h1 className="text-lg md:text-xl font-bold text-stone-800">✅ Görevler</h1>
+          <div className="px-3 md:px-6 py-2 md:py-3 flex items-center justify-between">
+            <h1 className="text-base md:text-xl font-bold text-stone-800">✅ Görevler</h1>
             
             {/* Kurucu için Ayarlar Butonu */}
             {userRole === "Kurucu" && (
@@ -618,10 +618,10 @@ export default function GorevlerPage() {
           </div>
           
           {/* Ana Sekmeler */}
-          <div className="px-4 md:px-6 flex gap-1 border-t border-stone-100 overflow-x-auto">
+          <div className="px-2 md:px-6 flex gap-0.5 md:gap-1 border-t border-stone-100 overflow-x-auto">
             <button
               onClick={() => { setAktifSekme("gorevlerim"); setFiltre("hepsi"); }}
-              className={`px-4 py-2.5 font-medium text-sm transition border-b-2 whitespace-nowrap ${
+              className={`px-2.5 md:px-4 py-2 md:py-2.5 font-medium text-xs md:text-sm transition border-b-2 whitespace-nowrap ${
                 aktifSekme === "gorevlerim"
                   ? "border-amber-500 text-amber-600 bg-amber-50/50"
                   : "border-transparent text-stone-500 hover:text-stone-700"
@@ -636,13 +636,14 @@ export default function GorevlerPage() {
             </button>
             <button
               onClick={() => { setAktifSekme("otomatik"); setFiltre("hepsi"); }}
-              className={`px-4 py-2.5 font-medium text-sm transition border-b-2 whitespace-nowrap ${
+              className={`px-2.5 md:px-4 py-2 md:py-2.5 font-medium text-xs md:text-sm transition border-b-2 whitespace-nowrap ${
                 aktifSekme === "otomatik"
                   ? "border-purple-500 text-purple-600 bg-purple-50/50"
                   : "border-transparent text-stone-500 hover:text-stone-700"
               }`}
             >
-              🤖 Otomatik Görevler
+              <span className="hidden md:inline">🤖 </span>Otomatik
+              <span className="hidden md:inline"> Görevler</span>
               <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs ${
                 aktifSekme === "otomatik" ? "bg-purple-100 text-purple-700" : "bg-stone-100 text-stone-500"
               }`}>
@@ -654,13 +655,13 @@ export default function GorevlerPage() {
             {(userRole === "Kurucu" || userRole === "Yönetici") && (
               <button
                 onClick={() => { setAktifSekme("tumgorevler"); setFiltre("hepsi"); setSeciliPersoneller([]); }}
-                className={`px-4 py-2.5 font-medium text-sm transition border-b-2 whitespace-nowrap ${
+                className={`px-2.5 md:px-4 py-2 md:py-2.5 font-medium text-xs md:text-sm transition border-b-2 whitespace-nowrap ${
                   aktifSekme === "tumgorevler"
                     ? "border-emerald-500 text-emerald-600 bg-emerald-50/50"
                     : "border-transparent text-stone-500 hover:text-stone-700"
                 }`}
               >
-                {userRole === "Kurucu" ? "👑" : "👥"} Ekip Görevleri
+                {userRole === "Kurucu" ? "👑" : "👥"} <span className="hidden md:inline">Ekip </span>Görevleri
                 <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs ${
                   aktifSekme === "tumgorevler" ? "bg-emerald-100 text-emerald-700" : "bg-stone-100 text-stone-500"
                 }`}>
@@ -671,7 +672,7 @@ export default function GorevlerPage() {
           </div>
         </header>
 
-        <main className="p-4 md:p-6">
+        <main className="p-3 md:p-6">
           {/* Görev Ayarları Paneli - Sadece Kurucu */}
           {showAyarlar && userRole === "Kurucu" && (
             <div className="mb-6 bg-white rounded-lg border-2 border-stone-300 shadow-lg overflow-hidden">
@@ -812,56 +813,56 @@ export default function GorevlerPage() {
           {/* Otomatik sekmede alt sekmeler */}
           {aktifSekme === "otomatik" && (
             <div className="mb-4">
-              <div className="flex flex-wrap gap-2 mb-3">
+              <div className="flex flex-wrap gap-1.5 md:gap-2 mb-3">
                 <button
                   onClick={() => setOtomatikAltSekme("yorumIstesinMi")}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                  className={`px-2 md:px-3 py-1 md:py-1.5 rounded-lg text-xs md:text-sm font-medium transition ${
                     otomatikAltSekme === "yorumIstesinMi"
                       ? "bg-purple-500 text-white"
                       : "bg-white text-stone-600 border border-stone-200 hover:bg-stone-50"
                   }`}
                 >
-                  📝 Yorum İstensin Mi
-                  <span className="ml-1.5 px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs">
+                  📝 <span className="hidden md:inline">Yorum </span>İstensin Mi
+                  <span className="ml-1 px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded-full text-[10px] md:text-xs">
                     {gorevler.filter(g => g.otomatikMi && g.gorevTuru === "yorumIstesinMi").length}
                   </span>
                 </button>
                 <button
                   onClick={() => setOtomatikAltSekme("paylasimIzni")}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                  className={`px-2 md:px-3 py-1 md:py-1.5 rounded-lg text-xs md:text-sm font-medium transition ${
                     otomatikAltSekme === "paylasimIzni"
                       ? "bg-blue-500 text-white"
                       : "bg-white text-stone-600 border border-stone-200 hover:bg-stone-50"
                   }`}
                 >
                   📸 Paylaşım İzni
-                  <span className="ml-1.5 px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs">
+                  <span className="ml-1 px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded-full text-[10px] md:text-xs">
                     {gorevler.filter(g => g.otomatikMi && g.gorevTuru === "paylasimIzni").length}
                   </span>
                 </button>
                 <button
                   onClick={() => setOtomatikAltSekme("yorumIstendiMi")}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                  className={`px-2 md:px-3 py-1 md:py-1.5 rounded-lg text-xs md:text-sm font-medium transition ${
                     otomatikAltSekme === "yorumIstendiMi"
                       ? "bg-amber-500 text-white"
                       : "bg-white text-stone-600 border border-stone-200 hover:bg-stone-50"
                   }`}
                 >
-                  💬 Yorum İstenecekler
-                  <span className="ml-1.5 px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded-full text-xs">
+                  💬 <span className="hidden md:inline">Yorum </span>İstenecekler
+                  <span className="ml-1 px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded-full text-[10px] md:text-xs">
                     {gorevler.filter(g => g.otomatikMi && g.gorevTuru === "yorumIstendiMi").length}
                   </span>
                 </button>
                 <button
                   onClick={() => setOtomatikAltSekme("odemeTakip")}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                  className={`px-2 md:px-3 py-1 md:py-1.5 rounded-lg text-xs md:text-sm font-medium transition ${
                     otomatikAltSekme === "odemeTakip"
                       ? "bg-red-500 text-white"
                       : "bg-white text-stone-600 border border-stone-200 hover:bg-stone-50"
                   }`}
                 >
                   💰 Ödeme Takip
-                  <span className="ml-1.5 px-1.5 py-0.5 bg-red-100 text-red-700 rounded-full text-xs">
+                  <span className="ml-1 px-1.5 py-0.5 bg-red-100 text-red-700 rounded-full text-[10px] md:text-xs">
                     {gorevler.filter(g => g.otomatikMi && g.gorevTuru === "odemeTakip").length}
                   </span>
                 </button>
@@ -979,10 +980,10 @@ export default function GorevlerPage() {
           )}
 
           {/* Filtre Butonları */}
-          <div className="mb-4 flex flex-wrap gap-2">
+          <div className="mb-3 md:mb-4 flex flex-wrap gap-1.5 md:gap-2">
             <button
               onClick={() => setFiltre("hepsi")}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+              className={`px-2 md:px-3 py-1 md:py-1.5 rounded-lg text-xs md:text-sm font-medium transition ${
                 filtre === "hepsi"
                   ? aktifSekme === "otomatik" ? "bg-purple-500 text-white" 
                     : aktifSekme === "tumgorevler" ? "bg-emerald-500 text-white"
@@ -998,7 +999,7 @@ export default function GorevlerPage() {
             </button>
             <button
               onClick={() => setFiltre("bekliyor")}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+              className={`px-2 md:px-3 py-1 md:py-1.5 rounded-lg text-xs md:text-sm font-medium transition ${
                 filtre === "bekliyor"
                   ? aktifSekme === "otomatik" ? "bg-purple-500 text-white" 
                     : aktifSekme === "tumgorevler" ? "bg-emerald-500 text-white"
@@ -1010,7 +1011,7 @@ export default function GorevlerPage() {
             </button>
             <button
               onClick={() => setFiltre("devam-ediyor")}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+              className={`px-2 md:px-3 py-1 md:py-1.5 rounded-lg text-xs md:text-sm font-medium transition ${
                 filtre === "devam-ediyor"
                   ? aktifSekme === "otomatik" ? "bg-purple-500 text-white" 
                     : aktifSekme === "tumgorevler" ? "bg-emerald-500 text-white"
@@ -1018,11 +1019,11 @@ export default function GorevlerPage() {
                   : "bg-white text-stone-600 hover:bg-stone-50 border border-stone-200"
               }`}
             >
-              🔄 Devam Ediyor
+              🔄 <span className="hidden md:inline">Devam </span>Ediyor
             </button>
             <button
               onClick={() => setFiltre("tamamlandi")}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+              className={`px-2 md:px-3 py-1 md:py-1.5 rounded-lg text-xs md:text-sm font-medium transition ${
                 filtre === "tamamlandi"
                   ? aktifSekme === "otomatik" ? "bg-purple-500 text-white" 
                     : aktifSekme === "tumgorevler" ? "bg-emerald-500 text-white"
@@ -1036,7 +1037,7 @@ export default function GorevlerPage() {
             {/* Sıralama */}
             <button
               onClick={() => setSiralama(siralama === "yenidenEskiye" ? "eskidenYeniye" : "yenidenEskiye")}
-              className="ml-auto px-3 py-1.5 rounded-lg text-sm font-medium bg-stone-100 text-stone-600 hover:bg-stone-200 border border-stone-200 transition flex items-center gap-1"
+              className="ml-auto px-2 md:px-3 py-1 md:py-1.5 rounded-lg text-xs md:text-sm font-medium bg-stone-100 text-stone-600 hover:bg-stone-200 border border-stone-200 transition flex items-center gap-1"
             >
               {siralama === "yenidenEskiye" ? "📅 Yeni → Eski" : "📅 Eski → Yeni"}
             </button>
@@ -1053,25 +1054,25 @@ export default function GorevlerPage() {
               filtreliGorevler.map((gorev) => (
                 <div
                   key={gorev.id}
-                  className={`bg-white rounded-lg shadow-sm border-2 p-4 md:p-5 transition hover:shadow-md ${oncelikRenk(gorev.oncelik)}`}
+                  className={`bg-white rounded-lg shadow-sm border-2 p-3 md:p-5 transition hover:shadow-md ${oncelikRenk(gorev.oncelik)}`}
                 >
-                  <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start justify-between gap-2 md:gap-4">
                     <div className="flex-1 min-w-0">
                       {/* Başlık + Otomatik Badge */}
-                      <div className="flex items-start gap-2 mb-2">
-                        <h3 className="text-lg font-semibold text-stone-800 flex-1">{gorev.baslik}</h3>
+                      <div className="flex items-start gap-2 mb-1 md:mb-2">
+                        <h3 className="text-sm md:text-lg font-semibold text-stone-800 flex-1">{gorev.baslik}</h3>
                         {gorev.otomatikMi && (
-                          <span className="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full font-medium shrink-0">
+                          <span className="bg-purple-100 text-purple-700 text-[10px] md:text-xs px-1.5 md:px-2 py-0.5 rounded-full font-medium shrink-0">
                             🤖 Otomatik
                           </span>
                         )}
                       </div>
 
                       {/* Açıklama */}
-                      <p className="text-sm text-stone-600 mb-3">{gorev.aciklama}</p>
+                      <p className="text-xs md:text-sm text-stone-600 mb-2 md:mb-3">{gorev.aciklama}</p>
 
                       {/* Meta Bilgiler */}
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-stone-500">
+                      <div className="flex flex-wrap items-center gap-2 md:gap-3 text-[10px] md:text-xs text-stone-500">
                         {/* Tüm Görevler sekmesinde atanan kişiyi göster */}
                         {aktifSekme === "tumgorevler" && (
                           <div className="flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-full">
