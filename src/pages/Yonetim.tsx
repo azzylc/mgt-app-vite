@@ -183,15 +183,14 @@ export default function YonetimPage() {
     return { toplamGelin, toplamUcret, toplamKapora, toplamKalan, hedef };
   };
 
-  // Bu ay anlaşılan gelinlerin kaporası
-  const buAyAnlasanKapora = gelinler
-    .filter(g => {
-      if (!g.anlasildigiTarih) return false;
-      const anlasmaTarihi = g.anlasildigiTarih.slice(0, 10);
-      const ayBasi = buAy + "-01";
-      return anlasmaTarihi >= ayBasi && anlasmaTarihi <= bugun;
-    })
-    .reduce((sum, g) => sum + Number(g.kapora || 0), 0);
+  // Bu ay anlaşılan gelinler
+  const buAyAnlasanGelinler = gelinler.filter(g => {
+    if (!g.anlasildigiTarih) return false;
+    const anlasmaTarihi = g.anlasildigiTarih.slice(0, 10);
+    const ayBasi = buAy + "-01";
+    return anlasmaTarihi >= ayBasi && anlasmaTarihi <= bugun;
+  });
+  const buAyAnlasanKapora = buAyAnlasanGelinler.reduce((sum, g) => sum + Number(g.kapora || 0), 0);
 
   // Şu andan itibaren kalan bakiye (gelinin bitiş saatine göre, başlangıç + 2 saat)
   const simdikiSaat = new Date().getHours() * 60 + new Date().getMinutes();
@@ -316,11 +315,13 @@ export default function YonetimPage() {
             </div>
 
             <div className="bg-white rounded-2xl p-3 md:p-4 shadow-sm border border-gray-100">
-              <p className="text-gray-500 text-[10px] md:text-xs">Bu Ay Kapora</p>
+              <p className="text-gray-500 text-[10px] md:text-xs">Bu Ay Alınan Kapora</p>
               <p className="text-lg md:text-2xl font-bold text-green-600 mt-1">
+                <span className="text-purple-600">{buAyAnlasanGelinler.length}</span>
+                <span className="text-sm md:text-base text-gray-400 mx-1">/</span>
                 {buAyAnlasanKapora.toLocaleString('tr-TR')} ₺
               </p>
-              <p className="text-[10px] md:text-xs text-gray-400 mt-1">Anlaşan gelinlerden</p>
+              <p className="text-[10px] md:text-xs text-gray-400 mt-1">{buAyAnlasanGelinler.length} gelin anlaştı</p>
             </div>
 
             <div className="bg-white rounded-2xl p-3 md:p-4 shadow-sm border border-gray-100">
