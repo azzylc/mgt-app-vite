@@ -46,9 +46,9 @@ export default function YonetimPage() {
   // Bugünkü ay satırı için ref
   const bugunAyRef = useRef<HTMLDivElement>(null);
 
-  const bugun = new Date().toISOString().split('T')[0];
-  const yarin = new Date(Date.now() + 86400000).toISOString().split('T')[0];
-  const buAy = new Date().toISOString().slice(0, 7);
+  const bugun = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
+  const yarin = (() => { const d = new Date(); d.setDate(d.getDate()+1); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
+  const buAy = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; })();
   const [odemeSekme, setOdemeSekme] = useState<'bugun' | 'yarin'>('bugun');
 
   // Auth kontrolü
