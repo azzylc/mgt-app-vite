@@ -361,24 +361,24 @@ export default function PuantajPage() {
   const handleGirisSaatiChange = (value: string) => {
     setGirisSaati(value);
     setGirisOnerisi(null);
+    if (!value || !value.includes(':')) return;
     const [saat, dakika] = value.split(':').map(Number);
+    if (isNaN(saat) || isNaN(dakika)) return;
     let cikisSaat = saat + 9;
-    // 24 saat üzeriyse düzelt
     if (cikisSaat >= 24) cikisSaat -= 24;
     const oneriSaat = `${cikisSaat.toString().padStart(2, '0')}:${dakika.toString().padStart(2, '0')}`;
-    // Her zaman öneri göster (kullanıcı isterse uygular)
     setCikisOnerisi(oneriSaat);
   };
 
-  // Çıkış saati değişince giriş için öneri göster
   const handleCikisSaatiChange = (value: string) => {
     setCikisSaati(value);
     setCikisOnerisi(null);
+    if (!value || !value.includes(':')) return;
     const [saat, dakika] = value.split(':').map(Number);
+    if (isNaN(saat) || isNaN(dakika)) return;
     let girisSaat = saat - 9;
     if (girisSaat < 0) girisSaat += 24;
     const oneriSaat = `${girisSaat.toString().padStart(2, '0')}:${dakika.toString().padStart(2, '0')}`;
-    // Her zaman öneri göster
     setGirisOnerisi(oneriSaat);
   };
 
@@ -1007,7 +1007,9 @@ export default function PuantajPage() {
               <div className="space-y-2 max-h-48 overflow-y-auto">
                 {eksikCikislar.map((eksik, i) => {
                   // +9 saat hesapla, max 18:00
-                  const [saat, dakika] = eksik.girisSaat.split(':').map(Number);
+                  const parts = (eksik.girisSaat || "09:00").split(':').map(Number);
+                  const saat = isNaN(parts[0]) ? 9 : parts[0];
+                  const dakika = isNaN(parts[1]) ? 0 : parts[1];
                   let varsayilanCikisSaat = saat + 9;
                   if (varsayilanCikisSaat > 18) varsayilanCikisSaat = 18;
                   const varsayilanCikisDakika = varsayilanCikisSaat === 18 ? 0 : dakika;
