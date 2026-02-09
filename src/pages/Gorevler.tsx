@@ -45,7 +45,7 @@ export default function GorevlerPage() {
   const [tumGorevler, setTumGorevler] = useState<Gorev[]>([]);
   const [personeller, setPersoneller] = useState<Personel[]>([]);
   const [filtreliGorevler, setFiltreliGorevler] = useState<Gorev[]>([]);
-  const [filtre, setFiltre] = useState<"hepsi" | "bekliyor" | "devam-ediyor" | "tamamlandi">("hepsi");
+  const [filtre, setFiltre] = useState<"hepsi" | "bekliyor" | "devam-ediyor" | "tamamlandi">("bekliyor");
   const [siralama, setSiralama] = useState<"yenidenEskiye" | "eskidenYeniye">("yenidenEskiye");
   const [aktifSekme, setAktifSekme] = useState<"gorevlerim" | "verdigim" | "otomatik" | "tumgorevler">("gorevlerim");
   const [otomatikAltSekme, setOtomatikAltSekme] = useState<"hepsi" | "yorumIstesinMi" | "paylasimIzni" | "yorumIstendiMi" | "odemeTakip">("hepsi");
@@ -725,7 +725,7 @@ export default function GorevlerPage() {
           {/* Sekmeler */}
           <div className="px-2 md:px-5 flex gap-0 border-t border-stone-100 overflow-x-auto">
             <button
-              onClick={() => { setAktifSekme("gorevlerim"); setFiltre("hepsi"); }}
+              onClick={() => { setAktifSekme("gorevlerim"); setFiltre("bekliyor"); }}
               className={`px-2.5 md:px-4 py-2 md:py-2.5 font-medium text-xs md:text-sm transition border-b-2 whitespace-nowrap ${
                 aktifSekme === "gorevlerim" ? "border-amber-500 text-amber-600 bg-amber-50/50" : "border-transparent text-stone-500 hover:text-stone-700"
               }`}
@@ -738,7 +738,7 @@ export default function GorevlerPage() {
             
             {gorevAtayabilir && (
               <button
-                onClick={() => { setAktifSekme("verdigim"); setFiltre("hepsi"); }}
+                onClick={() => { setAktifSekme("verdigim"); setFiltre("bekliyor"); }}
                 className={`px-2.5 md:px-4 py-2 md:py-2.5 font-medium text-xs md:text-sm transition border-b-2 whitespace-nowrap ${
                   aktifSekme === "verdigim" ? "border-sky-500 text-sky-600 bg-sky-50/50" : "border-transparent text-stone-500 hover:text-stone-700"
                 }`}
@@ -751,7 +751,7 @@ export default function GorevlerPage() {
             )}
 
             <button
-              onClick={() => { setAktifSekme("otomatik"); setFiltre("hepsi"); }}
+              onClick={() => { setAktifSekme("otomatik"); setFiltre("bekliyor"); }}
               className={`px-2.5 md:px-4 py-2 md:py-2.5 font-medium text-xs md:text-sm transition border-b-2 whitespace-nowrap ${
                 aktifSekme === "otomatik" ? "border-purple-500 text-purple-600 bg-purple-50/50" : "border-transparent text-stone-500 hover:text-stone-700"
               }`}
@@ -765,7 +765,7 @@ export default function GorevlerPage() {
             
             {gorevAtayabilir && (
               <button
-                onClick={() => { setAktifSekme("tumgorevler"); setFiltre("hepsi"); setSeciliPersoneller([]); }}
+                onClick={() => { setAktifSekme("tumgorevler"); setFiltre("bekliyor"); setSeciliPersoneller([]); }}
                 className={`px-2.5 md:px-4 py-2 md:py-2.5 font-medium text-xs md:text-sm transition border-b-2 whitespace-nowrap ${
                   aktifSekme === "tumgorevler" ? "border-emerald-500 text-emerald-600 bg-emerald-50/50" : "border-transparent text-stone-500 hover:text-stone-700"
                 }`}
