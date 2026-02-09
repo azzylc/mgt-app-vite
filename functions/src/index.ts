@@ -576,11 +576,15 @@ export const personelUpdate = onCall({
     throw new HttpsError('invalid-argument', 'Personel ID gerekli');
   }
 
+  // Firestore'dan authUid al (eski kayıtlarda doc ID ≠ Auth UID olabilir)
+  const personelDoc = await adminDb.collection('personnel').doc(id).get();
+  const authUid = personelDoc.exists ? (personelDoc.data()?.authUid || id) : id;
+
   // Şifre değişikliği
   if (password && password.length >= 6) {
     try {
-      await adminAuth.updateUser(id, { password });
-      console.log(`✅ Password updated: ${id}`);
+      await adminAuth.updateUser(authUid, { password });
+      console.log(`✅ Password updated: ${authUid}`);
     } catch (authErr: any) {
       console.error('Auth password update error:', authErr);
     }
@@ -589,8 +593,8 @@ export const personelUpdate = onCall({
   // Email değişikliği
   if (updateData.email) {
     try {
-      await adminAuth.updateUser(id, { email: updateData.email });
-      console.log(`✅ Email updated: ${id} → ${updateData.email}`);
+      await adminAuth.updateUser(authUid, { email: updateData.email });
+      console.log(`✅ Email updated: ${authUid} → ${updateData.email}`);
     } catch (authErr: any) {
       console.error('Auth email update error:', authErr);
       throw new HttpsError('invalid-argument', 'Email güncellenemedi: ' + authErr.message);
@@ -605,8 +609,8 @@ export const personelUpdate = onCall({
   // Aktiflik durumu → Auth disable/enable
   if (updateData.aktif !== undefined) {
     try {
-      await adminAuth.updateUser(id, { disabled: !updateData.aktif });
-      console.log(`✅ Status updated: ${id} → ${updateData.aktif ? 'Active' : 'Disabled'}`);
+      await adminAuth.updateUser(authUid, { disabled: !updateData.aktif });
+      console.log(`✅ Status updated: ${authUid} → ${updateData.aktif ? 'Active' : 'Disabled'}`);
     } catch (authErr: any) {
       console.error('Auth status update error:', authErr);
     }
