@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, Suspense } from "react";
-import { auth, db } from "../lib/firebase";
+import { auth, db, functions } from "../lib/firebase";
+import { httpsCallable } from "firebase/functions";
 import { useSearchParams } from "react-router-dom";
 import Cropper from "react-easy-crop";
 import { useGrupEtiketleri } from "../hooks/useGrupEtiketleri";
@@ -19,9 +20,6 @@ import {
 } from "firebase/firestore";
 import * as Sentry from '@sentry/react';
 import { useAuth } from "../context/RoleProvider";
-
-// 🔥 Firebase Functions base URL
-const API_BASE = 'https://europe-west1-gmt-test-99b30.cloudfunctions.net';
 
 interface Personel {
   id: string;
@@ -240,57 +238,27 @@ function PersonelPageContent() {
       };
 
       if (editingPersonel) {
-        // 🔥 Firebase ID token al
-        const idToken = await auth.currentUser?.getIdToken();
-        
-        // GÜNCELLEME - API kullan
+        // GÜNCELLEME - onCall
         const { id, ...dataToUpdate } = dataToSave;
         
-        const response = await fetch(`${API_BASE}/personelApi`, {
-          method: 'PUT',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${idToken}`
-          },
-          body: JSON.stringify({
-            id: editingPersonel.id,
-            ...dataToUpdate
-          })
+        const result = await httpsCallable(functions, 'personelUpdate')({
+          id: editingPersonel.id,
+          ...dataToUpdate
         });
-
-        const result = await response.json();
         
-        if (!response.ok) {
-          // Auth'ta kullanıcı yoksa sadece uyarı ver (Firestore güncellendi)
-          if (result.error?.includes("no user record") || result.error?.includes("There is no user record")) {
-            console.warn("Auth kullanıcısı bulunamadı, sadece Firestore güncellendi");
-          } else {
-            throw new Error(result.error || 'Güncelleme başarısız');
-          }
+        const data = result.data as any;
+        if (!data.success) {
+          throw new Error(data.error || 'Güncelleme başarısız');
         }
       } else {
-        // 🔥 Firebase ID token al
-        const idToken = await auth.currentUser?.getIdToken();
-        
-        // YENİ PERSONEL - API kullan (Firebase Auth + Firestore)
+        // YENİ PERSONEL - onCall (Firebase Auth + Firestore)
         const { id, ...dataToAdd } = dataToSave;
         
-        const response = await fetch(`${API_BASE}/personelApi`, {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${idToken}`
-          },
-          body: JSON.stringify({
-            ...dataToAdd
-            // Şifre API tarafında otomatik oluşturulacak
-          })
-        });
-
-        const result = await response.json();
+        const result = await httpsCallable(functions, 'personelCreate')(dataToAdd);
+        const data = result.data as any;
         
-        if (!response.ok) {
-          throw new Error(result.error || 'Personel oluşturulamadı');
+        if (!data.success) {
+          throw new Error(data.error || 'Personel oluşturulamadı');
         }
 
         alert(`✅ ${formData.ad} ${formData.soyad} başarıyla eklendi!\n\n"Yeni Şifre Gönder" butonuna basarak giriş bilgilerini email ile gönderin.`);
@@ -318,22 +286,15 @@ function PersonelPageContent() {
     
     if (confirm(`${personel.ad} ${personel.soyad} için telefon bağı koparılsın mı?\n\nBu işlem sonrası personel yeni bir cihazla giriş yapabilir.`)) {
       try {
-        const idToken = await auth.currentUser?.getIdToken();
-        const response = await fetch(`${API_BASE}/personelActions`, {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${idToken}`
-          },
-          body: JSON.stringify({ action: 'unbind-device', personelId: id })
+        const result = await httpsCallable(functions, 'personelActions')({
+          action: 'unbind-device', personelId: id
         });
+        const data = result.data as any;
         
-        const result = await response.json();
-        
-        if (response.ok) {
-          alert('✅ ' + result.message);
+        if (data.success) {
+          alert('✅ ' + data.message);
         } else {
-          alert('❌ Hata: ' + result.error);
+          alert('❌ Hata: ' + data.error);
         }
       } catch (error) {
         Sentry.captureException(error);
@@ -350,26 +311,19 @@ function PersonelPageContent() {
 
     if (confirm(`${personel.ad} ${personel.soyad} için yeni şifre oluşturulsun mu?\n\nEmail: ${personel.email}`)) {
       try {
-        const idToken = await auth.currentUser?.getIdToken();
-        const response = await fetch(`${API_BASE}/personelActions`, {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${idToken}`
-          },
-          body: JSON.stringify({ action: 'reset-password', personelId: personel.id })
+        const result = await httpsCallable(functions, 'personelActions')({
+          action: 'reset-password', personelId: personel.id
         });
+        const data = result.data as any;
         
-        const result = await response.json();
-        
-        if (response.ok) {
-          if (result.emailSent) {
-            alert(`✅ Yeni şifre oluşturuldu ve email gönderildi!\n\nEmail: ${result.email}\nYeni Şifre: ${result.newPassword}`);
+        if (data.success) {
+          if (data.emailSent) {
+            alert(`✅ Yeni şifre oluşturuldu ve email gönderildi!\n\nEmail: ${data.email}\nYeni Şifre: ${data.newPassword}`);
           } else {
-            alert(`✅ Yeni şifre oluşturuldu!\n\nEmail: ${result.email}\nYeni Şifre: ${result.newPassword}\n\n⚠️ Email gönderilemedi, şifreyi manuel iletin!`);
+            alert(`✅ Yeni şifre oluşturuldu!\n\nEmail: ${data.email}\nYeni Şifre: ${data.newPassword}\n\n⚠️ Email gönderilemedi, şifreyi manuel iletin!`);
           }
         } else {
-          alert('❌ Hata: ' + result.error);
+          alert('❌ Hata: ' + data.error);
         }
       } catch (error) {
         Sentry.captureException(error);
@@ -385,22 +339,15 @@ function PersonelPageContent() {
     
     if (confirm(mesaj)) {
       try {
-        const idToken = await auth.currentUser?.getIdToken();
-        const response = await fetch(`${API_BASE}/personelActions`, {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${idToken}`
-          },
-          body: JSON.stringify({ action: 'toggle-status', personelId: personel.id })
+        const result = await httpsCallable(functions, 'personelActions')({
+          action: 'toggle-status', personelId: personel.id
         });
+        const data = result.data as any;
         
-        const result = await response.json();
-        
-        if (response.ok) {
-          alert('✅ ' + result.message);
+        if (data.success) {
+          alert('✅ ' + data.message);
         } else {
-          alert('❌ Hata: ' + result.error);
+          alert('❌ Hata: ' + data.error);
         }
       } catch (error) {
         Sentry.captureException(error);

@@ -1,4 +1,4 @@
-import { onRequest } from 'firebase-functions/v2/https';
+import { onRequest, onCall, HttpsError } from 'firebase-functions/v2/https';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { onDocumentUpdated, onDocumentCreated } from 'firebase-functions/v2/firestore';
 import { defineSecret } from 'firebase-functions/params';
@@ -66,8 +66,37 @@ async function verifyUserAuth(req: any, requiredRoles?: string[]): Promise<{ err
 }
 
 // ============================================
-// 1. CALENDAR WEBHOOK
+// HELPER: onCall Auth + Rol kontrolü
 // ============================================
+async function verifyCallableAuth(request: any, requiredRoles?: string[]): Promise<{ email: string; role: string; uid: string }> {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Giriş yapmanız gerekiyor');
+  }
+
+  const email = request.auth.token.email;
+  if (!email) {
+    throw new HttpsError('unauthenticated', 'Email bulunamadı');
+  }
+
+  const personnelSnapshot = await adminDb
+    .collection('personnel')
+    .where('email', '==', email)
+    .limit(1)
+    .get();
+
+  if (personnelSnapshot.empty) {
+    throw new HttpsError('not-found', 'Kullanıcı bulunamadı');
+  }
+
+  const userData = personnelSnapshot.docs[0].data();
+  const userRole = userData.kullaniciTuru || 'Personel';
+
+  if (requiredRoles && requiredRoles.length > 0 && !requiredRoles.includes(userRole)) {
+    throw new HttpsError('permission-denied', `Yetkiniz yok. Gerekli: ${requiredRoles.join(', ')}`);
+  }
+
+  return { email, role: userRole, uid: request.auth.uid };
+}
 export const calendarWebhook = onRequest({ region: 'europe-west1', cors: true, secrets: [calendarId, webhookToken] }, async (req, res) => {
   try {
     process.env.GOOGLE_CALENDAR_ID = calendarId.value();
@@ -483,343 +512,269 @@ export const onGelinUpdated = onDocumentUpdated({
 // ============================================
 // 7. PERSONEL API (Yeni oluştur + Güncelle)
 // ============================================
-export const personelApi = onRequest({
+// ============================================
+// 7a. PERSONEL OLUŞTUR (onCall)
+// ============================================
+export const personelCreate = onCall({
   region: 'europe-west1',
-  cors: true,
   secrets: [resendApiKey]
-}, async (req, res) => {
+}, async (request) => {
   process.env.RESEND_API_KEY = resendApiKey.value();
+  const user = await verifyCallableAuth(request, ['Kurucu', 'Yönetici']);
 
-  // ---- POST: Yeni Personel Oluştur ----
-  if (req.method === 'POST') {
-    const { error: authError, user } = await verifyUserAuth(req, ['Kurucu', 'Yönetici']);
-    if (authError) { res.status(401).json({ error: authError }); return; }
+  const {
+    email, password, ad, soyad, sicilNo, telefon, kisaltma,
+    calismaSaati, iseBaslama, kullaniciTuru, yoneticiId,
+    grupEtiketleri, yetkiliGruplar, aktif, ayarlar, foto,
+    firmalar, yonettigiFirmalar, dogumGunu
+  } = request.data;
 
-    try {
-      const {
-        email, password, ad, soyad, sicilNo, telefon, kisaltma,
-        calismaSaati, iseBaslama, kullaniciTuru, yoneticiId,
-        grupEtiketleri, yetkiliGruplar, aktif, ayarlar, foto,
-        firmalar, yonettigiFirmalar, dogumGunu
-      } = req.body;
+  console.log(`[personelCreate] Yeni: ${ad} ${soyad} (${email}) - by ${user.email}`);
 
-      console.log(`[POST personelApi] Yeni: ${ad} ${soyad} (${email}) - by ${user?.email}`);
-
-      if (!email || !ad || !soyad || !sicilNo || !telefon) {
-        res.status(400).json({ error: 'Zorunlu alanlar eksik: email, ad, soyad, sicilNo, telefon' });
-        return;
-      }
-
-      const finalPassword = password || generatePassword(8);
-
-      // 1. Firebase Auth kullanıcı oluştur
-      let userRecord;
-      try {
-        userRecord = await adminAuth.createUser({
-          email,
-          password: finalPassword,
-          displayName: `${ad} ${soyad}`,
-          disabled: aktif === false
-        });
-        console.log(`✅ Auth user created: ${userRecord.uid}`);
-      } catch (authErr: any) {
-        if (authErr.code === 'auth/email-already-exists') {
-          res.status(400).json({ error: 'Bu email adresi zaten kayıtlı' });
-          return;
-        }
-        throw authErr;
-      }
-
-      // 2. Firestore'a kaydet (Auth UID = Doc ID)
-      const personelData: any = {
-        email,
-        ad,
-        soyad,
-        sicilNo,
-        telefon,
-        kisaltma: kisaltma || '',
-        calismaSaati: calismaSaati || 'serbest',
-        iseBaslama: iseBaslama || '',
-        istenAyrilma: '',
-        kullaniciTuru: kullaniciTuru || 'Personel',
-        yoneticiId: yoneticiId || '',
-        grup: '',
-        grupEtiketleri: grupEtiketleri || [],
-        yetkiliGruplar: yetkiliGruplar || [],
-        aktif: aktif !== false,
-        foto: foto || '',
-        firmalar: firmalar || [],
-        yonettigiFirmalar: yonettigiFirmalar || [],
-        dogumGunu: dogumGunu || '',
-        ayarlar: ayarlar || {
-          otoCikis: false,
-          qrKamerali: false,
-          konumSecim: false,
-          qrCihazModu: false,
-          girisHatirlatici: false,
-          mazeretEkran: false,
-          konumDisi: false,
-        },
-        createdAt: new Date().toISOString(),
-        createdBy: user?.email || '',
-        authUid: userRecord.uid
-      };
-
-      await adminDb.collection('personnel').doc(userRecord.uid).set(personelData);
-      console.log(`✅ Firestore personel saved: ${userRecord.uid}`);
-
-      // 3. Şifre maili gönder
-      try {
-        await sendPasswordResetEmail(email, `${ad} ${soyad}`, finalPassword);
-        console.log(`✅ Password email sent: ${email}`);
-      } catch (emailError) {
-        console.error('Mail gönderme hatası:', emailError);
-      }
-
-      res.json({
-        success: true,
-        message: 'Personel başarıyla oluşturuldu',
-        uid: userRecord.uid,
-        email,
-        password: finalPassword
-      });
-
-    } catch (error: any) {
-      console.error('Personel oluşturma hatası:', error);
-      res.status(500).json({ error: 'Personel oluşturulamadı', details: error.message });
-    }
-    return;
+  if (!email || !ad || !soyad || !sicilNo || !telefon) {
+    throw new HttpsError('invalid-argument', 'Zorunlu alanlar eksik: email, ad, soyad, sicilNo, telefon');
   }
 
-  // ---- PUT: Personel Güncelle ----
-  if (req.method === 'PUT') {
-    const { error: authError, user } = await verifyUserAuth(req, ['Kurucu', 'Yönetici']);
-    if (authError) { res.status(401).json({ error: authError }); return; }
+  const finalPassword = password || generatePassword(8);
 
-    try {
-      const { id, password, ...updateData } = req.body;
-
-      console.log(`[PUT personelApi] Güncelle: ${id} - by ${user?.email}`);
-
-      if (!id) {
-        res.status(400).json({ error: 'Personel ID gerekli' });
-        return;
-      }
-
-      // Şifre değişikliği
-      if (password && password.length >= 6) {
-        try {
-          await adminAuth.updateUser(id, { password });
-          console.log(`✅ Password updated: ${id}`);
-        } catch (authErr: any) {
-          console.error('Auth password update error:', authErr);
-        }
-      }
-
-      // Email değişikliği
-      if (updateData.email) {
-        try {
-          await adminAuth.updateUser(id, { email: updateData.email });
-          console.log(`✅ Email updated: ${id} → ${updateData.email}`);
-        } catch (authErr: any) {
-          console.error('Auth email update error:', authErr);
-          res.status(400).json({ error: 'Email güncellenemedi: ' + authErr.message });
-          return;
-        }
-      }
-
-      // İşten ayrılma tarihi → otomatik pasif yap
-      if (updateData.istenAyrilma !== undefined) {
-        updateData.aktif = !updateData.istenAyrilma || updateData.istenAyrilma === '';
-      }
-
-      // Aktiflik durumu → Auth disable/enable
-      if (updateData.aktif !== undefined) {
-        try {
-          await adminAuth.updateUser(id, { disabled: !updateData.aktif });
-          console.log(`✅ Status updated: ${id} → ${updateData.aktif ? 'Active' : 'Disabled'}`);
-        } catch (authErr: any) {
-          console.error('Auth status update error:', authErr);
-        }
-      }
-
-      // Firestore güncelle
-      await adminDb.collection('personnel').doc(id).update({
-        ...updateData,
-        updatedAt: new Date().toISOString(),
-        updatedBy: user?.email || ''
-      });
-
-      console.log(`✅ Personel updated: ${id}`);
-      res.json({ success: true, message: 'Personel başarıyla güncellendi' });
-
-    } catch (error: any) {
-      console.error('Personel güncelleme hatası:', error);
-      res.status(500).json({ error: 'Personel güncellenemedi', details: error.message });
+  // 1. Firebase Auth kullanıcı oluştur
+  let userRecord;
+  try {
+    userRecord = await adminAuth.createUser({
+      email,
+      password: finalPassword,
+      displayName: `${ad} ${soyad}`,
+      disabled: aktif === false
+    });
+    console.log(`✅ Auth user created: ${userRecord.uid}`);
+  } catch (authErr: any) {
+    if (authErr.code === 'auth/email-already-exists') {
+      throw new HttpsError('already-exists', 'Bu email adresi zaten kayıtlı');
     }
-    return;
+    throw new HttpsError('internal', authErr.message);
   }
 
-  res.status(405).json({ error: 'Method not allowed' });
+  // 2. Firestore'a kaydet
+  const personelData: any = {
+    email, ad, soyad, sicilNo, telefon,
+    kisaltma: kisaltma || '',
+    calismaSaati: calismaSaati || 'serbest',
+    iseBaslama: iseBaslama || '',
+    istenAyrilma: '',
+    kullaniciTuru: kullaniciTuru || 'Personel',
+    yoneticiId: yoneticiId || '',
+    grup: '',
+    grupEtiketleri: grupEtiketleri || [],
+    yetkiliGruplar: yetkiliGruplar || [],
+    aktif: aktif !== false,
+    foto: foto || '',
+    firmalar: firmalar || [],
+    yonettigiFirmalar: yonettigiFirmalar || [],
+    dogumGunu: dogumGunu || '',
+    ayarlar: ayarlar || {
+      otoCikis: false, qrKamerali: false, konumSecim: false,
+      qrCihazModu: false, girisHatirlatici: false, mazeretEkran: false, konumDisi: false,
+    },
+    createdAt: new Date().toISOString(),
+    createdBy: user.email,
+    authUid: userRecord.uid
+  };
+
+  await adminDb.collection('personnel').doc(userRecord.uid).set(personelData);
+  console.log(`✅ Firestore personel saved: ${userRecord.uid}`);
+
+  // 3. Şifre maili gönder
+  try {
+    await sendPasswordResetEmail(email, `${ad} ${soyad}`, finalPassword);
+    console.log(`✅ Password email sent: ${email}`);
+  } catch (emailError) {
+    console.error('Mail gönderme hatası:', emailError);
+  }
+
+  return {
+    success: true,
+    message: 'Personel başarıyla oluşturuldu',
+    uid: userRecord.uid,
+    email,
+    password: finalPassword
+  };
+});
+
+// ============================================
+// 7b. PERSONEL GÜNCELLE (onCall)
+// ============================================
+export const personelUpdate = onCall({
+  region: 'europe-west1'
+}, async (request) => {
+  const user = await verifyCallableAuth(request, ['Kurucu', 'Yönetici']);
+
+  const { id, password, ...updateData } = request.data;
+
+  console.log(`[personelUpdate] Güncelle: ${id} - by ${user.email}`);
+
+  if (!id) {
+    throw new HttpsError('invalid-argument', 'Personel ID gerekli');
+  }
+
+  // Şifre değişikliği
+  if (password && password.length >= 6) {
+    try {
+      await adminAuth.updateUser(id, { password });
+      console.log(`✅ Password updated: ${id}`);
+    } catch (authErr: any) {
+      console.error('Auth password update error:', authErr);
+    }
+  }
+
+  // Email değişikliği
+  if (updateData.email) {
+    try {
+      await adminAuth.updateUser(id, { email: updateData.email });
+      console.log(`✅ Email updated: ${id} → ${updateData.email}`);
+    } catch (authErr: any) {
+      console.error('Auth email update error:', authErr);
+      throw new HttpsError('invalid-argument', 'Email güncellenemedi: ' + authErr.message);
+    }
+  }
+
+  // İşten ayrılma tarihi → otomatik pasif yap
+  if (updateData.istenAyrilma !== undefined) {
+    updateData.aktif = !updateData.istenAyrilma || updateData.istenAyrilma === '';
+  }
+
+  // Aktiflik durumu → Auth disable/enable
+  if (updateData.aktif !== undefined) {
+    try {
+      await adminAuth.updateUser(id, { disabled: !updateData.aktif });
+      console.log(`✅ Status updated: ${id} → ${updateData.aktif ? 'Active' : 'Disabled'}`);
+    } catch (authErr: any) {
+      console.error('Auth status update error:', authErr);
+    }
+  }
+
+  // Firestore güncelle
+  await adminDb.collection('personnel').doc(id).update({
+    ...updateData,
+    updatedAt: new Date().toISOString(),
+    updatedBy: user.email
+  });
+
+  console.log(`✅ Personel updated: ${id}`);
+  return { success: true, message: 'Personel başarıyla güncellendi' };
 });
 
 // ============================================
 // 8. PERSONEL ACTIONS (Şifre sıfırla, Devre dışı, Telefon kopar)
 // ============================================
-export const personelActions = onRequest({
+export const personelActions = onCall({
   region: 'europe-west1',
-  cors: true,
   secrets: [resendApiKey]
-}, async (req, res) => {
-  if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Method not allowed' });
-    return;
+}, async (request) => {
+  process.env.RESEND_API_KEY = resendApiKey.value();
+  const user = await verifyCallableAuth(request, ['Kurucu', 'Yönetici']);
+
+  const { action, personelId } = request.data;
+
+  if (!action) {
+    throw new HttpsError('invalid-argument', 'Action gerekli');
   }
 
-  process.env.RESEND_API_KEY = resendApiKey.value();
+  switch (action) {
+    // =====================
+    // 🔑 ŞİFRE SIFIRLA
+    // =====================
+    case 'reset-password': {
+      if (!personelId) throw new HttpsError('invalid-argument', 'personelId gerekli');
 
-  // Auth kontrolü
-  const { error: authError, user } = await verifyUserAuth(req, ['Kurucu', 'Yönetici']);
-  if (authError) { res.status(401).json({ error: authError }); return; }
+      const personelDoc = await adminDb.collection('personnel').doc(personelId).get();
+      if (!personelDoc.exists) throw new HttpsError('not-found', 'Personel bulunamadı');
 
-  try {
-    const { action, personelId } = req.body;
+      const personelData = personelDoc.data()!;
+      const authUid = personelData.authUid || personelId;
+      const personelEmail = personelData.email;
+      const personelName = `${personelData.ad} ${personelData.soyad}`;
 
-    if (!action) {
-      res.status(400).json({ error: 'Action gerekli' });
-      return;
+      if (!personelEmail) throw new HttpsError('invalid-argument', 'Bu personelin email adresi yok');
+
+      const newPassword = generatePassword(8);
+
+      await adminAuth.updateUser(authUid, { password: newPassword });
+
+      await adminDb.collection('personnel').doc(personelId).update({
+        lastPasswordReset: new Date().toISOString(),
+        passwordResetBy: user.email
+      });
+
+      const emailSent = await sendPasswordResetEmail(personelEmail, personelName, newPassword);
+
+      return {
+        success: true,
+        message: emailSent ? 'Şifre sıfırlandı ve email gönderildi' : 'Şifre sıfırlandı (email gönderilemedi)',
+        newPassword,
+        email: personelEmail,
+        emailSent
+      };
     }
 
-    switch (action) {
-      // =====================
-      // 🔑 ŞİFRE SIFIRLA
-      // =====================
-      case 'reset-password': {
-        if (!personelId) {
-          res.status(400).json({ error: 'personelId gerekli' });
-          return;
-        }
+    // =====================
+    // 🚫 DEVRE DIŞI / AKTİF ET
+    // =====================
+    case 'toggle-status': {
+      if (!personelId) throw new HttpsError('invalid-argument', 'personelId gerekli');
 
-        const personelDoc = await adminDb.collection('personnel').doc(personelId).get();
-        if (!personelDoc.exists) {
-          res.status(404).json({ error: 'Personel bulunamadı' });
-          return;
-        }
+      const personelDoc = await adminDb.collection('personnel').doc(personelId).get();
+      if (!personelDoc.exists) throw new HttpsError('not-found', 'Personel bulunamadı');
 
-        const personelData = personelDoc.data()!;
-        const authUid = personelData.authUid || personelId;
-        const personelEmail = personelData.email;
-        const personelName = `${personelData.ad} ${personelData.soyad}`;
+      const personelData = personelDoc.data()!;
+      const currentStatus = personelData.aktif;
+      const newStatus = !currentStatus;
+      const authUid = personelData.authUid || personelId;
 
-        if (!personelEmail) {
-          res.status(400).json({ error: 'Bu personelin email adresi yok' });
-          return;
-        }
-
-        const newPassword = generatePassword(8);
-
-        // Firebase Auth şifre güncelle
-        await adminAuth.updateUser(authUid, { password: newPassword });
-
-        // Log kaydet
-        await adminDb.collection('personnel').doc(personelId).update({
-          lastPasswordReset: new Date().toISOString(),
-          passwordResetBy: user?.email || 'admin'
-        });
-
-        // Email gönder
-        const emailSent = await sendPasswordResetEmail(personelEmail, personelName, newPassword);
-
-        res.json({
-          success: true,
-          message: emailSent ? 'Şifre sıfırlandı ve email gönderildi' : 'Şifre sıfırlandı (email gönderilemedi)',
-          newPassword,
-          email: personelEmail,
-          emailSent
-        });
-        return;
+      try {
+        await adminAuth.updateUser(authUid, { disabled: !newStatus });
+      } catch (e) {
+        console.error('Auth toggle error:', e);
       }
 
-      // =====================
-      // 🚫 DEVRE DIŞI / AKTİF ET
-      // =====================
-      case 'toggle-status': {
-        if (!personelId) {
-          res.status(400).json({ error: 'personelId gerekli' });
-          return;
-        }
+      await adminDb.collection('personnel').doc(personelId).update({
+        aktif: newStatus,
+        statusChangedAt: new Date().toISOString(),
+        statusChangedBy: user.email,
+        ...(newStatus === false && { istenAyrilma: new Date().toISOString().split('T')[0] })
+      });
 
-        const personelDoc = await adminDb.collection('personnel').doc(personelId).get();
-        if (!personelDoc.exists) {
-          res.status(404).json({ error: 'Personel bulunamadı' });
-          return;
-        }
-
-        const personelData = personelDoc.data()!;
-        const currentStatus = personelData.aktif;
-        const newStatus = !currentStatus;
-        const authUid = personelData.authUid || personelId;
-
-        // Auth disable/enable
-        try {
-          await adminAuth.updateUser(authUid, { disabled: !newStatus });
-        } catch (e) {
-          console.error('Auth toggle error:', e);
-        }
-
-        // Firestore güncelle
-        await adminDb.collection('personnel').doc(personelId).update({
-          aktif: newStatus,
-          statusChangedAt: new Date().toISOString(),
-          statusChangedBy: user?.email || '',
-          ...(newStatus === false && { istenAyrilma: new Date().toISOString().split('T')[0] })
-        });
-
-        res.json({
-          success: true,
-          message: newStatus ? 'Personel aktif edildi' : 'Personel devre dışı bırakıldı',
-          newStatus
-        });
-        return;
-      }
-
-      // =====================
-      // 📱 TELEFON BAĞINI KOPAR
-      // =====================
-      case 'unbind-device': {
-        if (!personelId) {
-          res.status(400).json({ error: 'personelId gerekli' });
-          return;
-        }
-
-        const personelDoc = await adminDb.collection('personnel').doc(personelId).get();
-        if (!personelDoc.exists) {
-          res.status(404).json({ error: 'Personel bulunamadı' });
-          return;
-        }
-
-        await adminDb.collection('personnel').doc(personelId).update({
-          deviceId: null,
-          deviceName: null,
-          deviceBoundAt: null,
-          deviceUnboundAt: new Date().toISOString(),
-          deviceUnboundBy: user?.email || ''
-        });
-
-        res.json({
-          success: true,
-          message: 'Telefon bağı koparıldı. Personel yeni cihazla giriş yapabilir.'
-        });
-        return;
-      }
-
-      default:
-        res.status(400).json({ error: `Bilinmeyen action: ${action}` });
+      return {
+        success: true,
+        message: newStatus ? 'Personel aktif edildi' : 'Personel devre dışı bırakıldı',
+        newStatus
+      };
     }
 
-  } catch (error: any) {
-    console.error('Personel action error:', error);
-    res.status(500).json({ error: 'İşlem başarısız', details: error.message });
+    // =====================
+    // 📱 TELEFON BAĞINI KOPAR
+    // =====================
+    case 'unbind-device': {
+      if (!personelId) throw new HttpsError('invalid-argument', 'personelId gerekli');
+
+      const personelDoc = await adminDb.collection('personnel').doc(personelId).get();
+      if (!personelDoc.exists) throw new HttpsError('not-found', 'Personel bulunamadı');
+
+      await adminDb.collection('personnel').doc(personelId).update({
+        deviceId: null,
+        deviceName: null,
+        deviceBoundAt: null,
+        deviceUnboundAt: new Date().toISOString(),
+        deviceUnboundBy: user.email
+      });
+
+      return {
+        success: true,
+        message: 'Telefon bağı koparıldı. Personel yeni cihazla giriş yapabilir.'
+      };
+    }
+
+    default:
+      throw new HttpsError('invalid-argument', `Bilinmeyen action: ${action}`);
   }
 });
 

@@ -44,3 +44,7 @@ function getFirebaseAuth() {
 export const auth = globalThis.__firebase_auth__ ?? 
   (globalThis.__firebase_auth__ = getFirebaseAuth());
 
+// Cloud Functions (europe-west1)
+import { getFunctions } from "firebase/functions";
+export const functions = getFunctions(app, 'europe-west1');
+
