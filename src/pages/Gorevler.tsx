@@ -26,17 +26,20 @@ import {
   writeBatch
 } from "firebase/firestore";
 import * as Sentry from '@sentry/react';
-import { useAuth } from "../context/RoleProvider";
+import { useAuth, useRole } from "../context/RoleProvider";
 
 // ============================================
 // ANA SAYFA
 // ============================================
 export default function GorevlerPage() {
   const user = useAuth();
+  const { personelData } = useRole();
+
+  // Rol ve firmalar context'ten (RoleProvider) — duplicate sorgu yok
+  const userRole = personelData?.kullaniciTuru || "";
+  const userFirmalar = personelData?.yonettigiFirmalar || [];
 
   // --- State ---
-  const [userRole, setUserRole] = useState<string>("");
-  const [userFirmalar, setUserFirmalar] = useState<string[]>([]);
   const [gorevler, setGorevler] = useState<Gorev[]>([]);
   const [tumGorevler, setTumGorevler] = useState<Gorev[]>([]);
   const [personeller, setPersoneller] = useState<Personel[]>([]);
@@ -123,9 +126,6 @@ export default function GorevlerPage() {
         yonettigiFirmalar: doc.data().yonettigiFirmalar || []
       } as Personel));
       setPersoneller(data);
-      const currentUser = data.find(p => p.email === user.email);
-      if (currentUser?.kullaniciTuru) setUserRole(currentUser.kullaniciTuru);
-      if (currentUser?.yonettigiFirmalar) setUserFirmalar(currentUser.yonettigiFirmalar);
     }, (error) => {
       console.error("[Gorevler/personnel] Firestore hatası:", error);
       Sentry.captureException(error, { tags: { module: "Gorevler", collection: "personnel" } });

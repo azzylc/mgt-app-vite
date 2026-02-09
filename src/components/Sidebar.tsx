@@ -3,9 +3,8 @@ import { useState, useEffect, Suspense, createContext, useContext } from "react"
 import { useRole } from "../context/RoleProvider";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { signOut } from "firebase/auth";
-import { auth, db } from "../lib/firebase";
+import { auth } from "../lib/firebase";
 
-import { onSnapshot, doc, collection, query, where, getDocs } from "firebase/firestore";
 import * as Sentry from '@sentry/react';
 import BildirimPaneli from './BildirimPaneli';
 
@@ -22,15 +21,13 @@ interface SidebarProps {
 }
 
 function SidebarContent({ user }: SidebarProps) {
-  const { rol: rolYetkileri, loading: rolLoading } = useRole();
+  const { rol: rolYetkileri, loading: rolLoading, personelData } = useRole();
   const location = useLocation();
   const pathname = location.pathname;
   const [searchParams] = useSearchParams();
   const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
-  const [kullaniciGruplar, setKullaniciGruplar] = useState<string[]>([]);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [personelData, setPersonelData] = useState<any>(null);
 
   // Mobil kontrolü
   useEffect(() => {
@@ -45,48 +42,7 @@ function SidebarContent({ user }: SidebarProps) {
     setIsMobileOpen(false);
   }, [pathname]);
 
-
-  // Kullanıcı bilgilerini Firebase'den çek (EMAIL FIELD ile QUERY!)
-  useEffect(() => {
-    if (!user?.email) return;
-    
-    
-    const q = query(
-      collection(db, "personnel"),
-      where("email", "==", user.email)
-    );
-    
-    const unsubscribe = onSnapshot(
-      q, 
-      (snapshot) => {
-        if (!snapshot.empty) {
-          const data = snapshot.docs[0].data();
-          setKullaniciGruplar(data.grupEtiketleri || []);
-          setPersonelData(data);
-        } else {
-          setPersonelData({
-            ad: user.email?.split("@")[0] || "Kullanıcı",
-            soyad: "",
-            kullaniciTuru: "Kurucu",
-            email: user.email,
-            aktif: true
-          });
-        }
-      },
-      (error) => {
-        Sentry.captureException(error);
-        setPersonelData({
-          ad: user.email?.split("@")[0] || "Kullanıcı",
-          soyad: "",
-          kullaniciTuru: "Kurucu",
-          email: user.email,
-          aktif: true
-        });
-      }
-    );
-    
-    return () => unsubscribe();
-  }, [user?.email]);
+  // personelData artık context'ten geliyor — duplicate onSnapshot SİLİNDİ
 
   const isKurucu = personelData?.kullaniciTuru === "Kurucu";
   const isYonetici = personelData?.kullaniciTuru === "Yönetici";
