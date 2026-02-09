@@ -155,7 +155,7 @@ export default function GorevEkleModal({
           )}
 
           {/* Aciliyet + Son Tarih */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-3">
             <div>
               <label className="block text-sm font-medium text-stone-700 mb-1">Aciliyet</label>
               <select
@@ -171,12 +171,49 @@ export default function GorevEkleModal({
             </div>
             <div>
               <label className="block text-sm font-medium text-stone-700 mb-1">Son Tarih</label>
+              <div className="flex gap-1.5 mb-2">
+                {(() => {
+                  const bugun = new Date();
+                  const formatTarih = (d: Date) => d.toISOString().split("T")[0];
+                  const gunAd = (d: Date) => d.toLocaleDateString("tr-TR", { day: "numeric", month: "short" });
+                  const secenekler = [
+                    { label: "Bugün", tarih: formatTarih(bugun) },
+                    { label: "Yarın", tarih: formatTarih(new Date(bugun.getFullYear(), bugun.getMonth(), bugun.getDate() + 1)) },
+                    { label: "3 Gün", tarih: formatTarih(new Date(bugun.getFullYear(), bugun.getMonth(), bugun.getDate() + 3)) },
+                    { label: "1 Hafta", tarih: formatTarih(new Date(bugun.getFullYear(), bugun.getMonth(), bugun.getDate() + 7)) },
+                  ];
+                  return secenekler.map(s => (
+                    <button
+                      key={s.label}
+                      type="button"
+                      onClick={() => onFormDegistir({...yeniGorev, sonTarih: s.tarih})}
+                      className={`flex-1 px-2 py-1.5 rounded-lg text-xs font-medium transition border ${
+                        yeniGorev.sonTarih === s.tarih
+                          ? "bg-amber-500 text-white border-amber-500"
+                          : "bg-white text-stone-600 border-stone-200 hover:bg-stone-100"
+                      }`}
+                    >
+                      <div>{s.label}</div>
+                      <div className={`text-[10px] ${yeniGorev.sonTarih === s.tarih ? "text-amber-100" : "text-stone-400"}`}>{gunAd(new Date(s.tarih))}</div>
+                    </button>
+                  ));
+                })()}
+              </div>
               <input
                 type="date"
                 value={yeniGorev.sonTarih}
                 onChange={e => onFormDegistir({...yeniGorev, sonTarih: e.target.value})}
-                className="w-full px-4 py-2.5 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-4 py-2.5 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm"
               />
+              {yeniGorev.sonTarih && (
+                <button
+                  type="button"
+                  onClick={() => onFormDegistir({...yeniGorev, sonTarih: ""})}
+                  className="text-[10px] text-red-400 hover:text-red-600 mt-1"
+                >
+                  ✕ Tarihi kaldır
+                </button>
+              )}
             </div>
           </div>
 
