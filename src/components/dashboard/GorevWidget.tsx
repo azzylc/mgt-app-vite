@@ -73,7 +73,28 @@ export default function GorevWidget({ onCount }: { onCount?: (count: number) => 
     );
   }
 
-  if (aktifGorevler.length === 0) return null;
+  if (aktifGorevler.length === 0) {
+    return (
+      <div className="bg-white rounded-xl border border-stone-100 overflow-hidden">
+        <div 
+          onClick={() => navigate("/gorevler")}
+          className="px-3 py-2 flex items-center justify-between cursor-pointer hover:bg-stone-50 transition border-b border-stone-100"
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-sm">📋</span>
+            <span className="text-xs font-semibold text-stone-700">Görevlerim</span>
+            <span className="text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full font-medium">0</span>
+          </div>
+          <span className="text-stone-300 text-xs">Tümü →</span>
+        </div>
+        <div className="px-4 py-6 text-center">
+          <span className="text-2xl block mb-1">🥳</span>
+          <p className="text-xs font-medium text-stone-600">Tüm görevleri tamamladın!</p>
+          <p className="text-[10px] text-stone-400 mt-0.5">Aktif görevin yok, harika iş</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-xl border border-stone-100 overflow-hidden">
