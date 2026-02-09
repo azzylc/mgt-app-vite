@@ -32,6 +32,12 @@ export interface Gorev {
     tarih: string;
     saat: string;
   };
+  // Ortak görev alanları
+  ortakMi?: boolean;
+  atananlar?: string[];
+  atananAdlar?: string[];
+  tamamlayanlar?: string[];
+  grupId?: string;
 }
 
 export interface Gelin {

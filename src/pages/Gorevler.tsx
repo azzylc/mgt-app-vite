@@ -41,6 +41,7 @@ export default function GorevlerPage() {
 
   // --- State ---
   const [gorevler, setGorevler] = useState<Gorev[]>([]);
+  const [ortakGorevler, setOrtakGorevler] = useState<Gorev[]>([]);
   const [tumGorevler, setTumGorevler] = useState<Gorev[]>([]);
   const [personeller, setPersoneller] = useState<Personel[]>([]);
   const [filtreliGorevler, setFiltreliGorevler] = useState<Gorev[]>([]);
@@ -60,7 +61,8 @@ export default function GorevlerPage() {
     aciklama: "",
     atananlar: [] as string[],
     oncelik: "normal" as Gorev["oncelik"],
-    sonTarih: ""
+    sonTarih: "",
+    ortakMi: false
   });
   const [gorevEkleLoading, setGorevEkleLoading] = useState(false);
   const [detayGorev, setDetayGorev] = useState<Gorev | null>(null);
@@ -163,6 +165,26 @@ export default function GorevlerPage() {
     return () => unsubscribe();
   }, [user]);
 
+  // Ortak görevleri dinle (atananlar array-contains)
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db, "gorevler"), where("atananlar", "array-contains", user.email), orderBy("olusturulmaTarihi", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setOrtakGorevler(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Gorev)));
+    }, (error) => {
+      console.error("[Gorevler/ortakGorevler] Firestore hatası:", error);
+    });
+    return () => unsubscribe();
+  }, [user]);
+
+  // Kişisel + ortak görevleri birleştir (duplicate önle)
+  const birlesikGorevler = useMemo(() => {
+    const map = new Map<string, Gorev>();
+    gorevler.forEach(g => map.set(g.id, g));
+    ortakGorevler.forEach(g => map.set(g.id, g));
+    return Array.from(map.values());
+  }, [gorevler, ortakGorevler]);
+
   // Görev atama yetkisi var mı? (useEffect'ten önce tanımlanmalı)
   const gorevAtayabilir = useMemo(() => {
     if (gorevAtamaYetkisi === "herkes") return true;
@@ -223,14 +245,19 @@ export default function GorevlerPage() {
     if (aktifSekme === "tumgorevler") {
       sonuc = [...tumGorevler];
       if (seciliPersoneller.length > 0) {
-        sonuc = sonuc.filter(g => seciliPersoneller.includes(g.atanan));
+        sonuc = sonuc.filter(g => {
+          if (g.ortakMi && g.atananlar) {
+            return g.atananlar.some(a => seciliPersoneller.includes(a));
+          }
+          return seciliPersoneller.includes(g.atanan);
+        });
       }
     } else if (aktifSekme === "verdigim") {
       sonuc = tumGorevler.filter(g => g.atayan === user?.email && !g.otomatikMi);
     } else if (aktifSekme === "otomatik") {
-      sonuc = gorevler.filter(g => g.otomatikMi === true && (otomatikAltSekme === "hepsi" || g.gorevTuru === otomatikAltSekme));
+      sonuc = birlesikGorevler.filter(g => g.otomatikMi === true && (otomatikAltSekme === "hepsi" || g.gorevTuru === otomatikAltSekme));
     } else {
-      sonuc = gorevler.filter(g => !g.otomatikMi);
+      sonuc = birlesikGorevler.filter(g => !g.otomatikMi);
     }
     
     if (filtre !== "hepsi") {
@@ -246,7 +273,7 @@ export default function GorevlerPage() {
     });
     
     setFiltreliGorevler(sonuc);
-  }, [gorevler, tumGorevler, filtre, aktifSekme, seciliPersoneller, otomatikAltSekme, siralama, user?.email]);
+  }, [birlesikGorevler, tumGorevler, filtre, aktifSekme, seciliPersoneller, otomatikAltSekme, siralama, user?.email]);
 
   // ============================================
   // HANDLERS
@@ -294,22 +321,53 @@ export default function GorevlerPage() {
       const kpiPersonel = personeller.find(p => p.email === user?.email);
       const yorumEkleyen = kpiPersonel ? `${kpiPersonel.ad} ${kpiPersonel.soyad}` : user?.email || "";
       
-      await updateDoc(doc(db, "gorevler", gorevId), {
-        durum: "tamamlandi",
-        tamamlanmaTarihi: serverTimestamp(),
-        yorumlar: arrayUnion({
-          yazan: user?.email || "",
-          yazanAd: yorumEkleyen,
-          yorum: `✅ Tamamlandı: ${tamamlaYorum.trim()}`,
-          tarih: new Date().toISOString()
-        })
-      });
-
-      // Push bildirim artık Firestore trigger (onGorevUpdated) tarafından gönderiliyor
+      // Görevi bul (ortak mı kontrol et)
+      const gorev = birlesikGorevler.find(g => g.id === gorevId) || tumGorevler.find(g => g.id === gorevId);
       
-      // Detay modal açıksa güncelle
-      if (detayGorev?.id === gorevId) {
-        setDetayGorev({ ...detayGorev, durum: "tamamlandi" });
+      if (gorev?.ortakMi && gorev.atananlar) {
+        // ORTAK GÖREV — kişiyi tamamlayanlar'a ekle
+        const yeniTamamlayanlar = [...(gorev.tamamlayanlar || [])];
+        if (!yeniTamamlayanlar.includes(user?.email || "")) {
+          yeniTamamlayanlar.push(user?.email || "");
+        }
+        
+        const tumKisilerTamamladi = gorev.atananlar.every(email => yeniTamamlayanlar.includes(email));
+        
+        await updateDoc(doc(db, "gorevler", gorevId), {
+          tamamlayanlar: arrayUnion(user?.email || ""),
+          durum: tumKisilerTamamladi ? "tamamlandi" : "devam-ediyor",
+          ...(tumKisilerTamamladi ? { tamamlanmaTarihi: serverTimestamp() } : {}),
+          yorumlar: arrayUnion({
+            yazan: user?.email || "",
+            yazanAd: yorumEkleyen,
+            yorum: `✅ ${yorumEkleyen} tamamladı: ${tamamlaYorum.trim()}`,
+            tarih: new Date().toISOString()
+          })
+        });
+
+        if (detayGorev?.id === gorevId) {
+          setDetayGorev({ 
+            ...detayGorev, 
+            durum: tumKisilerTamamladi ? "tamamlandi" : "devam-ediyor",
+            tamamlayanlar: yeniTamamlayanlar
+          });
+        }
+      } else {
+        // KİŞİSEL GÖREV — mevcut davranış
+        await updateDoc(doc(db, "gorevler", gorevId), {
+          durum: "tamamlandi",
+          tamamlanmaTarihi: serverTimestamp(),
+          yorumlar: arrayUnion({
+            yazan: user?.email || "",
+            yazanAd: yorumEkleyen,
+            yorum: `✅ Tamamlandı: ${tamamlaYorum.trim()}`,
+            tarih: new Date().toISOString()
+          })
+        });
+
+        if (detayGorev?.id === gorevId) {
+          setDetayGorev({ ...detayGorev, durum: "tamamlandi" });
+        }
       }
       setTamamlaGorevId(null);
       setTamamlaYorum("");
@@ -336,37 +394,66 @@ export default function GorevlerPage() {
     try {
       const atayanPersonel = personeller.find(p => p.email === user?.email);
       const atayanAd = atayanPersonel ? `${atayanPersonel.ad} ${atayanPersonel.soyad}` : user?.email || "";
-      const grupId = Date.now().toString();
-      
-      const batch = writeBatch(db);
 
-      for (const atananEmail of yeniGorev.atananlar) {
-        const atananPersonel = personeller.find(p => p.email === atananEmail);
+      if (yeniGorev.ortakMi && yeniGorev.atananlar.length > 1) {
+        // ORTAK GÖREV — tek doküman
+        const atananAdlar = yeniGorev.atananlar.map(email => {
+          const p = personeller.find(per => per.email === email);
+          return p ? `${p.ad} ${p.soyad}` : email;
+        });
+
         const gorevRef = doc(collection(db, "gorevler"));
-        batch.set(gorevRef, {
+        await setDoc(gorevRef, {
           baslik: yeniGorev.baslik.trim(),
           aciklama: yeniGorev.aciklama.trim(),
           atayan: user?.email || "",
           atayanAd,
-          atanan: atananEmail,
-          atananAd: atananPersonel ? `${atananPersonel.ad} ${atananPersonel.soyad}` : atananEmail,
+          atanan: "",
+          atananAd: atananAdlar.join(", "),
+          ortakMi: true,
+          atananlar: yeniGorev.atananlar,
+          atananAdlar: atananAdlar,
+          tamamlayanlar: [],
           durum: "bekliyor",
           oncelik: yeniGorev.oncelik,
           sonTarih: yeniGorev.sonTarih || "",
           otomatikMi: false,
           yorumlar: [],
-          grupId: yeniGorev.atananlar.length > 1 ? grupId : "",
           olusturulmaTarihi: serverTimestamp()
         });
+
+        alert(`👥 Ortak görev oluşturuldu (${yeniGorev.atananlar.length} kişi)!`);
+      } else {
+        // KİŞİSEL GÖREV — her kişiye ayrı doküman (mevcut davranış)
+        const grupId = Date.now().toString();
+        const batch = writeBatch(db);
+
+        for (const atananEmail of yeniGorev.atananlar) {
+          const atananPersonel = personeller.find(p => p.email === atananEmail);
+          const gorevRef = doc(collection(db, "gorevler"));
+          batch.set(gorevRef, {
+            baslik: yeniGorev.baslik.trim(),
+            aciklama: yeniGorev.aciklama.trim(),
+            atayan: user?.email || "",
+            atayanAd,
+            atanan: atananEmail,
+            atananAd: atananPersonel ? `${atananPersonel.ad} ${atananPersonel.soyad}` : atananEmail,
+            durum: "bekliyor",
+            oncelik: yeniGorev.oncelik,
+            sonTarih: yeniGorev.sonTarih || "",
+            otomatikMi: false,
+            yorumlar: [],
+            grupId: yeniGorev.atananlar.length > 1 ? grupId : "",
+            olusturulmaTarihi: serverTimestamp()
+          });
+        }
+
+        await batch.commit();
+        alert(`✅ ${yeniGorev.atananlar.length} kişiye görev atandı!`);
       }
 
-      await batch.commit();
-
-      // Push bildirim artık Firestore trigger (onGorevCreated) tarafından gönderiliyor
-
-      setYeniGorev({ baslik: "", aciklama: "", atananlar: [], oncelik: "normal", sonTarih: "" });
+      setYeniGorev({ baslik: "", aciklama: "", atananlar: [], oncelik: "normal", sonTarih: "", ortakMi: false });
       setShowGorevEkle(false);
-      alert(`✅ ${yeniGorev.atananlar.length} kişiye görev atandı!`);
     } catch (error) {
       Sentry.captureException(error);
       alert("❌ Görev oluşturulamadı!");
@@ -611,7 +698,7 @@ export default function GorevlerPage() {
             >
               📋 Görevlerim
               <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs ${aktifSekme === "gorevlerim" ? "bg-amber-100 text-amber-700" : "bg-stone-100 text-stone-500"}`}>
-                {gorevler.filter(g => !g.otomatikMi).length}
+                {birlesikGorevler.filter(g => !g.otomatikMi).length}
               </span>
             </button>
             
@@ -638,7 +725,7 @@ export default function GorevlerPage() {
               <span className="hidden md:inline">🤖 </span>Otomatik
               <span className="hidden md:inline"> Görevler</span>
               <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs ${aktifSekme === "otomatik" ? "bg-purple-100 text-purple-700" : "bg-stone-100 text-stone-500"}`}>
-                {gorevler.filter(g => g.otomatikMi === true).length}
+                {birlesikGorevler.filter(g => g.otomatikMi === true).length}
               </span>
             </button>
             

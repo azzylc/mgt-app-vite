@@ -51,6 +51,11 @@ export default function GorevKart({
             {gorev.otomatikMi && (
               <span className="bg-purple-50 text-purple-600 text-[10px] px-1.5 py-0.5 rounded-full font-medium shrink-0">🤖 Oto</span>
             )}
+            {gorev.ortakMi && (
+              <span className="bg-violet-50 text-violet-600 text-[10px] px-1.5 py-0.5 rounded-full font-medium shrink-0">
+                👥 Ortak ({gorev.atananlar?.length || 0})
+              </span>
+            )}
             {!gorev.otomatikMi && gorev.oncelik && gorev.oncelik !== "normal" && (
               <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium shrink-0 ${
                 gorev.oncelik === "acil" ? "bg-red-50 text-red-600" :
@@ -69,10 +74,18 @@ export default function GorevKart({
 
           {/* Meta Bilgiler */}
           <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-stone-400">
-            {(aktifSekme === "tumgorevler" || aktifSekme === "verdigim") && (
+            {(aktifSekme === "tumgorevler" || aktifSekme === "verdigim") && !gorev.ortakMi && (
               <div className="flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-full">
                 <span>🎯</span>
                 <span className="font-medium text-emerald-700">Atanan: {gorev.atananAd}</span>
+              </div>
+            )}
+            {gorev.ortakMi && gorev.atananAdlar && (
+              <div className="flex items-center gap-1 bg-violet-50 px-2 py-0.5 rounded-full">
+                <span>👥</span>
+                <span className="font-medium text-violet-700">
+                  {(gorev.tamamlayanlar?.length || 0)}/{gorev.atananlar?.length || 0} tamamladı
+                </span>
               </div>
             )}
             <div className="flex items-center gap-1">
@@ -148,7 +161,10 @@ export default function GorevKart({
       {/* Manuel görev aksiyon butonları */}
       {!gorev.otomatikMi && gorev.durum !== "tamamlandi" && (
         <div className="mt-2" onClick={e => e.stopPropagation()}>
-          {tamamlaGorevId === gorev.id ? (
+          {/* Ortak görevde bu kişi zaten tamamladıysa */}
+          {gorev.ortakMi && gorev.tamamlayanlar?.includes(userEmail) ? (
+            <span className="text-[10px] text-emerald-600 font-medium">✅ Siz tamamladınız — diğerleri bekleniyor</span>
+          ) : tamamlaGorevId === gorev.id ? (
             <div className="space-y-2">
               <textarea
                 value={tamamlaYorum}
@@ -197,7 +213,7 @@ export default function GorevKart({
       {/* Tamamlanmış görev */}
       {!gorev.otomatikMi && gorev.durum === "tamamlandi" && (
         <div className="mt-2 flex items-center gap-2 text-[10px] text-emerald-600" onClick={e => e.stopPropagation()}>
-          <span>✅ Tamamlandı</span>
+          <span>✅ {gorev.ortakMi ? `Herkes tamamladı (${gorev.tamamlayanlar?.length || 0}/${gorev.atananlar?.length || 0})` : "Tamamlandı"}</span>
           {gorev.yorumlar && gorev.yorumlar.length > 0 && (
             <span className="text-stone-400">• {gorev.yorumlar.length} yorum</span>
           )}

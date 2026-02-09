@@ -6,6 +6,7 @@ interface YeniGorevForm {
   atananlar: string[];
   oncelik: Gorev["oncelik"];
   sonTarih: string;
+  ortakMi: boolean;
 }
 
 interface GorevEkleModalProps {
@@ -100,6 +101,48 @@ export default function GorevEkleModal({
             )}
           </div>
 
+          {/* Ortak / Kişisel Seçimi - sadece 2+ kişi seçiliyse göster */}
+          {yeniGorev.atananlar.length > 1 && (
+            <div className="p-3 bg-stone-50 rounded-lg border border-stone-200">
+              <p className="text-sm font-medium text-stone-700 mb-2">Görev türü</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => onFormDegistir({...yeniGorev, ortakMi: false})}
+                  className={`px-3 py-2.5 rounded-lg text-xs font-medium transition border ${
+                    !yeniGorev.ortakMi
+                      ? "bg-amber-500 text-white border-amber-500"
+                      : "bg-white text-stone-600 border-stone-200 hover:bg-stone-100"
+                  }`}
+                >
+                  👤 Kişisel
+                  <p className={`text-[10px] mt-0.5 ${!yeniGorev.ortakMi ? "text-amber-100" : "text-stone-400"}`}>
+                    Herkese ayrı görev
+                  </p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onFormDegistir({...yeniGorev, ortakMi: true})}
+                  className={`px-3 py-2.5 rounded-lg text-xs font-medium transition border ${
+                    yeniGorev.ortakMi
+                      ? "bg-purple-500 text-white border-purple-500"
+                      : "bg-white text-stone-600 border-stone-200 hover:bg-stone-100"
+                  }`}
+                >
+                  👥 Ortak Görev
+                  <p className={`text-[10px] mt-0.5 ${yeniGorev.ortakMi ? "text-purple-100" : "text-stone-400"}`}>
+                    Tek görev, birlikte
+                  </p>
+                </button>
+              </div>
+              {yeniGorev.ortakMi && (
+                <p className="text-[10px] text-purple-600 mt-2 flex items-center gap-1">
+                  💡 Herkes yorumları görür, herkes tamamlayınca kapanır
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Aciliyet + Son Tarih */}
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -132,7 +175,9 @@ export default function GorevEkleModal({
             disabled={loading}
             className="w-full py-3 bg-amber-500 text-white rounded-lg font-semibold hover:bg-amber-600 disabled:opacity-50 transition text-sm"
           >
-            {loading ? "⏳ Oluşturuluyor..." : `✅ Görev Oluştur${yeniGorev.atananlar.length > 1 ? ` (${yeniGorev.atananlar.length} kişi)` : ""}`}
+            {loading ? "⏳ Oluşturuluyor..." : yeniGorev.ortakMi 
+              ? `👥 Ortak Görev Oluştur (${yeniGorev.atananlar.length} kişi)` 
+              : `✅ Görev Oluştur${yeniGorev.atananlar.length > 1 ? ` (${yeniGorev.atananlar.length} kişi)` : ""}`}
           </button>
         </div>
       </div>

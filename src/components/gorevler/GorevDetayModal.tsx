@@ -77,6 +77,11 @@ export default function GorevDetayModal({
           <div className="flex-1 min-w-0">
             <h2 className="font-bold text-sm md:text-base truncate">{gorev.baslik}</h2>
             <div className="flex items-center gap-2 mt-0.5">
+              {gorev.ortakMi && (
+                <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full">
+                  👥 Ortak ({gorev.atananlar?.length || 0})
+                </span>
+              )}
               <span className="text-[10px] opacity-80">
                 {gorev.oncelik === "acil" ? "Acil" : gorev.oncelik === "yuksek" ? "Yüksek" : gorev.oncelik === "dusuk" ? "Düşük" : "Normal"} 
               </span>
@@ -172,10 +177,12 @@ export default function GorevDetayModal({
             )}
 
             <div className="grid grid-cols-2 gap-3 text-sm">
+              {!gorev.ortakMi && (
               <div className="p-3 bg-stone-50 rounded-lg">
                 <p className="text-xs font-medium text-stone-500 mb-1">🎯 Atanan</p>
                 <p className="text-stone-700 font-medium">{gorev.atananAd}</p>
               </div>
+              )}
               <div className="p-3 bg-stone-50 rounded-lg">
                 <p className="text-xs font-medium text-stone-500 mb-1">👤 Atayan</p>
                 <p className="text-stone-700 font-medium">
@@ -206,11 +213,42 @@ export default function GorevDetayModal({
           </div>
           )}
 
+          {/* Ortak Görev - Kişiler Paneli */}
+          {gorev.ortakMi && gorev.atananlar && gorev.atananAdlar && (
+            <div className="p-3 bg-violet-50 rounded-xl border border-violet-100">
+              <p className="text-xs font-semibold text-violet-800 mb-2 flex items-center gap-1">
+                👥 Ortak Görev — {gorev.tamamlayanlar?.length || 0}/{gorev.atananlar.length} tamamladı
+              </p>
+              <div className="space-y-1.5">
+                {gorev.atananlar.map((email, idx) => {
+                  const ad = gorev.atananAdlar![idx] || email;
+                  const tamamladi = gorev.tamamlayanlar?.includes(email);
+                  const benMiyim = email === userEmail;
+                  return (
+                    <div key={email} className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs ${
+                      tamamladi ? "bg-emerald-100 text-emerald-800" : "bg-white text-stone-700"
+                    }`}>
+                      <span className="font-medium">
+                        {benMiyim ? `${ad} (Sen)` : ad}
+                      </span>
+                      <span>{tamamladi ? "✅ Tamamladı" : "⏳ Bekliyor"}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Durum Değiştirme */}
           {!gorev.otomatikMi && (
             <div className="flex flex-wrap gap-2 p-3 bg-stone-50 rounded-xl">
               {gorev.durum !== "tamamlandi" && (
                 <>
+                  {/* Ortak görevde zaten tamamladıysa gösterme */}
+                  {gorev.ortakMi && gorev.tamamlayanlar?.includes(userEmail) ? (
+                    <span className="text-xs text-emerald-600 font-medium">✅ Siz tamamladınız — diğerleri bekleniyor</span>
+                  ) : (
+                  <>
                   <button 
                     onClick={() => setTamamlaAcik(true)}
                     className="px-3 py-1.5 bg-emerald-500 text-white rounded-lg text-xs font-medium hover:bg-emerald-600 transition">
@@ -241,9 +279,13 @@ export default function GorevDetayModal({
                     </div>
                   )}
                 </>
+                  )}
+                </>
               )}
               {gorev.durum === "tamamlandi" && (
-                <span className="text-xs text-emerald-600 font-medium">✅ Bu görev tamamlandı</span>
+                <span className="text-xs text-emerald-600 font-medium">
+                  ✅ {gorev.ortakMi ? `Herkes tamamladı (${gorev.tamamlayanlar?.length || 0}/${gorev.atananlar?.length || 0})` : "Bu görev tamamlandı"}
+                </span>
               )}
               {canDelete && (
                 <button 
