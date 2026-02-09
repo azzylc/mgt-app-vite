@@ -185,6 +185,32 @@ export default function GorevlerPage() {
     return Array.from(map.values());
   }, [gorevler, ortakGorevler]);
 
+  // URL'den gorevId okunursa detay modal'ı otomatik aç
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const gorevId = params.get("gorevId");
+    if (!gorevId) return;
+    
+    // Görev listelerden bul
+    const gorev = birlesikGorevler.find(g => g.id === gorevId) || tumGorevler.find(g => g.id === gorevId);
+    if (gorev) {
+      setDetayGorev(gorev);
+      // URL'den param'ı temizle (tekrar açılmasın)
+      window.history.replaceState({}, "", window.location.pathname);
+    } else if (birlesikGorevler.length === 0 && tumGorevler.length === 0) {
+      // Veriler henüz yüklenmedi, bekle
+      return;
+    } else {
+      // Görev bulunamadı — Firestore'dan dene
+      getDoc(doc(db, "gorevler", gorevId)).then(snap => {
+        if (snap.exists()) {
+          setDetayGorev({ id: snap.id, ...snap.data() } as Gorev);
+        }
+      }).catch(() => {});
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, [birlesikGorevler, tumGorevler]);
+
   // Görev atama yetkisi var mı? (useEffect'ten önce tanımlanmalı)
   const gorevAtayabilir = useMemo(() => {
     if (gorevAtamaYetkisi === "herkes") return true;

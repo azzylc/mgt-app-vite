@@ -829,21 +829,21 @@ export const onGorevCreated = onDocumentCreated({
   const data = event.data?.data();
   if (!data) return;
 
+  const gorevId = event.params.gorevId;
   const { atayan, atayanAd, baslik, oncelik, ortakMi, atananlar, atanan } = data;
 
   const oncelikEmoji = oncelik === 'acil' ? '🔴' : oncelik === 'yuksek' ? '🟠' : '';
   const title = `${oncelikEmoji} Yeni Görev Atandı`.trim();
   const body = `${atayanAd || 'Birisi'} size bir görev atadı: ${baslik}`;
+  const route = `/gorevler?gorevId=${gorevId}`;
 
   // Bildirim alacak kişileri belirle
   const alicilar: string[] = [];
   if (ortakMi && Array.isArray(atananlar)) {
-    // Ortak görev — tüm atananlar
     for (const email of atananlar) {
       if (email !== atayan) alicilar.push(email);
     }
   } else if (atanan && atanan !== atayan) {
-    // Kişisel görev
     alicilar.push(atanan);
   }
 
@@ -852,7 +852,7 @@ export const onGorevCreated = onDocumentCreated({
   console.log(`[GOREV-BILDIRIM] ${atayanAd} → ${alicilar.length} kişi: ${baslik}`);
 
   for (const email of alicilar) {
-    await sendPushToUser(email, title, body, { route: '/gorevler' });
+    await sendPushToUser(email, title, body, { route });
 
     await adminDb.collection('bildirimler').add({
       alici: email,
@@ -861,7 +861,7 @@ export const onGorevCreated = onDocumentCreated({
       tip: 'gorev_atama',
       okundu: false,
       tarih: new Date(),
-      route: '/gorevler',
+      route,
       gonderen: atayan || null,
       gonderenAd: atayanAd || null,
     });
@@ -877,6 +877,8 @@ export const onGorevUpdated = onDocumentUpdated({
   const after = event.data?.after.data();
   if (!before || !after) return;
 
+  const gorevId = event.params.gorevId;
+  const route = `/gorevler?gorevId=${gorevId}`;
   const durumDegisti = before.durum !== after.durum;
   const beforeYorumlar = before.yorumlar || [];
   const afterYorumlar = after.yorumlar || [];
@@ -908,7 +910,7 @@ export const onGorevUpdated = onDocumentUpdated({
       }
 
       for (const email of bildirimAlacaklar) {
-        await sendPushToUser(email, title, body, { route: '/gorevler' });
+        await sendPushToUser(email, title, body, { route });
         await adminDb.collection('bildirimler').add({
           alici: email,
           baslik: title,
@@ -916,7 +918,7 @@ export const onGorevUpdated = onDocumentUpdated({
           tip: 'gorev_tamam',
           okundu: false,
           tarih: new Date(),
-          route: '/gorevler',
+          route,
           gonderen: yeniTamamlayan,
           gonderenAd: tamamlayanAd,
         });
@@ -943,7 +945,7 @@ export const onGorevUpdated = onDocumentUpdated({
       for (const email of after.atananlar) bildirimAlacaklar.add(email);
 
       for (const email of bildirimAlacaklar) {
-        await sendPushToUser(email, title, body, { route: '/gorevler' });
+        await sendPushToUser(email, title, body, { route });
         await adminDb.collection('bildirimler').add({
           alici: email,
           baslik: title,
@@ -951,7 +953,7 @@ export const onGorevUpdated = onDocumentUpdated({
           tip: 'gorev_tamam',
           okundu: false,
           tarih: new Date(),
-          route: '/gorevler',
+          route,
           gonderen: tamamlayan,
           gonderenAd: tamamlayanAd,
         });
@@ -964,7 +966,7 @@ export const onGorevUpdated = onDocumentUpdated({
         const title = '✅ Görev Tamamlandı';
         const body = `${tamamlayanAd} görevi tamamladı: ${after.baslik}`;
 
-        await sendPushToUser(after.atayan, title, body, { route: '/gorevler' });
+        await sendPushToUser(after.atayan, title, body, { route });
 
         await adminDb.collection('bildirimler').add({
           alici: after.atayan,
@@ -973,7 +975,7 @@ export const onGorevUpdated = onDocumentUpdated({
           tip: 'gorev_tamam',
           okundu: false,
           tarih: new Date(),
-          route: '/gorevler',
+          route,
           gonderen: tamamlayan,
           gonderenAd: tamamlayanAd,
         });
@@ -1010,7 +1012,7 @@ export const onGorevUpdated = onDocumentUpdated({
     }
 
     for (const email of bildirimAlacaklar) {
-      await sendPushToUser(email, title, body, { route: '/gorevler' });
+      await sendPushToUser(email, title, body, { route });
 
       await adminDb.collection('bildirimler').add({
         alici: email,
@@ -1019,7 +1021,7 @@ export const onGorevUpdated = onDocumentUpdated({
         tip: 'gorev_yorum',
         okundu: false,
         tarih: new Date(),
-        route: '/gorevler',
+        route,
         gonderen: yorumYapan || null,
         gonderenAd: yorumYapanAd || null,
       });
@@ -1076,6 +1078,8 @@ export const dailyGorevHatirlatma = onSchedule({
 
       if (alicilar.length === 0) continue;
 
+      const gorevRoute = `/gorevler?gorevId=${gorevDoc.id}`;
+
       // Yarın son tarihli görevler → hatırlatma
       if (sonTarih === yarinStr) {
         for (const email of alicilar) {
@@ -1083,7 +1087,7 @@ export const dailyGorevHatirlatma = onSchedule({
             email,
             '⏰ Görev Hatırlatma',
             `"${gorev.baslik}" görevinin son tarihi yarın!`,
-            { route: '/gorevler' }
+            { route: gorevRoute }
           );
           await adminDb.collection('bildirimler').add({
             alici: email,
@@ -1092,7 +1096,7 @@ export const dailyGorevHatirlatma = onSchedule({
             tip: 'gorev_atama',
             okundu: false,
             tarih: new Date(),
-            route: '/gorevler',
+            route: gorevRoute,
             gonderen: 'sistem',
             gonderenAd: 'Sistem',
           });
@@ -1107,7 +1111,7 @@ export const dailyGorevHatirlatma = onSchedule({
             email,
             '⚠️ Son Gün!',
             `"${gorev.baslik}" görevinin son tarihi bugün!`,
-            { route: '/gorevler' }
+            { route: gorevRoute }
           );
           await adminDb.collection('bildirimler').add({
             alici: email,
@@ -1116,7 +1120,7 @@ export const dailyGorevHatirlatma = onSchedule({
             tip: 'gorev_atama',
             okundu: false,
             tarih: new Date(),
-            route: '/gorevler',
+            route: gorevRoute,
             gonderen: 'sistem',
             gonderenAd: 'Sistem',
           });
