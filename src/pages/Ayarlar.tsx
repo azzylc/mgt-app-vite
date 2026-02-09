@@ -63,6 +63,7 @@ interface GenelAyarlar {
   konumKontrol: boolean;
   kisiselQr: boolean;
   girisCikisErisim: boolean;
+  gorevAtamaYetkisi: string;
 }
 
 interface RolYetkileri {
@@ -142,7 +143,8 @@ export default function AyarlarPage() {
     qrKameraIzni: true,
     konumKontrol: true,
     kisiselQr: true,
-    girisCikisErisim: true
+    girisCikisErisim: true,
+    gorevAtamaYetkisi: "herkes"
   });
   const [genelAyarlarLoading, setGenelAyarlarLoading] = useState(false);
 
@@ -785,6 +787,61 @@ export default function AyarlarPage() {
                       <p className="text-xs text-stone-500">Yetkililer manuel giriş-çıkış ekleyebilsin mi?</p>
                     </div>
                   </label>
+                </div>
+              </div>
+
+              {/* Görev Ayarları */}
+              <div className="bg-white rounded-lg p-6 shadow-sm border border-stone-100">
+                <h2 className="text-lg font-bold text-stone-800 mb-4 flex items-center gap-2">
+                  <span>✅</span> Görev Ayarları
+                </h2>
+                <div>
+                  <label className="block text-sm font-medium text-stone-700 mb-2">Görev atama yetkisi</label>
+                  <p className="text-xs text-stone-500 mb-3">Kim kimlere görev atayabilir?</p>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-stone-50" style={{ borderColor: genelAyarlar.gorevAtamaYetkisi === "herkes" ? "#f43f5e" : "#e7e5e4" }}>
+                      <input 
+                        type="radio" 
+                        name="gorevAtamaYetkisi"
+                        value="herkes"
+                        checked={genelAyarlar.gorevAtamaYetkisi === "herkes"}
+                        onChange={(e) => setGenelAyarlar({...genelAyarlar, gorevAtamaYetkisi: e.target.value})}
+                        className="w-4 h-4 text-rose-600" 
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-stone-700">🌐 Herkes herkese</p>
+                        <p className="text-xs text-stone-500">Tüm personel birbirine görev atayabilir</p>
+                      </div>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-stone-50" style={{ borderColor: genelAyarlar.gorevAtamaYetkisi === "yonetici" ? "#f43f5e" : "#e7e5e4" }}>
+                      <input 
+                        type="radio" 
+                        name="gorevAtamaYetkisi"
+                        value="yonetici"
+                        checked={genelAyarlar.gorevAtamaYetkisi === "yonetici"}
+                        onChange={(e) => setGenelAyarlar({...genelAyarlar, gorevAtamaYetkisi: e.target.value})}
+                        className="w-4 h-4 text-rose-600" 
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-stone-700">👔 Sadece Kurucu & Yönetici</p>
+                        <p className="text-xs text-stone-500">Personel görev atayamaz, sadece alır</p>
+                      </div>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-stone-50" style={{ borderColor: genelAyarlar.gorevAtamaYetkisi === "firma" ? "#f43f5e" : "#e7e5e4" }}>
+                      <input 
+                        type="radio" 
+                        name="gorevAtamaYetkisi"
+                        value="firma"
+                        checked={genelAyarlar.gorevAtamaYetkisi === "firma"}
+                        onChange={(e) => setGenelAyarlar({...genelAyarlar, gorevAtamaYetkisi: e.target.value})}
+                        className="w-4 h-4 text-rose-600" 
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-stone-700">🏢 Firma bazlı</p>
+                        <p className="text-xs text-stone-500">Kurucu herkese, Yönetici kendi firmasına atayabilir. Personel atayamaz.</p>
+                      </div>
+                    </label>
+                  </div>
                 </div>
               </div>
 

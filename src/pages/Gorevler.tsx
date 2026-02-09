@@ -51,6 +51,7 @@ export default function GorevlerPage() {
   const [seciliPersoneller, setSeciliPersoneller] = useState<string[]>([]);
   const [showAyarlar, setShowAyarlar] = useState(false);
   const [senkronizeLoading, setSenkronizeLoading] = useState<string | null>(null);
+  const [gorevAtamaYetkisi, setGorevAtamaYetkisi] = useState<string>("herkes");
 
   // Modal state
   const [showGorevEkle, setShowGorevEkle] = useState(false);
@@ -111,6 +112,22 @@ export default function GorevlerPage() {
     fetchAyarlar();
   }, [user]);
 
+  // Görev atama yetkisi ayarını çek
+  useEffect(() => {
+    if (!user) return;
+    const fetchGenelAyar = async () => {
+      try {
+        const genelDoc = await getDoc(doc(db, "settings", "general"));
+        if (genelDoc.exists()) {
+          setGorevAtamaYetkisi(genelDoc.data().gorevAtamaYetkisi || "herkes");
+        }
+      } catch (error) {
+        Sentry.captureException(error);
+      }
+    };
+    fetchGenelAyar();
+  }, [user]);
+
   // Personelleri dinle
   useEffect(() => {
     if (!user) return;
@@ -146,9 +163,9 @@ export default function GorevlerPage() {
     return () => unsubscribe();
   }, [user]);
 
-  // Kurucu/Yönetici: tüm görevler
+  // Kurucu/Yönetici veya görev atayabilen: tüm görevler
   useEffect(() => {
-    if (!user || (userRole !== "Kurucu" && userRole !== "Yönetici")) return;
+    if (!user || !gorevAtayabilir) return;
     const q = query(collection(db, "gorevler"), orderBy("olusturulmaTarihi", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setTumGorevler(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Gorev)));
@@ -157,19 +174,42 @@ export default function GorevlerPage() {
       Sentry.captureException(error, { tags: { module: "Gorevler", collection: "gorevler-all" } });
     });
     return () => unsubscribe();
-  }, [user, userRole]);
+  }, [user, gorevAtayabilir]);
 
   // ============================================
   // COMPUTED VALUES
   // ============================================
 
   const ekipPersonelleri = useMemo(() => personeller.filter(p => {
-    if (userRole === "Kurucu") return true;
-    if (userRole === "Yönetici" && userFirmalar.length > 0) {
-      return p.firmalar?.some(f => userFirmalar.includes(f));
+    // "herkes" → tüm aktif personeli göster
+    if (gorevAtamaYetkisi === "herkes") return true;
+    // "yonetici" → Kurucu/Yönetici herkesi görsün
+    if (gorevAtamaYetkisi === "yonetici") {
+      if (userRole === "Kurucu") return true;
+      if (userRole === "Yönetici") return true;
+      return false;
     }
-    return false;
-  }), [personeller, userRole, userFirmalar]);
+    // "firma" → Kurucu herkesi, Yönetici kendi firmasını görsün
+    if (gorevAtamaYetkisi === "firma") {
+      if (userRole === "Kurucu") return true;
+      if (userRole === "Yönetici") {
+        if (userFirmalar.length > 0) {
+          return p.firmalar?.some(f => userFirmalar.includes(f));
+        }
+        return true;
+      }
+      return false;
+    }
+    return true;
+  }), [personeller, userRole, userFirmalar, gorevAtamaYetkisi]);
+
+  // Görev atama yetkisi var mı?
+  const gorevAtayabilir = useMemo(() => {
+    if (gorevAtamaYetkisi === "herkes") return true;
+    if (gorevAtamaYetkisi === "yonetici") return userRole === "Kurucu" || userRole === "Yönetici";
+    if (gorevAtamaYetkisi === "firma") return userRole === "Kurucu" || userRole === "Yönetici";
+    return true;
+  }, [gorevAtamaYetkisi, userRole]);
 
   const personelGorevSayilari = useMemo(() => ekipPersonelleri.map(p => ({
     ...p,
@@ -545,7 +585,7 @@ export default function GorevlerPage() {
           <div className="px-3 md:px-5 py-2 flex items-center justify-between">
             <h1 className="text-sm md:text-base font-bold text-stone-800">✅ Görevler</h1>
             <div className="flex items-center gap-2">
-              {(userRole === "Kurucu" || userRole === "Yönetici") && (
+              {gorevAtayabilir && (
                 <button onClick={() => setShowGorevEkle(true)} className="px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-500 text-white hover:bg-amber-600 transition">
                   ➕ Görev Ata
                 </button>
@@ -575,7 +615,7 @@ export default function GorevlerPage() {
               </span>
             </button>
             
-            {(userRole === "Kurucu" || userRole === "Yönetici") && (
+            {gorevAtayabilir && (
               <button
                 onClick={() => { setAktifSekme("verdigim"); setFiltre("hepsi"); }}
                 className={`px-2.5 md:px-4 py-2 md:py-2.5 font-medium text-xs md:text-sm transition border-b-2 whitespace-nowrap ${
@@ -602,7 +642,7 @@ export default function GorevlerPage() {
               </span>
             </button>
             
-            {(userRole === "Kurucu" || userRole === "Yönetici") && (
+            {gorevAtayabilir && (
               <button
                 onClick={() => { setAktifSekme("tumgorevler"); setFiltre("hepsi"); setSeciliPersoneller([]); }}
                 className={`px-2.5 md:px-4 py-2 md:py-2.5 font-medium text-xs md:text-sm transition border-b-2 whitespace-nowrap ${
