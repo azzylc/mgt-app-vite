@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { db } from "../lib/firebase";
 import GelinModal from "../components/GelinModal";
 import GorevKart from "../components/gorevler/GorevKart";
@@ -185,34 +185,38 @@ export default function GorevlerPage() {
     return Array.from(map.values());
   }, [gorevler, ortakGorevler]);
 
-  // URL'den gorevId okunursa detay modal'ı otomatik aç
-  const gorevIdProcessed = useRef<string | null>(null);
+  // Bildirimden görev açma — custom event ile
   useEffect(() => {
-    // Hash'ten direkt parse et: #/gorevler?gorevId=xxx
+    const handleOpenGorev = (e: Event) => {
+      const gorevId = (e as CustomEvent).detail;
+      if (!gorevId) return;
+      
+      setTimeout(() => {
+        getDoc(doc(db, "gorevler", gorevId)).then(snap => {
+          if (snap.exists()) {
+            setDetayGorev({ id: snap.id, ...snap.data() } as Gorev);
+          }
+        }).catch(() => {});
+      }, 400);
+    };
+
+    // İlk açılışta hash'ten kontrol
     const hash = window.location.hash;
     const match = hash.match(/gorevId=([^&]+)/);
-    const gorevId = match?.[1] || null;
-    
-    if (!gorevId || gorevIdProcessed.current === gorevId) return;
-    gorevIdProcessed.current = gorevId;
-    
-    console.log("[Gorevler] gorevId bulundu:", gorevId);
-    
-    // Sayfa önce render olsun, sonra modal açılsın
-    const timer = setTimeout(() => {
-      getDoc(doc(db, "gorevler", gorevId)).then(snap => {
-        if (snap.exists()) {
-          console.log("[Gorevler] Görev bulundu, modal açılıyor");
-          setDetayGorev({ id: snap.id, ...snap.data() } as Gorev);
-        }
-        // URL temizle
-        window.location.hash = "#/gorevler";
-      }).catch((err) => {
-        console.error("[Gorevler] Görev çekme hatası:", err);
-      });
-    }, 600);
-    
-    return () => clearTimeout(timer);
+    if (match?.[1]) {
+      const gorevId = match[1];
+      window.location.hash = "#/gorevler";
+      setTimeout(() => {
+        getDoc(doc(db, "gorevler", gorevId)).then(snap => {
+          if (snap.exists()) {
+            setDetayGorev({ id: snap.id, ...snap.data() } as Gorev);
+          }
+        }).catch(() => {});
+      }, 400);
+    }
+
+    window.addEventListener("openGorevDetay", handleOpenGorev);
+    return () => window.removeEventListener("openGorevDetay", handleOpenGorev);
   }, []);
 
   // Görev atama yetkisi var mı? (useEffect'ten önce tanımlanmalı)

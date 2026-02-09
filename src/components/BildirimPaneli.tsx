@@ -56,7 +56,16 @@ export default function BildirimPaneli({ userEmail, kompakt = false }: BildirimP
       }
       setAcik(false);
       if (b.route) {
-        navigate(b.route);
+        // Görev deep link — gorevId varsa custom event fire et
+        const gorevIdMatch = b.route.match(/gorevId=([^&]+)/);
+        if (gorevIdMatch) {
+          navigate("/gorevler");
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent("openGorevDetay", { detail: gorevIdMatch[1] }));
+          }, 100);
+        } else {
+          navigate(b.route);
+        }
       }
     },
     [okunduYap, navigate]
