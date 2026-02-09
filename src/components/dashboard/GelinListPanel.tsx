@@ -69,7 +69,7 @@ export default function GelinListPanel({
             <p className="text-stone-400 text-xs mt-1">İş yok!</p>
           </div>
         ) : (
-          <div className="space-y-0.5 max-h-[250px] overflow-y-auto">
+          <div className="space-y-1.5 max-h-[250px] overflow-y-auto">
             {gelinler.map((gelin) => (
               <div 
                 key={gelin.id}

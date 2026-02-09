@@ -59,7 +59,7 @@ export default function DikkatPanel({
               </div>
               <span className="text-[10px] text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded-full font-medium">{islenmemisUcretler.length}</span>
             </div>
-            <div className="space-y-0.5">
+            <div className="space-y-1.5">
               {islenmemisUcretler.slice(0, 3).map(g => (
                 <div 
                   key={g.id}
@@ -108,7 +108,7 @@ export default function DikkatPanel({
                 <span className="text-[10px] text-emerald-500 bg-emerald-50 px-1.5 py-0.5 rounded-full font-medium">{eksikIzinler.length}</span>
               </div>
             </div>
-            <div className="space-y-0.5">
+            <div className="space-y-1.5">
               {eksikIzinler.slice(0, 5).map(eksik => (
                 <div key={eksik.personel.id} className="flex items-center justify-between py-1.5 px-2.5 rounded-lg bg-stone-50/60 hover:bg-emerald-50/50 transition">
                   <div>

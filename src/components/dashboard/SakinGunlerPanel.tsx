@@ -45,7 +45,7 @@ export default function SakinGunlerPanel({
             <p className="text-stone-400 text-xs mt-1">Bu kriterde gün bulunamadı</p>
           </div>
         ) : (
-          <div className="space-y-0.5 max-h-[250px] overflow-y-auto">
+          <div className="space-y-1.5 max-h-[250px] overflow-y-auto">
             {sakinGunler.map((gun) => (
               <div key={gun.tarih} className="flex items-center justify-between py-1.5 px-2.5 rounded-lg hover:bg-violet-50/50 transition bg-stone-50/60">
                 <span className="text-xs text-stone-600 font-medium">{formatTarih(gun.tarih)}</span>

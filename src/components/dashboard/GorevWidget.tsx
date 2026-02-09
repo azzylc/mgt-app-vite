@@ -128,7 +128,7 @@ export default function GorevWidget({ onCount }: { onCount?: (count: number) => 
         </div>
       )}
 
-      <div className="divide-y divide-stone-50">
+      <div className="space-y-1.5 p-2.5">
         {aktifGorevler.slice(0, 4).map((gorev) => (
           <div
             key={gorev.id}

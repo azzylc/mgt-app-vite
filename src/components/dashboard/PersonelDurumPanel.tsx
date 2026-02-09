@@ -53,7 +53,7 @@ export default function PersonelDurumPanel({
             <p className="text-stone-400 text-xs mt-1">Aktif çalışan yok</p>
           </div>
         ) : (
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             {aktifPersoneller.map((p) => {
               const personel = tumPersoneller.find(per => per.id === p.personelId);
               return (
@@ -80,7 +80,7 @@ export default function PersonelDurumPanel({
         {bugunGelenler.length === 0 ? (
           <p className="text-center py-3 text-stone-400 text-xs">Henüz kimse gelmedi</p>
         ) : (
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             {bugunGelenler.map((p) => {
               const personel = tumPersoneller.find(per => per.id === p.personelId);
               return (
