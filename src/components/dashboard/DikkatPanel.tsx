@@ -64,7 +64,7 @@ export default function DikkatPanel({
                 <div 
                   key={g.id}
                   onClick={() => onGelinClick(g)}
-                  className="flex items-center justify-between py-1.5 px-2.5 rounded-lg hover:bg-amber-50/50 transition cursor-pointer"
+                  className="flex items-center justify-between py-1.5 px-2.5 rounded-lg bg-stone-50/60 hover:bg-amber-50/50 transition cursor-pointer"
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-stone-700 font-medium">{g.isim}</span>
@@ -110,7 +110,7 @@ export default function DikkatPanel({
             </div>
             <div className="space-y-0.5">
               {eksikIzinler.slice(0, 5).map(eksik => (
-                <div key={eksik.personel.id} className="flex items-center justify-between py-1.5 px-2.5 rounded-lg hover:bg-emerald-50/50 transition">
+                <div key={eksik.personel.id} className="flex items-center justify-between py-1.5 px-2.5 rounded-lg bg-stone-50/60 hover:bg-emerald-50/50 transition">
                   <div>
                     <span className="text-xs text-stone-700 font-medium">{eksik.personel.ad} {eksik.personel.soyad}</span>
                     <span className="text-[10px] text-stone-400 ml-1.5">({eksik.calismaYili}. yıl)</span>

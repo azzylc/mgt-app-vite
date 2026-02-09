@@ -84,7 +84,7 @@ export default function PersonelDurumPanel({
             {bugunGelenler.map((p) => {
               const personel = tumPersoneller.find(per => per.id === p.personelId);
               return (
-                <div key={p.personelId} className="flex items-center justify-between py-1.5 px-2.5 rounded-lg hover:bg-stone-50 transition">
+                <div key={p.personelId} className="flex items-center justify-between py-1.5 px-2.5 rounded-lg bg-stone-50/60 hover:bg-sky-50/50 transition">
                   <div className="flex items-center gap-2">
                     <span className="text-xs">{personel?.emoji || "👤"}</span>
                     <span className="text-xs text-stone-700">{p.personelAd}</span>

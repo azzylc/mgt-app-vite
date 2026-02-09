@@ -58,7 +58,7 @@ export default function GorevWidget({ onCount }: { onCount?: (count: number) => 
       case "acil": return "border-l-red-400 bg-red-50/30";
       case "yuksek": return "border-l-amber-400 bg-amber-50/30";
       case "dusuk": return "border-l-sky-300 bg-sky-50/20";
-      default: return "border-l-stone-200";
+      default: return "border-l-stone-200 bg-stone-50/60";
     }
   };
 
@@ -133,7 +133,7 @@ export default function GorevWidget({ onCount }: { onCount?: (count: number) => 
           <div
             key={gorev.id}
             onClick={() => navigate("/gorevler")}
-            className={`px-3 py-2 cursor-pointer hover:bg-stone-50 transition border-l-2 ${oncelikAccent(gorev.oncelik)}`}
+            className={`px-3 py-2 cursor-pointer hover:bg-amber-50/40 transition border-l-2 ${oncelikAccent(gorev.oncelik)}`}
           >
             <p className="text-xs font-medium text-stone-700 truncate">{gorev.baslik}</p>
             <div className="flex items-center gap-2 mt-0.5">

@@ -587,7 +587,7 @@ export default function Home() {
                       <div 
                         key={d.id} 
                         onClick={() => setSelectedDuyuru(d)}
-                        className="py-1.5 px-2.5 rounded-lg cursor-pointer hover:bg-amber-50/40 transition"
+                        className="py-1.5 px-2.5 rounded-lg cursor-pointer bg-stone-50/60 hover:bg-amber-50/60 transition"
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
