@@ -13,6 +13,7 @@ interface GorevEkleModalProps {
   yeniGorev: YeniGorevForm;
   ekipPersonelleri: Personel[];
   loading: boolean;
+  userEmail: string;
   onFormDegistir: (form: YeniGorevForm) => void;
   onOlustur: () => void;
   onKapat: () => void;
@@ -22,6 +23,7 @@ export default function GorevEkleModal({
   yeniGorev,
   ekipPersonelleri,
   loading,
+  userEmail,
   onFormDegistir,
   onOlustur,
   onKapat,
@@ -79,8 +81,12 @@ export default function GorevEkleModal({
                 />
                 <span className="text-sm font-medium text-stone-700">Tümünü Seç ({ekipPersonelleri.length})</span>
               </label>
-              {ekipPersonelleri.map(p => (
-                <label key={p.id} className="flex items-center gap-2 p-1.5 rounded hover:bg-stone-50 cursor-pointer">
+              {[...ekipPersonelleri].sort((a, b) => {
+                if (a.email === userEmail) return -1;
+                if (b.email === userEmail) return 1;
+                return 0;
+              }).map(p => (
+                <label key={p.id} className={`flex items-center gap-2 p-1.5 rounded cursor-pointer ${p.email === userEmail ? "hover:bg-amber-50 bg-amber-50/30" : "hover:bg-stone-50"}`}>
                   <input
                     type="checkbox"
                     checked={yeniGorev.atananlar.includes(p.email)}
@@ -92,7 +98,12 @@ export default function GorevEkleModal({
                     }}
                     className="rounded border-stone-300 text-amber-500 focus:ring-amber-500"
                   />
-                  <span className="text-sm text-stone-700">{p.ad} {p.soyad}</span>
+                  <span className="text-sm text-stone-700">
+                    {p.email === userEmail 
+                      ? <span className="font-medium text-amber-600">📌 Kendime Görev / Not</span>
+                      : `${p.ad} ${p.soyad}`
+                    }
+                  </span>
                 </label>
               ))}
             </div>

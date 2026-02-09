@@ -933,6 +933,7 @@ export default function GorevlerPage() {
           yeniGorev={yeniGorev}
           ekipPersonelleri={ekipPersonelleri}
           loading={gorevEkleLoading}
+          userEmail={user?.email || ""}
           onFormDegistir={setYeniGorev}
           onOlustur={handleGorevOlustur}
           onKapat={() => setShowGorevEkle(false)}
