@@ -192,25 +192,16 @@ export default function GorevlerPage() {
     const gorevId = searchParams.get("gorevId");
     if (!gorevId) return;
     
-    // Görev listelerden bul
-    const gorev = birlesikGorevler.find(g => g.id === gorevId) || tumGorevler.find(g => g.id === gorevId);
-    if (gorev) {
-      setDetayGorev(gorev);
-      // URL'den param'ı temizle
-      setSearchParams({}, { replace: true });
-    } else if (birlesikGorevler.length === 0 && tumGorevler.length === 0) {
-      // Veriler henüz yüklenmedi, bekle
-      return;
-    } else {
-      // Görev bulunamadı — Firestore'dan dene
-      getDoc(doc(db, "gorevler", gorevId)).then(snap => {
-        if (snap.exists()) {
-          setDetayGorev({ id: snap.id, ...snap.data() } as Gorev);
-        }
-      }).catch(() => {});
-      setSearchParams({}, { replace: true });
-    }
-  }, [birlesikGorevler, tumGorevler, searchParams]);
+    // URL'den param'ı hemen temizle
+    setSearchParams({}, { replace: true });
+    
+    // Firestore'dan direkt çek (local state'e bağımlı olma)
+    getDoc(doc(db, "gorevler", gorevId)).then(snap => {
+      if (snap.exists()) {
+        setDetayGorev({ id: snap.id, ...snap.data() } as Gorev);
+      }
+    }).catch(() => {});
+  }, [searchParams]);
 
   // Görev atama yetkisi var mı? (useEffect'ten önce tanımlanmalı)
   const gorevAtayabilir = useMemo(() => {
