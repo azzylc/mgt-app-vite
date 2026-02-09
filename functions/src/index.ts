@@ -821,7 +821,7 @@ async function sendPushToUser(email: string, title: string, body: string, data?:
 // Client'tan çağrı GEREKMEZ — Firestore otomatik tetikler
 // ============================================
 
-// 9a. Yeni görev oluşturulunca → atanan kişiye bildirim
+// 9a. Yeni görev oluşturulunca → atanan kişi(ler)e bildirim
 export const onGorevCreated = onDocumentCreated({
   document: 'gorevler/{gorevId}',
   region: 'europe-west1'
@@ -829,30 +829,43 @@ export const onGorevCreated = onDocumentCreated({
   const data = event.data?.data();
   if (!data) return;
 
-  const { atanan, atayan, atayanAd, baslik, oncelik } = data;
-
-  // Kendi kendine atamada bildirim gönderme
-  if (!atanan || !baslik || atanan === atayan) return;
-
-  console.log(`[GOREV-BILDIRIM] ${atayanAd} → ${atanan}: ${baslik}`);
+  const { atayan, atayanAd, baslik, oncelik, ortakMi, atananlar, atanan } = data;
 
   const oncelikEmoji = oncelik === 'acil' ? '🔴' : oncelik === 'yuksek' ? '🟠' : '';
   const title = `${oncelikEmoji} Yeni Görev Atandı`.trim();
   const body = `${atayanAd || 'Birisi'} size bir görev atadı: ${baslik}`;
 
-  await sendPushToUser(atanan, title, body, { route: '/gorevler' });
+  // Bildirim alacak kişileri belirle
+  const alicilar: string[] = [];
+  if (ortakMi && Array.isArray(atananlar)) {
+    // Ortak görev — tüm atananlar
+    for (const email of atananlar) {
+      if (email !== atayan) alicilar.push(email);
+    }
+  } else if (atanan && atanan !== atayan) {
+    // Kişisel görev
+    alicilar.push(atanan);
+  }
 
-  await adminDb.collection('bildirimler').add({
-    alici: atanan,
-    baslik: title,
-    mesaj: body,
-    tip: 'gorev_atama',
-    okundu: false,
-    tarih: new Date(),
-    route: '/gorevler',
-    gonderen: atayan || null,
-    gonderenAd: atayanAd || null,
-  });
+  if (alicilar.length === 0) return;
+
+  console.log(`[GOREV-BILDIRIM] ${atayanAd} → ${alicilar.length} kişi: ${baslik}`);
+
+  for (const email of alicilar) {
+    await sendPushToUser(email, title, body, { route: '/gorevler' });
+
+    await adminDb.collection('bildirimler').add({
+      alici: email,
+      baslik: title,
+      mesaj: body,
+      tip: 'gorev_atama',
+      okundu: false,
+      tarih: new Date(),
+      route: '/gorevler',
+      gonderen: atayan || null,
+      gonderenAd: atayanAd || null,
+    });
+  }
 });
 
 // 9b. Görev güncellenince → tamamlama + yorum bildirimi
@@ -864,37 +877,107 @@ export const onGorevUpdated = onDocumentUpdated({
   const after = event.data?.after.data();
   if (!before || !after) return;
 
-  const durumDegisti = before.durum !== 'tamamlandi' && after.durum === 'tamamlandi';
+  const durumDegisti = before.durum !== after.durum;
   const beforeYorumlar = before.yorumlar || [];
   const afterYorumlar = after.yorumlar || [];
   const yeniYorumVar = afterYorumlar.length > beforeYorumlar.length;
+  const isOrtak = after.ortakMi === true && Array.isArray(after.atananlar);
 
-  // === TAMAMLAMA BİLDİRİMİ ===
-  if (durumDegisti) {
+  // Ortak görevde bireysel tamamlama (durum henüz tamamlandi olmadı ama tamamlayanlar değişti)
+  const beforeTamamlayanlar = before.tamamlayanlar || [];
+  const afterTamamlayanlar = after.tamamlayanlar || [];
+  const yeniTamamlayanVar = isOrtak && afterTamamlayanlar.length > beforeTamamlayanlar.length;
+
+  // === ORTAK GÖREV: Biri tamamladığında (herkes tamamlamadan) ===
+  if (yeniTamamlayanVar && after.durum !== 'tamamlandi') {
+    const yeniTamamlayan = afterTamamlayanlar.find((e: string) => !beforeTamamlayanlar.includes(e));
+    if (yeniTamamlayan) {
+      const sonYorum = afterYorumlar[afterYorumlar.length - 1];
+      const tamamlayanAd = sonYorum?.yazanAd || 'Birisi';
+
+      const title = '📋 Ortak Görev Güncellendi';
+      const body = `${tamamlayanAd} tamamladı (${afterTamamlayanlar.length}/${after.atananlar.length}): ${after.baslik}`;
+
+      // Atayan + diğer atananlar (tamamlayan hariç)
+      const bildirimAlacaklar = new Set<string>();
+      if (after.atayan && after.atayan !== yeniTamamlayan && after.atayan !== 'Sistem') {
+        bildirimAlacaklar.add(after.atayan);
+      }
+      for (const email of after.atananlar) {
+        if (email !== yeniTamamlayan) bildirimAlacaklar.add(email);
+      }
+
+      for (const email of bildirimAlacaklar) {
+        await sendPushToUser(email, title, body, { route: '/gorevler' });
+        await adminDb.collection('bildirimler').add({
+          alici: email,
+          baslik: title,
+          mesaj: body,
+          tip: 'gorev_tamam',
+          okundu: false,
+          tarih: new Date(),
+          route: '/gorevler',
+          gonderen: yeniTamamlayan,
+          gonderenAd: tamamlayanAd,
+        });
+      }
+
+      // Tamamlama yorumu tekrar bildirim göndermesin
+      return;
+    }
+  }
+
+  // === TAMAMLAMA BİLDİRİMİ (herkes tamamladı veya kişisel görev) ===
+  if (durumDegisti && after.durum === 'tamamlandi') {
     const sonYorum = afterYorumlar[afterYorumlar.length - 1];
     const tamamlayan = sonYorum?.yazan || after.atanan;
     const tamamlayanAd = sonYorum?.yazanAd || after.atananAd || 'Birisi';
 
-    // Atayan kişiye bildir (tamamlayan kendisi değilse, Sistem değilse)
-    if (after.atayan && after.atayan !== tamamlayan && after.atayan !== 'Sistem') {
-      console.log(`[GOREV-TAMAM] ${tamamlayanAd} tamamladı → ${after.atayan}: ${after.baslik}`);
+    if (isOrtak) {
+      // Ortak görev tamamen tamamlandı → herkese bildir
+      const title = '✅ Ortak Görev Tamamlandı';
+      const body = `Herkes tamamladı: ${after.baslik}`;
 
-      const title = '✅ Görev Tamamlandı';
-      const body = `${tamamlayanAd} görevi tamamladı: ${after.baslik}`;
+      const bildirimAlacaklar = new Set<string>();
+      if (after.atayan && after.atayan !== 'Sistem') bildirimAlacaklar.add(after.atayan);
+      for (const email of after.atananlar) bildirimAlacaklar.add(email);
 
-      await sendPushToUser(after.atayan, title, body, { route: '/gorevler' });
+      for (const email of bildirimAlacaklar) {
+        await sendPushToUser(email, title, body, { route: '/gorevler' });
+        await adminDb.collection('bildirimler').add({
+          alici: email,
+          baslik: title,
+          mesaj: body,
+          tip: 'gorev_tamam',
+          okundu: false,
+          tarih: new Date(),
+          route: '/gorevler',
+          gonderen: tamamlayan,
+          gonderenAd: tamamlayanAd,
+        });
+      }
+    } else {
+      // Kişisel görev — atayan kişiye bildir
+      if (after.atayan && after.atayan !== tamamlayan && after.atayan !== 'Sistem') {
+        console.log(`[GOREV-TAMAM] ${tamamlayanAd} tamamladı → ${after.atayan}: ${after.baslik}`);
 
-      await adminDb.collection('bildirimler').add({
-        alici: after.atayan,
-        baslik: title,
-        mesaj: body,
-        tip: 'gorev_tamam',
-        okundu: false,
-        tarih: new Date(),
-        route: '/gorevler',
-        gonderen: tamamlayan,
-        gonderenAd: tamamlayanAd,
-      });
+        const title = '✅ Görev Tamamlandı';
+        const body = `${tamamlayanAd} görevi tamamladı: ${after.baslik}`;
+
+        await sendPushToUser(after.atayan, title, body, { route: '/gorevler' });
+
+        await adminDb.collection('bildirimler').add({
+          alici: after.atayan,
+          baslik: title,
+          mesaj: body,
+          tip: 'gorev_tamam',
+          okundu: false,
+          tarih: new Date(),
+          route: '/gorevler',
+          gonderen: tamamlayan,
+          gonderenAd: tamamlayanAd,
+        });
+      }
     }
 
     // Tamamlama ile birlikte gelen yorumu tekrar bildirim olarak gönderme
@@ -917,7 +1000,12 @@ export const onGorevUpdated = onDocumentUpdated({
     if (after.atayan && after.atayan !== yorumYapan && after.atayan !== 'Sistem') {
       bildirimAlacaklar.add(after.atayan);
     }
-    if (after.atanan && after.atanan !== yorumYapan) {
+    if (isOrtak) {
+      // Ortak görev — tüm atananlara
+      for (const email of after.atananlar) {
+        if (email !== yorumYapan) bildirimAlacaklar.add(email);
+      }
+    } else if (after.atanan && after.atanan !== yorumYapan) {
       bildirimAlacaklar.add(after.atanan);
     }
 
@@ -972,52 +1060,67 @@ export const dailyGorevHatirlatma = onSchedule({
       const sonTarih = gorev.sonTarih;
       const atanan = gorev.atanan; // email
 
-      if (!sonTarih || !atanan) continue;
+      if (!sonTarih) continue;
+
+      // Bildirim alacak kişileri belirle
+      const alicilar: string[] = [];
+      if (gorev.ortakMi && Array.isArray(gorev.atananlar)) {
+        // Ortak görev — tamamlamayan kişilere gönder
+        const tamamlayanlar = gorev.tamamlayanlar || [];
+        for (const email of gorev.atananlar) {
+          if (!tamamlayanlar.includes(email)) alicilar.push(email);
+        }
+      } else if (atanan) {
+        alicilar.push(atanan);
+      }
+
+      if (alicilar.length === 0) continue;
 
       // Yarın son tarihli görevler → hatırlatma
       if (sonTarih === yarinStr) {
-        await sendPushToUser(
-          atanan,
-          '⏰ Görev Hatırlatma',
-          `"${gorev.baslik}" görevinin son tarihi yarın!`,
-          { route: '/gorevler' }
-        );
-        // Uygulama içi bildirim
-        await adminDb.collection('bildirimler').add({
-          alici: atanan,
-          baslik: '⏰ Görev Hatırlatma',
-          mesaj: `"${gorev.baslik}" görevinin son tarihi yarın!`,
-          tip: 'gorev_atama',
-          okundu: false,
-          tarih: new Date(),
-          route: '/gorevler',
-          gonderen: 'sistem',
-          gonderenAd: 'Sistem',
-        });
+        for (const email of alicilar) {
+          await sendPushToUser(
+            email,
+            '⏰ Görev Hatırlatma',
+            `"${gorev.baslik}" görevinin son tarihi yarın!`,
+            { route: '/gorevler' }
+          );
+          await adminDb.collection('bildirimler').add({
+            alici: email,
+            baslik: '⏰ Görev Hatırlatma',
+            mesaj: `"${gorev.baslik}" görevinin son tarihi yarın!`,
+            tip: 'gorev_atama',
+            okundu: false,
+            tarih: new Date(),
+            route: '/gorevler',
+            gonderen: 'sistem',
+            gonderenAd: 'Sistem',
+          });
+        }
         yarinHatirlatma++;
       }
 
       // Gecikmiş görevler → uyarı (sadece bugün gecikmeye başlayanlar)
       if (sonTarih === bugun) {
-        // Bugün son gün olanlar için sabah uyarısı
-        await sendPushToUser(
-          atanan,
-          '⚠️ Son Gün!',
-          `"${gorev.baslik}" görevinin son tarihi bugün!`,
-          { route: '/gorevler' }
-        );
-        // Uygulama içi bildirim
-        await adminDb.collection('bildirimler').add({
-          alici: atanan,
-          baslik: '⚠️ Son Gün!',
-          mesaj: `"${gorev.baslik}" görevinin son tarihi bugün!`,
-          tip: 'gorev_atama',
-          okundu: false,
-          tarih: new Date(),
-          route: '/gorevler',
-          gonderen: 'sistem',
-          gonderenAd: 'Sistem',
-        });
+        for (const email of alicilar) {
+          await sendPushToUser(
+            email,
+            '⚠️ Son Gün!',
+            `"${gorev.baslik}" görevinin son tarihi bugün!`,
+            { route: '/gorevler' }
+          );
+          await adminDb.collection('bildirimler').add({
+            alici: email,
+            baslik: '⚠️ Son Gün!',
+            mesaj: `"${gorev.baslik}" görevinin son tarihi bugün!`,
+            tip: 'gorev_atama',
+            okundu: false,
+            tarih: new Date(),
+            route: '/gorevler',
+            gonderen: 'sistem',
+            gonderenAd: 'Sistem',
+          });
+        }
         gecikmisBildirim++;
       }
     }
