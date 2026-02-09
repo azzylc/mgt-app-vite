@@ -43,3 +43,17 @@ function getFirebaseAuth() {
 
 export const auth = globalThis.__firebase_auth__ ?? 
   (globalThis.__firebase_auth__ = getFirebaseAuth());
+
+// Cloud Functions - httpsCallable
+import { getFunctions, httpsCallable } from "firebase/functions";
+
+export const functions = getFunctions(app);
+
+export const sendGorevBildirimFn = (data: any) =>
+  httpsCallable(functions, "sendGorevBildirim")(data);
+
+export const sendGorevTamamBildirimFn = (data: any) =>
+  httpsCallable(functions, "sendGorevTamamBildirim")(data);
+
+export const sendGorevYorumBildirimFn = (data: any) =>
+  httpsCallable(functions, "sendGorevYorumBildirim")(data);
