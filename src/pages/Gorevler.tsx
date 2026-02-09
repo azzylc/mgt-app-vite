@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { db } from "../lib/firebase";
 import GelinModal from "../components/GelinModal";
 import GorevKart from "../components/gorevler/GorevKart";
@@ -26,7 +26,6 @@ import {
   writeBatch
 } from "firebase/firestore";
 import * as Sentry from '@sentry/react';
-import { useSearchParams } from 'react-router-dom';
 import { useAuth, useRole } from "../context/RoleProvider";
 
 // ============================================
@@ -35,7 +34,6 @@ import { useAuth, useRole } from "../context/RoleProvider";
 export default function GorevlerPage() {
   const user = useAuth();
   const { personelData } = useRole();
-  const [searchParams, setSearchParams] = useSearchParams();
 
   // Rol ve firmalar context'ten (RoleProvider) — duplicate sorgu yok
   const userRole = personelData?.kullaniciTuru || "";
@@ -188,24 +186,34 @@ export default function GorevlerPage() {
   }, [gorevler, ortakGorevler]);
 
   // URL'den gorevId okunursa detay modal'ı otomatik aç
+  const gorevIdProcessed = useRef<string | null>(null);
   useEffect(() => {
-    const gorevId = searchParams.get("gorevId");
-    if (!gorevId) return;
+    // Hash'ten direkt parse et: #/gorevler?gorevId=xxx
+    const hash = window.location.hash;
+    const match = hash.match(/gorevId=([^&]+)/);
+    const gorevId = match?.[1] || null;
     
-    // URL'den param'ı hemen temizle
-    setSearchParams({}, { replace: true });
+    if (!gorevId || gorevIdProcessed.current === gorevId) return;
+    gorevIdProcessed.current = gorevId;
+    
+    console.log("[Gorevler] gorevId bulundu:", gorevId);
     
     // Sayfa önce render olsun, sonra modal açılsın
     const timer = setTimeout(() => {
       getDoc(doc(db, "gorevler", gorevId)).then(snap => {
         if (snap.exists()) {
+          console.log("[Gorevler] Görev bulundu, modal açılıyor");
           setDetayGorev({ id: snap.id, ...snap.data() } as Gorev);
         }
-      }).catch(() => {});
-    }, 400);
+        // URL temizle
+        window.location.hash = "#/gorevler";
+      }).catch((err) => {
+        console.error("[Gorevler] Görev çekme hatası:", err);
+      });
+    }, 600);
     
     return () => clearTimeout(timer);
-  }, [searchParams]);
+  }, []);
 
   // Görev atama yetkisi var mı? (useEffect'ten önce tanımlanmalı)
   const gorevAtayabilir = useMemo(() => {
