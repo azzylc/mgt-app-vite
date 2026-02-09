@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../../lib/firebase";
-import { collection, query, onSnapshot, orderBy, where, Timestamp, getDocs, addDoc, deleteDoc, doc } from "firebase/firestore";
+import { collection, query, onSnapshot, orderBy, where, Timestamp, getDocs, addDoc, deleteDoc, updateDoc, doc } from "firebase/firestore";
 import { resmiTatiller } from "../../lib/data";
 import { izinMapOlustur } from "../../lib/izinHelper";
 import * as Sentry from '@sentry/react';
@@ -52,7 +52,7 @@ export default function PuantajPage() {
   } | null>(null);
   const [girisSaati, setGirisSaati] = useState("09:00");
   const [cikisSaati, setCikisSaati] = useState("18:00");
-  const [islemTipi, setIslemTipi] = useState<"giriscikis" | "haftaTatili">("giriscikis");
+  const [islemTipi, setIslemTipi] = useState<"giris" | "cikis" | "giriscikis" | "haftaTatili">("giriscikis");
   const [saving, setSaving] = useState(false);
   const [girisOnerisi, setGirisOnerisi] = useState<string | null>(null);
   const [cikisOnerisi, setCikisOnerisi] = useState<string | null>(null);
@@ -334,17 +334,21 @@ export default function PuantajPage() {
     const kayit = puantajData.find(p => p.personelId === personelId)?.gunler[gun];
     if (kayit && kayit.durum === "izin") return;
     
-    // Varsayılan saatler
+    // Mevcut kayıtları kontrol et
+    const mevcutGiris = kayit?.giris?.saat || "";
+    const mevcutCikis = kayit?.cikis?.saat || "";
+    
+    // Tıklanan hücreye göre tip belirle
     if (tip === "giris") {
-      setGirisSaati("09:00");
-      setCikisSaati("18:00");
+      setIslemTipi("giris");
+      setGirisSaati(mevcutGiris || "09:00");
+      setCikisSaati(mevcutCikis || "18:00");
     } else {
-      // Çıkışa tıklandıysa, çıkışı 18:00, girişi 09:00 yap
-      setCikisSaati("18:00");
-      setGirisSaati("09:00");
+      setIslemTipi("cikis");
+      setCikisSaati(mevcutCikis || "18:00");
+      setGirisSaati(mevcutGiris || "09:00");
     }
     
-    setIslemTipi("giriscikis");
     setGirisOnerisi(null);
     setCikisOnerisi(null);
     
@@ -470,7 +474,7 @@ export default function PuantajPage() {
     if (!islemModal) return;
     
     // Giriş-çıkış için validasyonlar
-    if (islemTipi === "giriscikis") {
+    if (islemTipi === "giris" || islemTipi === "cikis" || islemTipi === "giriscikis") {
       // Konum zorunlu
       if (!seciliKonum) {
         alert("Lütfen konum seçiniz!");
@@ -479,11 +483,11 @@ export default function PuantajPage() {
       
       // Saat formatı kontrolü (HH:MM)
       const saatRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
-      if (!saatRegex.test(girisSaati)) {
+      if ((islemTipi === "giris" || islemTipi === "giriscikis") && !saatRegex.test(girisSaati)) {
         alert("Giriş saati geçersiz! Lütfen saat ve dakikayı tam giriniz. (Örn: 09:00)");
         return;
       }
-      if (!saatRegex.test(cikisSaati)) {
+      if ((islemTipi === "cikis" || islemTipi === "giriscikis") && !saatRegex.test(cikisSaati)) {
         alert("Çıkış saati geçersiz! Lütfen saat ve dakikayı tam giriniz. (Örn: 18:00)");
         return;
       }
@@ -573,75 +577,129 @@ export default function PuantajPage() {
           kullaniciAdi: user?.email?.split("@")[0] || "",
         });
       } else {
-        // Giriş ve Çıkış kaydı - ikisini de ekle
+        // Giriş ve/veya Çıkış kaydı
         const konum = konumlar.find(k => k.id === seciliKonum);
+        const kaydedilecekGiris = islemTipi === "giris" || islemTipi === "giriscikis";
+        const kaydedilecekCikis = islemTipi === "cikis" || islemTipi === "giriscikis";
         
         // Giriş kaydı
-        if (girisSaati) {
+        if (kaydedilecekGiris && girisSaati) {
           const girisTarih = new Date(seciliYil, seciliAy, islemModal.gun);
           const [gSaat, gDakika] = girisSaati.split(':').map(Number);
           girisTarih.setHours(gSaat, gDakika, 0, 0);
 
-          await addDoc(collection(db, "attendance"), {
-            personelId: islemModal.personelId,
-            personelAd: islemModal.personelAd,
-            personelEmail: "",
-            sicilNo: "",
-            tip: "giris",
-            tarih: Timestamp.fromDate(girisTarih),
-            konumId: seciliKonum,
-            konumAdi: konum?.karekod || konum?.ad || "Puantaj",
-            kayitOrtami: "Puantaj",
-            manuelKayit: true,
-            mazeretNotu: "",
-            ekleyenEmail: user.email,
-            olusturmaTarihi: Timestamp.now()
-          });
+          const mevcutGirisId = personelKayit?.giris?.id;
+          const oncekiSaat = personelKayit?.giris?.saat || "";
 
-          await addDoc(collection(db, "attendanceChanges"), {
-            degisiklikYapan: user.email,
-            degisiklikTarihi: Timestamp.now(),
-            degisiklikTuru: "Kayıt Eklendi",
-            oncekiDeger: "",
-            sonrakiDeger: "Giriş",
-            kullaniciAdi: islemModal.personelAd,
-            konum: konum?.karekod || konum?.ad || "Puantaj",
-            girisCikisTarih: Timestamp.fromDate(girisTarih)
-          });
+          if (mevcutGirisId) {
+            // Mevcut kaydı güncelle
+            await updateDoc(doc(db, "attendance", mevcutGirisId), {
+              tarih: Timestamp.fromDate(girisTarih),
+              konumId: seciliKonum,
+              konumAdi: konum?.karekod || konum?.ad || "Puantaj",
+              ekleyenEmail: user.email,
+              olusturmaTarihi: Timestamp.now()
+            });
+
+            await addDoc(collection(db, "attendanceChanges"), {
+              degisiklikYapan: user.email,
+              degisiklikTarihi: Timestamp.now(),
+              degisiklikTuru: "Kayıt Güncellendi",
+              oncekiDeger: `Giriş - ${oncekiSaat}`,
+              sonrakiDeger: `Giriş - ${girisSaati}`,
+              kullaniciAdi: islemModal.personelAd,
+              konum: konum?.karekod || konum?.ad || "Puantaj",
+              girisCikisTarih: Timestamp.fromDate(girisTarih)
+            });
+          } else {
+            // Yeni kayıt ekle
+            await addDoc(collection(db, "attendance"), {
+              personelId: islemModal.personelId,
+              personelAd: islemModal.personelAd,
+              personelEmail: "",
+              sicilNo: "",
+              tip: "giris",
+              tarih: Timestamp.fromDate(girisTarih),
+              konumId: seciliKonum,
+              konumAdi: konum?.karekod || konum?.ad || "Puantaj",
+              kayitOrtami: "Puantaj",
+              manuelKayit: true,
+              mazeretNotu: "",
+              ekleyenEmail: user.email,
+              olusturmaTarihi: Timestamp.now()
+            });
+
+            await addDoc(collection(db, "attendanceChanges"), {
+              degisiklikYapan: user.email,
+              degisiklikTarihi: Timestamp.now(),
+              degisiklikTuru: "Kayıt Eklendi",
+              oncekiDeger: "",
+              sonrakiDeger: "Giriş",
+              kullaniciAdi: islemModal.personelAd,
+              konum: konum?.karekod || konum?.ad || "Puantaj",
+              girisCikisTarih: Timestamp.fromDate(girisTarih)
+            });
+          }
         }
         
         // Çıkış kaydı
-        if (cikisSaati) {
+        if (kaydedilecekCikis && cikisSaati) {
           const cikisTarih = new Date(seciliYil, seciliAy, islemModal.gun);
           const [cSaat, cDakika] = cikisSaati.split(':').map(Number);
           cikisTarih.setHours(cSaat, cDakika, 0, 0);
 
-          await addDoc(collection(db, "attendance"), {
-            personelId: islemModal.personelId,
-            personelAd: islemModal.personelAd,
-            personelEmail: "",
-            sicilNo: "",
-            tip: "cikis",
-            tarih: Timestamp.fromDate(cikisTarih),
-            konumId: seciliKonum,
-            konumAdi: konum?.karekod || konum?.ad || "Puantaj",
-            kayitOrtami: "Puantaj",
-            manuelKayit: true,
-            mazeretNotu: "",
-            ekleyenEmail: user.email,
-            olusturmaTarihi: Timestamp.now()
-          });
+          const mevcutCikisId = personelKayit?.cikis?.id;
+          const oncekiSaat = personelKayit?.cikis?.saat || "";
 
-          await addDoc(collection(db, "attendanceChanges"), {
-            degisiklikYapan: user.email,
-            degisiklikTarihi: Timestamp.now(),
-            degisiklikTuru: "Kayıt Eklendi",
-            oncekiDeger: "",
-            sonrakiDeger: "Çıkış",
-            kullaniciAdi: islemModal.personelAd,
-            konum: konum?.karekod || konum?.ad || "Puantaj",
-            girisCikisTarih: Timestamp.fromDate(cikisTarih)
-          });
+          if (mevcutCikisId) {
+            // Mevcut kaydı güncelle
+            await updateDoc(doc(db, "attendance", mevcutCikisId), {
+              tarih: Timestamp.fromDate(cikisTarih),
+              konumId: seciliKonum,
+              konumAdi: konum?.karekod || konum?.ad || "Puantaj",
+              ekleyenEmail: user.email,
+              olusturmaTarihi: Timestamp.now()
+            });
+
+            await addDoc(collection(db, "attendanceChanges"), {
+              degisiklikYapan: user.email,
+              degisiklikTarihi: Timestamp.now(),
+              degisiklikTuru: "Kayıt Güncellendi",
+              oncekiDeger: `Çıkış - ${oncekiSaat}`,
+              sonrakiDeger: `Çıkış - ${cikisSaati}`,
+              kullaniciAdi: islemModal.personelAd,
+              konum: konum?.karekod || konum?.ad || "Puantaj",
+              girisCikisTarih: Timestamp.fromDate(cikisTarih)
+            });
+          } else {
+            // Yeni kayıt ekle
+            await addDoc(collection(db, "attendance"), {
+              personelId: islemModal.personelId,
+              personelAd: islemModal.personelAd,
+              personelEmail: "",
+              sicilNo: "",
+              tip: "cikis",
+              tarih: Timestamp.fromDate(cikisTarih),
+              konumId: seciliKonum,
+              konumAdi: konum?.karekod || konum?.ad || "Puantaj",
+              kayitOrtami: "Puantaj",
+              manuelKayit: true,
+              mazeretNotu: "",
+              ekleyenEmail: user.email,
+              olusturmaTarihi: Timestamp.now()
+            });
+
+            await addDoc(collection(db, "attendanceChanges"), {
+              degisiklikYapan: user.email,
+              degisiklikTarihi: Timestamp.now(),
+              degisiklikTuru: "Kayıt Eklendi",
+              oncekiDeger: "",
+              sonrakiDeger: "Çıkış",
+              kullaniciAdi: islemModal.personelAd,
+              konum: konum?.karekod || konum?.ad || "Puantaj",
+              girisCikisTarih: Timestamp.fromDate(cikisTarih)
+            });
+          }
         }
       }
 
@@ -1123,7 +1181,13 @@ export default function PuantajPage() {
       {islemModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-sm w-full p-6">
-            <h3 className="text-lg font-bold text-stone-800 mb-4">İşlem Ekle</h3>
+            <h3 className="text-lg font-bold text-stone-800 mb-4">
+              {(() => {
+                const mk = puantajData.find(p => p.personelId === islemModal.personelId)?.gunler[islemModal.gun];
+                const mevcutVar = (islemTipi === "giris" && mk?.giris) || (islemTipi === "cikis" && mk?.cikis) || (islemTipi === "giriscikis" && (mk?.giris || mk?.cikis));
+                return mevcutVar ? "İşlem Düzenle" : "İşlem Ekle";
+              })()}
+            </h3>
             
             <div className="mb-4 p-3 bg-stone-50 rounded-lg">
               <p className="text-sm text-stone-600"><strong>Personel:</strong> {islemModal.personelAd}</p>
@@ -1132,7 +1196,27 @@ export default function PuantajPage() {
 
             {/* İşlem Tipi Seçimi */}
             <div className="mb-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <button
+                  onClick={() => setIslemTipi("giris")}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
+                    islemTipi === "giris" 
+                      ? "bg-green-500 text-white" 
+                      : "bg-stone-100 text-stone-700 hover:bg-stone-200"
+                  }`}
+                >
+                  🟢 Giriş
+                </button>
+                <button
+                  onClick={() => setIslemTipi("cikis")}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
+                    islemTipi === "cikis" 
+                      ? "bg-red-500 text-white" 
+                      : "bg-stone-100 text-stone-700 hover:bg-stone-200"
+                  }`}
+                >
+                  🔴 Çıkış
+                </button>
                 <button
                   onClick={() => setIslemTipi("giriscikis")}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
@@ -1141,7 +1225,7 @@ export default function PuantajPage() {
                       : "bg-stone-100 text-stone-700 hover:bg-stone-200"
                   }`}
                 >
-                  🟢🔴 Giriş & Çıkış
+                  🟢🔴 İkisi
                 </button>
                 <button
                   onClick={() => setIslemTipi("haftaTatili")}
@@ -1151,7 +1235,7 @@ export default function PuantajPage() {
                       : "bg-stone-100 text-stone-700 hover:bg-stone-200"
                   }`}
                 >
-                  🟠 Hafta Tatili
+                  🟠 H.Tatil
                 </button>
               </div>
               
@@ -1175,7 +1259,7 @@ export default function PuantajPage() {
             </div>
 
             {/* Giriş & Çıkış Saatleri */}
-            {islemTipi === "giriscikis" && (
+            {(islemTipi === "giris" || islemTipi === "cikis" || islemTipi === "giriscikis") && (
               <div className="mb-6 space-y-4">
                 {/* Konum Seçimi */}
                 <div>
@@ -1191,6 +1275,7 @@ export default function PuantajPage() {
                     ))}
                   </select>
                 </div>
+                {(islemTipi === "giris" || islemTipi === "giriscikis") && (
                 <div>
                   <label className="block text-sm font-medium text-green-700 mb-2">🟢 Giriş Saati</label>
                   <div className="flex gap-2">
@@ -1214,6 +1299,8 @@ export default function PuantajPage() {
                     )}
                   </div>
                 </div>
+                )}
+                {(islemTipi === "cikis" || islemTipi === "giriscikis") && (
                 <div>
                   <label className="block text-sm font-medium text-red-700 mb-2">🔴 Çıkış Saati</label>
                   <div className="flex gap-2">
@@ -1237,7 +1324,8 @@ export default function PuantajPage() {
                     )}
                   </div>
                 </div>
-                <p className="text-xs text-stone-500 text-center">💡 Saatleri değiştirince yanda öneri çıkar, basarsan uygular</p>
+                )}
+                <p className="text-xs text-stone-500 text-center">💡 Mevcut kayıt varsa üstüne yazar, yoksa yeni ekler</p>
               </div>
             )}
 
@@ -1259,7 +1347,11 @@ export default function PuantajPage() {
                 disabled={saving}
                 className="flex-1 px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition disabled:opacity-50"
               >
-                {saving ? "Kaydediliyor..." : "Kaydet"}
+                {saving ? "Kaydediliyor..." : (() => {
+                  const mk = puantajData.find(p => p.personelId === islemModal.personelId)?.gunler[islemModal.gun];
+                  const mevcutVar = (islemTipi === "giris" && mk?.giris) || (islemTipi === "cikis" && mk?.cikis) || (islemTipi === "giriscikis" && (mk?.giris || mk?.cikis));
+                  return mevcutVar ? "Güncelle" : "Kaydet";
+                })()}
               </button>
             </div>
           </div>
