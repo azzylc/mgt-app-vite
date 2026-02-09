@@ -77,11 +77,10 @@ const menuListesi = [
   { id: "duyurular", label: "📢 Duyurular" },
   { id: "gorevler", label: "✅ Görevler" },
   { id: "takvim", label: "📅 Takvim" },
-  { id: "gelinler", label: "👰 Gelinler" },
   { id: "personel", label: "👤 Personel" },
   { id: "izinler", label: "🏖️ İzinler" },
   { id: "raporlar", label: "📈 Raporlar" },
-  { id: "yonetici-dashboard", label: "👔 Ekip Yönetimi" },
+  { id: "yonetim-paneli", label: "👑 Yönetim Paneli" },
   { id: "ayarlar", label: "⚙️ Ayarlar" },
 ];
 
@@ -149,8 +148,9 @@ export default function AyarlarPage() {
 
   // Rol Yetkileri state
   const [rolYetkileri, setRolYetkileri] = useState<RolYetkileri>({
-    "Yönetici": ["genel-bakis", "qr-giris", "giris-cikis-islemleri", "duyurular", "gorevler", "takvim", "gelinler", "izinler", "raporlar", "yonetici-dashboard"],
-    "Personel": ["genel-bakis", "qr-giris", "duyurular", "gorevler", "takvim", "gelinler", "izinler"]
+    "Kurucu": ["genel-bakis", "qr-giris", "giris-cikis-islemleri", "duyurular", "gorevler", "takvim", "personel", "izinler", "raporlar", "yonetim-paneli", "ayarlar"],
+    "Yönetici": ["genel-bakis", "qr-giris", "giris-cikis-islemleri", "duyurular", "gorevler", "takvim", "izinler", "raporlar"],
+    "Personel": ["genel-bakis", "qr-giris", "duyurular", "gorevler", "takvim", "izinler"]
   });
   const [rolYetkileriLoading, setRolYetkileriLoading] = useState(false);
 
@@ -808,13 +808,14 @@ export default function AyarlarPage() {
                 <h2 className="text-lg font-bold text-stone-800 mb-2 flex items-center gap-2">
                   <span>🔐</span> Rol Yetkileri
                 </h2>
-                <p className="text-sm text-stone-500 mb-6">Yönetici ve Personel rollerinin hangi menülere erişebileceğini belirleyin. Kurucu her zaman tüm menülere erişebilir.</p>
+                <p className="text-sm text-stone-500 mb-6">Her rolün hangi menülere erişebileceğini belirleyin.</p>
                 
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-stone-200">
                         <th className="text-left py-3 px-4 text-sm font-semibold text-stone-700">Menü</th>
+                        <th className="text-center py-3 px-4 text-sm font-semibold text-stone-700 w-32">Kurucu</th>
                         <th className="text-center py-3 px-4 text-sm font-semibold text-stone-700 w-32">Yönetici</th>
                         <th className="text-center py-3 px-4 text-sm font-semibold text-stone-700 w-32">Personel</th>
                       </tr>
@@ -823,6 +824,14 @@ export default function AyarlarPage() {
                       {menuListesi.map((menu) => (
                         <tr key={menu.id} className="border-b border-stone-100 hover:bg-stone-50">
                           <td className="py-3 px-4 text-sm text-stone-700">{menu.label}</td>
+                          <td className="py-3 px-4 text-center">
+                            <input
+                              type="checkbox"
+                              checked={rolYetkileri["Kurucu"]?.includes(menu.id) || false}
+                              onChange={() => toggleRolYetki("Kurucu", menu.id)}
+                              className="w-5 h-5 text-rose-600 rounded cursor-pointer"
+                            />
+                          </td>
                           <td className="py-3 px-4 text-center">
                             <input
                               type="checkbox"
