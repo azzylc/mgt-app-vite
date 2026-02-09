@@ -163,6 +163,14 @@ export default function GorevlerPage() {
     return () => unsubscribe();
   }, [user]);
 
+  // Görev atama yetkisi var mı? (useEffect'ten önce tanımlanmalı)
+  const gorevAtayabilir = useMemo(() => {
+    if (gorevAtamaYetkisi === "herkes") return true;
+    if (gorevAtamaYetkisi === "yonetici") return userRole === "Kurucu" || userRole === "Yönetici";
+    if (gorevAtamaYetkisi === "firma") return userRole === "Kurucu" || userRole === "Yönetici";
+    return true;
+  }, [gorevAtamaYetkisi, userRole]);
+
   // Kurucu/Yönetici veya görev atayabilen: tüm görevler
   useEffect(() => {
     if (!user || !gorevAtayabilir) return;
@@ -202,14 +210,6 @@ export default function GorevlerPage() {
     }
     return true;
   }), [personeller, userRole, userFirmalar, gorevAtamaYetkisi]);
-
-  // Görev atama yetkisi var mı?
-  const gorevAtayabilir = useMemo(() => {
-    if (gorevAtamaYetkisi === "herkes") return true;
-    if (gorevAtamaYetkisi === "yonetici") return userRole === "Kurucu" || userRole === "Yönetici";
-    if (gorevAtamaYetkisi === "firma") return userRole === "Kurucu" || userRole === "Yönetici";
-    return true;
-  }, [gorevAtamaYetkisi, userRole]);
 
   const personelGorevSayilari = useMemo(() => ekipPersonelleri.map(p => ({
     ...p,
