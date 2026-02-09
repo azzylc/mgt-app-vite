@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { db, sendGorevBildirimFn, sendGorevTamamBildirimFn, sendGorevYorumBildirimFn } from "../lib/firebase";
+import { db } from "../lib/firebase";
 import GelinModal from "../components/GelinModal";
 import GorevKart from "../components/gorevler/GorevKart";
 import GorevEkleModal from "../components/gorevler/GorevEkleModal";
@@ -253,7 +253,6 @@ export default function GorevlerPage() {
     try {
       const kpiPersonel = personeller.find(p => p.email === user?.email);
       const yorumEkleyen = kpiPersonel ? `${kpiPersonel.ad} ${kpiPersonel.soyad}` : user?.email || "";
-      const tamamlananGorev = [...gorevler, ...tumGorevler].find(g => g.id === gorevId);
       
       await updateDoc(doc(db, "gorevler", gorevId), {
         durum: "tamamlandi",
@@ -266,13 +265,7 @@ export default function GorevlerPage() {
         })
       });
 
-      if (tamamlananGorev && tamamlananGorev.atayan !== user?.email && tamamlananGorev.atayan !== "Sistem") {
-        sendGorevTamamBildirimFn({
-          atayan: tamamlananGorev.atayan,
-          tamamlayanAd: yorumEkleyen,
-          baslik: tamamlananGorev.baslik
-        }).catch(err => console.warn('[PUSH] Tamamlama bildirimi gönderilemedi:', err));
-      }
+      // Push bildirim artık Firestore trigger (onGorevUpdated) tarafından gönderiliyor
       
       // Detay modal açıksa güncelle
       if (detayGorev?.id === gorevId) {
@@ -306,7 +299,6 @@ export default function GorevlerPage() {
       const grupId = Date.now().toString();
       
       const batch = writeBatch(db);
-      const gorevBildirimler: string[] = [];
 
       for (const atananEmail of yeniGorev.atananlar) {
         const atananPersonel = personeller.find(p => p.email === atananEmail);
@@ -326,17 +318,11 @@ export default function GorevlerPage() {
           grupId: yeniGorev.atananlar.length > 1 ? grupId : "",
           olusturulmaTarihi: serverTimestamp()
         });
-        if (atananEmail !== user?.email) gorevBildirimler.push(atananEmail);
       }
 
       await batch.commit();
 
-      for (const atananEmail of gorevBildirimler) {
-        sendGorevBildirimFn({
-          atanan: atananEmail, atayanAd,
-          baslik: yeniGorev.baslik.trim(), oncelik: yeniGorev.oncelik
-        }).catch(err => console.warn('[PUSH] Bildirim gönderilemedi:', err));
-      }
+      // Push bildirim artık Firestore trigger (onGorevCreated) tarafından gönderiliyor
 
       setYeniGorev({ baslik: "", aciklama: "", atananlar: [], oncelik: "normal", sonTarih: "" });
       setShowGorevEkle(false);
@@ -366,13 +352,7 @@ export default function GorevlerPage() {
         yorumlar: arrayUnion(yorumData)
       });
 
-      sendGorevYorumBildirimFn({
-        yorumYapan: user?.email || "",
-        yorumYapanAd: yorumData.yazanAd,
-        atayan: detayGorev.atayan,
-        atanan: detayGorev.atanan,
-        baslik: detayGorev.baslik
-      }).catch(err => console.warn('[PUSH] Yorum bildirimi gönderilemedi:', err));
+      // Push bildirim artık Firestore trigger (onGorevUpdated) tarafından gönderiliyor
 
       setDetayGorev({
         ...detayGorev,

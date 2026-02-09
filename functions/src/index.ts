@@ -1,6 +1,6 @@
 import { onRequest } from 'firebase-functions/v2/https';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
-import { onDocumentUpdated } from 'firebase-functions/v2/firestore';
+import { onDocumentUpdated, onDocumentCreated } from 'firebase-functions/v2/firestore';
 import { defineSecret } from 'firebase-functions/params';
 import { incrementalSync, fullSync } from './lib/calendar-sync';
 import { adminDb, adminAuth, adminMessaging } from './lib/firestore-admin';
@@ -898,136 +898,113 @@ async function sendPushToUser(email: string, title: string, body: string, data?:
 }
 
 // ============================================
-// 9. GÖREV BİLDİRİM: Yeni görev oluşturulunca push
+// 9. GÖREV BİLDİRİMLERİ (Firestore Trigger)
+// Client'tan çağrı GEREKMEZ — Firestore otomatik tetikler
 // ============================================
-export const sendGorevBildirim = onRequest({
-  region: 'europe-west1',
-  cors: true
-}, async (req, res) => {
-  if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Method not allowed' });
-    return;
-  }
 
-  try {
-    const { atanan, atayanAd, baslik, oncelik } = req.body;
+// 9a. Yeni görev oluşturulunca → atanan kişiye bildirim
+export const onGorevCreated = onDocumentCreated({
+  document: 'gorevler/{gorevId}',
+  region: 'europe-west1'
+}, async (event) => {
+  const data = event.data?.data();
+  if (!data) return;
 
-    if (!atanan || !baslik) {
-      res.status(400).json({ error: 'atanan ve baslik gerekli' });
-      return;
-    }
+  const { atanan, atayan, atayanAd, baslik, oncelik } = data;
 
-    console.log(`[GOREV-BILDIRIM] ${atayanAd} → ${atanan}: ${baslik}`);
+  // Kendi kendine atamada bildirim gönderme
+  if (!atanan || !baslik || atanan === atayan) return;
 
-    const oncelikEmoji = oncelik === 'acil' ? '🔴' : oncelik === 'yuksek' ? '🟠' : '';
-    const title = `${oncelikEmoji} Yeni Görev Atandı`.trim();
-    const body = `${atayanAd || 'Birisi'} size bir görev atadı: ${baslik}`;
+  console.log(`[GOREV-BILDIRIM] ${atayanAd} → ${atanan}: ${baslik}`);
 
-    const sent = await sendPushToUser(atanan, title, body, { route: '/gorevler' });
+  const oncelikEmoji = oncelik === 'acil' ? '🔴' : oncelik === 'yuksek' ? '🟠' : '';
+  const title = `${oncelikEmoji} Yeni Görev Atandı`.trim();
+  const body = `${atayanAd || 'Birisi'} size bir görev atadı: ${baslik}`;
 
-    // Uygulama içi bildirim de yaz
-    await adminDb.collection('bildirimler').add({
-      alici: atanan,
-      baslik: title,
-      mesaj: body,
-      tip: 'gorev_atama',
-      okundu: false,
-      tarih: new Date(),
-      route: '/gorevler',
-      gonderen: req.body.atayanEmail || null,
-      gonderenAd: atayanAd || null,
-    });
+  await sendPushToUser(atanan, title, body, { route: '/gorevler' });
 
-    res.json({ success: true, sent, atanan });
-  } catch (error) {
-    console.error('[GOREV-BILDIRIM] Hata:', error);
-    res.status(500).json({ error: 'Bildirim gönderilemedi', details: String(error) });
-  }
+  await adminDb.collection('bildirimler').add({
+    alici: atanan,
+    baslik: title,
+    mesaj: body,
+    tip: 'gorev_atama',
+    okundu: false,
+    tarih: new Date(),
+    route: '/gorevler',
+    gonderen: atayan || null,
+    gonderenAd: atayanAd || null,
+  });
 });
 
-// ============================================
-// 9b. GÖREV TAMAMLANDI BİLDİRİMİ: Atayan kişiye push
-// ============================================
-export const sendGorevTamamBildirim = onRequest({
-  region: 'europe-west1',
-  cors: true
-}, async (req, res) => {
-  if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Method not allowed' });
+// 9b. Görev güncellenince → tamamlama + yorum bildirimi
+export const onGorevUpdated = onDocumentUpdated({
+  document: 'gorevler/{gorevId}',
+  region: 'europe-west1'
+}, async (event) => {
+  const before = event.data?.before.data();
+  const after = event.data?.after.data();
+  if (!before || !after) return;
+
+  const durumDegisti = before.durum !== 'tamamlandi' && after.durum === 'tamamlandi';
+  const beforeYorumlar = before.yorumlar || [];
+  const afterYorumlar = after.yorumlar || [];
+  const yeniYorumVar = afterYorumlar.length > beforeYorumlar.length;
+
+  // === TAMAMLAMA BİLDİRİMİ ===
+  if (durumDegisti) {
+    const sonYorum = afterYorumlar[afterYorumlar.length - 1];
+    const tamamlayan = sonYorum?.yazan || after.atanan;
+    const tamamlayanAd = sonYorum?.yazanAd || after.atananAd || 'Birisi';
+
+    // Atayan kişiye bildir (tamamlayan kendisi değilse, Sistem değilse)
+    if (after.atayan && after.atayan !== tamamlayan && after.atayan !== 'Sistem') {
+      console.log(`[GOREV-TAMAM] ${tamamlayanAd} tamamladı → ${after.atayan}: ${after.baslik}`);
+
+      const title = '✅ Görev Tamamlandı';
+      const body = `${tamamlayanAd} görevi tamamladı: ${after.baslik}`;
+
+      await sendPushToUser(after.atayan, title, body, { route: '/gorevler' });
+
+      await adminDb.collection('bildirimler').add({
+        alici: after.atayan,
+        baslik: title,
+        mesaj: body,
+        tip: 'gorev_tamam',
+        okundu: false,
+        tarih: new Date(),
+        route: '/gorevler',
+        gonderen: tamamlayan,
+        gonderenAd: tamamlayanAd,
+      });
+    }
+
+    // Tamamlama ile birlikte gelen yorumu tekrar bildirim olarak gönderme
     return;
   }
 
-  try {
-    const { atayan, tamamlayanAd, baslik } = req.body;
+  // === YORUM BİLDİRİMİ ===
+  if (yeniYorumVar) {
+    const yeniYorum = afterYorumlar[afterYorumlar.length - 1];
+    const yorumYapan = yeniYorum?.yazan;
+    const yorumYapanAd = yeniYorum?.yazanAd || 'Birisi';
 
-    if (!atayan || !baslik) {
-      res.status(400).json({ error: 'atayan ve baslik gerekli' });
-      return;
-    }
-
-    console.log(`[GOREV-TAMAM] ${tamamlayanAd} tamamladı → ${atayan}: ${baslik}`);
-
-    const title = '✅ Görev Tamamlandı';
-    const body = `${tamamlayanAd || 'Birisi'} görevi tamamladı: ${baslik}`;
-
-    const sent = await sendPushToUser(atayan, title, body, { route: '/gorevler' });
-
-    // Uygulama içi bildirim
-    await adminDb.collection('bildirimler').add({
-      alici: atayan,
-      baslik: title,
-      mesaj: body,
-      tip: 'gorev_tamam',
-      okundu: false,
-      tarih: new Date(),
-      route: '/gorevler',
-      gonderen: null,
-      gonderenAd: tamamlayanAd || null,
-    });
-
-    res.json({ success: true, sent, atayan });
-  } catch (error) {
-    console.error('[GOREV-TAMAM] Hata:', error);
-    res.status(500).json({ error: 'Bildirim gönderilemedi', details: String(error) });
-  }
-});
-
-// ============================================
-// 9c. GÖREV YORUM BİLDİRİMİ: Görevdeki herkese (yorum yapan hariç) push
-// ============================================
-export const sendGorevYorumBildirim = onRequest({
-  region: 'europe-west1',
-  cors: true
-}, async (req, res) => {
-  if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Method not allowed' });
-    return;
-  }
-
-  try {
-    const { yorumYapan, yorumYapanAd, atayan, atanan, baslik } = req.body;
-
-    if (!yorumYapan || !baslik) {
-      res.status(400).json({ error: 'yorumYapan ve baslik gerekli' });
-      return;
-    }
-
-    console.log(`[GOREV-YORUM] ${yorumYapanAd} yorum yaptı: ${baslik}`);
+    console.log(`[GOREV-YORUM] ${yorumYapanAd} yorum yaptı: ${after.baslik}`);
 
     const title = '💬 Göreve Yorum Yapıldı';
-    const body = `${yorumYapanAd || 'Birisi'} yorum yaptı: ${baslik}`;
+    const body = `${yorumYapanAd} yorum yaptı: ${after.baslik}`;
 
     // Görevdeki herkese gönder (yorum yapan hariç)
     const bildirimAlacaklar = new Set<string>();
-    if (atayan && atayan !== yorumYapan && atayan !== 'Sistem') bildirimAlacaklar.add(atayan);
-    if (atanan && atanan !== yorumYapan) bildirimAlacaklar.add(atanan);
+    if (after.atayan && after.atayan !== yorumYapan && after.atayan !== 'Sistem') {
+      bildirimAlacaklar.add(after.atayan);
+    }
+    if (after.atanan && after.atanan !== yorumYapan) {
+      bildirimAlacaklar.add(after.atanan);
+    }
 
-    let sentCount = 0;
     for (const email of bildirimAlacaklar) {
-      const sent = await sendPushToUser(email, title, body, { route: '/gorevler' });
-      if (sent) sentCount++;
+      await sendPushToUser(email, title, body, { route: '/gorevler' });
 
-      // Uygulama içi bildirim
       await adminDb.collection('bildirimler').add({
         alici: email,
         baslik: title,
@@ -1040,11 +1017,6 @@ export const sendGorevYorumBildirim = onRequest({
         gonderenAd: yorumYapanAd || null,
       });
     }
-
-    res.json({ success: true, sentCount, recipients: Array.from(bildirimAlacaklar) });
-  } catch (error) {
-    console.error('[GOREV-YORUM] Hata:', error);
-    res.status(500).json({ error: 'Bildirim gönderilemedi', details: String(error) });
   }
 });
 
