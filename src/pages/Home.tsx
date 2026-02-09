@@ -564,9 +564,8 @@ export default function Home() {
             />
           </div>
 
-          {/* Row 2: Duyurular + Görevler (50/50) */}
-          {(duyurular.length > 0 || gorevSayisi > 0) && (
-            <div className={`grid grid-cols-1 ${duyurular.length > 0 && gorevSayisi > 0 ? 'md:grid-cols-2' : ''} gap-2.5`}>
+          {/* Row 2: Duyurular + Görevler + Etkinlikler */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
               {/* Duyurular */}
               {duyurular.length > 0 && (
                 <div className="bg-white rounded-xl border border-stone-100 overflow-hidden">
@@ -605,8 +604,10 @@ export default function Home() {
 
               {/* Görev Widget */}
               <GorevWidget onCount={setGorevSayisi} />
+
+              {/* Yaklaşan Etkinlikler */}
+              <TakvimEtkinlikWidget personeller={personeller} />
             </div>
-          )}
 
           {/* Row 2b: Dikkat Paneli */}
           <DikkatPanel
@@ -618,9 +619,6 @@ export default function Home() {
             izinEkleniyor={izinEkleniyor}
             onIslenmemisUcretlerClick={() => navigate("/takvim")}
           />
-
-          {/* Row 2c: Yaklaşan Tatiller & Doğum Günleri */}
-          <TakvimEtkinlikWidget personeller={personeller} />
 
           {/* Row 3: Operasyonel Paneller */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-2.5">
