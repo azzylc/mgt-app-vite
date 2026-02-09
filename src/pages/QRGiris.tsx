@@ -311,11 +311,14 @@ export default function QRGirisPage() {
 
   const startScanning = async () => {
     setLocationError("");
+    // Kamerayı hemen aç, konumu arka planda al
+    setScanning(true);
     try {
       const location = await getLocation();
       setUserLocation(location);
-      setScanning(true);
     } catch (error: any) {
+      // Konum alınamazsa kamerayı kapat
+      setScanning(false);
       setLocationError(error.message);
       setIslemSecimi(null);
     }
@@ -348,14 +351,21 @@ export default function QRGirisPage() {
 
       const konum = { id: snapshot.docs[0].id, ...snapshot.docs[0].data() } as Konum;
 
-      if (!userLocation) {
-        setDurum("hata");
-        setMesaj("Konum alınamadı");
-        setProcessing(false);
-        return;
+      // Konum henüz gelmediyse tekrar dene
+      let finalLocation = userLocation;
+      if (!finalLocation) {
+        try {
+          finalLocation = await getLocation();
+          setUserLocation(finalLocation);
+        } catch {
+          setDurum("hata");
+          setMesaj("Konum alınamadı. Lütfen konum iznini kontrol edin.");
+          setProcessing(false);
+          return;
+        }
       }
 
-      const mesafe = calculateDistance(userLocation.lat, userLocation.lng, konum.lat, konum.lng);
+      const mesafe = calculateDistance(finalLocation.lat, finalLocation.lng, konum.lat, konum.lng);
 
       if (mesafe > konum.maksimumOkutmaUzakligi) {
         setDurum("hata");
@@ -377,8 +387,8 @@ export default function QRGirisPage() {
         karekod: decodedText,
         tip: islemSecimi,
         tarih: serverTimestamp(),
-        lat: userLocation.lat,
-        lng: userLocation.lng,
+        lat: finalLocation.lat,
+        lng: finalLocation.lng,
         mesafe: Math.round(mesafe),
         ...(eksikVeri ? { eksikVeri: true } : {}),
       });
