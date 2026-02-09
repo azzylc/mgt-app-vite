@@ -111,7 +111,7 @@ export function getYaklasanDogumGunleri(personeller: PersonelWithBirthday[]): Pe
         kalanGun
       };
     })
-    .filter(p => p.kalanGun <= 30) // 30 gün içindekiler
+    .filter(p => p.kalanGun <= 365) // 365 gün içindekiler
     .sort((a, b) => a.kalanGun - b.kalanGun);
 }
 
@@ -194,6 +194,6 @@ export const getYaklasanAnmaGunleri = () => {
       const tarihStr = `${tarih.getFullYear()}-${String(tarih.getMonth()+1).padStart(2,'0')}-${String(tarih.getDate()).padStart(2,'0')}`;
       return { ...a, tarihStr, kalanGun };
     })
-    .filter(a => a.kalanGun <= 60)
+    .filter(a => a.kalanGun <= 365)
     .sort((a, b) => a.kalanGun - b.kalanGun);
 };

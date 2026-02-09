@@ -1,4 +1,6 @@
-import { useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { db } from "../../lib/firebase";
+import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { getYaklasanTatiller, getYaklasanDogumGunleri, getYaklasanAnmaGunleri } from "../../lib/data";
 
 interface PersonelBasic {
@@ -11,24 +13,102 @@ interface PersonelBasic {
   aktif: boolean;
 }
 
+interface OzelTarih {
+  id: string;
+  baslik: string;
+  tarih: string;
+  tekrarliMi: boolean;
+  emoji: string;
+  renk: string;
+}
+
+interface BirlesikEtkinlik {
+  id: string;
+  baslik: string;
+  tarihStr: string;
+  kalanGun: number;
+  kategori: "tatil" | "anma" | "dogumgunu" | "ozel";
+  emoji: string;
+  ekBilgi?: string;
+}
+
 interface Props {
   personeller: PersonelBasic[];
 }
 
-export default function TakvimEtkinlikWidget({ personeller }: Props) {
-  const tatiller = useMemo(() => getYaklasanTatiller(), []);
-  const anmaGunleri = useMemo(() => getYaklasanAnmaGunleri(), []);
-  const dogumGunleri = useMemo(() => {
-    // dogumGunu veya dogumTarihi field'ını normalize et
-    const normalized = personeller.map(p => ({
-      ...p,
-      dogumTarihi: p.dogumTarihi || (p as any).dogumGunu || ""
-    }));
-    return getYaklasanDogumGunleri(normalized);
-  }, [personeller]);
+const SAYFA_BOYUTU = 10;
 
-  // Hiçbir şey yoksa gösterme
-  if (tatiller.length === 0 && anmaGunleri.length === 0 && dogumGunleri.length === 0) return null;
+export default function TakvimEtkinlikWidget({ personeller }: Props) {
+  const [sayfa, setSayfa] = useState(0);
+  const [ozelTarihler, setOzelTarihler] = useState<OzelTarih[]>([]);
+
+  // Özel tarihleri Firestore'dan dinle
+  useEffect(() => {
+    const q = query(collection(db, "onemliTarihler"), orderBy("tarih", "asc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setOzelTarihler(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OzelTarih)));
+    }, () => {});
+    return () => unsubscribe();
+  }, []);
+
+  // Tüm etkinlikleri birleştir ve sırala
+  const tumEtkinlikler = useMemo(() => {
+    const bugun = new Date();
+    bugun.setHours(0, 0, 0, 0);
+    const items: BirlesikEtkinlik[] = [];
+
+    // Resmi tatiller
+    getYaklasanTatiller().forEach(t => {
+      const tarih = new Date(t.tarih + "T00:00:00");
+      const kalanGun = Math.floor((tarih.getTime() - bugun.getTime()) / (1000 * 60 * 60 * 24));
+      items.push({
+        id: `tatil-${t.tarih}`, baslik: t.isim, tarihStr: t.tarih, kalanGun,
+        kategori: "tatil", emoji: "🏖️",
+        ekBilgi: t.sure > 1 ? `${t.sure} gün` : undefined,
+      });
+    });
+
+    // Anma günleri
+    getYaklasanAnmaGunleri().forEach(a => {
+      items.push({
+        id: `anma-${a.ay}-${a.gun}`, baslik: a.isim, tarihStr: a.tarihStr,
+        kalanGun: a.kalanGun, kategori: "anma", emoji: a.emoji,
+      });
+    });
+
+    // Doğum günleri
+    const normalized = personeller.map(p => ({
+      ...p, dogumTarihi: p.dogumTarihi || (p as any).dogumGunu || ""
+    }));
+    getYaklasanDogumGunleri(normalized).forEach(d => {
+      items.push({
+        id: `dogum-${d.id}`, baslik: d.isim, tarihStr: d.yaklasanTarih,
+        kalanGun: d.kalanGun, kategori: "dogumgunu", emoji: "🎂",
+      });
+    });
+
+    // Özel tarihler (Firestore)
+    ozelTarihler.forEach(t => {
+      let tarih = new Date(t.tarih + "T00:00:00");
+      if (t.tekrarliMi) {
+        const buYil = bugun.getFullYear();
+        tarih = new Date(buYil, tarih.getMonth(), tarih.getDate());
+        if (tarih < bugun) tarih = new Date(buYil + 1, tarih.getMonth(), tarih.getDate());
+      }
+      const kalanGun = Math.floor((tarih.getTime() - bugun.getTime()) / (1000 * 60 * 60 * 24));
+      if (kalanGun < 0 || kalanGun > 365) return;
+      items.push({
+        id: `ozel-${t.id}`, baslik: t.baslik,
+        tarihStr: `${tarih.getFullYear()}-${String(tarih.getMonth()+1).padStart(2,'0')}-${String(tarih.getDate()).padStart(2,'0')}`,
+        kalanGun, kategori: "ozel", emoji: t.emoji || "📌",
+      });
+    });
+
+    return items.sort((a, b) => a.kalanGun - b.kalanGun);
+  }, [personeller, ozelTarihler]);
+
+  const toplamSayfa = Math.ceil(tumEtkinlikler.length / SAYFA_BOYUTU);
+  const sayfaEtkinlikleri = tumEtkinlikler.slice(sayfa * SAYFA_BOYUTU, (sayfa + 1) * SAYFA_BOYUTU);
 
   const formatTarih = (tarihStr: string) => {
     const d = new Date(tarihStr + "T00:00:00");
@@ -38,99 +118,84 @@ export default function TakvimEtkinlikWidget({ personeller }: Props) {
     return `${gun} ${ay} ${gunAdi}`;
   };
 
-  const kalanGunLabel = (tarihStr: string) => {
-    const bugun = new Date();
-    bugun.setHours(0, 0, 0, 0);
-    const hedef = new Date(tarihStr + "T00:00:00");
-    const kalan = Math.floor((hedef.getTime() - bugun.getTime()) / (1000 * 60 * 60 * 24));
-    if (kalan === 0) return "Bugün!";
-    if (kalan === 1) return "Yarın";
-    return `${kalan} gün`;
+  const kalanGunText = (gun: number) => {
+    if (gun === 0) return "Bugün!";
+    if (gun === 1) return "Yarın";
+    return `${gun} gün`;
   };
 
-  const kalanGunRenk = (tarihStr: string) => {
-    const bugun = new Date();
-    bugun.setHours(0, 0, 0, 0);
-    const hedef = new Date(tarihStr + "T00:00:00");
-    const kalan = Math.floor((hedef.getTime() - bugun.getTime()) / (1000 * 60 * 60 * 24));
-    if (kalan === 0) return "text-green-600 bg-green-50 font-bold";
-    if (kalan <= 3) return "text-amber-600 bg-amber-50";
-    if (kalan <= 7) return "text-blue-600 bg-blue-50";
+  const kalanGunRenk = (gun: number) => {
+    if (gun === 0) return "text-emerald-600 bg-emerald-50 font-bold";
+    if (gun <= 3) return "text-amber-600 bg-amber-50";
+    if (gun <= 7) return "text-blue-600 bg-blue-50";
     return "text-stone-500 bg-stone-50";
   };
 
+  const kategoriRenk = (kat: string) => {
+    switch (kat) {
+      case "tatil": return "bg-red-100";
+      case "anma": return "bg-stone-200";
+      case "dogumgunu": return "bg-pink-100";
+      case "ozel": return "bg-amber-100";
+      default: return "bg-stone-100";
+    }
+  };
+
+  const kategoriBg = (kat: string) => {
+    switch (kat) {
+      case "tatil": return "bg-red-50/40";
+      case "anma": return "bg-stone-50/60";
+      case "dogumgunu": return "bg-pink-50/40";
+      case "ozel": return "bg-amber-50/40";
+      default: return "";
+    }
+  };
+
+  if (tumEtkinlikler.length === 0) return null;
+
   return (
     <div className="bg-white rounded-xl border border-stone-100 overflow-hidden">
-      <div className="px-3 py-2 border-b border-stone-100 flex items-center gap-2 bg-gradient-to-r from-emerald-50/50 to-transparent">
-        <span className="text-sm">📅</span>
-        <span className="text-xs font-semibold text-stone-700">Yaklaşan Etkinlikler</span>
+      {/* Header */}
+      <div className="px-3 py-2 border-b border-stone-100 flex items-center justify-between bg-gradient-to-r from-emerald-50/50 to-transparent">
+        <div className="flex items-center gap-2">
+          <span className="text-sm">📅</span>
+          <span className="text-xs font-semibold text-stone-700">Yaklaşan Etkinlikler</span>
+          <span className="text-[10px] text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded-full">{tumEtkinlikler.length}</span>
+        </div>
+        {toplamSayfa > 1 && (
+          <div className="flex items-center gap-1">
+            <button onClick={() => setSayfa(s => Math.max(0, s - 1))} disabled={sayfa === 0}
+              className={`w-6 h-6 rounded flex items-center justify-center text-sm transition ${
+                sayfa === 0 ? "text-stone-300" : "text-stone-500 hover:bg-stone-100 active:bg-stone-200"
+              }`}>‹</button>
+            <span className="text-[10px] text-stone-400 min-w-[32px] text-center">{sayfa + 1}/{toplamSayfa}</span>
+            <button onClick={() => setSayfa(s => Math.min(toplamSayfa - 1, s + 1))} disabled={sayfa >= toplamSayfa - 1}
+              className={`w-6 h-6 rounded flex items-center justify-center text-sm transition ${
+                sayfa >= toplamSayfa - 1 ? "text-stone-300" : "text-stone-500 hover:bg-stone-100 active:bg-stone-200"
+              }`}>›</button>
+          </div>
+        )}
       </div>
-      <div className="p-2.5 space-y-2 max-h-[220px] overflow-y-auto">
 
-        {/* Resmi Tatiller */}
-        {tatiller.slice(0, 3).map((t) => (
-          <div key={t.tarih} className="flex items-center gap-2 py-1.5 px-2.5 rounded-lg bg-red-50/40">
-            <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-red-100 flex items-center justify-center">
-              <span className="text-xs">🏖️</span>
+      {/* Liste */}
+      <div className="p-2.5 space-y-1.5">
+        {sayfaEtkinlikleri.map((e) => (
+          <div key={e.id} className={`flex items-center gap-2 py-1.5 px-2.5 rounded-lg ${kategoriBg(e.kategori)}`}>
+            <div className={`flex-shrink-0 w-7 h-7 rounded-lg ${kategoriRenk(e.kategori)} flex items-center justify-center`}>
+              <span className="text-xs">{e.emoji}</span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-stone-700 font-medium truncate">{t.isim}</p>
+              <p className="text-xs text-stone-700 font-medium truncate">{e.baslik}</p>
               <p className="text-[10px] text-stone-400">
-                {formatTarih(t.tarih)}
-                {t.sure > 1 && ` (${t.sure} gün)`}
+                {formatTarih(e.tarihStr)}
+                {e.ekBilgi && ` (${e.ekBilgi})`}
               </p>
             </div>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${kalanGunRenk(t.tarih)}`}>
-              {kalanGunLabel(t.tarih)}
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium whitespace-nowrap ${kalanGunRenk(e.kalanGun)}`}>
+              {kalanGunText(e.kalanGun)}
             </span>
           </div>
         ))}
-
-        {/* Anma / Yas Günleri */}
-        {anmaGunleri.slice(0, 3).map((a) => (
-          <div key={a.tarihStr} className="flex items-center gap-2 py-1.5 px-2.5 rounded-lg bg-stone-50/60">
-            <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-stone-200 flex items-center justify-center">
-              <span className="text-xs">{a.emoji}</span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs text-stone-700 font-medium truncate">{a.isim}</p>
-              <p className="text-[10px] text-stone-400">{formatTarih(a.tarihStr)}</p>
-            </div>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
-              a.kalanGun === 0 ? "text-stone-700 bg-stone-200 font-bold" :
-              a.kalanGun <= 3 ? "text-stone-600 bg-stone-100" :
-              "text-stone-500 bg-stone-50"
-            }`}>
-              {a.kalanGun === 0 ? "Bugün" : a.kalanGun === 1 ? "Yarın" : `${a.kalanGun} gün`}
-            </span>
-          </div>
-        ))}
-
-        {/* Doğum Günleri */}
-        {dogumGunleri.slice(0, 5).map((d) => (
-          <div key={d.id} className="flex items-center gap-2 py-1.5 px-2.5 rounded-lg bg-pink-50/40">
-            <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-pink-100 flex items-center justify-center">
-              <span className="text-xs">🎂</span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs text-stone-700 font-medium truncate">{d.isim}</p>
-              <p className="text-[10px] text-stone-400">{formatTarih(d.yaklasanTarih)}</p>
-            </div>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
-              d.kalanGun === 0 ? "text-pink-600 bg-pink-100 font-bold animate-pulse" :
-              d.kalanGun <= 3 ? "text-pink-600 bg-pink-50" :
-              d.kalanGun <= 7 ? "text-amber-600 bg-amber-50" :
-              "text-stone-500 bg-stone-50"
-            }`}>
-              {d.kalanGun === 0 ? "🎉 Bugün!" : d.kalanGun === 1 ? "Yarın" : `${d.kalanGun} gün`}
-            </span>
-          </div>
-        ))}
-
-        {/* Hiçbir şey yoksa (normalde yukarıda return null var ama fallback) */}
-        {tatiller.length === 0 && anmaGunleri.length === 0 && dogumGunleri.length === 0 && (
-          <p className="text-[10px] text-stone-400 text-center py-2">Yaklaşan etkinlik yok</p>
-        )}
       </div>
     </div>
   );
