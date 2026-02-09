@@ -711,7 +711,14 @@ export default function PuantajPage() {
       Object.entries(personel.gunler).forEach(([gunStr, kayit]) => {
         const gun = parseInt(gunStr);
         // Giriş var ama çıkış yok (ve hafta tatili veya izin değilse)
-        if (kayit.giris && !kayit.cikis && kayit.durum !== "haftaTatili" && kayit.durum !== "izin") {
+        // Bugünü hariç tut — henüz mesai bitmemiş olabilir
+        const bugun = new Date();
+        const bugunGun = bugun.getDate();
+        const bugunAy = bugun.getMonth();
+        const bugunYil = bugun.getFullYear();
+        const isBugun = gun === bugunGun && seciliAy === bugunAy && seciliYil === bugunYil;
+        
+        if (kayit.giris && !kayit.cikis && !isBugun && kayit.durum !== "haftaTatili" && kayit.durum !== "izin") {
           eksikler.push({
             personelAd: personel.personelAd,
             personelId: personel.personelId,
@@ -999,7 +1006,7 @@ export default function PuantajPage() {
           )}
 
           {/* Eksik Çıkış Uyarısı */}
-          {eksikCikislar.length > 0 && (
+          {eksikCikislar.length > 0 ? (
             <div className="mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
               <h3 className="text-red-800 font-semibold mb-3 flex items-center gap-2">
                 ⚠️ Çıkış Kaydı Eksik ({eksikCikislar.length} kayıt)
@@ -1080,6 +1087,12 @@ export default function PuantajPage() {
                   );
                 })}
               </div>
+            </div>
+          ) : (
+            <div className="mt-6 bg-green-50 border border-green-200 rounded-lg p-4">
+              <h3 className="text-green-800 font-semibold flex items-center gap-2">
+                ✅ Tüm çıkış kayıtları tamam
+              </h3>
             </div>
           )}
 
