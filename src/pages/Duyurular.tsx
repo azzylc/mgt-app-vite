@@ -1,7 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { db } from "../lib/firebase";
 import { useGrupEtiketleri } from "../hooks/useGrupEtiketleri";
 import { getRenkStilleri } from "../lib/grupEtiketleri";
+import { usePersoneller } from "../hooks/usePersoneller";
+import { 
+  getYaklasanTatiller, 
+  getYaklasanDogumGunleri, 
+  getYaklasanAnmaGunleri, 
+  resmiTatiller,
+  anmaGunleri 
+} from "../lib/data";
 import { 
   collection, 
   addDoc, 
@@ -29,20 +37,59 @@ interface Announcement {
   createdAt: any;
 }
 
+interface OzelTarih {
+  id: string;
+  baslik: string;
+  tarih: string;      // YYYY-MM-DD
+  tekrarliMi: boolean; // her yıl tekrar mı
+  emoji: string;
+  renk: string;        // amber, rose, purple, blue, emerald
+  ekleyen: string;
+  createdAt: any;
+}
+
+type AktifSekme = "duyurular" | "tarihler";
+
+// Renk seçenekleri
+const RENK_SECENEKLERI = [
+  { id: "amber", label: "Sarı", bg: "bg-amber-500", light: "bg-amber-50", text: "text-amber-700", border: "border-amber-200" },
+  { id: "rose", label: "Kırmızı", bg: "bg-rose-500", light: "bg-rose-50", text: "text-rose-700", border: "border-rose-200" },
+  { id: "purple", label: "Mor", bg: "bg-purple-500", light: "bg-purple-50", text: "text-purple-700", border: "border-purple-200" },
+  { id: "blue", label: "Mavi", bg: "bg-blue-500", light: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" },
+  { id: "emerald", label: "Yeşil", bg: "bg-emerald-500", light: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200" },
+  { id: "stone", label: "Gri", bg: "bg-stone-500", light: "bg-stone-50", text: "text-stone-700", border: "border-stone-200" },
+];
+
+const EMOJI_SECENEKLERI = ["🎉", "🎊", "📌", "⭐", "🏆", "🎯", "💼", "🎈", "💡", "📅", "🗓️", "❤️"];
+
+function getRenkStil(renk: string) {
+  return RENK_SECENEKLERI.find(r => r.id === renk) || RENK_SECENEKLERI[0];
+}
+
 export default function DuyurularPage() {
   const user = useAuth();
+  const [aktifSekme, setAktifSekme] = useState<AktifSekme>("duyurular");
+  
+  // === DUYURULAR STATE ===
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [filteredAnnouncements, setFilteredAnnouncements] = useState<Announcement[]>([]);
   const [activeFilter, setActiveFilter] = useState("tumu");
   const [showModal, setShowModal] = useState(false);
   const [newAnnouncement, setNewAnnouncement] = useState({ 
-    title: '', 
-    content: '', 
-    important: false,
-    group: ''
+    title: '', content: '', important: false, group: ''
   });
-  // Grup etiketlerini Firebase'den çek
   const { grupEtiketleri, loading: grupLoading } = useGrupEtiketleri();
+
+  // === ÖZEL TARİHLER STATE ===
+  const [ozelTarihler, setOzelTarihler] = useState<OzelTarih[]>([]);
+  const [showTarihModal, setShowTarihModal] = useState(false);
+  const [yeniTarih, setYeniTarih] = useState({
+    baslik: '', tarih: '', tekrarliMi: true, emoji: '📌', renk: 'amber'
+  });
+  const [tarihFiltre, setTarihFiltre] = useState<"tumu" | "tatil" | "anma" | "dogumgunu" | "ozel">("tumu");
+  
+  // === PERSONELLER (doğum günleri için) ===
+  const { personeller } = usePersoneller();
 
   // İlk grup yüklenince default grup ata
   useEffect(() => {
@@ -51,23 +98,26 @@ export default function DuyurularPage() {
     }
   }, [grupEtiketleri]);
 
-  // Firestore'dan duyuruları dinle
+  // === FIRESTORE LİSTENERLAR ===
   useEffect(() => {
     if (!user) return;
-
     const q = query(collection(db, "announcements"), orderBy("createdAt", "desc"), limit(50));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as Announcement));
-      setAnnouncements(data);
+      setAnnouncements(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Announcement)));
     });
-
     return () => unsubscribe();
   }, [user]);
 
-  // Filtreleme
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db, "onemliTarihler"), orderBy("tarih", "asc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setOzelTarihler(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OzelTarih)));
+    });
+    return () => unsubscribe();
+  }, [user]);
+
+  // Duyuru filtreleme
   useEffect(() => {
     if (activeFilter === "tumu") {
       setFilteredAnnouncements(announcements);
@@ -78,23 +128,111 @@ export default function DuyurularPage() {
     }
   }, [activeFilter, announcements]);
 
+  // === TÜM TARİHLERİ BİRLEŞTİR ===
+  const tumTarihler = useMemo(() => {
+    const bugun = new Date();
+    bugun.setHours(0, 0, 0, 0);
+    const items: {
+      id: string; baslik: string; tarihStr: string; kalanGun: number;
+      kategori: "tatil" | "anma" | "dogumgunu" | "ozel";
+      emoji: string; renk: string; tekrarliMi?: boolean;
+    }[] = [];
+
+    // Resmi tatiller
+    getYaklasanTatiller().forEach(t => {
+      const tarih = new Date(t.tarih);
+      const kalanGun = Math.floor((tarih.getTime() - bugun.getTime()) / (1000 * 60 * 60 * 24));
+      items.push({
+        id: `tatil-${t.tarih}`,
+        baslik: t.isim,
+        tarihStr: t.tarih,
+        kalanGun,
+        kategori: "tatil",
+        emoji: "🏖️",
+        renk: "rose",
+      });
+    });
+
+    // Anma günleri
+    getYaklasanAnmaGunleri().forEach(a => {
+      items.push({
+        id: `anma-${a.ay}-${a.gun}`,
+        baslik: a.isim,
+        tarihStr: a.tarihStr,
+        kalanGun: a.kalanGun,
+        kategori: "anma",
+        emoji: a.emoji,
+        renk: "stone",
+      });
+    });
+
+    // Doğum günleri
+    getYaklasanDogumGunleri(personeller.map(p => ({
+      id: p.id, ad: p.ad, soyad: p.soyad, 
+      dogumTarihi: (p as any).dogumTarihi || '',
+      aktif: true
+    }))).forEach(d => {
+      items.push({
+        id: `dogum-${d.id}`,
+        baslik: `${d.isim} Doğum Günü`,
+        tarihStr: d.yaklasanTarih,
+        kalanGun: d.kalanGun,
+        kategori: "dogumgunu",
+        emoji: "🎂",
+        renk: "purple",
+      });
+    });
+
+    // Özel tarihler
+    ozelTarihler.forEach(t => {
+      let tarih = new Date(t.tarih + "T00:00:00");
+      if (t.tekrarliMi) {
+        const buYil = bugun.getFullYear();
+        tarih = new Date(buYil, tarih.getMonth(), tarih.getDate());
+        if (tarih < bugun) tarih = new Date(buYil + 1, tarih.getMonth(), tarih.getDate());
+      }
+      const kalanGun = Math.floor((tarih.getTime() - bugun.getTime()) / (1000 * 60 * 60 * 24));
+      if (kalanGun < 0 && !t.tekrarliMi) return; // geçmiş tek seferlik
+      if (kalanGun > 365) return;
+      items.push({
+        id: `ozel-${t.id}`,
+        baslik: t.baslik,
+        tarihStr: `${tarih.getFullYear()}-${String(tarih.getMonth()+1).padStart(2,'0')}-${String(tarih.getDate()).padStart(2,'0')}`,
+        kalanGun: Math.max(0, kalanGun),
+        kategori: "ozel",
+        emoji: t.emoji,
+        renk: t.renk,
+        tekrarliMi: t.tekrarliMi,
+      });
+    });
+
+    return items.sort((a, b) => a.kalanGun - b.kalanGun);
+  }, [personeller, ozelTarihler]);
+
+  const filtrelenmisT = useMemo(() => {
+    if (tarihFiltre === "tumu") return tumTarihler;
+    return tumTarihler.filter(t => t.kategori === tarihFiltre);
+  }, [tumTarihler, tarihFiltre]);
+
+  // === HANDLERS ===
   const handleAddAnnouncement = async () => {
     if (!newAnnouncement.title || !newAnnouncement.content) {
       alert("Lütfen başlık ve içerik girin!");
       return;
     }
-
     try {
+      const yazarPersonel = personeller.find(p => p.email === user?.email);
+      const yazarAd = yazarPersonel ? `${yazarPersonel.ad} ${yazarPersonel.soyad}` : user?.email?.split('@')[0] || 'Admin';
+
       await addDoc(collection(db, "announcements"), {
         title: newAnnouncement.title,
         content: newAnnouncement.content,
         important: newAnnouncement.important,
         group: newAnnouncement.group,
-        author: user?.email?.split('@')[0] || 'Admin',
+        author: yazarAd,
         createdAt: serverTimestamp()
       });
 
-      // Uygulama içi bildirim: gruptaki tüm personele
       try {
         const grupQuery = query(
           collection(db, "personnel"),
@@ -105,12 +243,10 @@ export default function DuyurularPage() {
         const alicilar = personelSnapshot.docs
           .map(d => d.data().email as string)
           .filter(email => email && email !== user?.email);
-
         if (alicilar.length > 0) {
-          const yazarAd = user?.email?.split('@')[0] || 'Admin';
           bildirimYazCoklu(alicilar, {
             baslik: newAnnouncement.important ? "🔴 Önemli Duyuru" : "📢 Yeni Duyuru",
-            mesaj: `${newAnnouncement.title}`,
+            mesaj: newAnnouncement.title,
             tip: "duyuru",
             route: "/duyurular",
             gonderen: user?.email || "",
@@ -131,42 +267,64 @@ export default function DuyurularPage() {
 
   const handleDeleteAnnouncement = async (id: string) => {
     if (confirm("Bu duyuruyu silmek istediğinize emin misiniz?")) {
-      try {
-        await deleteDoc(doc(db, "announcements", id));
-      } catch (error) {
-        Sentry.captureException(error);
-        alert("Duyuru silinemedi!");
-      }
+      try { await deleteDoc(doc(db, "announcements", id)); }
+      catch (error) { Sentry.captureException(error); alert("Silinemedi!"); }
+    }
+  };
+
+  const handleAddTarih = async () => {
+    if (!yeniTarih.baslik.trim() || !yeniTarih.tarih) {
+      alert("Lütfen başlık ve tarih girin!");
+      return;
+    }
+    try {
+      await addDoc(collection(db, "onemliTarihler"), {
+        baslik: yeniTarih.baslik.trim(),
+        tarih: yeniTarih.tarih,
+        tekrarliMi: yeniTarih.tekrarliMi,
+        emoji: yeniTarih.emoji,
+        renk: yeniTarih.renk,
+        ekleyen: user?.email || "",
+        createdAt: serverTimestamp()
+      });
+      setShowTarihModal(false);
+      setYeniTarih({ baslik: '', tarih: '', tekrarliMi: true, emoji: '📌', renk: 'amber' });
+    } catch (error) {
+      Sentry.captureException(error);
+      alert("Tarih eklenemedi!");
+    }
+  };
+
+  const handleDeleteTarih = async (firestoreId: string) => {
+    if (confirm("Bu tarihi silmek istediğinize emin misiniz?")) {
+      try { await deleteDoc(doc(db, "onemliTarihler", firestoreId)); }
+      catch (error) { Sentry.captureException(error); alert("Silinemedi!"); }
     }
   };
 
   const formatTarih = (timestamp: any) => {
     if (!timestamp) return '';
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return date.toLocaleDateString('tr-TR', { 
-      day: 'numeric', 
-      month: 'long', 
-      year: 'numeric'
-    });
+    return date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
   };
 
-  // Grup adına göre stil bilgisi getir
+  const formatTarihStr = (tarihStr: string) => {
+    const d = new Date(tarihStr + "T00:00:00");
+    return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' });
+  };
+
+  const formatTarihFull = (tarihStr: string) => {
+    const d = new Date(tarihStr + "T00:00:00");
+    return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' });
+  };
+
   const getGroupInfo = (groupName: string) => {
     const safeGroupName = groupName || '';
     const grup = grupEtiketleri.find(g => g.grupAdi.toLowerCase() === safeGroupName.toLowerCase());
-    if (!grup) {
-      return { 
-        grupAdi: safeGroupName || 'Genel', 
-        stiller: getRenkStilleri('gray')
-      };
-    }
-    return { 
-      grupAdi: grup.grupAdi, 
-      stiller: getRenkStilleri(grup.renk)
-    };
+    if (!grup) return { grupAdi: safeGroupName || 'Genel', stiller: getRenkStilleri('gray') };
+    return { grupAdi: grup.grupAdi, stiller: getRenkStilleri(grup.renk) };
   };
 
-  // Grup bazlı duyuru sayıları
   const getGroupCounts = () => {
     const counts: Record<string, number> = { tumu: announcements.length };
     grupEtiketleri.forEach(g => {
@@ -179,6 +337,28 @@ export default function DuyurularPage() {
 
   const counts = getGroupCounts();
 
+  const kalanGunBadge = (gun: number) => {
+    if (gun === 0) return "bg-emerald-500 text-white animate-pulse";
+    if (gun <= 3) return "bg-amber-100 text-amber-800";
+    if (gun <= 7) return "bg-blue-100 text-blue-800";
+    if (gun <= 30) return "bg-stone-100 text-stone-600";
+    return "bg-stone-50 text-stone-400";
+  };
+
+  const kalanGunText = (gun: number) => {
+    if (gun === 0) return "Bugün!";
+    if (gun === 1) return "Yarın";
+    return `${gun} gün`;
+  };
+
+  const kategoriSayilari = useMemo(() => ({
+    tumu: tumTarihler.length,
+    tatil: tumTarihler.filter(t => t.kategori === "tatil").length,
+    anma: tumTarihler.filter(t => t.kategori === "anma").length,
+    dogumgunu: tumTarihler.filter(t => t.kategori === "dogumgunu").length,
+    ozel: tumTarihler.filter(t => t.kategori === "ozel").length,
+  }), [tumTarihler]);
+
   if (grupLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -189,190 +369,335 @@ export default function DuyurularPage() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <div>
-        <header className="bg-white border-b px-6 py-4 sticky top-0 z-30">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-xl font-bold text-stone-800">📢 Duyurular</h1>
-              <p className="text-sm text-stone-500">Ekip için önemli duyurular</p>
-            </div>
-            <button
-              onClick={() => setShowModal(true)}
-              className="bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
-            >
-              ➕ Yeni Duyuru
-            </button>
+      {/* HEADER */}
+      <header className="bg-white border-b px-4 md:px-6 py-4 sticky top-0 z-30">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h1 className="text-lg md:text-xl font-bold text-stone-800">📢 Duyurular & Önemli Tarihler</h1>
+            <p className="text-xs md:text-sm text-stone-500">Ekip duyuruları ve yaklaşan tarihler</p>
           </div>
-
-          {/* Grup Filtreleri */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <button
-              onClick={() => setActiveFilter("tumu")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                activeFilter === "tumu"
-                  ? "bg-stone-800 text-white"
-                  : "bg-stone-100 text-stone-600 hover:bg-stone-200"
-              }`}
-            >
-              Tümü ({counts.tumu})
-            </button>
-            {grupEtiketleri.map(grup => {
-              const stiller = getRenkStilleri(grup.renk);
-              return (
-                <button
-                  key={grup.id}
-                  onClick={() => setActiveFilter(grup.grupAdi)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 ${
-                    activeFilter === grup.grupAdi
-                      ? `${stiller.bg} text-white`
-                      : "bg-stone-100 text-stone-600 hover:bg-stone-200"
-                  }`}
-                >
-                  <span className={`w-2 h-2 rounded-full ${activeFilter === grup.grupAdi ? "bg-white" : stiller.bg}`}></span>
-                  {grup.grupAdi} ({counts[grup.grupAdi] || 0})
-                </button>
-              );
-            })}
+          <div className="flex gap-2">
+            {aktifSekme === "duyurular" ? (
+              <button onClick={() => setShowModal(true)}
+                className="bg-rose-500 hover:bg-rose-600 text-white px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition">
+                ➕ Yeni Duyuru
+              </button>
+            ) : (
+              <button onClick={() => setShowTarihModal(true)}
+                className="bg-amber-500 hover:bg-amber-600 text-white px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition">
+                ➕ Yeni Tarih
+              </button>
+            )}
           </div>
-        </header>
+        </div>
 
-        <main className="p-6">
-          {filteredAnnouncements.length === 0 ? (
-            <div className="bg-white rounded-lg p-12 text-center text-stone-500 border border-stone-100">
-              <span className="text-5xl mb-4 block">📭</span>
-              <p className="text-lg font-medium">
-                {activeFilter === "tumu" ? "Henüz duyuru yok" : `${activeFilter} grubunda duyuru yok`}
-              </p>
-              <p className="text-sm text-stone-400 mt-2">Yeni duyuru eklemek için yukarıdaki butona tıklayın</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {filteredAnnouncements.map(announcement => {
-                const groupInfo = getGroupInfo(announcement.group);
+        {/* SEKME SEÇİCİ */}
+        <div className="flex gap-1 bg-stone-100 rounded-lg p-1 w-fit">
+          <button
+            onClick={() => setAktifSekme("duyurular")}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+              aktifSekme === "duyurular" ? "bg-white text-stone-800 shadow-sm" : "text-stone-500 hover:text-stone-700"
+            }`}>
+            📢 Duyurular <span className="ml-1 text-xs opacity-70">({announcements.length})</span>
+          </button>
+          <button
+            onClick={() => setAktifSekme("tarihler")}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+              aktifSekme === "tarihler" ? "bg-white text-stone-800 shadow-sm" : "text-stone-500 hover:text-stone-700"
+            }`}>
+            📅 Önemli Tarihler <span className="ml-1 text-xs opacity-70">({tumTarihler.length})</span>
+          </button>
+        </div>
+      </header>
+
+      {/* İÇERİK */}
+      <main className="p-4 md:p-6">
+        {/* ========== DUYURULAR SEKMESİ ========== */}
+        {aktifSekme === "duyurular" && (
+          <div>
+            {/* Grup Filtreleri */}
+            <div className="flex items-center gap-2 flex-wrap mb-4">
+              <button onClick={() => setActiveFilter("tumu")}
+                className={`px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition ${
+                  activeFilter === "tumu" ? "bg-stone-800 text-white" : "bg-white text-stone-600 hover:bg-stone-50 border border-stone-200"
+                }`}>
+                Tümü ({counts.tumu})
+              </button>
+              {grupEtiketleri.map(grup => {
+                const stiller = getRenkStilleri(grup.renk);
                 return (
-                  <div 
-                    key={announcement.id}
-                    className={`bg-white rounded-lg shadow-sm border overflow-hidden ${
-                      announcement.important 
-                        ? 'border-red-300 ring-2 ring-red-100' 
-                        : groupInfo.stiller.border
-                    }`}
-                  >
-                    <div className="p-6">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-3 flex-wrap">
-                          {/* Grup Etiketi */}
-                          <span className={`${groupInfo.stiller.bg} text-white text-xs font-bold px-3 py-1 rounded-full`}>
-                            {groupInfo.grupAdi}
-                          </span>
-                          {announcement.important && (
-                            <span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full animate-pulse">
-                              🔥 ÖNEMLİ
-                            </span>
-                          )}
-                          <h3 className="text-lg font-semibold text-stone-800">{announcement.title}</h3>
-                        </div>
-                        <button
-                          onClick={() => handleDeleteAnnouncement(announcement.id)}
-                          className="text-stone-400 hover:text-red-500 transition text-lg"
-                        >
-                          🗑️
-                        </button>
-                      </div>
-                      <p className="text-stone-600 mb-4 whitespace-pre-wrap">{announcement.content}</p>
-                      <div className="flex items-center justify-between text-sm text-stone-500">
-                        <span className="flex items-center gap-1">
-                          👤 {announcement.author}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          📅 {formatTarih(announcement.createdAt)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                  <button key={grup.id} onClick={() => setActiveFilter(grup.grupAdi)}
+                    className={`px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition flex items-center gap-1.5 ${
+                      activeFilter === grup.grupAdi ? `${stiller.bg} text-white` : "bg-white text-stone-600 hover:bg-stone-50 border border-stone-200"
+                    }`}>
+                    <span className={`w-2 h-2 rounded-full ${activeFilter === grup.grupAdi ? "bg-white" : stiller.bg}`}></span>
+                    {grup.grupAdi} ({counts[grup.grupAdi] || 0})
+                  </button>
                 );
               })}
             </div>
-          )}
-        </main>
-      </div>
 
-      {/* Modal */}
+            {/* Duyuru Listesi */}
+            {filteredAnnouncements.length === 0 ? (
+              <div className="bg-white rounded-lg p-12 text-center text-stone-500 border border-stone-100">
+                <span className="text-5xl mb-4 block">📭</span>
+                <p className="text-lg font-medium">
+                  {activeFilter === "tumu" ? "Henüz duyuru yok" : `${activeFilter} grubunda duyuru yok`}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filteredAnnouncements.map(announcement => {
+                  const groupInfo = getGroupInfo(announcement.group);
+                  return (
+                    <div key={announcement.id}
+                      className={`bg-white rounded-lg shadow-sm border overflow-hidden ${
+                        announcement.important ? 'border-red-300 ring-2 ring-red-100' : groupInfo.stiller.border
+                      }`}>
+                      <div className="p-4 md:p-5">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className={`${groupInfo.stiller.bg} text-white text-xs font-bold px-2.5 py-0.5 rounded-full`}>
+                              {groupInfo.grupAdi}
+                            </span>
+                            {announcement.important && (
+                              <span className="bg-red-500 text-white text-xs font-bold px-2.5 py-0.5 rounded-full animate-pulse">
+                                🔥 ÖNEMLİ
+                              </span>
+                            )}
+                            <h3 className="text-base font-semibold text-stone-800">{announcement.title}</h3>
+                          </div>
+                          <button onClick={() => handleDeleteAnnouncement(announcement.id)}
+                            className="text-stone-300 hover:text-red-500 transition text-sm ml-2 shrink-0">
+                            🗑️
+                          </button>
+                        </div>
+                        <p className="text-stone-600 text-sm mb-3 whitespace-pre-wrap">{announcement.content}</p>
+                        <div className="flex items-center justify-between text-xs text-stone-400">
+                          <span>👤 {announcement.author}</span>
+                          <span>📅 {formatTarih(announcement.createdAt)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ========== ÖNEMLİ TARİHLER SEKMESİ ========== */}
+        {aktifSekme === "tarihler" && (
+          <div>
+            {/* Kategori Filtreleri */}
+            <div className="flex items-center gap-2 flex-wrap mb-4">
+              {([
+                { key: "tumu", label: "Tümü", emoji: "📋" },
+                { key: "tatil", label: "Tatiller", emoji: "🏖️" },
+                { key: "anma", label: "Anma Günleri", emoji: "🇹🇷" },
+                { key: "dogumgunu", label: "Doğum Günleri", emoji: "🎂" },
+                { key: "ozel", label: "Özel Tarihler", emoji: "📌" },
+              ] as const).map(f => (
+                <button key={f.key} onClick={() => setTarihFiltre(f.key)}
+                  className={`px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition ${
+                    tarihFiltre === f.key 
+                      ? "bg-amber-500 text-white" 
+                      : "bg-white text-stone-600 hover:bg-stone-50 border border-stone-200"
+                  }`}>
+                  {f.emoji} {f.label} ({kategoriSayilari[f.key]})
+                </button>
+              ))}
+            </div>
+
+            {/* Tarih Listesi */}
+            {filtrelenmisT.length === 0 ? (
+              <div className="bg-white rounded-lg p-12 text-center text-stone-500 border border-stone-100">
+                <span className="text-5xl mb-4 block">📅</span>
+                <p className="text-lg font-medium">Yaklaşan tarih yok</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {filtrelenmisT.map(tarih => {
+                  const renkStil = getRenkStil(tarih.renk);
+                  const isOzel = tarih.kategori === "ozel";
+                  const firestoreId = isOzel ? tarih.id.replace("ozel-", "") : null;
+                  return (
+                    <div key={tarih.id}
+                      className={`bg-white rounded-lg border ${renkStil.border} overflow-hidden transition hover:shadow-sm`}>
+                      <div className="flex items-center gap-3 md:gap-4 p-3 md:p-4">
+                        {/* Emoji */}
+                        <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl ${renkStil.light} flex items-center justify-center text-lg md:text-xl shrink-0`}>
+                          {tarih.emoji}
+                        </div>
+
+                        {/* İçerik */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="font-semibold text-stone-800 text-sm md:text-base truncate">{tarih.baslik}</h3>
+                            {tarih.tekrarliMi && (
+                              <span className="text-[10px] bg-stone-100 text-stone-500 px-1.5 py-0.5 rounded-full">🔄 her yıl</span>
+                            )}
+                          </div>
+                          <p className="text-xs text-stone-500 mt-0.5">{formatTarihFull(tarih.tarihStr)}</p>
+                        </div>
+
+                        {/* Kalan gün badge */}
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${kalanGunBadge(tarih.kalanGun)}`}>
+                            {kalanGunText(tarih.kalanGun)}
+                          </span>
+                          {/* Kategori chip */}
+                          <span className={`hidden md:inline-block px-2 py-0.5 rounded-full text-[10px] font-medium ${renkStil.light} ${renkStil.text}`}>
+                            {tarih.kategori === "tatil" ? "Tatil" :
+                             tarih.kategori === "anma" ? "Anma" :
+                             tarih.kategori === "dogumgunu" ? "Doğum Günü" : "Özel"}
+                          </span>
+                          {/* Silme (sadece özel tarihler) */}
+                          {isOzel && firestoreId && (
+                            <button onClick={() => handleDeleteTarih(firestoreId)}
+                              className="text-stone-300 hover:text-red-500 transition text-sm">
+                              🗑️
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+      </main>
+
+      {/* DUYURU MODAL */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowModal(false)}>
-          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full p-6" onClick={e => e.stopPropagation()}>
-            <h3 className="text-xl font-bold text-stone-800 mb-4">📢 Yeni Duyuru</h3>
-            
-            <div className="space-y-4">
-              {/* Grup Seçimi */}
+          <div className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="bg-gradient-to-r from-rose-500 to-rose-400 text-white px-5 py-3 rounded-t-xl flex items-center justify-between">
+              <h3 className="font-bold text-sm">📢 Yeni Duyuru</h3>
+              <button onClick={() => setShowModal(false)} className="text-white/80 hover:text-white text-xl">✕</button>
+            </div>
+            <div className="p-5 space-y-4">
+              {/* Grup */}
               <div>
                 <label className="block text-sm font-medium text-stone-700 mb-2">Grup</label>
                 <div className="flex flex-wrap gap-2">
                   {grupEtiketleri.map(grup => {
                     const stiller = getRenkStilleri(grup.renk);
                     return (
-                      <button
-                        key={grup.id}
-                        type="button"
+                      <button key={grup.id} type="button"
                         onClick={() => setNewAnnouncement({...newAnnouncement, group: grup.grupAdi})}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 ${
-                          newAnnouncement.group === grup.grupAdi
-                            ? `${stiller.bg} text-white`
-                            : "bg-stone-100 text-stone-600 hover:bg-stone-200"
-                        }`}
-                      >
-                        <span className={`w-2 h-2 rounded-full ${newAnnouncement.group === grup.grupAdi ? "bg-white" : stiller.bg}`}></span>
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                          newAnnouncement.group === grup.grupAdi ? `${stiller.bg} text-white` : "bg-stone-100 text-stone-600"
+                        }`}>
                         {grup.grupAdi}
                       </button>
                     );
                   })}
                 </div>
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">Başlık</label>
-                <input
-                  type="text"
-                  value={newAnnouncement.title}
+                <label className="block text-sm font-medium text-stone-700 mb-1">Başlık</label>
+                <input type="text" value={newAnnouncement.title}
                   onChange={(e) => setNewAnnouncement({...newAnnouncement, title: e.target.value})}
-                  className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
-                  placeholder="Duyuru başlığı..."
-                />
+                  className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm"
+                  placeholder="Duyuru başlığı..." />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">İçerik</label>
-                <textarea
-                  value={newAnnouncement.content}
+                <label className="block text-sm font-medium text-stone-700 mb-1">İçerik</label>
+                <textarea value={newAnnouncement.content}
                   onChange={(e) => setNewAnnouncement({...newAnnouncement, content: e.target.value})}
                   rows={4}
-                  className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
-                  placeholder="Duyuru içeriği..."
-                />
+                  className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm resize-none"
+                  placeholder="Duyuru içeriği..." />
               </div>
-
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="important"
-                  checked={newAnnouncement.important}
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={newAnnouncement.important}
                   onChange={(e) => setNewAnnouncement({...newAnnouncement, important: e.target.checked})}
-                  className="rounded"
-                />
-                <label htmlFor="important" className="text-sm text-stone-700">🔥 Önemli duyuru olarak işaretle</label>
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  onClick={handleAddAnnouncement}
-                  className="flex-1 bg-rose-500 hover:bg-rose-600 text-white py-2.5 rounded-lg font-medium transition"
-                >
+                  className="rounded border-stone-300 text-rose-500" />
+                <span className="text-sm text-stone-700">🔥 Önemli duyuru</span>
+              </label>
+              <div className="flex gap-3 pt-1">
+                <button onClick={handleAddAnnouncement}
+                  className="flex-1 bg-rose-500 hover:bg-rose-600 text-white py-2.5 rounded-lg text-sm font-medium transition">
                   Ekle
                 </button>
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="flex-1 bg-stone-100 hover:bg-stone-200 text-stone-700 py-2.5 rounded-lg font-medium transition"
-                >
+                <button onClick={() => setShowModal(false)}
+                  className="flex-1 bg-stone-100 hover:bg-stone-200 text-stone-700 py-2.5 rounded-lg text-sm font-medium transition">
+                  İptal
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ÖZEL TARİH EKLEME MODAL */}
+      {showTarihModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowTarihModal(false)}>
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="bg-gradient-to-r from-amber-500 to-amber-400 text-white px-5 py-3 rounded-t-xl flex items-center justify-between">
+              <h3 className="font-bold text-sm">📌 Yeni Önemli Tarih</h3>
+              <button onClick={() => setShowTarihModal(false)} className="text-white/80 hover:text-white text-xl">✕</button>
+            </div>
+            <div className="p-5 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">Başlık *</label>
+                <input type="text" value={yeniTarih.baslik}
+                  onChange={(e) => setYeniTarih({...yeniTarih, baslik: e.target.value})}
+                  className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+                  placeholder="Örn: Şirket kuruluş yıldönümü" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">Tarih *</label>
+                <input type="date" value={yeniTarih.tarih}
+                  onChange={(e) => setYeniTarih({...yeniTarih, tarih: e.target.value})}
+                  className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm" />
+              </div>
+
+              {/* Emoji Seçimi */}
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">Emoji</label>
+                <div className="flex flex-wrap gap-2">
+                  {EMOJI_SECENEKLERI.map(e => (
+                    <button key={e} type="button" onClick={() => setYeniTarih({...yeniTarih, emoji: e})}
+                      className={`w-9 h-9 rounded-lg text-lg flex items-center justify-center transition ${
+                        yeniTarih.emoji === e ? "bg-amber-100 ring-2 ring-amber-400" : "bg-stone-50 hover:bg-stone-100"
+                      }`}>
+                      {e}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Renk Seçimi */}
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">Renk</label>
+                <div className="flex flex-wrap gap-2">
+                  {RENK_SECENEKLERI.map(r => (
+                    <button key={r.id} type="button" onClick={() => setYeniTarih({...yeniTarih, renk: r.id})}
+                      className={`w-8 h-8 rounded-full ${r.bg} transition ${
+                        yeniTarih.renk === r.id ? "ring-2 ring-offset-2 ring-stone-400 scale-110" : "opacity-60 hover:opacity-100"
+                      }`} title={r.label} />
+                  ))}
+                </div>
+              </div>
+
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={yeniTarih.tekrarliMi}
+                  onChange={(e) => setYeniTarih({...yeniTarih, tekrarliMi: e.target.checked})}
+                  className="rounded border-stone-300 text-amber-500" />
+                <span className="text-sm text-stone-700">🔄 Her yıl tekrarlansın</span>
+              </label>
+
+              <div className="flex gap-3 pt-1">
+                <button onClick={handleAddTarih}
+                  className="flex-1 bg-amber-500 hover:bg-amber-600 text-white py-2.5 rounded-lg text-sm font-medium transition">
+                  Ekle
+                </button>
+                <button onClick={() => setShowTarihModal(false)}
+                  className="flex-1 bg-stone-100 hover:bg-stone-200 text-stone-700 py-2.5 rounded-lg text-sm font-medium transition">
                   İptal
                 </button>
               </div>
