@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useLocation } from "react-router-dom";
 import { db } from "../lib/firebase";
 import { useGrupEtiketleri } from "../hooks/useGrupEtiketleri";
 import { getRenkStilleri } from "../lib/grupEtiketleri";
@@ -68,7 +69,13 @@ function getRenkStil(renk: string) {
 
 export default function DuyurularPage() {
   const user = useAuth();
-  const [aktifSekme, setAktifSekme] = useState<AktifSekme>("duyurular");
+  const location = useLocation();
+  const [aktifSekme, setAktifSekme] = useState<AktifSekme>(() => {
+    // HashRouter: hash = "#/duyurular?tab=tarihler"
+    const hash = window.location.hash || "";
+    if (hash.includes("tab=tarihler")) return "tarihler";
+    return "duyurular";
+  });
   
   // === DUYURULAR STATE ===
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -87,9 +94,17 @@ export default function DuyurularPage() {
     baslik: '', tarih: '', tekrarliMi: true, emoji: '📌', renk: 'amber'
   });
   const [tarihFiltre, setTarihFiltre] = useState<"tumu" | "tatil" | "anma" | "dogumgunu" | "ozel">("tumu");
+  const [tarihSayfa, setTarihSayfa] = useState(0);
+  const TARIH_SAYFA_BOYUTU = 10;
   
   // === PERSONELLER (doğum günleri için) ===
   const { personeller } = usePersoneller();
+
+  // URL'den tab parametresini dinle
+  useEffect(() => {
+    const hash = window.location.hash || "";
+    if (hash.includes("tab=tarihler")) setAktifSekme("tarihler");
+  }, [location]);
 
   // İlk grup yüklenince default grup ata
   useEffect(() => {
@@ -213,6 +228,12 @@ export default function DuyurularPage() {
     if (tarihFiltre === "tumu") return tumTarihler;
     return tumTarihler.filter(t => t.kategori === tarihFiltre);
   }, [tumTarihler, tarihFiltre]);
+
+  const tarihToplamSayfa = Math.ceil(filtrelenmisT.length / TARIH_SAYFA_BOYUTU);
+  const sayfadakiTarihler = filtrelenmisT.slice(tarihSayfa * TARIH_SAYFA_BOYUTU, (tarihSayfa + 1) * TARIH_SAYFA_BOYUTU);
+
+  // Filtre değişince sayfayı sıfırla
+  useEffect(() => { setTarihSayfa(0); }, [tarihFiltre]);
 
   // === HANDLERS ===
   const handleAddAnnouncement = async () => {
@@ -516,8 +537,9 @@ export default function DuyurularPage() {
                 <p className="text-lg font-medium">Yaklaşan tarih yok</p>
               </div>
             ) : (
-              <div className="space-y-2">
-                {filtrelenmisT.map(tarih => {
+              <div>
+                <div className="space-y-2">
+                  {sayfadakiTarihler.map(tarih => {
                   const renkStil = getRenkStil(tarih.renk);
                   const isOzel = tarih.kategori === "ozel";
                   const firestoreId = isOzel ? tarih.id.replace("ozel-", "") : null;
@@ -564,6 +586,21 @@ export default function DuyurularPage() {
                     </div>
                   );
                 })}
+                </div>
+                {/* Pagination */}
+                {tarihToplamSayfa > 1 && (
+                  <div className="flex items-center justify-center gap-3 mt-4 pt-3 border-t border-stone-100">
+                    <button onClick={() => setTarihSayfa(s => Math.max(0, s - 1))} disabled={tarihSayfa === 0}
+                      className={`px-3 py-1.5 rounded-lg text-sm transition ${
+                        tarihSayfa === 0 ? "text-stone-300 cursor-not-allowed" : "text-stone-600 hover:bg-stone-100"
+                      }`}>← Önceki</button>
+                    <span className="text-xs text-stone-400">{tarihSayfa + 1} / {tarihToplamSayfa}</span>
+                    <button onClick={() => setTarihSayfa(s => Math.min(tarihToplamSayfa - 1, s + 1))} disabled={tarihSayfa >= tarihToplamSayfa - 1}
+                      className={`px-3 py-1.5 rounded-lg text-sm transition ${
+                        tarihSayfa >= tarihToplamSayfa - 1 ? "text-stone-300 cursor-not-allowed" : "text-stone-600 hover:bg-stone-100"
+                      }`}>Sonraki →</button>
+                  </div>
+                )}
               </div>
             )}
           </div>

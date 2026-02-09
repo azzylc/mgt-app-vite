@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { db } from "../../lib/firebase";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { getYaklasanTatiller, getYaklasanDogumGunleri, getYaklasanAnmaGunleri } from "../../lib/data";
@@ -36,10 +37,10 @@ interface Props {
   personeller: PersonelBasic[];
 }
 
-const SAYFA_BOYUTU = 10;
+const GOSTERIM_LIMITI = 6;
 
 export default function TakvimEtkinlikWidget({ personeller }: Props) {
-  const [sayfa, setSayfa] = useState(0);
+  const navigate = useNavigate();
   const [ozelTarihler, setOzelTarihler] = useState<OzelTarih[]>([]);
 
   // Özel tarihleri Firestore'dan dinle
@@ -107,8 +108,7 @@ export default function TakvimEtkinlikWidget({ personeller }: Props) {
     return items.sort((a, b) => a.kalanGun - b.kalanGun);
   }, [personeller, ozelTarihler]);
 
-  const toplamSayfa = Math.ceil(tumEtkinlikler.length / SAYFA_BOYUTU);
-  const sayfaEtkinlikleri = tumEtkinlikler.slice(sayfa * SAYFA_BOYUTU, (sayfa + 1) * SAYFA_BOYUTU);
+  const gosterilenEtkinlikler = tumEtkinlikler.slice(0, GOSTERIM_LIMITI);
 
   const formatTarih = (tarihStr: string) => {
     const d = new Date(tarihStr + "T00:00:00");
@@ -162,24 +162,15 @@ export default function TakvimEtkinlikWidget({ personeller }: Props) {
           <span className="text-xs font-semibold text-stone-700">Yaklaşan Etkinlikler</span>
           <span className="text-[10px] text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded-full">{tumEtkinlikler.length}</span>
         </div>
-        {toplamSayfa > 1 && (
-          <div className="flex items-center gap-1">
-            <button onClick={() => setSayfa(s => Math.max(0, s - 1))} disabled={sayfa === 0}
-              className={`w-6 h-6 rounded flex items-center justify-center text-sm transition ${
-                sayfa === 0 ? "text-stone-300" : "text-stone-500 hover:bg-stone-100 active:bg-stone-200"
-              }`}>‹</button>
-            <span className="text-[10px] text-stone-400 min-w-[32px] text-center">{sayfa + 1}/{toplamSayfa}</span>
-            <button onClick={() => setSayfa(s => Math.min(toplamSayfa - 1, s + 1))} disabled={sayfa >= toplamSayfa - 1}
-              className={`w-6 h-6 rounded flex items-center justify-center text-sm transition ${
-                sayfa >= toplamSayfa - 1 ? "text-stone-300" : "text-stone-500 hover:bg-stone-100 active:bg-stone-200"
-              }`}>›</button>
-          </div>
-        )}
+        <button onClick={() => navigate("/duyurular?tab=tarihler")}
+          className="text-[10px] text-stone-400 hover:text-emerald-500 font-medium transition">
+          Tümü →
+        </button>
       </div>
 
       {/* Liste */}
       <div className="p-2.5 space-y-1.5">
-        {sayfaEtkinlikleri.map((e) => (
+        {gosterilenEtkinlikler.map((e) => (
           <div key={e.id} className={`flex items-center gap-2 py-1.5 px-2.5 rounded-lg ${kategoriBg(e.kategori)}`}>
             <div className={`flex-shrink-0 w-7 h-7 rounded-lg ${kategoriRenk(e.kategori)} flex items-center justify-center`}>
               <span className="text-xs">{e.emoji}</span>
