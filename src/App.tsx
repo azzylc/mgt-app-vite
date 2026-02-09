@@ -68,6 +68,9 @@ const RaporlarGirisCikisKayitlari = lazyWithRetry(() => import('./pages/raporlar
 const Yonetim = lazyWithRetry(() => import('./pages/Yonetim'))
 const YonetimCompare = lazyWithRetry(() => import('./pages/yonetim/Compare'))
 
+// Profil
+const Profilim = lazyWithRetry(() => import('./pages/Profilim'))
+
 // Sayfa yüklenirken gösterilecek loading spinner
 function PageLoader() {
   return (
@@ -93,6 +96,7 @@ export default function App() {
               {/* Protected routes */}
               <Route element={<AuthLayout />}>
                 <Route path="/" element={<Home />} />
+                <Route path="/profilim" element={<Suspense fallback={<PageLoader />}><Profilim /></Suspense>} />
                 
                 {/* Ana sayfalar */}
                 <Route path="/takvim" element={<RouteGuard requiredPermission="takvim"><Takvim /></RouteGuard>} />

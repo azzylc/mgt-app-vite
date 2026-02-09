@@ -170,7 +170,7 @@ function SidebarContent({ user }: SidebarProps) {
           <h1 className="text-sm font-semibold">GYS Studio</h1>
           <p className="text-xs text-stone-700">Gizem Yolcu</p>
         </div>
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 cursor-pointer hover:bg-stone-50 rounded-lg p-1 -m-1 transition" onClick={() => window.location.hash = "#/profilim"}>
           {personelData?.foto ? (
             <img src={personelData.foto} alt="" className="w-8 h-8 rounded-full object-cover" />
           ) : (
@@ -184,7 +184,7 @@ function SidebarContent({ user }: SidebarProps) {
             <p className="text-sm font-medium text-stone-800 truncate">
               {personelData?.ad ? `${personelData.ad} ${personelData.soyad || ''}` : user?.email?.split("@")[0] || "Admin"}
             </p>
-            <p className="text-xs text-stone-500">{personelData?.kullaniciTuru || "Personel"}</p>
+            <p className="text-[10px] text-amber-600 font-medium hover:underline">Profilim →</p>
           </div>
           <BildirimPaneli userEmail={user?.email} kompakt />
         </div>
