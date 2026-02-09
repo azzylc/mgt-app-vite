@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
 import { auth, db, functions } from "../lib/firebase";
 import { httpsCallable } from "firebase/functions";
 import { useSearchParams } from "react-router-dom";
@@ -512,7 +512,7 @@ function PersonelPageContent() {
   };
 
   // ✅ GRUP FİLTRESİ - grupEtiketleri dizisinde arama
-  const filteredPersoneller = personeller.filter(p => {
+  const filteredPersoneller = useMemo(() => personeller.filter(p => {
     const grupMatch = !grupFilter || (p.grupEtiketleri || []).some(g => g.toLowerCase() === grupFilter.toLowerCase());
     
     // Ayrılanlar sayfasında: sadece pasifler (aktif=false)
@@ -543,7 +543,7 @@ function PersonelPageContent() {
     }
     
     return 0;
-  });
+  }), [personeller, grupFilter, ayrilanlarFilter]);
 
   return (
     <div className="min-h-screen bg-gray-100">

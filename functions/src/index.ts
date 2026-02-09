@@ -24,6 +24,88 @@ function generatePassword(length = 8): string {
 }
 
 // ============================================
+// SABİTLER
+// ============================================
+const ADMIN_ROLES = ['Kurucu', 'Yönetici'];
+
+// ============================================
+// HELPER: Sistem hata logu
+// ============================================
+async function logSystemError(type: string, error: unknown) {
+  await adminDb.collection('system').doc('errors').set({
+    lastError: new Date().toISOString(),
+    type,
+    message: String(error)
+  }, { merge: true });
+}
+
+// ============================================
+// HELPER: Bildirim gönder (push + Firestore)
+// ============================================
+type BildirimTip = 'gorev_atama' | 'gorev_tamam' | 'gorev_yorum' | 'duyuru' | 'izin' | 'sistem';
+
+async function sendNotification(params: {
+  alici: string;
+  title: string;
+  body: string;
+  tip: BildirimTip;
+  route?: string;
+  gonderen?: string | null;
+  gonderenAd?: string | null;
+}): Promise<void> {
+  const { alici, title, body, tip, route, gonderen, gonderenAd } = params;
+
+  // Push bildirim
+  await sendPushToUser(alici, title, body, route ? { route } : undefined);
+
+  // Firestore bildirim kaydı
+  await adminDb.collection('bildirimler').add({
+    alici,
+    baslik: title,
+    mesaj: body,
+    tip,
+    okundu: false,
+    tarih: new Date(),
+    route: route || null,
+    gonderen: gonderen || null,
+    gonderenAd: gonderenAd || null,
+  });
+}
+
+// Toplu bildirim gönder (birden fazla alıcı)
+async function sendNotificationBatch(
+  alicilar: Iterable<string>,
+  params: Omit<Parameters<typeof sendNotification>[0], 'alici'>
+): Promise<void> {
+  for (const email of alicilar) {
+    await sendNotification({ ...params, alici: email });
+  }
+}
+
+// ============================================
+// HELPER: Input validation
+// ============================================
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_REGEX = /^[0-9+\-() ]{7,20}$/;
+
+function validatePersonelInput(data: Record<string, unknown>) {
+  const { email, ad, soyad, sicilNo, telefon } = data;
+  if (!email || !ad || !soyad || !sicilNo || !telefon) {
+    throw new HttpsError('invalid-argument', 'Zorunlu alanlar eksik: email, ad, soyad, sicilNo, telefon');
+  }
+  if (typeof email !== 'string' || !EMAIL_REGEX.test(email)) {
+    throw new HttpsError('invalid-argument', 'Geçersiz email formatı');
+  }
+  if (typeof telefon !== 'string' || !PHONE_REGEX.test(telefon)) {
+    throw new HttpsError('invalid-argument', 'Geçersiz telefon formatı');
+  }
+  if (typeof ad !== 'string' || ad.trim().length < 2) {
+    throw new HttpsError('invalid-argument', 'Ad en az 2 karakter olmalı');
+  }
+  if (typeof soyad !== 'string' || soyad.trim().length < 2) {
+    throw new HttpsError('invalid-argument', 'Soyad en az 2 karakter olmalı');
+  }
+}
 
 // ============================================
 // HELPER: onCall Auth + Rol kontrolü
@@ -101,11 +183,7 @@ export const calendarWebhook = onRequest({ region: 'europe-west1', cors: true, s
     res.json({ status: 'ok' });
   } catch (error) {
     console.error('Webhook error:', error);
-    await adminDb.collection('system').doc('errors').set({
-      lastError: new Date().toISOString(),
-      type: 'webhook',
-      message: String(error)
-    }, { merge: true });
+    await logSystemError('webhook', error);
     res.status(500).json({ error: 'Webhook processing failed' });
   }
 });
@@ -128,11 +206,7 @@ export const fullSyncEndpoint = onRequest({ region: 'europe-west1', cors: true, 
     res.json(result);
   } catch (error) {
     console.error('Full sync error:', error);
-    await adminDb.collection('system').doc('errors').set({
-      lastError: new Date().toISOString(),
-      type: 'fullSync',
-      message: String(error)
-    }, { merge: true });
+    await logSystemError('fullSync', error);
     res.status(500).json({ error: 'Full sync failed', details: String(error) });
   }
 });
@@ -226,11 +300,7 @@ export const renewWebhook = onSchedule({
     }
   } catch (error) {
     console.error('Webhook renewal failed:', error);
-    await adminDb.collection('system').doc('errors').set({
-      lastError: new Date().toISOString(),
-      type: 'webhookRenewal',
-      message: String(error)
-    }, { merge: true });
+    await logSystemError('webhookRenewal', error);
   }
 });
 
@@ -256,11 +326,7 @@ export const dailyHealthCheck = onSchedule({
 
       if (hoursSinceSync > 48) {
         console.warn(`WARNING: No sync in ${Math.round(hoursSinceSync)} hours!`);
-        await adminDb.collection('system').doc('errors').set({
-          lastError: new Date().toISOString(),
-          type: 'healthCheck',
-          message: `No sync in ${Math.round(hoursSinceSync)} hours`
-        }, { merge: true });
+        await logSystemError('healthCheck', `No sync in ${Math.round(hoursSinceSync)} hours`);
       } else {
         console.log(`Health check OK. Last sync ${Math.round(hoursSinceSync)} hours ago.`);
       }
@@ -317,7 +383,7 @@ async function gorevReconcile() {
     soyad: d.data().soyad,
     kullaniciTuru: d.data().kullaniciTuru || ''
   }));
-  const yoneticiler = personeller.filter(p => p.kullaniciTuru === 'Kurucu' || p.kullaniciTuru === 'Yönetici');
+  const yoneticiler = personeller.filter(p => ADMIN_ROLES.includes(p.kullaniciTuru));
 
   const gelinlerSnap = await adminDb.collection('gelinler')
     .where('kontrolZamani', '<=', simdi.toISOString())
@@ -480,7 +546,7 @@ export const personelCreate = onCall({
   secrets: [resendApiKey]
 }, async (request) => {
   process.env.RESEND_API_KEY = resendApiKey.value();
-  const user = await verifyCallableAuth(request, ['Kurucu', 'Yönetici']);
+  const user = await verifyCallableAuth(request, ADMIN_ROLES);
 
   const {
     email, password, ad, soyad, sicilNo, telefon, kisaltma,
@@ -491,9 +557,7 @@ export const personelCreate = onCall({
 
   console.log(`[personelCreate] Yeni: ${ad} ${soyad} (${email}) - by ${user.email}`);
 
-  if (!email || !ad || !soyad || !sicilNo || !telefon) {
-    throw new HttpsError('invalid-argument', 'Zorunlu alanlar eksik: email, ad, soyad, sicilNo, telefon');
-  }
+  validatePersonelInput(request.data);
 
   const finalPassword = password || generatePassword(8);
 
@@ -566,7 +630,7 @@ export const personelCreate = onCall({
 export const personelUpdate = onCall({
   region: 'europe-west1'
 }, async (request) => {
-  const user = await verifyCallableAuth(request, ['Kurucu', 'Yönetici']);
+  const user = await verifyCallableAuth(request, ADMIN_ROLES);
 
   const { id, password, ...updateData } = request.data;
 
@@ -635,7 +699,7 @@ export const personelActions = onCall({
   secrets: [resendApiKey]
 }, async (request) => {
   process.env.RESEND_API_KEY = resendApiKey.value();
-  const user = await verifyCallableAuth(request, ['Kurucu', 'Yönetici']);
+  const user = await verifyCallableAuth(request, ADMIN_ROLES);
 
   const { action, personelId } = request.data;
 
@@ -851,21 +915,11 @@ export const onGorevCreated = onDocumentCreated({
 
   console.log(`[GOREV-BILDIRIM] ${atayanAd} → ${alicilar.length} kişi: ${baslik}`);
 
-  for (const email of alicilar) {
-    await sendPushToUser(email, title, body, { route });
-
-    await adminDb.collection('bildirimler').add({
-      alici: email,
-      baslik: title,
-      mesaj: body,
-      tip: 'gorev_atama',
-      okundu: false,
-      tarih: new Date(),
-      route,
-      gonderen: atayan || null,
-      gonderenAd: atayanAd || null,
-    });
-  }
+  await sendNotificationBatch(alicilar, {
+    title, body, tip: 'gorev_atama', route,
+    gonderen: atayan || null,
+    gonderenAd: atayanAd || null,
+  });
 });
 
 // 9b. Görev güncellenince → tamamlama + yorum bildirimi
@@ -910,17 +964,9 @@ export const onGorevUpdated = onDocumentUpdated({
       }
 
       for (const email of bildirimAlacaklar) {
-        await sendPushToUser(email, title, body, { route });
-        await adminDb.collection('bildirimler').add({
-          alici: email,
-          baslik: title,
-          mesaj: body,
-          tip: 'gorev_tamam',
-          okundu: false,
-          tarih: new Date(),
-          route,
-          gonderen: yeniTamamlayan,
-          gonderenAd: tamamlayanAd,
+        await sendNotification({
+          alici: email, title, body, tip: 'gorev_tamam', route,
+          gonderen: yeniTamamlayan, gonderenAd: tamamlayanAd,
         });
       }
 
@@ -945,17 +991,9 @@ export const onGorevUpdated = onDocumentUpdated({
       for (const email of after.atananlar) bildirimAlacaklar.add(email);
 
       for (const email of bildirimAlacaklar) {
-        await sendPushToUser(email, title, body, { route });
-        await adminDb.collection('bildirimler').add({
-          alici: email,
-          baslik: title,
-          mesaj: body,
-          tip: 'gorev_tamam',
-          okundu: false,
-          tarih: new Date(),
-          route,
-          gonderen: tamamlayan,
-          gonderenAd: tamamlayanAd,
+        await sendNotification({
+          alici: email, title, body, tip: 'gorev_tamam', route,
+          gonderen: tamamlayan, gonderenAd: tamamlayanAd,
         });
       }
     } else {
@@ -966,18 +1004,9 @@ export const onGorevUpdated = onDocumentUpdated({
         const title = '✅ Görev Tamamlandı';
         const body = `${tamamlayanAd} görevi tamamladı: ${after.baslik}`;
 
-        await sendPushToUser(after.atayan, title, body, { route });
-
-        await adminDb.collection('bildirimler').add({
-          alici: after.atayan,
-          baslik: title,
-          mesaj: body,
-          tip: 'gorev_tamam',
-          okundu: false,
-          tarih: new Date(),
-          route,
-          gonderen: tamamlayan,
-          gonderenAd: tamamlayanAd,
+        await sendNotification({
+          alici: after.atayan, title, body, tip: 'gorev_tamam', route,
+          gonderen: tamamlayan, gonderenAd: tamamlayanAd,
         });
       }
     }
@@ -1012,18 +1041,9 @@ export const onGorevUpdated = onDocumentUpdated({
     }
 
     for (const email of bildirimAlacaklar) {
-      await sendPushToUser(email, title, body, { route });
-
-      await adminDb.collection('bildirimler').add({
-        alici: email,
-        baslik: title,
-        mesaj: body,
-        tip: 'gorev_yorum',
-        okundu: false,
-        tarih: new Date(),
-        route,
-        gonderen: yorumYapan || null,
-        gonderenAd: yorumYapanAd || null,
+      await sendNotification({
+        alici: email, title, body, tip: 'gorev_yorum', route,
+        gonderen: yorumYapan || null, gonderenAd: yorumYapanAd || null,
       });
     }
   }
@@ -1083,19 +1103,11 @@ export const dailyGorevHatirlatma = onSchedule({
       // Yarın son tarihli görevler → hatırlatma
       if (sonTarih === yarinStr) {
         for (const email of alicilar) {
-          await sendPushToUser(
-            email,
-            '⏰ Görev Hatırlatma',
-            `"${gorev.baslik}" görevinin son tarihi yarın!`,
-            { route: gorevRoute }
-          );
-          await adminDb.collection('bildirimler').add({
+          await sendNotification({
             alici: email,
-            baslik: '⏰ Görev Hatırlatma',
-            mesaj: `"${gorev.baslik}" görevinin son tarihi yarın!`,
+            title: '⏰ Görev Hatırlatma',
+            body: `"${gorev.baslik}" görevinin son tarihi yarın!`,
             tip: 'gorev_atama',
-            okundu: false,
-            tarih: new Date(),
             route: gorevRoute,
             gonderen: 'sistem',
             gonderenAd: 'Sistem',
@@ -1107,19 +1119,11 @@ export const dailyGorevHatirlatma = onSchedule({
       // Gecikmiş görevler → uyarı (sadece bugün gecikmeye başlayanlar)
       if (sonTarih === bugun) {
         for (const email of alicilar) {
-          await sendPushToUser(
-            email,
-            '⚠️ Son Gün!',
-            `"${gorev.baslik}" görevinin son tarihi bugün!`,
-            { route: gorevRoute }
-          );
-          await adminDb.collection('bildirimler').add({
+          await sendNotification({
             alici: email,
-            baslik: '⚠️ Son Gün!',
-            mesaj: `"${gorev.baslik}" görevinin son tarihi bugün!`,
+            title: '⚠️ Son Gün!',
+            body: `"${gorev.baslik}" görevinin son tarihi bugün!`,
             tip: 'gorev_atama',
-            okundu: false,
-            tarih: new Date(),
             route: gorevRoute,
             gonderen: 'sistem',
             gonderenAd: 'Sistem',
@@ -1141,11 +1145,7 @@ export const dailyGorevHatirlatma = onSchedule({
 
   } catch (error) {
     console.error('[HATIRLATMA] Hata:', error);
-    await adminDb.collection('system').doc('errors').set({
-      lastError: new Date().toISOString(),
-      type: 'gorevHatirlatma',
-      message: String(error)
-    }, { merge: true });
+    await logSystemError('gorevHatirlatma', error);
   }
 });
 
@@ -1192,10 +1192,6 @@ export const cleanOldNotifications = onSchedule({
 
   } catch (error) {
     console.error('[TEMIZLIK] Hata:', error);
-    await adminDb.collection('system').doc('errors').set({
-      lastError: new Date().toISOString(),
-      type: 'bildirimTemizlik',
-      message: String(error)
-    }, { merge: true });
+    await logSystemError('bildirimTemizlik', error);
   }
 });

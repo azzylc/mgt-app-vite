@@ -1,0 +1,187 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============================================
+    // HELPER FONKSİYONLAR
+    // ============================================
+    function isAuth() {
+      return request.auth != null;
+    }
+    
+    function getPersonel() {
+      return get(/databases/$(database)/documents/personnel/$(request.auth.uid)).data;
+    }
+    
+    function isAdmin() {
+      return isAuth() && getPersonel().kullaniciTuru in ['Kurucu', 'Yönetici'];
+    }
+
+    function isOwner(email) {
+      return isAuth() && request.auth.token.email == email;
+    }
+
+    // ============================================
+    // SİSTEM - sadece Cloud Functions erişir
+    // ============================================
+    match /system/{document=**} {
+      allow read, write: if false;
+    }
+    match /webhookChannels/{document=**} {
+      allow read, write: if false;
+    }
+
+    // ============================================
+    // GELİNLER - auth ile okuma, yazma admin
+    // ============================================
+    match /gelinler/{gelinId} {
+      allow read: if isAuth();
+      allow create, delete: if isAdmin();
+      allow update: if isAuth();
+    }
+
+    // ============================================
+    // BİLDİRİMLER - sadece kendi bildirimlerini
+    // ============================================
+    match /bildirimler/{bildirimId} {
+      allow read: if isAuth() 
+        && resource.data.alici == request.auth.token.email;
+      allow create: if isAuth();
+      allow update: if isAuth() 
+        && resource.data.alici == request.auth.token.email;
+      allow delete: if isAuth() 
+        && resource.data.alici == request.auth.token.email;
+    }
+
+    // ============================================
+    // PERSONEL - okuma auth, yazma Cloud Functions (admin)
+    // ============================================
+    match /personnel/{docId} {
+      allow read: if isAuth();
+      // Personel CRUD Cloud Functions üzerinden yapılıyor
+      // Client sadece kendi kaydını güncelleyebilir (deviceId, pushToken vb.)
+      allow update: if isAuth() && (
+        docId == request.auth.uid || isAdmin()
+      );
+      allow create, delete: if isAdmin();
+    }
+
+    // ============================================
+    // GÖREVLER - herkes okur/yazar (kendi görevleri)
+    // ============================================
+    match /gorevler/{docId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update: if isAuth();
+      allow delete: if isAdmin() || (
+        isAuth() && resource.data.atayan == request.auth.token.email
+      );
+    }
+
+    // ============================================
+    // PUANTAJ / DEVAM - okuma auth, yazma auth
+    // ============================================
+    match /attendance/{docId} {
+      allow read: if isAuth();
+      allow write: if isAuth();
+    }
+    match /attendanceChanges/{docId} {
+      allow read: if isAuth();
+      allow write: if isAuth();
+    }
+
+    // ============================================
+    // AYARLAR - okuma auth, yazma admin
+    // ============================================
+    match /settings/{docId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+    match /monthlyTargets/{docId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+
+    // ============================================
+    // DUYURULAR - okuma auth, yazma admin
+    // ============================================
+    match /announcements/{docId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+
+    // ============================================
+    // GRUPLAR & FİRMALAR - okuma auth, yazma admin
+    // ============================================
+    match /groupTags/{docId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+    match /companies/{docId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+
+    // ============================================
+    // İZİNLER - okuma auth, yazma auth
+    // ============================================
+    match /izinDegisiklikKayitlari/{docId} {
+      allow read: if isAuth();
+      allow write: if isAuth();
+    }
+    match /izinHakDegisiklikleri/{docId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+    match /izinTalepleri/{docId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update: if isAdmin() || (
+        isAuth() && resource.data.personelEmail == request.auth.token.email
+      );
+      allow delete: if isAdmin();
+    }
+    match /izinler/{docId} {
+      allow read: if isAuth();
+      allow write: if isAuth();
+    }
+
+    // ============================================
+    // LOKASYONLAR - okuma auth, yazma admin
+    // ============================================
+    match /locations/{docId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+
+    // ============================================
+    // PUSH TOKENS - sadece kendi token'ı
+    // ============================================
+    match /pushTokens/{docId} {
+      allow read: if isAuth() && (
+        docId == request.auth.token.email || isAdmin()
+      );
+      allow write: if isAuth() && docId == request.auth.token.email;
+    }
+
+    // ============================================
+    // VARDİYA - okuma auth, yazma admin
+    // ============================================
+    match /shifts/{docId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+    match /vardiyaPlan/{docId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+
+    // ============================================
+    // ÇALIŞMA SAATLERİ
+    // ============================================
+    match /workHours/{docId} {
+      allow read: if isAuth();
+      allow write: if isAuth();
+    }
+  }
+}

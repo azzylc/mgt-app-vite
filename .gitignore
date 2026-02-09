@@ -22,5 +22,20 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Firebase
 functions/serviceAccountKey.json
+functions/dist
+functions/lib
+functions/node_modules
+functions/src/index.ts.backup
+
+# OS
+.DS_Store
+**/.DS_Store
+__MACOSX
+Thumbs.db
+
+# Build
 .vercel
+*.tsbuildinfo
