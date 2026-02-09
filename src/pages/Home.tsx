@@ -123,11 +123,9 @@ export default function Home() {
   const [bugunAttendance, setBugunAttendance] = useState<any[]>([]);
   const [personelDurumlar, setPersonelDurumlar] = useState<PersonelGunlukDurum[]>([]);
   const [bugunIzinliler, setBugunIzinliler] = useState<IzinKaydi[]>([]);
+  const [haftaTatiliIzinliler, setHaftaTatiliIzinliler] = useState<IzinKaydi[]>([]);
 
-  // Lokal tarih helper (UTC bug fix)
-  const toLocalDateStr = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-
-  const bugun = toLocalDateStr(new Date());
+  const bugun = new Date().toISOString().split("T")[0];
   const bugunDate = new Date();
 
   // Date helpers
@@ -144,7 +142,7 @@ export default function Home() {
   const yarinGelinler = useMemo(() => {
     const yarin = new Date();
     yarin.setDate(yarin.getDate() + 1);
-    return gelinler.filter(g => g.tarih === toLocalDateStr(yarin));
+    return gelinler.filter(g => g.tarih === yarin.toISOString().split("T")[0]);
   }, [gelinler]);
 
   const buHaftaGelinler = useMemo(() => {
@@ -155,14 +153,14 @@ export default function Home() {
     const haftaSonu = new Date(haftaBasi);
     haftaSonu.setDate(haftaSonu.getDate() + 6);
     return gelinler.filter(g => 
-      g.tarih >= toLocalDateStr(haftaBasi) && 
-      g.tarih <= toLocalDateStr(haftaSonu)
+      g.tarih >= haftaBasi.toISOString().split("T")[0] && 
+      g.tarih <= haftaSonu.toISOString().split("T")[0]
     );
   }, [gelinler]);
 
   const buAyGelinler = useMemo(() => {
     const ayBasi = `${bugun.slice(0, 7)}-01`;
-    const ayBiti = toLocalDateStr(new Date(bugunDate.getFullYear(), bugunDate.getMonth() + 1, 0));
+    const ayBiti = new Date(bugunDate.getFullYear(), bugunDate.getMonth() + 1, 0).toISOString().split("T")[0];
     return gelinler.filter(g => g.tarih >= ayBasi && g.tarih <= ayBiti);
   }, [gelinler, bugun]);
 
@@ -177,7 +175,7 @@ export default function Home() {
     for (let i = 0; i < 60; i++) {
       const tarih = new Date(baslangic);
       tarih.setDate(tarih.getDate() + i);
-      const tarihStr = toLocalDateStr(tarih);
+      const tarihStr = tarih.toISOString().split("T")[0];
       const gunGelinleri = gelinler.filter(g => g.tarih === tarihStr);
       if (gunGelinleri.length <= sakinGunFiltre) {
         gunler.push({ tarih: tarihStr, gelinSayisi: gunGelinleri.length });
@@ -246,6 +244,9 @@ export default function Home() {
         ...doc.data(),
       })) as Duyuru[];
       setDuyurular(data);
+    }, (error) => {
+      console.error("[Home/duyurular] Firestore hatası:", error);
+      Sentry.captureException(error, { tags: { module: "Home", collection: "announcements" } });
     });
     return () => unsubscribe();
   }, [user]);
@@ -264,8 +265,8 @@ export default function Home() {
 
     const q = query(
       collection(db, "gelinler"),
-      where("tarih", ">=", toLocalDateStr(onDortGunOnce)),
-      where("tarih", "<=", toLocalDateStr(otuzGunSonra)),
+      where("tarih", ">=", onDortGunOnce.toISOString().split("T")[0]),
+      where("tarih", "<=", otuzGunSonra.toISOString().split("T")[0]),
       orderBy("tarih", "asc")
     );
 
@@ -277,6 +278,10 @@ export default function Home() {
 
       setGelinler(data);
       saveToCache(data);
+      setDataLoading(false);
+    }, (error) => {
+      console.error("[Home/gelinler] Firestore hatası:", error);
+      Sentry.captureException(error, { tags: { module: "Home", collection: "gelinler" } });
       setDataLoading(false);
     });
 
@@ -314,8 +319,27 @@ export default function Home() {
       });
 
       const personelMap = new Map<string, PersonelGunlukDurum>();
+      const haftaTatiliSet = new Map<string, any>(); // haftaTatili kayıtları
 
       sortedRecords.forEach((r: any) => {
+        // Hafta tatili kayıtlarını ayrı tut — "Bugün Geldi"ye ekleme
+        if (r.tip === "haftaTatili") {
+          if (!haftaTatiliSet.has(r.personelId)) {
+            haftaTatiliSet.set(r.personelId, {
+              id: r.id,
+              personelAd: r.personelAd?.split(" ")[0] || r.personelAd || "",
+              personelSoyad: r.personelAd?.split(" ").slice(1).join(" ") || "",
+              personelId: r.personelId,
+              izinTuru: "Haftalık İzin",
+              baslangic: bugun,
+              bitis: bugun,
+              durum: "Onaylandı",
+              gunSayisi: 1,
+            });
+          }
+          return; // personelMap'e ekleme
+        }
+
         if (!personelMap.has(r.personelId)) {
           personelMap.set(r.personelId, {
             personelId: r.personelId,
@@ -342,6 +366,10 @@ export default function Home() {
       });
 
       setPersonelDurumlar(Array.from(personelMap.values()));
+      setHaftaTatiliIzinliler(Array.from(haftaTatiliSet.values()) as IzinKaydi[]);
+    }, (error) => {
+      console.error("[Home/attendance] Firestore hatası:", error);
+      Sentry.captureException(error, { tags: { module: "Home", collection: "attendance" } });
     });
 
     return () => unsubscribe();
@@ -370,6 +398,9 @@ export default function Home() {
       });
 
       setBugunIzinliler(bugunIzinli);
+    }, (error) => {
+      console.error("[Home/izinler] Firestore hatası:", error);
+      Sentry.captureException(error, { tags: { module: "Home", collection: "izinler" } });
     });
 
     return () => unsubscribe();
@@ -415,7 +446,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-stone-50/50">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-stone-100 px-4 md:px-5 py-2.5 sticky top-0 z-40">
         <div className="flex items-center justify-between gap-3 max-w-[1400px] mx-auto">
@@ -592,7 +623,7 @@ export default function Home() {
             <PersonelDurumPanel
               aktifPersoneller={suAnCalisanlar}
               bugunGelenler={personelDurumlar}
-              izinliler={bugunIzinliler}
+              izinliler={[...bugunIzinliler, ...haftaTatiliIzinliler]}
               tumPersoneller={personeller}
             />
             <GelinListPanel
@@ -667,7 +698,7 @@ export default function Home() {
       )}
 
       {showMobileSearch && (
-        <div className="fixed inset-0 bg-white z-50 md:hidden" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+        <div className="fixed inset-0 bg-white z-50 md:hidden">
           <div className="p-4">
             <div className="flex items-center gap-2 mb-4">
               <input
