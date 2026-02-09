@@ -24,46 +24,6 @@ function generatePassword(length = 8): string {
 }
 
 // ============================================
-// HELPER: Firebase ID Token doğrulama
-// ============================================
-async function verifyUserAuth(req: any, requiredRoles?: string[]): Promise<{ error: string | null; user: any | null }> {
-  const authHeader = req.headers.authorization || req.headers['authorization'];
-
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return { error: 'Unauthorized - No token', user: null };
-  }
-
-  const idToken = authHeader.split('Bearer ')[1];
-
-  try {
-    const decodedToken = await adminAuth.verifyIdToken(idToken);
-    const email = decodedToken.email;
-
-    const personnelSnapshot = await adminDb
-      .collection('personnel')
-      .where('email', '==', email)
-      .limit(1)
-      .get();
-
-    if (personnelSnapshot.empty) {
-      return { error: 'User not found', user: null };
-    }
-
-    const userData = personnelSnapshot.docs[0].data();
-    const userRole = userData.kullaniciTuru || 'Personel';
-
-    if (requiredRoles && requiredRoles.length > 0) {
-      if (!requiredRoles.includes(userRole)) {
-        return { error: `Insufficient permissions. Required: ${requiredRoles.join(', ')}`, user: null };
-      }
-    }
-
-    return { error: null, user: { uid: decodedToken.uid, email, role: userRole } };
-  } catch (error) {
-    console.error('[AUTH] Token verification failed:', error);
-    return { error: 'Invalid token', user: null };
-  }
-}
 
 // ============================================
 // HELPER: onCall Auth + Rol kontrolü
