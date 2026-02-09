@@ -49,7 +49,7 @@ function SidebarContent({ user }: SidebarProps) {
   const isPersonel = personelData?.kullaniciTuru === "Personel" || (!isKurucu && !isYonetici);
 
   const DEFAULT_MENU: Record<string, string[]> = {
-    Kurucu: ["genel-bakis", "qr-giris", "giris-cikis-islemleri", "personel", "duyurular", "gorevler", "takvim", "izinler", "raporlar", "ayarlar", "yonetim-paneli"],
+    Kurucu: ["genel-bakis", "qr-giris", "giris-cikis-islemleri", "personel", "duyurular", "gorevler", "takvim", "izinler", "raporlar", "ayarlar", "yonetim-paneli", "profil-talepleri"],
     Yönetici: ["genel-bakis", "giris-cikis-islemleri", "duyurular", "gorevler", "takvim", "izinler", "raporlar", "qr-giris"],
     Personel: ["genel-bakis", "qr-giris", "duyurular", "gorevler", "takvim", "izinler"],
   };
@@ -115,6 +115,7 @@ function SidebarContent({ user }: SidebarProps) {
         ],
       },
       { id: "yonetim-paneli", label: "Yönetim Paneli", icon: "👑", path: "/yonetim" },
+      { id: "profil-talepleri", label: "Profil Talepleri", icon: "📋", path: "/profilim-talepler" },
       { id: "ayarlar", label: "Ayarlar", icon: "⚙️", path: "/ayarlar" },
     ];
 
