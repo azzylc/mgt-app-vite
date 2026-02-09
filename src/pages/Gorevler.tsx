@@ -45,7 +45,7 @@ export default function GorevlerPage() {
   const [tumGorevler, setTumGorevler] = useState<Gorev[]>([]);
   const [personeller, setPersoneller] = useState<Personel[]>([]);
   const [filtreliGorevler, setFiltreliGorevler] = useState<Gorev[]>([]);
-  const [filtre, setFiltre] = useState<"hepsi" | "bekliyor" | "devam-ediyor" | "tamamlandi">("bekliyor");
+  const [filtre, setFiltre] = useState<"aktif" | "tamamlandi">("aktif");
   const [siralama, setSiralama] = useState<"yenidenEskiye" | "eskidenYeniye">("yenidenEskiye");
   const [aktifSekme, setAktifSekme] = useState<"gorevlerim" | "verdigim" | "otomatik" | "tumgorevler">("gorevlerim");
   const [otomatikAltSekme, setOtomatikAltSekme] = useState<"hepsi" | "yorumIstesinMi" | "paylasimIzni" | "yorumIstendiMi" | "odemeTakip">("hepsi");
@@ -294,8 +294,10 @@ export default function GorevlerPage() {
       sonuc = birlesikGorevler.filter(g => !g.otomatikMi);
     }
     
-    if (filtre !== "hepsi") {
-      sonuc = sonuc.filter(g => g.durum === filtre);
+    if (filtre === "aktif") {
+      sonuc = sonuc.filter(g => g.durum !== "tamamlandi");
+    } else {
+      sonuc = sonuc.filter(g => g.durum === "tamamlandi");
     }
 
     sonuc.sort((a, b) => {
@@ -725,7 +727,7 @@ export default function GorevlerPage() {
           {/* Sekmeler */}
           <div className="px-2 md:px-5 flex gap-0 border-t border-stone-100 overflow-x-auto">
             <button
-              onClick={() => { setAktifSekme("gorevlerim"); setFiltre("bekliyor"); }}
+              onClick={() => { setAktifSekme("gorevlerim"); setFiltre("aktif"); }}
               className={`px-2.5 md:px-4 py-2 md:py-2.5 font-medium text-xs md:text-sm transition border-b-2 whitespace-nowrap ${
                 aktifSekme === "gorevlerim" ? "border-amber-500 text-amber-600 bg-amber-50/50" : "border-transparent text-stone-500 hover:text-stone-700"
               }`}
@@ -738,7 +740,7 @@ export default function GorevlerPage() {
             
             {gorevAtayabilir && (
               <button
-                onClick={() => { setAktifSekme("verdigim"); setFiltre("bekliyor"); }}
+                onClick={() => { setAktifSekme("verdigim"); setFiltre("aktif"); }}
                 className={`px-2.5 md:px-4 py-2 md:py-2.5 font-medium text-xs md:text-sm transition border-b-2 whitespace-nowrap ${
                   aktifSekme === "verdigim" ? "border-sky-500 text-sky-600 bg-sky-50/50" : "border-transparent text-stone-500 hover:text-stone-700"
                 }`}
@@ -751,7 +753,7 @@ export default function GorevlerPage() {
             )}
 
             <button
-              onClick={() => { setAktifSekme("otomatik"); setFiltre("bekliyor"); }}
+              onClick={() => { setAktifSekme("otomatik"); setFiltre("aktif"); }}
               className={`px-2.5 md:px-4 py-2 md:py-2.5 font-medium text-xs md:text-sm transition border-b-2 whitespace-nowrap ${
                 aktifSekme === "otomatik" ? "border-purple-500 text-purple-600 bg-purple-50/50" : "border-transparent text-stone-500 hover:text-stone-700"
               }`}
@@ -765,7 +767,7 @@ export default function GorevlerPage() {
             
             {gorevAtayabilir && (
               <button
-                onClick={() => { setAktifSekme("tumgorevler"); setFiltre("bekliyor"); setSeciliPersoneller([]); }}
+                onClick={() => { setAktifSekme("tumgorevler"); setFiltre("aktif"); setSeciliPersoneller([]); }}
                 className={`px-2.5 md:px-4 py-2 md:py-2.5 font-medium text-xs md:text-sm transition border-b-2 whitespace-nowrap ${
                   aktifSekme === "tumgorevler" ? "border-emerald-500 text-emerald-600 bg-emerald-50/50" : "border-transparent text-stone-500 hover:text-stone-700"
                 }`}
@@ -893,7 +895,7 @@ export default function GorevlerPage() {
           {/* Filtre butonları */}
           {aktifSekme !== "otomatik" && (
           <div className="mb-3 md:mb-4 flex flex-wrap gap-1.5 md:gap-2">
-            {(["hepsi", "bekliyor", "tamamlandi"] as const).map(f => (
+            {(["aktif", "tamamlandi"] as const).map(f => (
               <button
                 key={f}
                 onClick={() => setFiltre(f)}
@@ -903,8 +905,7 @@ export default function GorevlerPage() {
                     : "bg-white text-stone-600 hover:bg-stone-50 border border-stone-200"
                 }`}
               >
-                {f === "hepsi" ? `Hepsi (${aktifSekme === "tumgorevler" ? tumGorevler.length : gorevler.filter(g => !g.otomatikMi).length})` :
-                 f === "bekliyor" ? "⏳ Bekliyor" : "✅ Tamamlandı"}
+                {f === "aktif" ? "⏳ Aktif" : "✅ Tamamlandı"}
               </button>
             ))}
             <button
