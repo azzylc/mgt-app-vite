@@ -26,6 +26,7 @@ import {
   writeBatch
 } from "firebase/firestore";
 import * as Sentry from '@sentry/react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth, useRole } from "../context/RoleProvider";
 
 // ============================================
@@ -34,6 +35,7 @@ import { useAuth, useRole } from "../context/RoleProvider";
 export default function GorevlerPage() {
   const user = useAuth();
   const { personelData } = useRole();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Rol ve firmalar context'ten (RoleProvider) — duplicate sorgu yok
   const userRole = personelData?.kullaniciTuru || "";
@@ -187,16 +189,15 @@ export default function GorevlerPage() {
 
   // URL'den gorevId okunursa detay modal'ı otomatik aç
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const gorevId = params.get("gorevId");
+    const gorevId = searchParams.get("gorevId");
     if (!gorevId) return;
     
     // Görev listelerden bul
     const gorev = birlesikGorevler.find(g => g.id === gorevId) || tumGorevler.find(g => g.id === gorevId);
     if (gorev) {
       setDetayGorev(gorev);
-      // URL'den param'ı temizle (tekrar açılmasın)
-      window.history.replaceState({}, "", window.location.pathname);
+      // URL'den param'ı temizle
+      setSearchParams({}, { replace: true });
     } else if (birlesikGorevler.length === 0 && tumGorevler.length === 0) {
       // Veriler henüz yüklenmedi, bekle
       return;
@@ -207,9 +208,9 @@ export default function GorevlerPage() {
           setDetayGorev({ id: snap.id, ...snap.data() } as Gorev);
         }
       }).catch(() => {});
-      window.history.replaceState({}, "", window.location.pathname);
+      setSearchParams({}, { replace: true });
     }
-  }, [birlesikGorevler, tumGorevler]);
+  }, [birlesikGorevler, tumGorevler, searchParams]);
 
   // Görev atama yetkisi var mı? (useEffect'ten önce tanımlanmalı)
   const gorevAtayabilir = useMemo(() => {
