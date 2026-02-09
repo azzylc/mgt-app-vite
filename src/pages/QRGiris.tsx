@@ -519,13 +519,13 @@ export default function QRGirisPage() {
     return `${start.toLocaleDateString("tr-TR", opts)} - ${end.toLocaleDateString("tr-TR", opts)}`;
   }, [seciliHafta]);
 
-  // Durum metni: İÇERİDE / DIŞARIDA
+  // Durum metni: ÇALIŞIYOR / ÇIKTI
   const durumBilgisi = useMemo(() => {
     if (!bugunOzet) return null;
     
     if (bugunOzet.girisVar && !bugunOzet.cikisVar) {
       return { 
-        durum: "İÇERİDE", 
+        durum: "ÇALIŞIYOR", 
         renk: "bg-green-500", 
         detay: `Giriş: ${bugunOzet.ilkGirisSaat}`,
         emoji: "🟢"
@@ -533,14 +533,14 @@ export default function QRGirisPage() {
     }
     if (bugunOzet.girisVar && bugunOzet.cikisVar) {
       return { 
-        durum: "DIŞARIDA", 
+        durum: "ÇIKTI", 
         renk: "bg-orange-500", 
         detay: `Giriş: ${bugunOzet.ilkGirisSaat} → Çıkış: ${bugunOzet.sonCikisSaat}`,
         emoji: "🔴"
       };
     }
     return { 
-      durum: "DIŞARIDA", 
+      durum: "ÇIKTI", 
       renk: "bg-stone-400", 
       detay: "Bugün giriş yapılmadı",
       emoji: "⚪"
@@ -642,10 +642,10 @@ export default function QRGirisPage() {
                     </div>
                   </div>
 
-                  {/* Durum Bandı: İÇERİDE / DIŞARIDA */}
+                  {/* Durum Bandı: ÇALIŞIYOR / ÇIKTI */}
                   {durumBilgisi && (
                     <div className={`mt-4 p-3 rounded-lg ${
-                      durumBilgisi.durum === "İÇERİDE" ? "bg-green-50 border border-green-200" : 
+                      durumBilgisi.durum === "ÇALIŞIYOR" ? "bg-green-50 border border-green-200" : 
                       bugunOzet?.girisVar ? "bg-orange-50 border border-orange-200" : 
                       "bg-stone-50 border border-stone-200"
                     }`}>
@@ -653,7 +653,7 @@ export default function QRGirisPage() {
                         <div>
                           <p className="text-sm font-semibold">
                             {durumBilgisi.emoji} Şu an: <span className={
-                              durumBilgisi.durum === "İÇERİDE" ? "text-green-700" : 
+                              durumBilgisi.durum === "ÇALIŞIYOR" ? "text-green-700" : 
                               bugunOzet?.girisVar ? "text-orange-700" : "text-stone-600"
                             }>{durumBilgisi.durum}</span>
                           </p>
