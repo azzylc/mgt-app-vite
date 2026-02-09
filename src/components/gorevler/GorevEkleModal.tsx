@@ -158,23 +158,42 @@ export default function GorevEkleModal({
           <div className="space-y-3">
             <div>
               <label className="block text-sm font-medium text-stone-700 mb-1">Aciliyet</label>
-              <select
-                value={yeniGorev.oncelik}
-                onChange={e => onFormDegistir({...yeniGorev, oncelik: e.target.value as Gorev["oncelik"]})}
-                className="w-full px-4 py-2.5 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
-              >
-                <option value="dusuk">🔵 Düşük</option>
-                <option value="normal">⚪ Normal</option>
-                <option value="yuksek">🟠 Yüksek</option>
-                <option value="acil">🔴 Acil</option>
-              </select>
+              <div className="grid grid-cols-4 gap-1.5">
+                {([
+                  { value: "dusuk", label: "Düşük", emoji: "🔵" },
+                  { value: "normal", label: "Normal", emoji: "⚪" },
+                  { value: "yuksek", label: "Yüksek", emoji: "🟠" },
+                  { value: "acil", label: "Acil", emoji: "🔴" },
+                ] as const).map(o => (
+                  <button
+                    key={o.value}
+                    type="button"
+                    onClick={() => onFormDegistir({...yeniGorev, oncelik: o.value})}
+                    className={`px-2 py-2 rounded-lg text-xs font-medium transition border ${
+                      yeniGorev.oncelik === o.value
+                        ? o.value === "acil" ? "bg-red-500 text-white border-red-500"
+                        : o.value === "yuksek" ? "bg-amber-500 text-white border-amber-500"
+                        : o.value === "dusuk" ? "bg-sky-500 text-white border-sky-500"
+                        : "bg-stone-600 text-white border-stone-600"
+                        : "bg-white text-stone-600 border-stone-200 hover:bg-stone-100"
+                    }`}
+                  >
+                    {o.emoji} {o.label}
+                  </button>
+                ))}
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-stone-700 mb-1">Son Tarih</label>
               <div className="flex gap-1.5 mb-2">
                 {(() => {
                   const bugun = new Date();
-                  const formatTarih = (d: Date) => d.toISOString().split("T")[0];
+                  const formatTarih = (d: Date) => {
+                    const y = d.getFullYear();
+                    const m = String(d.getMonth() + 1).padStart(2, "0");
+                    const day = String(d.getDate()).padStart(2, "0");
+                    return `${y}-${m}-${day}`;
+                  };
                   const gunAd = (d: Date) => d.toLocaleDateString("tr-TR", { day: "numeric", month: "short" });
                   const secenekler = [
                     { label: "Bugün", tarih: formatTarih(bugun) },
@@ -194,7 +213,7 @@ export default function GorevEkleModal({
                       }`}
                     >
                       <div>{s.label}</div>
-                      <div className={`text-[10px] ${yeniGorev.sonTarih === s.tarih ? "text-amber-100" : "text-stone-400"}`}>{gunAd(new Date(s.tarih))}</div>
+                      <div className={`text-[10px] ${yeniGorev.sonTarih === s.tarih ? "text-amber-100" : "text-stone-400"}`}>{gunAd(new Date(s.tarih + "T12:00:00"))}</div>
                     </button>
                   ));
                 })()}
