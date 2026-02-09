@@ -195,12 +195,16 @@ export default function GorevlerPage() {
     // URL'den param'ı hemen temizle
     setSearchParams({}, { replace: true });
     
-    // Firestore'dan direkt çek (local state'e bağımlı olma)
-    getDoc(doc(db, "gorevler", gorevId)).then(snap => {
-      if (snap.exists()) {
-        setDetayGorev({ id: snap.id, ...snap.data() } as Gorev);
-      }
-    }).catch(() => {});
+    // Sayfa önce render olsun, sonra modal açılsın
+    const timer = setTimeout(() => {
+      getDoc(doc(db, "gorevler", gorevId)).then(snap => {
+        if (snap.exists()) {
+          setDetayGorev({ id: snap.id, ...snap.data() } as Gorev);
+        }
+      }).catch(() => {});
+    }, 400);
+    
+    return () => clearTimeout(timer);
   }, [searchParams]);
 
   // Görev atama yetkisi var mı? (useEffect'ten önce tanımlanmalı)
