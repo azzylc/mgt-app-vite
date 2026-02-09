@@ -139,7 +139,7 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
             menuItems = permissions[kullaniciTuru] || permissions["Personel"] || [];
           } else {
             const defaultPermissions: RolYetkileri = {
-              "Kurucu": ["genel-bakis", "giris-cikis-islemleri", "duyurular", "gorevler", "takvim", "personel", "izinler", "raporlar", "ayarlar", "yonetim-paneli"],
+              "Kurucu": ["genel-bakis", "qr-giris", "giris-cikis-islemleri", "duyurular", "gorevler", "takvim", "personel", "izinler", "raporlar", "ayarlar", "yonetim-paneli"],
               "Yönetici": ["genel-bakis", "giris-cikis-islemleri", "duyurular", "gorevler", "takvim", "personel", "izinler", "raporlar", "ayarlar"],
               "Personel": ["genel-bakis", "qr-giris", "duyurular", "gorevler", "takvim", "izinler"]
             };

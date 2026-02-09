@@ -49,7 +49,7 @@ function SidebarContent({ user }: SidebarProps) {
   const isPersonel = personelData?.kullaniciTuru === "Personel" || (!isKurucu && !isYonetici);
 
   const DEFAULT_MENU: Record<string, string[]> = {
-    Kurucu: ["genel-bakis", "giris-cikis-islemleri", "personel", "duyurular", "gorevler", "takvim", "izinler", "raporlar", "ayarlar", "yonetim-paneli"],
+    Kurucu: ["genel-bakis", "qr-giris", "giris-cikis-islemleri", "personel", "duyurular", "gorevler", "takvim", "izinler", "raporlar", "ayarlar", "yonetim-paneli"],
     Yönetici: ["genel-bakis", "giris-cikis-islemleri", "duyurular", "gorevler", "takvim", "izinler", "raporlar", "qr-giris"],
     Personel: ["genel-bakis", "qr-giris", "duyurular", "gorevler", "takvim", "izinler"],
   };
@@ -63,7 +63,7 @@ function SidebarContent({ user }: SidebarProps) {
 
     let items = [
       { id: "genel-bakis", label: "Genel Bakış", icon: "📊", path: "/" },
-      { id: "qr-giris", label: "Giriş-Çıkış", icon: "📱", path: "/qr-giris", excludeKurucu: true, mobileOnly: true },
+      { id: "qr-giris", label: "Giriş-Çıkış", icon: "📱", path: "/qr-giris", mobileOnly: true },
       {
         id: "giris-cikis-islemleri", label: "Giriş - Çıkış / Vardiya", icon: "🔄",
         submenu: [
