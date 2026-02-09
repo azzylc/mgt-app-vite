@@ -46,8 +46,8 @@ export default function SakinGunlerPanel({
           </div>
         ) : (
           <div className="space-y-0.5 max-h-[250px] overflow-y-auto">
-            {sakinGunler.map((gun) => (
-              <div key={gun.tarih} className="flex items-center justify-between py-1.5 px-2.5 rounded-lg hover:bg-violet-50/30 transition">
+            {sakinGunler.map((gun, idx) => (
+              <div key={gun.tarih} className={`flex items-center justify-between py-1.5 px-2.5 rounded-lg hover:bg-violet-50/50 transition ${idx % 2 === 0 ? 'bg-stone-50/60' : ''}`}>
                 <span className="text-xs text-stone-600 font-medium">{formatTarih(gun.tarih)}</span>
                 <div className="flex items-center gap-2">
                   {gun.gelinSayisi > 0 && (
