@@ -61,7 +61,7 @@ export function usePersoneller(filtre: PersonelFiltre = 'aktif') {
         instagram: doc.data().instagram || '',
         emoji: doc.data().emoji || '👤',
         kisaltma: doc.data().kisaltma || '',
-        dogumTarihi: doc.data().dogumTarihi || '',
+        dogumTarihi: doc.data().dogumTarihi || doc.data().dogumGunu || '',
         iseBaslama: doc.data().iseBaslama || '',
         istenAyrilma: doc.data().istenAyrilma || '',
         grupEtiketleri: doc.data().grupEtiketleri || [],

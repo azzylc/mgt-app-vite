@@ -63,13 +63,6 @@ export const duyurular: Duyuru[] = [
   },
 ];
 
-// Resmi tatiller
-export interface ResmiTatil {
-  tarih: string;
-  isim: string;
-  sure: number; // gün sayısı
-}
-
 /**
  * Yaklaşan doğum günlerini hesapla (Firebase personel verisi gerekli)
  */
@@ -165,4 +158,42 @@ export const getYaklasanTatiller = () => {
   return resmiTatiller
     .filter(t => t.tarih >= bugunStr && t.tarih <= onAySonraStr)
     .sort((a, b) => a.tarih.localeCompare(b.tarih));
+};
+
+// ============================================
+// Anma / Yas Günleri
+// ============================================
+export interface AnmaGunu {
+  ay: number;   // 1-12
+  gun: number;  // 1-31
+  isim: string;
+  emoji: string;
+}
+
+export const anmaGunleri: AnmaGunu[] = [
+  { ay: 11, gun: 10, isim: "Atatürk'ü Anma Günü", emoji: "🇹🇷" },
+  { ay: 3,  gun: 18, isim: "Çanakkale Zaferi ve Şehitleri Anma Günü", emoji: "🇹🇷" },
+  { ay: 8,  gun: 26, isim: "Büyük Taarruz Günü", emoji: "🇹🇷" },
+  { ay: 7,  gun: 15, isim: "15 Temmuz Şehitlerini Anma", emoji: "🕯️" },
+];
+
+// Yaklaşan anma günlerini getir (60 gün içindekiler)
+export const getYaklasanAnmaGunleri = () => {
+  const bugun = new Date();
+  bugun.setHours(0, 0, 0, 0);
+  const buYil = bugun.getFullYear();
+
+  return anmaGunleri
+    .map(a => {
+      let tarih = new Date(buYil, a.ay - 1, a.gun);
+      // Geçmişse gelecek yıla al
+      if (tarih < bugun) {
+        tarih = new Date(buYil + 1, a.ay - 1, a.gun);
+      }
+      const kalanGun = Math.floor((tarih.getTime() - bugun.getTime()) / (1000 * 60 * 60 * 24));
+      const tarihStr = `${tarih.getFullYear()}-${String(tarih.getMonth()+1).padStart(2,'0')}-${String(tarih.getDate()).padStart(2,'0')}`;
+      return { ...a, tarihStr, kalanGun };
+    })
+    .filter(a => a.kalanGun <= 60)
+    .sort((a, b) => a.kalanGun - b.kalanGun);
 };
