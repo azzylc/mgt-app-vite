@@ -560,7 +560,6 @@ export default function Taleplerim() {
                 className="w-full bg-stone-900 hover:bg-stone-800 text-white py-2.5 rounded-xl text-sm font-medium transition disabled:opacity-50">
                 {gonderiliyor ? "Gönderiliyor..." : "Gönder"}
               </button>
-              </button>
             </div>
 
             {izinTalepleri.length > 0 && (
