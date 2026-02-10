@@ -135,6 +135,7 @@ export default function QRGirisPage() {
       const q = query(
         collection(db, "attendance"),
         where("personelId", "==", personelId),
+        where("tip", "in", ["giris", "cikis"]),
         orderBy("tarih", "desc"),
         limit(1)
       );
@@ -214,7 +215,7 @@ export default function QRGirisPage() {
       const sonTarih = sonIslem.tarih?.toDate ? sonIslem.tarih.toDate() : new Date(sonIslem.tarih);
       const fark = Date.now() - sonTarih.getTime();
       
-      if (fark < COOLDOWN_SURE_MS) {
+      if (fark >= 0 && fark < COOLDOWN_SURE_MS) {
         const kalanSn = Math.ceil((COOLDOWN_SURE_MS - fark) / 1000);
         const kalanDk = Math.floor(kalanSn / 60);
         const kalanSnKalan = kalanSn % 60;
