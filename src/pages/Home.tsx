@@ -19,7 +19,6 @@ import MetricCard from "../components/dashboard/MetricCard";
 import GelinListPanel from "../components/dashboard/GelinListPanel";
 import PersonelDurumPanel from "../components/dashboard/PersonelDurumPanel";
 import DikkatPanel from "../components/dashboard/DikkatPanel";
-import SakinGunlerPanel from "../components/dashboard/SakinGunlerPanel";
 import GorevWidget from "../components/dashboard/GorevWidget";
 import TakvimEtkinlikWidget from "../components/dashboard/TakvimEtkinlikWidget";
 import { usePersoneller } from "../hooks/usePersoneller";
@@ -90,11 +89,6 @@ interface IzinKaydi {
   gunSayisi: number;
 }
 
-interface SakinGun {
-  tarih: string;
-  gelinSayisi: number;
-}
-
 // Cache keys
 const CACHE_KEY = "gmt_gelinler_cache";
 const CACHE_TIME_KEY = "gmt_gelinler_cache_time";
@@ -132,7 +126,6 @@ export default function Home() {
   // Firma filtreleme
   const [tumFirmalar, setTumFirmalar] = useState<FirmaInfo[]>([]);
   const [aktifFirmaKodlari, setAktifFirmaKodlari] = useState<Set<string>>(new Set());
-  const [sakinGunFiltre, setSakinGunFiltre] = useState<number>(0);
   const [aylikHedef, setAylikHedef] = useState<number>(0);
   const [eksikIzinler, setEksikIzinler] = useState<EksikIzin[]>([]);
   const [izinEkleniyor, setIzinEkleniyor] = useState<string | null>(null);
@@ -190,23 +183,6 @@ export default function Home() {
     filteredGelinler.filter(g => g.tarih <= bugun && g.ucretYazildi === false),
     [filteredGelinler, bugun]
   );
-
-  const sakinGunler = useMemo(() => {
-    const gunler: SakinGun[] = [];
-    const baslangic = new Date();
-    for (let i = 0; i < 60; i++) {
-      const tarih = new Date(baslangic);
-      tarih.setDate(tarih.getDate() + i);
-      const tarihStr = tarih.toISOString().split("T")[0];
-      const gunGelinleri = filteredGelinler.filter(g => g.tarih === tarihStr);
-      if (gunGelinleri.length <= sakinGunFiltre) {
-        gunler.push({ tarih: tarihStr, gelinSayisi: gunGelinleri.length });
-      }
-      // İlk 10 sakin günü bul
-      if (gunler.length >= 10) break;
-    }
-    return gunler;
-  }, [filteredGelinler, sakinGunFiltre]);
 
   const suAnCalisanlar = useMemo(() => 
     personelDurumlar.filter(p => p.aktifMi),
@@ -695,14 +671,8 @@ export default function Home() {
             />
           </div>
 
-          {/* Row 2: Duyurular + Görevler + Dikkat (aynı satır) */}
-          <div className={`grid grid-cols-1 ${
-            [duyurular.length > 0, true, toplamDikkat > 0].filter(Boolean).length >= 3
-              ? 'md:grid-cols-2 lg:grid-cols-3'
-              : [duyurular.length > 0, true, toplamDikkat > 0].filter(Boolean).length >= 2
-                ? 'md:grid-cols-2'
-                : ''
-          } gap-2.5`}>
+          {/* Row 2: Duyurular + Görevler + Yaklaşan Etkinlikler */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
               {/* Duyurular */}
               {duyurular.length > 0 && (
                 <div className="bg-white rounded-xl border border-stone-100 overflow-hidden">
@@ -744,26 +714,18 @@ export default function Home() {
 
               {/* Yaklaşan Etkinlikler */}
               <TakvimEtkinlikWidget personeller={personeller} />
-
-              {/* Dikkat Paneli */}
-              <DikkatPanel
-                islenmemisUcretler={islenmemisUcretler}
-                eksikIzinler={eksikIzinler}
-                onGelinClick={(g) => setSelectedGelin(g)}
-                onIzinEkle={handleIzinEkle}
-                onTumIzinleriEkle={handleTumIzinleriEkle}
-                izinEkleniyor={izinEkleniyor}
-                onIslenmemisUcretlerClick={() => navigate("/takvim")}
-              />
           </div>
 
-          {/* Row 3: Operasyonel Paneller */}
+          {/* Row 3: Dikkat + Bugün + Şu An Çalışıyor */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-2.5">
-            <PersonelDurumPanel
-              aktifPersoneller={suAnCalisanlar}
-              bugunGelenler={personelDurumlar}
-              izinliler={[...bugunIzinliler, ...haftaTatiliIzinliler]}
-              tumPersoneller={personeller}
+            <DikkatPanel
+              islenmemisUcretler={islenmemisUcretler}
+              eksikIzinler={eksikIzinler}
+              onGelinClick={(g) => setSelectedGelin(g)}
+              onIzinEkle={handleIzinEkle}
+              onTumIzinleriEkle={handleTumIzinleriEkle}
+              izinEkleniyor={izinEkleniyor}
+              onIslenmemisUcretlerClick={() => navigate("/takvim")}
             />
             <GelinListPanel
               title={gelinGunSecim === 'bugun' ? "Bugün" : "Yarın"}
@@ -773,10 +735,11 @@ export default function Home() {
               toggleValue={gelinGunSecim}
               onToggleChange={(v) => setGelinGunSecim(v)}
             />
-            <SakinGunlerPanel
-              sakinGunler={sakinGunler}
-              filtre={sakinGunFiltre}
-              onFiltreChange={(f) => setSakinGunFiltre(f)}
+            <PersonelDurumPanel
+              aktifPersoneller={suAnCalisanlar}
+              bugunGelenler={personelDurumlar}
+              izinliler={[...bugunIzinliler, ...haftaTatiliIzinliler]}
+              tumPersoneller={personeller}
             />
           </div>
 
