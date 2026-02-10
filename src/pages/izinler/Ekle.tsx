@@ -442,7 +442,7 @@ export default function IzinEkle() {
                 onChange={(e) => {
                   setIzinTuru(e.target.value);
                   setWhatsappOnay(false);
-                  setDilekceOnay(false);
+                  setDilekceDosya(null); setDilekceDriveUrl(null); setDilekceDriveFileId(null); setDilekceTeslimKisi('');
                   setRaporDosya(null); setRaporDriveUrl(null); setRaporDriveFileId(null); setRaporTeslimKisi('');
                 }}
                 className="w-full max-w-md px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
