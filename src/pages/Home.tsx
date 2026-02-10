@@ -150,6 +150,13 @@ export default function Home() {
   const formatTarihUzun = (tarih: string) => new Date(tarih).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
 
   // Calculated values
+  
+  // Firma bazlı filtrelenmiş gelinler (diğer useMemo'lardan ÖNCE olmalı)
+  const filteredGelinler = useMemo(() => {
+    if (aktifFirmaKodlari.size === 0) return gelinler;
+    return gelinler.filter(g => !g.firma || aktifFirmaKodlari.has(g.firma));
+  }, [gelinler, aktifFirmaKodlari]);
+
   const bugunGelinler = useMemo(() => filteredGelinler.filter(g => g.tarih === bugun), [filteredGelinler, bugun]);
   
   const yarinGelinler = useMemo(() => {
@@ -329,12 +336,6 @@ export default function Home() {
     // Sadece ilk seferde set et (kullanıcı toggle'lamadıysa)
     setAktifFirmaKodlari(prev => prev.size === 0 ? new Set(firmaKodlari) : prev);
   }, [user, personeller, tumFirmalar]);
-
-  // Firma bazlı filtrelenmiş gelinler
-  const filteredGelinler = useMemo(() => {
-    if (aktifFirmaKodlari.size === 0) return gelinler; // henüz yüklenmediyse hepsini göster
-    return gelinler.filter(g => !g.firma || aktifFirmaKodlari.has(g.firma));
-  }, [gelinler, aktifFirmaKodlari]);
 
   // Firma toggle
   const toggleFirma = (kisaltma: string) => {
