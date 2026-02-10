@@ -533,7 +533,7 @@ export default function Home() {
         <div className="max-w-[1400px] mx-auto space-y-3">
           
           {/* Row 1: Metric Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5">
             <MetricCard
               title={gelinGunSecim === 'bugun' ? "Bugün" : "Yarın"}
               value={gelinGunSecim === 'bugun' ? bugunGelinler.length : yarinGelinler.length}
@@ -560,26 +560,21 @@ export default function Home() {
               progress={aylikHedef > 0 ? { current: buAyGelinler.length, target: aylikHedef } : undefined}
               onClick={() => setGelinListeModal({ open: true, title: `${["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"][bugunDate.getMonth()]} Gelinleri`, gelinler: buAyGelinler })}
             />
-            <div 
-              className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-3 border border-emerald-100/80"
-            >
-              <div className="flex items-start justify-between">
-                <p className="text-stone-500 text-[10px] font-semibold uppercase tracking-wider">Aktif</p>
-                <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
-                  <span className="text-sm">🟢</span>
-                </div>
-              </div>
-              <div className="mt-1 space-y-0.5">
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-2xl font-bold text-emerald-600">{suAnCalisanlar.length}</span>
-                  <span className="text-stone-400 text-[10px]">çalışan</span>
-                </div>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-lg font-bold text-teal-600">{aktifGelinSayisi}</span>
-                  <span className="text-stone-400 text-[10px]">gelin</span>
-                </div>
-              </div>
-            </div>
+            <MetricCard
+              title="Çalışan"
+              subtitle="aktif personel"
+              value={suAnCalisanlar.length}
+              icon="👤"
+              color="green"
+            />
+            <MetricCard
+              title="Gelin"
+              subtitle="aktif gelin"
+              value={aktifGelinSayisi}
+              icon="💍"
+              color="green"
+              onClick={() => setGelinListeModal({ open: true, title: "Aktif Gelinler", gelinler: gelinler.filter(g => g.tarih >= bugun) })}
+            />
           </div>
 
           {/* Row 2: Duyurular + Görevler (50/50) */}
