@@ -180,7 +180,13 @@ export default function Home() {
   }, [filteredGelinler, bugun]);
 
   const islenmemisUcretler = useMemo(() => 
-    filteredGelinler.filter(g => g.tarih <= bugun && g.ucretYazildi === false),
+    filteredGelinler.filter(g => {
+      if (g.tarih > bugun || g.ucretYazildi !== false) return false;
+      // REF gelinlerden ücret alınmaz
+      const isim = (g.isim || '').toLocaleLowerCase('tr-TR');
+      if (isim.includes(' ref ') || isim.includes(' ref-') || isim.endsWith(' ref')) return false;
+      return true;
+    }),
     [filteredGelinler, bugun]
   );
 

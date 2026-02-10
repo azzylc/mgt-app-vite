@@ -365,6 +365,12 @@ function alanBosMu(gelin: Record<string, unknown>, gorevTuru: string): boolean {
   return false;
 }
 
+// REF gelinler referans — ücret alınmaz, odemeTakip görevi oluşturulmaz
+function isRefGelin(gelin: Record<string, unknown>): boolean {
+  const isim = ((gelin.isim as string) || '').toLocaleLowerCase('tr-TR');
+  return isim.includes(' ref ') || isim.includes(' ref-') || isim.endsWith(' ref');
+}
+
 // ============================================
 // 6b. SHARED: Görev oluşturma mantığı (reconcile)
 // ============================================
@@ -418,6 +424,9 @@ async function gorevReconcile() {
       const ayar = ayarlar[gorevTuru];
       if (!ayar?.aktif || !ayar.baslangicTarihi) continue;
       if (gelinTarih < ayar.baslangicTarihi || gelinTarih > bugun) continue;
+
+      // REF gelinlerde ücret alınmaz → odemeTakip görevi oluşturma
+      if (gorevTuru === 'odemeTakip' && isRefGelin(gelin)) continue;
 
       const bos = alanBosMu(gelin, gorevTuru);
 
