@@ -39,7 +39,16 @@ interface Gelin {
   kinaGunu?: string;
   telefon?: string;
   ucretYazildi?: boolean;
+  firma?: string;
   [key: string]: any;
+}
+
+interface FirmaInfo {
+  id: string;
+  firmaAdi: string;
+  kisaltma: string;
+  renk: string;
+  aktif: boolean;
 }
 
 interface Duyuru {
@@ -116,10 +125,12 @@ export default function Home() {
     gelinler: []
   });
   const [gelinGunSecim, setGelinGunSecim] = useState<'bugun' | 'yarin'>('bugun');
-  const [aktifCalisanModal, setAktifCalisanModal] = useState(false);
-  const [bilgiModal, setBilgiModal] = useState<{open: boolean; title: string; mesaj: string}>({open: false, title: '', mesaj: ''});
   const [sakinGunFiltre, setSakinGunFiltre] = useState<number>(0);
   const [aylikHedef, setAylikHedef] = useState<number>(0);
+
+  // Firma filtreleme
+  const [tumFirmalar, setTumFirmalar] = useState<FirmaInfo[]>([]);
+  const [aktifFirmaKodlari, setAktifFirmaKodlari] = useState<Set<string>>(new Set());
   const [eksikIzinler, setEksikIzinler] = useState<EksikIzin[]>([]);
   const [izinEkleniyor, setIzinEkleniyor] = useState<string | null>(null);
   const [bugunAttendance, setBugunAttendance] = useState<any[]>([]);
@@ -139,13 +150,13 @@ export default function Home() {
   const formatTarihUzun = (tarih: string) => new Date(tarih).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
 
   // Calculated values
-  const bugunGelinler = useMemo(() => gelinler.filter(g => g.tarih === bugun), [gelinler, bugun]);
+  const bugunGelinler = useMemo(() => filteredGelinler.filter(g => g.tarih === bugun), [filteredGelinler, bugun]);
   
   const yarinGelinler = useMemo(() => {
     const yarin = new Date();
     yarin.setDate(yarin.getDate() + 1);
-    return gelinler.filter(g => g.tarih === yarin.toISOString().split("T")[0]);
-  }, [gelinler]);
+    return filteredGelinler.filter(g => g.tarih === yarin.toISOString().split("T")[0]);
+  }, [filteredGelinler]);
 
   const buHaftaGelinler = useMemo(() => {
     const haftaBasi = new Date();
@@ -154,21 +165,21 @@ export default function Home() {
     haftaBasi.setDate(haftaBasi.getDate() - (gun === 0 ? 6 : gun - 1));
     const haftaSonu = new Date(haftaBasi);
     haftaSonu.setDate(haftaSonu.getDate() + 6);
-    return gelinler.filter(g => 
+    return filteredGelinler.filter(g => 
       g.tarih >= haftaBasi.toISOString().split("T")[0] && 
       g.tarih <= haftaSonu.toISOString().split("T")[0]
     );
-  }, [gelinler]);
+  }, [filteredGelinler]);
 
   const buAyGelinler = useMemo(() => {
     const ayBasi = `${bugun.slice(0, 7)}-01`;
     const ayBiti = new Date(bugunDate.getFullYear(), bugunDate.getMonth() + 1, 0).toISOString().split("T")[0];
-    return gelinler.filter(g => g.tarih >= ayBasi && g.tarih <= ayBiti);
-  }, [gelinler, bugun]);
+    return filteredGelinler.filter(g => g.tarih >= ayBasi && g.tarih <= ayBiti);
+  }, [filteredGelinler, bugun]);
 
   const islenmemisUcretler = useMemo(() => 
-    gelinler.filter(g => g.tarih <= bugun && g.ucretYazildi === false),
-    [gelinler, bugun]
+    filteredGelinler.filter(g => g.tarih <= bugun && g.ucretYazildi === false),
+    [filteredGelinler, bugun]
   );
 
   const sakinGunler = useMemo(() => {
@@ -178,7 +189,7 @@ export default function Home() {
       const tarih = new Date(baslangic);
       tarih.setDate(tarih.getDate() + i);
       const tarihStr = tarih.toISOString().split("T")[0];
-      const gunGelinleri = gelinler.filter(g => g.tarih === tarihStr);
+      const gunGelinleri = filteredGelinler.filter(g => g.tarih === tarihStr);
       if (gunGelinleri.length <= sakinGunFiltre) {
         gunler.push({ tarih: tarihStr, gelinSayisi: gunGelinleri.length });
       }
@@ -186,35 +197,17 @@ export default function Home() {
       if (gunler.length >= 10) break;
     }
     return gunler;
-  }, [gelinler, sakinGunFiltre]);
+  }, [filteredGelinler, sakinGunFiltre]);
 
   const suAnCalisanlar = useMemo(() => 
     personelDurumlar.filter(p => p.aktifMi),
     [personelDurumlar]
   );
 
-  const aktifGelinler = useMemo(() => {
-    const simdi = new Date();
-    const simdikiDakika = simdi.getHours() * 60 + simdi.getMinutes();
-    return bugunGelinler.filter(g => {
-      if (!g.saat) return false;
-      const [s, d] = g.saat.split(':').map(Number);
-      const baslangic = s * 60 + (d || 0);
-      let bitis: number;
-      if (g.bitisSaati) {
-        const [bs, bd] = g.bitisSaati.split(':').map(Number);
-        bitis = bs * 60 + (bd || 0);
-      } else {
-        bitis = baslangic + 120; // +2 saat varsayılan
-      }
-      return simdikiDakika >= baslangic && simdikiDakika <= bitis;
-    });
-  }, [bugunGelinler]);
-
   const searchResults = useMemo(() => {
     if (!searchQuery.trim() || searchQuery.length < 2) return [];
     const q = searchQuery.toLowerCase().trim();
-    return gelinler
+    return filteredGelinler
       .filter(g => 
         g.isim.toLowerCase().includes(q) ||
         g.telefon?.includes(q) ||
@@ -222,7 +215,7 @@ export default function Home() {
         g.turban?.toLowerCase().includes(q)
       )
       .slice(0, 8);
-  }, [searchQuery, gelinler]);
+  }, [searchQuery, filteredGelinler]);
 
   const toplamDikkat = islenmemisUcretler.length + eksikIzinler.length;
 
@@ -307,6 +300,65 @@ export default function Home() {
 
     return () => unsubscribe();
   }, [user]);
+
+  // Firmaları çek + kullanıcının firmalarını belirle
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db, "companies"), where("aktif", "==", true), orderBy("firmaAdi", "asc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FirmaInfo));
+      setTumFirmalar(data);
+    });
+    return () => unsubscribe();
+  }, [user]);
+
+  // Kullanıcının firmalarını bul ve aktif firma kodlarını set et
+  useEffect(() => {
+    if (!user?.email || !personeller.length || !tumFirmalar.length) return;
+    const currentPersonel = personeller.find(p => p.email === user.email);
+    if (!currentPersonel) return;
+
+    const isKurucu = currentPersonel.kullaniciTuru === 'Kurucu';
+    const kullaniciFirmalari = (currentPersonel as any).firmalar || [];
+
+    // Kurucu hepsini görür, diğerleri sadece kendi firmalarını
+    const firmaKodlari = isKurucu
+      ? tumFirmalar.map(f => f.kisaltma)
+      : tumFirmalar.filter(f => kullaniciFirmalari.includes(f.id)).map(f => f.kisaltma);
+
+    // Sadece ilk seferde set et (kullanıcı toggle'lamadıysa)
+    setAktifFirmaKodlari(prev => prev.size === 0 ? new Set(firmaKodlari) : prev);
+  }, [user, personeller, tumFirmalar]);
+
+  // Firma bazlı filtrelenmiş gelinler
+  const filteredGelinler = useMemo(() => {
+    if (aktifFirmaKodlari.size === 0) return gelinler; // henüz yüklenmediyse hepsini göster
+    return gelinler.filter(g => !g.firma || aktifFirmaKodlari.has(g.firma));
+  }, [gelinler, aktifFirmaKodlari]);
+
+  // Firma toggle
+  const toggleFirma = (kisaltma: string) => {
+    setAktifFirmaKodlari(prev => {
+      const next = new Set(prev);
+      if (next.has(kisaltma)) {
+        if (next.size > 1) next.delete(kisaltma); // en az 1 firma seçili kalmalı
+      } else {
+        next.add(kisaltma);
+      }
+      return next;
+    });
+  };
+
+  // Kullanıcının erişebildiği firmalar (UI'da gösterilecek)
+  const kullaniciFirmalari = useMemo(() => {
+    if (!user?.email || !personeller.length) return tumFirmalar;
+    const currentPersonel = personeller.find(p => p.email === user.email);
+    if (!currentPersonel) return [];
+    const isKurucu = currentPersonel.kullaniciTuru === 'Kurucu';
+    if (isKurucu) return tumFirmalar;
+    const firmaIds = (currentPersonel as any).firmalar || [];
+    return tumFirmalar.filter(f => firmaIds.includes(f.id));
+  }, [user, personeller, tumFirmalar]);
 
   // Attendance
   useEffect(() => {
@@ -439,10 +491,10 @@ export default function Home() {
 
   // Body overflow
   useEffect(() => {
-    const isAnyModalOpen = selectedGelin !== null || gelinListeModal.open || selectedDuyuru !== null || showMobileSearch || aktifCalisanModal || bilgiModal.open;
+    const isAnyModalOpen = selectedGelin !== null || gelinListeModal.open || selectedDuyuru !== null || showMobileSearch;
     document.body.style.overflow = isAnyModalOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
-  }, [selectedGelin, gelinListeModal.open, selectedDuyuru, showMobileSearch, aktifCalisanModal, bilgiModal.open]);
+  }, [selectedGelin, gelinListeModal.open, selectedDuyuru, showMobileSearch]);
 
   // Handlers
   const handleIzinEkle = async (eksik: EksikIzin) => {
@@ -544,37 +596,37 @@ export default function Home() {
         </div>
       </header>
 
+      {/* Firma Filtre Chip'leri */}
+      {kullaniciFirmalari.length > 1 && (
+        <div className="bg-white/60 backdrop-blur-sm border-b border-stone-100 px-4 md:px-5 py-1.5">
+          <div className="flex items-center gap-1.5 max-w-[1400px] mx-auto">
+            <span className="text-[10px] text-stone-400 mr-1">Firma:</span>
+            {kullaniciFirmalari.map(firma => {
+              const aktif = aktifFirmaKodlari.has(firma.kisaltma);
+              return (
+                <button
+                  key={firma.id}
+                  onClick={() => toggleFirma(firma.kisaltma)}
+                  className={`px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-all ${
+                    aktif
+                      ? 'text-white shadow-sm'
+                      : 'bg-stone-100 text-stone-400 hover:bg-stone-200'
+                  }`}
+                  style={aktif ? { backgroundColor: firma.renk || '#f43f5e' } : undefined}
+                >
+                  {firma.kisaltma}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <main className="p-3 md:p-4">
         <div className="max-w-[1400px] mx-auto space-y-3">
           
           {/* Row 1: Metric Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5">
-            <MetricCard
-              title="Aktif Çalışan"
-              value={suAnCalisanlar.length}
-              icon="🟢"
-              color="green"
-              subtitle="çalışan"
-              onClick={() => {
-                if (suAnCalisanlar.length > 0) setAktifCalisanModal(true);
-                else setBilgiModal({ open: true, title: 'Aktif Çalışan', mesaj: 'Aktif çalışan bulunmuyor.' });
-              }}
-            />
-            <MetricCard
-              title={["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"][bugunDate.getMonth()]}
-              value={buAyGelinler.length}
-              icon="👰"
-              color="blue"
-              progress={aylikHedef > 0 ? { current: buAyGelinler.length, target: aylikHedef } : undefined}
-              onClick={() => setGelinListeModal({ open: true, title: `${["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"][bugunDate.getMonth()]} Gelinleri`, gelinler: buAyGelinler })}
-            />
-            <MetricCard
-              title="Bu Hafta"
-              value={buHaftaGelinler.length}
-              icon="📅"
-              color="purple"
-              onClick={() => setGelinListeModal({ open: true, title: "Bu Haftaki Gelinler", gelinler: buHaftaGelinler })}
-            />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
             <MetricCard
               title={gelinGunSecim === 'bugun' ? "Bugün" : "Yarın"}
               value={gelinGunSecim === 'bugun' ? bugunGelinler.length : yarinGelinler.length}
@@ -587,25 +639,31 @@ export default function Home() {
               })}
             />
             <MetricCard
-              title="Aktif Gelin"
-              value={aktifGelinler.length}
-              icon="💍"
-              color="amber"
-              onClick={() => {
-                if (aktifGelinler.length > 0) setGelinListeModal({ open: true, title: "Şu An Aktif Gelinler", gelinler: aktifGelinler });
-                else setBilgiModal({ open: true, title: 'Aktif Gelin', mesaj: 'Aktif gelin bulunmuyor.' });
-              }}
+              title="Bu Hafta"
+              value={buHaftaGelinler.length}
+              icon="📅"
+              color="purple"
+              onClick={() => setGelinListeModal({ open: true, title: "Bu Haftaki Gelinler", gelinler: buHaftaGelinler })}
+            />
+            <MetricCard
+              title={["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"][bugunDate.getMonth()]}
+              value={buAyGelinler.length}
+              icon="👰"
+              color="blue"
+              progress={aylikHedef > 0 ? { current: buAyGelinler.length, target: aylikHedef } : undefined}
+              onClick={() => setGelinListeModal({ open: true, title: `${["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"][bugunDate.getMonth()]} Gelinleri`, gelinler: buAyGelinler })}
+            />
+            <MetricCard
+              title="Aktif"
+              value={suAnCalisanlar.length}
+              icon="🟢"
+              color="green"
             />
           </div>
 
-          {/* Row 2: Duyurular + Görevler + Dikkat (aynı satır) */}
-          <div className={`grid grid-cols-1 ${
-            [duyurular.length > 0, true, toplamDikkat > 0].filter(Boolean).length >= 3
-              ? 'md:grid-cols-2 lg:grid-cols-3'
-              : [duyurular.length > 0, true, toplamDikkat > 0].filter(Boolean).length >= 2
-                ? 'md:grid-cols-2'
-                : ''
-          } gap-2.5`}>
+          {/* Row 2: Duyurular + Görevler (50/50) */}
+          {(duyurular.length > 0 || gorevSayisi > 0) && (
+            <div className={`grid grid-cols-1 ${duyurular.length > 0 && gorevSayisi > 0 ? 'md:grid-cols-2' : ''} gap-2.5`}>
               {/* Duyurular */}
               {duyurular.length > 0 && (
                 <div className="bg-white rounded-xl border border-stone-100 overflow-hidden">
@@ -644,18 +702,19 @@ export default function Home() {
 
               {/* Görev Widget */}
               <GorevWidget onCount={setGorevSayisi} />
+            </div>
+          )}
 
-              {/* Dikkat Paneli */}
-              <DikkatPanel
-                islenmemisUcretler={islenmemisUcretler}
-                eksikIzinler={eksikIzinler}
-                onGelinClick={(g) => setSelectedGelin(g)}
-                onIzinEkle={handleIzinEkle}
-                onTumIzinleriEkle={handleTumIzinleriEkle}
-                izinEkleniyor={izinEkleniyor}
-                onIslenmemisUcretlerClick={() => navigate("/takvim")}
-              />
-          </div>
+          {/* Row 2b: Dikkat Paneli */}
+          <DikkatPanel
+            islenmemisUcretler={islenmemisUcretler}
+            eksikIzinler={eksikIzinler}
+            onGelinClick={(g) => setSelectedGelin(g)}
+            onIzinEkle={handleIzinEkle}
+            onTumIzinleriEkle={handleTumIzinleriEkle}
+            izinEkleniyor={izinEkleniyor}
+            onIslenmemisUcretlerClick={() => navigate("/takvim")}
+          />
 
           {/* Row 3: Operasyonel Paneller */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-2.5">
@@ -712,7 +771,7 @@ export default function Home() {
                   return (
                     <div key={tarih} className={`${bgColor} rounded-xl p-3`}>
                       <p className="text-xs font-semibold text-stone-500 mb-2 uppercase tracking-wide">{tarihStr} {gunAdi}</p>
-                      <div className="space-y-1.5 divide-y divide-stone-100/60">
+                      <div className="space-y-1">
                         {grouped[tarih].map((g) => (
                           <div
                             key={g.id}
@@ -720,7 +779,7 @@ export default function Home() {
                               setSelectedGelin(g);
                               setGelinListeModal({ open: false, title: "", gelinler: [] });
                             }}
-                            className="flex items-center justify-between p-2.5 pt-3 rounded-lg hover:bg-white/70 transition cursor-pointer"
+                            className="flex items-center justify-between p-2.5 rounded-lg hover:bg-white/70 transition cursor-pointer"
                           >
                             <div>
                               <p className="text-sm font-medium text-stone-700">{g.isim}</p>
@@ -795,49 +854,6 @@ export default function Home() {
           </div>
         </div>
       )}
-
-      {/* Aktif Çalışan Modal */}
-      {aktifCalisanModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={() => setAktifCalisanModal(false)}>
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full" onClick={e => e.stopPropagation()}>
-            <div className="p-5">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-base font-bold text-stone-800">Şu An Çalışanlar</h3>
-                <button onClick={() => setAktifCalisanModal(false)} className="text-stone-300 hover:text-stone-500 text-xl">×</button>
-              </div>
-              <div className="space-y-2">
-                {suAnCalisanlar.map((p) => (
-                  <div key={p.personelId} className="flex items-center justify-between p-2.5 bg-emerald-50/50 rounded-lg">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
-                      <span className="text-sm font-medium text-stone-700">{p.personelAd}</span>
-                    </div>
-                    <span className="text-xs text-emerald-600 font-medium">{p.girisSaati || ''}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Bilgi Modal (bulunmuyor mesajları) */}
-      {bilgiModal.open && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={() => setBilgiModal({open: false, title: '', mesaj: ''})}>
-          <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full" onClick={e => e.stopPropagation()}>
-            <div className="p-5 text-center">
-              <p className="text-3xl mb-3">🤷</p>
-              <h3 className="text-base font-bold text-stone-800 mb-1">{bilgiModal.title}</h3>
-              <p className="text-sm text-stone-500">{bilgiModal.mesaj}</p>
-              <button 
-                onClick={() => setBilgiModal({open: false, title: '', mesaj: ''})}
-                className="mt-4 px-4 py-1.5 bg-stone-100 text-stone-600 rounded-lg text-sm hover:bg-stone-200 transition"
-              >
-                Tamam
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>  );
+    </div>
+  );
 }
