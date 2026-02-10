@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { hashPin } from "../components/PinGuard";
 import { db } from "../lib/firebase";
 import { 
   collection, 
@@ -64,6 +65,7 @@ interface GenelAyarlar {
   kisiselQr: boolean;
   girisCikisErisim: boolean;
   gorevAtamaYetkisi: string;
+  yonetimPinHash?: string;
 }
 
 interface RolYetkileri {
@@ -158,6 +160,12 @@ export default function AyarlarPage() {
   });
   const [rolYetkileriLoading, setRolYetkileriLoading] = useState(false);
 
+  // PIN yönetimi
+  const [pinGirisi, setPinGirisi] = useState("");
+  const [pinTekrar, setPinTekrar] = useState("");
+  const [pinMevcut, setPinMevcut] = useState(false);
+  const [pinKaydediliyor, setPinKaydediliyor] = useState(false);
+
   const tabs = [
     { id: 0, label: "📋 Genel Ayarlar", icon: "📋" },
     { id: 1, label: "🔐 Rol Yetkileri", icon: "🔐" },
@@ -203,7 +211,9 @@ export default function AyarlarPage() {
         const docRef = doc(db, "settings", "general");
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          setGenelAyarlar(docSnap.data() as GenelAyarlar);
+          const data = docSnap.data() as GenelAyarlar;
+          setGenelAyarlar(data);
+          setPinMevcut(!!data.yonetimPinHash);
         }
       } catch (error) {
         Sentry.captureException(error);
@@ -843,6 +853,67 @@ export default function AyarlarPage() {
                         <p className="text-xs text-stone-500">Kurucu herkese, Yönetici kendi firmasına atayabilir. Personel atayamaz.</p>
                       </div>
                     </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Yönetim Paneli PIN */}
+              <div className="bg-white rounded-lg p-6 shadow-sm border border-stone-100">
+                <h2 className="text-lg font-bold text-stone-800 mb-2 flex items-center gap-2">
+                  <span>🔒</span> Yönetim Paneli PIN Koruması
+                </h2>
+                <p className="text-sm text-stone-500 mb-4">
+                  Yönetim Paneline erişim için 6 haneli PIN belirleyin. {pinMevcut ? "PIN aktif." : "PIN tanımlı değil."}
+                </p>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700 mb-1">
+                      {pinMevcut ? "Yeni PIN (değiştirmek için)" : "PIN belirle"}
+                    </label>
+                    <input type="password" inputMode="numeric" maxLength={6} placeholder="6 haneli PIN"
+                      value={pinGirisi} onChange={(e) => setPinGirisi(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                      className="w-full px-4 py-3 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 tracking-[0.5em] text-center font-mono" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700 mb-1">PIN Tekrar</label>
+                    <input type="password" inputMode="numeric" maxLength={6} placeholder="Tekrar girin"
+                      value={pinTekrar} onChange={(e) => setPinTekrar(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                      className="w-full px-4 py-3 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 tracking-[0.5em] text-center font-mono" />
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={async () => {
+                        if (pinGirisi.length !== 6) { alert("PIN 6 haneli olmalı!"); return; }
+                        if (pinGirisi !== pinTekrar) { alert("PIN'ler eşleşmiyor!"); return; }
+                        setPinKaydediliyor(true);
+                        try {
+                          const hash = await hashPin(pinGirisi);
+                          await setDoc(doc(db, "settings", "general"), { ...genelAyarlar, yonetimPinHash: hash });
+                          setPinMevcut(true); setPinGirisi(""); setPinTekrar("");
+                          alert("PIN kaydedildi!");
+                        } catch { alert("PIN kaydedilemedi!"); }
+                        finally { setPinKaydediliyor(false); }
+                      }}
+                      disabled={pinKaydediliyor || pinGirisi.length !== 6}
+                      className="flex-1 px-4 py-2.5 bg-stone-900 text-white rounded-lg text-sm font-medium hover:bg-stone-800 transition disabled:opacity-50">
+                      {pinKaydediliyor ? "Kaydediliyor..." : pinMevcut ? "PIN'i Güncelle" : "PIN Belirle"}
+                    </button>
+                    {pinMevcut && (
+                      <button onClick={async () => {
+                          if (!confirm("PIN kaldırılsın mı? Yönetim Paneline PIN'siz erişilebilecek.")) return;
+                          setPinKaydediliyor(true);
+                          try {
+                            const { yonetimPinHash, ...rest } = genelAyarlar;
+                            await setDoc(doc(db, "settings", "general"), rest);
+                            setGenelAyarlar(rest as GenelAyarlar); setPinMevcut(false);
+                            alert("PIN kaldırıldı.");
+                          } catch { alert("Hata!"); }
+                          finally { setPinKaydediliyor(false); }
+                        }}
+                        disabled={pinKaydediliyor}
+                        className="px-4 py-2.5 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition disabled:opacity-50">
+                        Kaldır
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

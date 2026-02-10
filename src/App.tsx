@@ -4,6 +4,7 @@ import * as Sentry from '@sentry/react'
 import { RoleProvider } from './context/RoleProvider'
 import AuthLayout from './layouts/AuthLayout'
 import RouteGuard from './components/RouteGuard'
+import PinGuard from './components/PinGuard'
 
 // Login ve Home hemen yüklenir (ilk açılışta lazım)
 import Login from './pages/Login'
@@ -141,8 +142,8 @@ export default function App() {
                 <Route path="/raporlar/giris-cikis-kayitlari" element={<RouteGuard requiredPermission="raporlar"><RaporlarGirisCikisKayitlari /></RouteGuard>} />
                 
                 {/* Yönetim routes */}
-                <Route path="/yonetim" element={<RouteGuard requiredPermission="yonetim-paneli"><Yonetim /></RouteGuard>} />
-                <Route path="/yonetim/compare" element={<RouteGuard requiredPermission="yonetim-paneli"><YonetimCompare /></RouteGuard>} />
+                <Route path="/yonetim" element={<RouteGuard requiredPermission="yonetim-paneli"><PinGuard><Yonetim /></PinGuard></RouteGuard>} />
+                <Route path="/yonetim/compare" element={<RouteGuard requiredPermission="yonetim-paneli"><PinGuard><YonetimCompare /></PinGuard></RouteGuard>} />
               </Route>
 
               {/* Catch all */}
