@@ -21,7 +21,6 @@ import PersonelDurumPanel from "../components/dashboard/PersonelDurumPanel";
 import DikkatPanel from "../components/dashboard/DikkatPanel";
 import SakinGunlerPanel from "../components/dashboard/SakinGunlerPanel";
 import GorevWidget from "../components/dashboard/GorevWidget";
-import TakvimEtkinlikWidget from "../components/dashboard/TakvimEtkinlikWidget";
 import { usePersoneller } from "../hooks/usePersoneller";
 import * as Sentry from '@sentry/react';
 import { useAuth } from "../context/RoleProvider";
@@ -190,6 +189,11 @@ export default function Home() {
   const suAnCalisanlar = useMemo(() => 
     personelDurumlar.filter(p => p.aktifMi),
     [personelDurumlar]
+  );
+
+  const aktifGelinSayisi = useMemo(() => 
+    gelinler.filter(g => g.tarih >= bugun).length,
+    [gelinler, bugun]
   );
 
   const searchResults = useMemo(() => {
@@ -452,7 +456,7 @@ export default function Home() {
       <header className="bg-white/80 backdrop-blur-sm border-b border-stone-100 px-4 md:px-5 py-2.5 sticky top-0 z-40">
         <div className="flex items-center justify-between gap-3 max-w-[1400px] mx-auto">
           <div className="flex-shrink-0">
-            <h1 className="text-sm md:text-base font-semibold text-stone-800">Merhaba, {personeller.find(p => p.email === user?.email)?.ad || user?.email?.split('@')[0]}!</h1>
+            <h1 className="text-sm md:text-base font-semibold text-stone-800">Merhaba, {user?.email?.split('@')[0]}!</h1>
             <p className="text-[10px] text-stone-400">{formatTarihUzun(bugun)} • {formatGun(bugun)}</p>
           </div>
           
@@ -556,16 +560,31 @@ export default function Home() {
               progress={aylikHedef > 0 ? { current: buAyGelinler.length, target: aylikHedef } : undefined}
               onClick={() => setGelinListeModal({ open: true, title: `${["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"][bugunDate.getMonth()]} Gelinleri`, gelinler: buAyGelinler })}
             />
-            <MetricCard
-              title="Aktif"
-              value={suAnCalisanlar.length}
-              icon="🟢"
-              color="green"
-            />
+            <div 
+              className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-3 border border-emerald-100/80"
+            >
+              <div className="flex items-start justify-between">
+                <p className="text-stone-500 text-[10px] font-semibold uppercase tracking-wider">Aktif</p>
+                <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+                  <span className="text-sm">🟢</span>
+                </div>
+              </div>
+              <div className="mt-1 space-y-0.5">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-2xl font-bold text-emerald-600">{suAnCalisanlar.length}</span>
+                  <span className="text-stone-400 text-[10px]">çalışan</span>
+                </div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-lg font-bold text-teal-600">{aktifGelinSayisi}</span>
+                  <span className="text-stone-400 text-[10px]">gelin</span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Row 2: Duyurular + Görevler + Etkinlikler */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+          {/* Row 2: Duyurular + Görevler (50/50) */}
+          {(duyurular.length > 0 || gorevSayisi > 0) && (
+            <div className={`grid grid-cols-1 ${duyurular.length > 0 && gorevSayisi > 0 ? 'md:grid-cols-2' : ''} gap-2.5`}>
               {/* Duyurular */}
               {duyurular.length > 0 && (
                 <div className="bg-white rounded-xl border border-stone-100 overflow-hidden">
@@ -587,7 +606,7 @@ export default function Home() {
                       <div 
                         key={d.id} 
                         onClick={() => setSelectedDuyuru(d)}
-                        className="py-1.5 px-2.5 rounded-lg cursor-pointer bg-stone-50/60 hover:bg-amber-50/60 transition"
+                        className="py-1.5 px-2.5 rounded-lg cursor-pointer hover:bg-amber-50/40 transition"
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
@@ -604,14 +623,8 @@ export default function Home() {
 
               {/* Görev Widget */}
               <GorevWidget onCount={setGorevSayisi} />
-
-              {/* Yaklaşan Etkinlikler Widget */}
-              <TakvimEtkinlikWidget personeller={personeller.map(p => ({
-                id: p.id, ad: p.ad, soyad: p.soyad,
-                dogumTarihi: (p as any).dogumTarihi || (p as any).dogumGunu || '',
-                aktif: p.aktif !== false
-              }))} />
-          </div>
+            </div>
+          )}
 
           {/* Row 2b: Dikkat Paneli */}
           <DikkatPanel
