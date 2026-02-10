@@ -45,7 +45,7 @@ export default function GorevlerPage() {
   const [tumGorevler, setTumGorevler] = useState<Gorev[]>([]);
   const [personeller, setPersoneller] = useState<Personel[]>([]);
   const [filtreliGorevler, setFiltreliGorevler] = useState<Gorev[]>([]);
-  const [filtre, setFiltre] = useState<"aktif" | "tamamlandi">("aktif");
+  const [filtre, setFiltre] = useState<"hepsi" | "bekliyor" | "devam-ediyor" | "tamamlandi">("hepsi");
   const [siralama, setSiralama] = useState<"yenidenEskiye" | "eskidenYeniye">("yenidenEskiye");
   const [aktifSekme, setAktifSekme] = useState<"gorevlerim" | "verdigim" | "otomatik" | "tumgorevler">("gorevlerim");
   const [otomatikAltSekme, setOtomatikAltSekme] = useState<"hepsi" | "yorumIstesinMi" | "paylasimIzni" | "yorumIstendiMi" | "odemeTakip">("hepsi");
@@ -294,10 +294,8 @@ export default function GorevlerPage() {
       sonuc = birlesikGorevler.filter(g => !g.otomatikMi);
     }
     
-    if (filtre === "aktif") {
-      sonuc = sonuc.filter(g => g.durum !== "tamamlandi");
-    } else {
-      sonuc = sonuc.filter(g => g.durum === "tamamlandi");
+    if (filtre !== "hepsi") {
+      sonuc = sonuc.filter(g => g.durum === filtre);
     }
 
     sonuc.sort((a, b) => {
@@ -349,16 +347,16 @@ export default function GorevlerPage() {
   };
 
   const handleTamamla = async (gorevId: string) => {
-    if (!tamamlaYorum.trim()) {
+    // Görevi bul
+    const gorev = birlesikGorevler.find(g => g.id === gorevId) || tumGorevler.find(g => g.id === gorevId);
+    const mevcutYorumVar = gorev?.yorumlar && gorev.yorumlar.length > 0;
+    if (!mevcutYorumVar && !tamamlaYorum.trim()) {
       alert("Lütfen ne yaptığınızı yazın!");
       return;
     }
     try {
       const kpiPersonel = personeller.find(p => p.email === user?.email);
       const yorumEkleyen = kpiPersonel ? `${kpiPersonel.ad} ${kpiPersonel.soyad}` : user?.email || "";
-      
-      // Görevi bul (ortak mı kontrol et)
-      const gorev = birlesikGorevler.find(g => g.id === gorevId) || tumGorevler.find(g => g.id === gorevId);
       
       if (gorev?.ortakMi && gorev.atananlar) {
         // ORTAK GÖREV — kişiyi tamamlayanlar'a ekle
@@ -376,7 +374,7 @@ export default function GorevlerPage() {
           yorumlar: arrayUnion({
             yazan: user?.email || "",
             yazanAd: yorumEkleyen,
-            yorum: `✅ ${yorumEkleyen} tamamladı: ${tamamlaYorum.trim()}`,
+            yorum: tamamlaYorum.trim() ? `✅ ${yorumEkleyen} tamamladı: ${tamamlaYorum.trim()}` : `✅ ${yorumEkleyen} tamamladı`,
             tarih: new Date().toISOString()
           })
         });
@@ -396,7 +394,7 @@ export default function GorevlerPage() {
           yorumlar: arrayUnion({
             yazan: user?.email || "",
             yazanAd: yorumEkleyen,
-            yorum: `✅ Tamamlandı: ${tamamlaYorum.trim()}`,
+            yorum: tamamlaYorum.trim() ? `✅ Tamamlandı: ${tamamlaYorum.trim()}` : `✅ Tamamlandı`,
             tarih: new Date().toISOString()
           })
         });
@@ -727,7 +725,7 @@ export default function GorevlerPage() {
           {/* Sekmeler */}
           <div className="px-2 md:px-5 flex gap-0 border-t border-stone-100 overflow-x-auto">
             <button
-              onClick={() => { setAktifSekme("gorevlerim"); setFiltre("aktif"); }}
+              onClick={() => { setAktifSekme("gorevlerim"); setFiltre("hepsi"); }}
               className={`px-2.5 md:px-4 py-2 md:py-2.5 font-medium text-xs md:text-sm transition border-b-2 whitespace-nowrap ${
                 aktifSekme === "gorevlerim" ? "border-amber-500 text-amber-600 bg-amber-50/50" : "border-transparent text-stone-500 hover:text-stone-700"
               }`}
@@ -740,7 +738,7 @@ export default function GorevlerPage() {
             
             {gorevAtayabilir && (
               <button
-                onClick={() => { setAktifSekme("verdigim"); setFiltre("aktif"); }}
+                onClick={() => { setAktifSekme("verdigim"); setFiltre("hepsi"); }}
                 className={`px-2.5 md:px-4 py-2 md:py-2.5 font-medium text-xs md:text-sm transition border-b-2 whitespace-nowrap ${
                   aktifSekme === "verdigim" ? "border-sky-500 text-sky-600 bg-sky-50/50" : "border-transparent text-stone-500 hover:text-stone-700"
                 }`}
@@ -753,7 +751,7 @@ export default function GorevlerPage() {
             )}
 
             <button
-              onClick={() => { setAktifSekme("otomatik"); setFiltre("aktif"); }}
+              onClick={() => { setAktifSekme("otomatik"); setFiltre("hepsi"); }}
               className={`px-2.5 md:px-4 py-2 md:py-2.5 font-medium text-xs md:text-sm transition border-b-2 whitespace-nowrap ${
                 aktifSekme === "otomatik" ? "border-purple-500 text-purple-600 bg-purple-50/50" : "border-transparent text-stone-500 hover:text-stone-700"
               }`}
@@ -767,7 +765,7 @@ export default function GorevlerPage() {
             
             {gorevAtayabilir && (
               <button
-                onClick={() => { setAktifSekme("tumgorevler"); setFiltre("aktif"); setSeciliPersoneller([]); }}
+                onClick={() => { setAktifSekme("tumgorevler"); setFiltre("hepsi"); setSeciliPersoneller([]); }}
                 className={`px-2.5 md:px-4 py-2 md:py-2.5 font-medium text-xs md:text-sm transition border-b-2 whitespace-nowrap ${
                   aktifSekme === "tumgorevler" ? "border-emerald-500 text-emerald-600 bg-emerald-50/50" : "border-transparent text-stone-500 hover:text-stone-700"
                 }`}
@@ -895,7 +893,7 @@ export default function GorevlerPage() {
           {/* Filtre butonları */}
           {aktifSekme !== "otomatik" && (
           <div className="mb-3 md:mb-4 flex flex-wrap gap-1.5 md:gap-2">
-            {(["aktif", "tamamlandi"] as const).map(f => (
+            {(["hepsi", "bekliyor", "tamamlandi"] as const).map(f => (
               <button
                 key={f}
                 onClick={() => setFiltre(f)}
@@ -905,7 +903,8 @@ export default function GorevlerPage() {
                     : "bg-white text-stone-600 hover:bg-stone-50 border border-stone-200"
                 }`}
               >
-                {f === "aktif" ? "⏳ Aktif" : "✅ Tamamlandı"}
+                {f === "hepsi" ? `Hepsi (${aktifSekme === "tumgorevler" ? tumGorevler.length : gorevler.filter(g => !g.otomatikMi).length})` :
+                 f === "bekliyor" ? "⏳ Bekliyor" : "✅ Tamamlandı"}
               </button>
             ))}
             <button

@@ -55,9 +55,14 @@ export default function GorevDetayModal({
   };
 
   const handleTamamlaOnayla = () => {
-    if (!tamamlaYorum.trim()) {
+    const mevcutYorumVar = gorev.yorumlar && gorev.yorumlar.length > 0;
+    if (!mevcutYorumVar && !tamamlaYorum.trim()) {
       alert("Lütfen ne yaptığınızı yazın!");
       return;
+    }
+    // Eğer yeni yorum yazıldıysa onu da ekle
+    if (tamamlaYorum.trim()) {
+      onYorumEkle(tamamlaYorum.trim());
     }
     onTamamla(gorev.id);
     setTamamlaAcik(false);
@@ -259,7 +264,7 @@ export default function GorevDetayModal({
                       <textarea
                         value={tamamlaYorum}
                         onChange={e => setTamamlaYorum(e.target.value)}
-                        placeholder="Ne yaptınız? Kısa bir not bırakın..."
+                        placeholder={gorev.yorumlar && gorev.yorumlar.length > 0 ? "Ekstra not (opsiyonel)..." : "Ne yaptınız? Kısa bir not bırakın..."}
                         className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm resize-none focus:ring-2 focus:ring-green-300 focus:border-green-400 outline-none"
                         rows={2}
                         autoFocus
