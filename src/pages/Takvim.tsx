@@ -41,6 +41,13 @@ interface Gelin {
   yorumIstendiMi?: boolean;
   gelinNotu?: string;
   dekontGorseli?: string;
+  firma?: string;
+}
+
+interface FirmaInfo {
+  id: string;
+  firmaAdi: string;
+  kisaltma: string;
 }
 
 export default function TakvimPage() {
@@ -54,6 +61,8 @@ export default function TakvimPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [tumFirmalar, setTumFirmalar] = useState<FirmaInfo[]>([]);
+  const [aktifFirmaKodlari, setAktifFirmaKodlari] = useState<Set<string>>(new Set());
   const searchRef = useRef<HTMLDivElement>(null);
   const aylar = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
   const gunler = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
@@ -132,16 +141,72 @@ export default function TakvimPage() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // ✅ Firmaları çek
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db, "companies"), where("aktif", "==", true), orderBy("firmaAdi", "asc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as FirmaInfo));
+      setTumFirmalar(data);
+    });
+    return () => unsubscribe();
+  }, [user]);
+
+  // ✅ Kullanıcının firmalarını bul ve aktif firma kodlarını set et
+  useEffect(() => {
+    if (!user?.email || !personeller.length || !tumFirmalar.length) return;
+    const currentPersonel = personeller.find(p => 
+      (p as any).email === user.email
+    );
+    if (!currentPersonel) return;
+    const isKurucu = (currentPersonel as any).kullaniciTuru === 'Kurucu';
+    const kullaniciFirmalariIds = (currentPersonel as any).firmalar || [];
+    const firmaKodlari = isKurucu
+      ? tumFirmalar.map(f => f.kisaltma)
+      : tumFirmalar.filter(f => kullaniciFirmalariIds.includes(f.id)).map(f => f.kisaltma);
+    setAktifFirmaKodlari(prev => prev.size === 0 ? new Set(firmaKodlari) : prev);
+  }, [user, personeller, tumFirmalar]);
+
+  // ✅ Firma toggle
+  const toggleFirma = (kisaltma: string) => {
+    setAktifFirmaKodlari(prev => {
+      const next = new Set(prev);
+      if (next.has(kisaltma)) {
+        if (next.size > 1) next.delete(kisaltma);
+      } else {
+        next.add(kisaltma);
+      }
+      return next;
+    });
+  };
+
+  // ✅ Kullanıcının erişebildiği firmalar
+  const kullaniciFirmalari = useMemo(() => {
+    if (!user?.email || !personeller.length) return tumFirmalar;
+    const currentPersonel = personeller.find(p => (p as any).email === user.email);
+    if (!currentPersonel) return [];
+    const isKurucu = (currentPersonel as any).kullaniciTuru === 'Kurucu';
+    if (isKurucu) return tumFirmalar;
+    const firmaIds = (currentPersonel as any).firmalar || [];
+    return tumFirmalar.filter(f => firmaIds.includes(f.id));
+  }, [user, personeller, tumFirmalar]);
+
+  // ✅ Firma bazlı filtrelenmiş gelinler
+  const filteredGelinler = useMemo(() => {
+    if (aktifFirmaKodlari.size === 0) return gelinler;
+    return gelinler.filter(g => !g.firma || aktifFirmaKodlari.has(g.firma));
+  }, [gelinler, aktifFirmaKodlari]);
+
   // Arama sonuçları
   const searchResults = useMemo(() => {
     if (searchQuery.length < 2) return [];
     const q = searchQuery.toLocaleLowerCase('tr-TR');
-    return gelinler.filter(g => 
+    return filteredGelinler.filter(g => 
       g.isim.toLocaleLowerCase('tr-TR').includes(q) ||
       g.telefon?.includes(searchQuery) ||
       g.esiTelefon?.includes(searchQuery)
     ).slice(0, 10);
-  }, [searchQuery, gelinler]);
+  }, [searchQuery, filteredGelinler]);
 
   const getKisaltma = (isim: string): string => {
     if (!isim) return "-";
@@ -179,7 +244,7 @@ export default function TakvimPage() {
   const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
   const goToToday = () => setCurrentDate(new Date());
 
-  const getGelinlerForDate = (date: string) => gelinler.filter(g => g.tarih === date);
+  const getGelinlerForDate = (date: string) => filteredGelinler.filter(g => g.tarih === date);
 
   const toLocalDateStr = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 
@@ -217,7 +282,7 @@ export default function TakvimPage() {
     });
   };
 
-  const ayGelinler = gelinler.filter(g => g.tarih.startsWith(`${year}-${String(month + 1).padStart(2, '0')}`));
+  const ayGelinler = filteredGelinler.filter(g => g.tarih.startsWith(`${year}-${String(month + 1).padStart(2, '0')}`));
   
   // En yoğun 4 günü hesapla
   const gunBazindaGelinler = ayGelinler.reduce((acc, gelin) => {
@@ -336,6 +401,35 @@ export default function TakvimPage() {
             </div>
           </div>
         </header>
+
+        {/* Firma Filtre Logoları */}
+        {kullaniciFirmalari.length > 1 && (
+          <div className="bg-white/60 backdrop-blur-sm border-b border-stone-100 px-4 py-1.5">
+            <div className="flex items-center gap-2">
+              {kullaniciFirmalari.map(firma => {
+                const aktif = aktifFirmaKodlari.has(firma.kisaltma);
+                const logoSrc = `/logos/${firma.kisaltma.toLowerCase()}.png`;
+                return (
+                  <button
+                    key={firma.id}
+                    onClick={() => toggleFirma(firma.kisaltma)}
+                    className={`px-3 py-1 rounded-lg transition-all ${
+                      aktif
+                        ? 'bg-amber-500/10 ring-1 ring-amber-400/30'
+                        : 'opacity-30 grayscale hover:opacity-50'
+                    }`}
+                  >
+                    <img
+                      src={logoSrc}
+                      alt={firma.firmaAdi}
+                      className="h-5 md:h-6 w-auto object-contain"
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <main className="p-4">
           {/* Stats */}
