@@ -106,7 +106,7 @@ export default function IzinEkle() {
       return;
     }
     if (izinTuru === "Yıllık İzin" && (!whatsappOnay || !dilekceOnay)) {
-      alert("Yıllık izin için ön koşulları sağlamanız gerekmektedir.");
+      alert("Yıllık izin için ön koşulların sağlandığını onaylamanız gerekmektedir.");
       return;
     }
 
@@ -361,7 +361,7 @@ export default function IzinEkle() {
                 <div className="bg-amber-50/60 border border-amber-200/60 rounded-xl p-4 max-w-lg">
                   <div className="flex items-center gap-2 mb-3">
                     <span className="text-amber-500 text-sm">⚠️</span>
-                    <p className="text-xs font-semibold text-amber-700">Yıllık izin talebinde bulunabilmek için aşağıdaki koşulların sağlanması zorunludur.</p>
+                    <p className="text-xs font-semibold text-amber-700">Yıllık izin ekleyebilmek için aşağıdaki koşulların sağlanması zorunludur.</p>
                   </div>
                   <div className="space-y-3">
                     <label className="flex items-start gap-3 cursor-pointer group">
@@ -372,7 +372,7 @@ export default function IzinEkle() {
                         className="mt-0.5 w-4 h-4 text-primary-500 rounded border-stone-300 focus:ring-primary-500 shrink-0"
                       />
                       <span className={`text-sm leading-snug transition-colors ${whatsappOnay ? 'text-stone-800' : 'text-stone-500 group-hover:text-stone-700'}`}>
-                        Yöneticimden <strong>WhatsApp üzerinden</strong> izin için uygunluk onayı aldım.
+                        Personelden <strong>WhatsApp üzerinden</strong> izin için uygunluk onayı alındı.
                       </span>
                     </label>
                     <label className="flex items-start gap-3 cursor-pointer group">
@@ -383,7 +383,7 @@ export default function IzinEkle() {
                         className="mt-0.5 w-4 h-4 text-primary-500 rounded border-stone-300 focus:ring-primary-500 shrink-0"
                       />
                       <span className={`text-sm leading-snug transition-colors ${dilekceOnay ? 'text-stone-800' : 'text-stone-500 group-hover:text-stone-700'}`}>
-                        Yıllık izin dilekçesini doldurdum ve <strong>Aziz Erkan Yolcu</strong>'ya teslim ettim.
+                        Yıllık izin dilekçesi dolduruldu ve <strong>Aziz Erkan Yolcu</strong>'ya teslim edildi.
                       </span>
                     </label>
                   </div>
