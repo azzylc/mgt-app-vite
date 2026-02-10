@@ -54,7 +54,9 @@ interface IzinTalebi {
   durum: string;
   talepTarihi: string;
   whatsappOnayVerildi?: boolean;
-  dilekceVerildi?: boolean;
+  dilekceDriveUrl?: string;
+  dilekceDriveFileId?: string;
+  dilekceTeslimKisi?: string;
   raporDriveUrl?: string;
   raporDriveFileId?: string;
   raporTeslimKisi?: string;
@@ -341,17 +343,33 @@ export default function TaleplerMerkezi() {
                 {t.aciklama && <p className="text-[10px] text-stone-500 mt-1 pt-1 border-t border-stone-200/50">{t.aciklama}</p>}
               </div>
               {/* Yıllık İzin: Personel Beyanları */}
-              {t.izinTuru === "Yıllık İzin" && (t.whatsappOnayVerildi || t.dilekceVerildi) && (
+              {t.izinTuru === "Yıllık İzin" && (t.whatsappOnayVerildi || t.dilekceDriveUrl || t.dilekceTeslimKisi) && (
                 <div className="bg-blue-50/50 border border-blue-100/60 rounded-lg px-3 py-2 mt-2">
                   <p className="text-[10px] font-semibold text-blue-600 mb-1.5">📋 Personel Beyanı</p>
                   <div className="flex flex-wrap gap-2">
                     {t.whatsappOnayVerildi && (
                       <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">✅ WA Onay Aldım</span>
                     )}
-                    {t.dilekceVerildi && (
-                      <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">✅ Dilekçe Teslim Ettim</span>
+                    {t.dilekceDriveUrl && (
+                      <a href={t.dilekceDriveUrl} target="_blank" rel="noopener noreferrer"
+                        className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium hover:bg-emerald-200 transition">
+                        📄 Dilekçe Yüklendi — Görüntüle ↗
+                      </a>
+                    )}
+                    {t.dilekceTeslimKisi && (
+                      <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">📋 {t.dilekceTeslimKisi} masasına bıraktım</span>
                     )}
                   </div>
+                  {t.dilekceDriveUrl && t.dilekceDriveFileId && (
+                    <div className="mt-2">
+                      <img
+                        src={`https://drive.google.com/thumbnail?id=${t.dilekceDriveFileId}&sz=w400`}
+                        alt="Dilekçe önizleme"
+                        className="w-full max-h-40 object-contain rounded-lg bg-white border border-stone-200/60"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
               {/* Yıllık İzin: Kurucu Teyit Paneli */}
@@ -372,7 +390,7 @@ export default function TaleplerMerkezi() {
                         onChange={(e) => setKurucuTeyit(prev => ({ ...prev, [t.id]: { wa: prev[t.id]?.wa || false, dilekce: e.target.checked, rapor: prev[t.id]?.rapor || false } }))}
                         className="mt-0.5 w-3.5 h-3.5 text-amber-500 rounded border-stone-300 focus:ring-amber-400 shrink-0" />
                       <span className={`text-[11px] leading-snug ${kurucuTeyit[t.id]?.dilekce ? 'text-stone-800' : 'text-stone-500'}`}>
-                        Yıllık izin dilekçesi masama ulaştı, teyit ediyorum.
+                        Dilekçeyi inceledim / Masama ulaştı, teyit ediyorum.
                       </span>
                     </label>
                   </div>

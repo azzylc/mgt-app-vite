@@ -31,8 +31,14 @@ export default function IzinEkle() {
 
   // Yıllık izin ön koşulları
   const [whatsappOnay, setWhatsappOnay] = useState(false);
-  const [dilekceOnay, setDilekceOnay] = useState(false);
-  const yillikIzinKosullariTamam = izinTuru !== "Yıllık İzin" || (whatsappOnay && dilekceOnay);
+  const [dilekceDosya, setDilekceDosya] = useState<string | null>(null);
+  const [dilekceDosyaMime, setDilekceDosyaMime] = useState<string>("");
+  const [dilekceDriveUrl, setDilekceDriveUrl] = useState<string | null>(null);
+  const [dilekceDriveFileId, setDilekceDriveFileId] = useState<string | null>(null);
+  const [dilekceTeslimKisi, setDilekceTeslimKisi] = useState("");
+  const [dilekceYukleniyor, setDilekceYukleniyor] = useState(false);
+  const dilekceInputRef = useRef<HTMLInputElement>(null);
+  const yillikIzinKosullariTamam = izinTuru !== "Yıllık İzin" || (whatsappOnay && (!!dilekceDriveUrl || !!dilekceTeslimKisi));
 
   // Raporlu izin dosya yükleme
   const [raporDosya, setRaporDosya] = useState<string | null>(null);
@@ -103,6 +109,42 @@ export default function IzinEkle() {
       alert("Rapor yüklenemedi!");
       setRaporDosya(null);
     } finally { setRaporYukleniyor(false); }
+  };
+
+  // Dilekçe Drive'a yükle
+  const handleDilekceYukle = async (file: File) => {
+    setDilekceYukleniyor(true);
+    try {
+      let base64: string, mime: string;
+      if (file.type === "application/pdf") {
+        const buffer = await file.arrayBuffer();
+        base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+        mime = "application/pdf";
+      } else {
+        const result = await compressImage(file);
+        base64 = result.base64; mime = result.mime;
+      }
+      setDilekceDosya(`data:${mime};base64,${base64}`);
+      setDilekceDosyaMime(mime);
+
+      const p = personeller.find(p => p.id === selectedPersonel);
+      const tarih = new Date().toISOString().split("T")[0];
+      const ext = mime === "application/pdf" ? "pdf" : "jpg";
+      const fileName = `${tarih}-dilekce_${p?.ad || "personel"}_${p?.soyad || ""}.${ext}`;
+
+      const uploadFn = httpsCallable(functions, "uploadToDrive");
+      const result = await uploadFn({ base64Data: base64, mimeType: mime, fileName, folderKey: "yillikIzinler" });
+      const data = result.data as { success: boolean; fileId: string; webViewLink: string };
+      if (data.success) {
+        setDilekceDriveUrl(data.webViewLink);
+        setDilekceDriveFileId(data.fileId);
+      } else throw new Error("Yükleme başarısız");
+    } catch (err) {
+      console.error("Dilekçe yükleme hatası:", err);
+      Sentry.captureException(err);
+      alert("Dilekçe yüklenemedi!");
+      setDilekceDosya(null);
+    } finally { setDilekceYukleniyor(false); }
   };
 
   // Enter ile kaydet (textarea hariç)
@@ -187,7 +229,7 @@ export default function IzinEkle() {
       alert("Bitiş tarihi başlangıç tarihinden önce olamaz.");
       return;
     }
-    if (izinTuru === "Yıllık İzin" && (!whatsappOnay || !dilekceOnay)) {
+    if (izinTuru === "Yıllık İzin" && (!whatsappOnay || (!dilekceDriveUrl && !dilekceTeslimKisi))) {
       alert("Yıllık izin için ön koşulların sağlandığını onaylamanız gerekmektedir.");
       return;
     }
@@ -257,6 +299,12 @@ export default function IzinEkle() {
             raporDriveFileId: raporDriveFileId || null,
             raporTeslimKisi: raporTeslimKisi,
           }),
+          ...(izinTuru === "Yıllık İzin" && {
+            whatsappOnayVerildi: true,
+            dilekceDriveUrl: dilekceDriveUrl || null,
+            dilekceDriveFileId: dilekceDriveFileId || null,
+            dilekceTeslimKisi: dilekceTeslimKisi || null,
+          }),
         });
 
         // Personelin izin kullanımını güncelle
@@ -300,7 +348,7 @@ export default function IzinEkle() {
         setBitis("");
         setAciklama("");
         setWhatsappOnay(false);
-        setDilekceOnay(false);
+        setDilekceDosya(null); setDilekceDriveUrl(null); setDilekceDriveFileId(null); setDilekceTeslimKisi('');
         setRaporDosya(null); setRaporDriveUrl(null); setRaporDriveFileId(null); setRaporTeslimKisi('');
         alert("İzin başarıyla eklendi. Yeni kayıt girebilirsiniz.");
       }
@@ -328,7 +376,7 @@ export default function IzinEkle() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => handleSave("back")}
-              disabled={saving || !yillikIzinKosullariTamam || !raporluKosulTamam || raporYukleniyor}
+              disabled={saving || !yillikIzinKosullariTamam || !raporluKosulTamam || raporYukleniyor || dilekceYukleniyor}
               className="px-4 py-2 bg-primary-500 text-white rounded-lg text-sm font-medium hover:bg-primary-600 transition-colors flex items-center gap-2 disabled:opacity-50"
             >
               <span>💾</span>
@@ -336,7 +384,7 @@ export default function IzinEkle() {
             </button>
             <button
               onClick={() => handleSave("new")}
-              disabled={saving || !yillikIzinKosullariTamam || !raporluKosulTamam || raporYukleniyor}
+              disabled={saving || !yillikIzinKosullariTamam || !raporluKosulTamam || raporYukleniyor || dilekceYukleniyor}
               className="px-4 py-2 bg-primary-500 text-white rounded-lg text-sm font-medium hover:bg-primary-600 transition-colors flex items-center gap-2 disabled:opacity-50"
             >
               <span>+</span>
@@ -457,35 +505,75 @@ export default function IzinEkle() {
                     <p className="text-xs font-semibold text-amber-700">Yıllık izin ekleyebilmek için aşağıdaki koşulların sağlanması zorunludur.</p>
                   </div>
                   <div className="space-y-3">
+                    {/* 1. WhatsApp onay */}
                     <label className="flex items-start gap-3 cursor-pointer group">
-                      <input
-                        type="checkbox"
-                        checked={whatsappOnay}
-                        onChange={(e) => setWhatsappOnay(e.target.checked)}
-                        className="mt-0.5 w-4 h-4 text-primary-500 rounded border-stone-300 focus:ring-primary-500 shrink-0"
-                      />
+                      <input type="checkbox" checked={whatsappOnay} onChange={(e) => setWhatsappOnay(e.target.checked)}
+                        className="mt-0.5 w-4 h-4 text-primary-500 rounded border-stone-300 focus:ring-primary-500 shrink-0" />
                       <span className={`text-sm leading-snug transition-colors ${whatsappOnay ? 'text-stone-800' : 'text-stone-500 group-hover:text-stone-700'}`}>
                         Personelden <strong>WhatsApp üzerinden</strong> izin için uygunluk onayı alındı.
                       </span>
                     </label>
-                    <label className="flex items-start gap-3 cursor-pointer group">
-                      <input
-                        type="checkbox"
-                        checked={dilekceOnay}
-                        onChange={(e) => setDilekceOnay(e.target.checked)}
-                        className="mt-0.5 w-4 h-4 text-primary-500 rounded border-stone-300 focus:ring-primary-500 shrink-0"
-                      />
-                      <span className={`text-sm leading-snug transition-colors ${dilekceOnay ? 'text-stone-800' : 'text-stone-500 group-hover:text-stone-700'}`}>
-                        Yıllık izin dilekçesi dolduruldu ve <strong>Aziz Erkan Yolcu</strong>'ya teslim edildi.
-                      </span>
-                    </label>
+                    {/* 2. Dilekçe: Fotoğraf yükle VEYA teslim dropdown */}
+                    <div className="bg-white/50 rounded-lg p-3 border border-amber-100/60">
+                      <p className="text-[11px] font-semibold text-stone-700 mb-2">📝 Yıllık izin dilekçesi</p>
+                      {/* Seçenek 1: Fotoğraf yükle */}
+                      <div className="bg-white/70 rounded-lg p-3 border border-amber-100/60 mb-2">
+                        <p className="text-[11px] font-semibold text-stone-700 mb-2">📸 Seçenek 1: Dilekçe fotoğrafını yükle</p>
+                        <input type="file" accept="image/*,application/pdf" className="hidden" ref={dilekceInputRef}
+                          onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; await handleDilekceYukle(file); e.target.value = ""; }} />
+                        {!dilekceDosya && !dilekceDriveUrl && (
+                          <button type="button" onClick={() => dilekceInputRef.current?.click()} disabled={dilekceYukleniyor}
+                            className="w-full py-2 border-2 border-dashed border-amber-200 rounded-lg text-xs text-amber-600 hover:bg-amber-50 transition disabled:opacity-50">
+                            {dilekceYukleniyor ? "⏳ Yükleniyor..." : "📎 Dilekçe fotoğrafı seç"}
+                          </button>
+                        )}
+                        {dilekceDosya && (
+                          <div className="relative">
+                            {dilekceDosyaMime !== "application/pdf" && (
+                              <img src={dilekceDosya} alt="Dilekçe" className="w-full max-h-40 object-contain rounded-lg border border-stone-200/60" />
+                            )}
+                            {dilekceDosyaMime === "application/pdf" && (
+                              <div className="flex items-center gap-2 bg-stone-50 rounded-lg p-2 border border-stone-200/60">
+                                <span className="text-lg">📄</span><span className="text-xs text-stone-600">PDF yüklendi</span>
+                              </div>
+                            )}
+                            <div className="flex items-center justify-between mt-1.5">
+                              {dilekceDriveUrl
+                                ? <span className="text-[10px] text-green-600 font-medium">✅ Drive'a yüklendi</span>
+                                : <span className="text-[10px] text-amber-500">⏳ Yükleniyor...</span>}
+                              <button type="button" className="text-[10px] text-red-400 hover:text-red-600"
+                                onClick={() => { setDilekceDosya(null); setDilekceDriveUrl(null); setDilekceDriveFileId(null); }}>Kaldır</button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      {/* Ayırıcı */}
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 border-t border-amber-200/60" />
+                        <span className="text-[10px] text-amber-400 font-medium">VEYA</span>
+                        <div className="flex-1 border-t border-amber-200/60" />
+                      </div>
+                      {/* Seçenek 2: Teslim dropdown */}
+                      <div className="bg-white/70 rounded-lg p-3 border border-amber-100/60 mt-2">
+                        <p className="text-[11px] font-semibold text-stone-700 mb-2">📋 Seçenek 2: Fiziksel dilekçe teslimi</p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm text-stone-600">Dilekçe</span>
+                          <select value={dilekceTeslimKisi} onChange={(e) => setDilekceTeslimKisi(e.target.value)}
+                            className="flex-1 min-w-[140px] px-2.5 py-1.5 border border-stone-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                            <option value="">Kişi seçin...</option>
+                            {yoneticiler.map(y => (<option key={y.id} value={`${y.ad} ${y.soyad}`}>{y.ad} {y.soyad}</option>))}
+                          </select>
+                          <span className="text-sm text-stone-600">masasına teslim edildi.</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  {(!whatsappOnay || !dilekceOnay) && (
+                  {(!whatsappOnay || (!dilekceDriveUrl && !dilekceTeslimKisi)) && (
                     <p className="mt-3 pt-3 border-t border-amber-200/40 text-[11px] text-amber-600/80">
-                      🔒 Her iki koşul da sağlanmadan izin kaydedilemez.
+                      🔒 WhatsApp onayı ve dilekçe teslimi/yüklemesi sağlanmadan izin kaydedilemez.
                     </p>
                   )}
-                  {whatsappOnay && dilekceOnay && (
+                  {whatsappOnay && (!!dilekceDriveUrl || !!dilekceTeslimKisi) && (
                     <p className="mt-3 pt-3 border-t border-green-200/40 text-[11px] text-green-600">
                       ✅ Tüm koşullar sağlandı. İzin kaydedilebilir.
                     </p>
@@ -597,7 +685,7 @@ export default function IzinEkle() {
         <div className="mt-6 flex items-center justify-end gap-2">
           <button
             onClick={() => handleSave("back")}
-            disabled={saving || !yillikIzinKosullariTamam || !raporluKosulTamam || raporYukleniyor}
+            disabled={saving || !yillikIzinKosullariTamam || !raporluKosulTamam || raporYukleniyor || dilekceYukleniyor}
             className="px-4 py-2 bg-primary-500 text-white rounded-lg text-sm font-medium hover:bg-primary-600 transition-colors flex items-center gap-2 disabled:opacity-50"
           >
             <span>💾</span>
@@ -605,7 +693,7 @@ export default function IzinEkle() {
           </button>
           <button
             onClick={() => handleSave("new")}
-            disabled={saving || !yillikIzinKosullariTamam || !raporluKosulTamam || raporYukleniyor}
+            disabled={saving || !yillikIzinKosullariTamam || !raporluKosulTamam || raporYukleniyor || dilekceYukleniyor}
             className="px-4 py-2 bg-primary-500 text-white rounded-lg text-sm font-medium hover:bg-primary-600 transition-colors flex items-center gap-2 disabled:opacity-50"
           >
             <span>+</span>

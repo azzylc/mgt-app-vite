@@ -87,8 +87,14 @@ export default function Taleplerim() {
 
   // Yıllık izin ön koşulları
   const [whatsappOnay, setWhatsappOnay] = useState(false);
-  const [dilekceOnay, setDilekceOnay] = useState(false);
-  const yillikIzinKosullariTamam = izinTuru !== "Yıllık İzin" || (whatsappOnay && dilekceOnay);
+  const [dilekceDosya, setDilekceDosya] = useState<string | null>(null);
+  const [dilekceDosyaMime, setDilekceDosyaMime] = useState<string>("");
+  const [dilekceDriveUrl, setDilekceDriveUrl] = useState<string | null>(null);
+  const [dilekceDriveFileId, setDilekceDriveFileId] = useState<string | null>(null);
+  const [dilekceTeslimKisi, setDilekceTeslimKisi] = useState("");
+  const [dilekceYukleniyor, setDilekceYukleniyor] = useState(false);
+  const dilekceInputRef = useRef<HTMLInputElement>(null);
+  const yillikIzinKosullariTamam = izinTuru !== "Yıllık İzin" || (whatsappOnay && (!!dilekceDriveUrl || !!dilekceTeslimKisi));
 
   // Raporlu izin dosya yükleme
   const [raporDosya, setRaporDosya] = useState<string | null>(null); // base64 preview
@@ -175,6 +181,52 @@ export default function Taleplerim() {
       setRaporDosya(null);
     } finally {
       setRaporYukleniyor(false);
+    }
+  };
+
+  // Dilekçe Drive'a yükle
+  const handleDilekceYukle = async (file: File) => {
+    setDilekceYukleniyor(true);
+    try {
+      let base64: string;
+      let mime: string;
+
+      if (file.type === "application/pdf") {
+        const buffer = await file.arrayBuffer();
+        base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+        mime = "application/pdf";
+      } else {
+        const result = await compressImage(file);
+        base64 = result.base64;
+        mime = result.mime;
+      }
+
+      setDilekceDosya(`data:${mime};base64,${base64}`);
+      setDilekceDosyaMime(mime);
+
+      const uploadFn = httpsCallable(functions, "uploadToDrive");
+      const ad = personelData?.ad || "personel";
+      const soyad = personelData?.soyad || "";
+      const tarih = new Date().toISOString().split("T")[0];
+      const ext = mime === "application/pdf" ? "pdf" : "jpg";
+      const fileName = `${tarih}-dilekce_${ad}_${soyad}.${ext}`;
+
+      const result = await uploadFn({ base64Data: base64, mimeType: mime, fileName, folderKey: "yillikIzinler" });
+      const data = result.data as { success: boolean; fileId: string; webViewLink: string; thumbnailLink: string };
+
+      if (data.success) {
+        setDilekceDriveUrl(data.webViewLink);
+        setDilekceDriveFileId(data.fileId);
+      } else {
+        throw new Error("Yükleme başarısız");
+      }
+    } catch (err) {
+      console.error("Dilekçe yükleme hatası:", err);
+      Sentry.captureException(err);
+      alert("Dilekçe yüklenemedi! Lütfen tekrar deneyin.");
+      setDilekceDosya(null);
+    } finally {
+      setDilekceYukleniyor(false);
     }
   };
 
@@ -315,7 +367,7 @@ export default function Taleplerim() {
     if (!izinTuru) { alert("İzin türü seçin!"); return; }
     if (!izinBaslangic || !izinBitis) { alert("Tarih aralığı seçin!"); return; }
     if (new Date(izinBitis) < new Date(izinBaslangic)) { alert("Bitiş tarihi başlangıçtan önce olamaz!"); return; }
-    if (izinTuru === "Yıllık İzin" && (!whatsappOnay || !dilekceOnay)) { alert("Yıllık izin için ön koşulları sağlamanız gerekmektedir."); return; }
+    if (izinTuru === "Yıllık İzin" && (!whatsappOnay || (!dilekceDriveUrl && !dilekceTeslimKisi))) { alert("Yıllık izin için ön koşulları sağlamanız gerekmektedir."); return; }
     if (izinTuru === "Raporlu" && !raporDriveUrl && !raporTeslimKisi) { alert("Raporlu izin için rapor yüklemeniz veya teslim ettiğinizi belirtmeniz gerekmektedir."); return; }
     if (!personelDocId) { alert("Personel bilgisi bulunamadı!"); return; }
     const gunSayisi = gunFarkiHesapla(izinBaslangic, izinBitis);
@@ -330,7 +382,12 @@ export default function Taleplerim() {
         aciklama: izinAciklama.trim(),
         talepTarihi: new Date().toISOString(),
         durum: "Beklemede",
-        ...(izinTuru === "Yıllık İzin" && { whatsappOnayVerildi: true, dilekceVerildi: true }),
+        ...(izinTuru === "Yıllık İzin" && {
+          whatsappOnayVerildi: true,
+          dilekceDriveUrl: dilekceDriveUrl || null,
+          dilekceDriveFileId: dilekceDriveFileId || null,
+          dilekceTeslimKisi: dilekceTeslimKisi || null,
+        }),
         ...(izinTuru === "Raporlu" && {
           raporDriveUrl: raporDriveUrl || null,
           raporDriveFileId: raporDriveFileId || null,
@@ -339,7 +396,7 @@ export default function Taleplerim() {
       });
       await bildirimKurucuya("İzin Talebi", `${fullName} ${gunSayisi} günlük ${izinTuru} talep etti`);
       setIzinTuru(""); setIzinBaslangic(""); setIzinBitis(""); setIzinAciklama("");
-      setWhatsappOnay(false); setDilekceOnay(false);
+      setWhatsappOnay(false); setDilekceDosya(null); setDilekceDriveUrl(null); setDilekceDriveFileId(null); setDilekceTeslimKisi("");
       setRaporDosya(null); setRaporDriveUrl(null); setRaporDriveFileId(null); setRaporTeslimKisi("");
       alert("İzin talebi gönderildi!");
     } catch (err) { Sentry.captureException(err); alert("Gönderilemedi!"); }
@@ -410,7 +467,7 @@ export default function Taleplerim() {
           <>
             <div className="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-5 space-y-3">
               <h3 className="text-sm font-semibold text-stone-800">Yeni İzin Talebi</h3>
-              <select value={izinTuru} onChange={(e) => { setIzinTuru(e.target.value); setWhatsappOnay(false); setDilekceOnay(false); setRaporDosya(null); setRaporDriveUrl(null); setRaporDriveFileId(null); setRaporTeslimKisi(""); }}
+              <select value={izinTuru} onChange={(e) => { setIzinTuru(e.target.value); setWhatsappOnay(false); setDilekceDosya(null); setDilekceDriveUrl(null); setDilekceDriveFileId(null); setDilekceTeslimKisi(""); setRaporDosya(null); setRaporDriveUrl(null); setRaporDriveFileId(null); setRaporTeslimKisi(""); }}
                 className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm bg-stone-50/50 focus:outline-none focus:ring-2 focus:ring-amber-400">
                 <option value="">İzin türü seçin...</option>
                 {izinTurleri.map(t => <option key={t} value={t}>{t}</option>)}
@@ -443,6 +500,7 @@ export default function Taleplerim() {
                     <p className="text-xs font-semibold text-amber-700">Yıllık izin talebinde bulunabilmek için aşağıdaki koşulların sağlanması zorunludur.</p>
                   </div>
                   <div className="space-y-3">
+                    {/* 1. WhatsApp onay */}
                     <label className="flex items-start gap-3 cursor-pointer group">
                       <input type="checkbox" checked={whatsappOnay} onChange={(e) => setWhatsappOnay(e.target.checked)}
                         className="mt-0.5 w-4 h-4 text-amber-500 rounded border-stone-300 focus:ring-amber-400 shrink-0" />
@@ -450,20 +508,87 @@ export default function Taleplerim() {
                         Yöneticimden <strong>WhatsApp üzerinden</strong> izin için uygunluk onayı aldım.
                       </span>
                     </label>
-                    <label className="flex items-start gap-3 cursor-pointer group">
-                      <input type="checkbox" checked={dilekceOnay} onChange={(e) => setDilekceOnay(e.target.checked)}
-                        className="mt-0.5 w-4 h-4 text-amber-500 rounded border-stone-300 focus:ring-amber-400 shrink-0" />
-                      <span className={`text-sm leading-snug transition-colors ${dilekceOnay ? 'text-stone-800' : 'text-stone-500 group-hover:text-stone-700'}`}>
-                        Yıllık izin dilekçesini doldurdum ve <strong>Aziz Erkan Yolcu</strong>'ya teslim ettim.
-                      </span>
-                    </label>
+                    {/* 2. Dilekçe: Fotoğraf yükle VEYA teslim dropdown */}
+                    <div className="bg-white/50 rounded-lg p-3 border border-amber-100/60">
+                      <p className="text-[11px] font-semibold text-stone-700 mb-2">📝 Yıllık izin dilekçesi</p>
+                      {/* Seçenek 1: Fotoğraf yükle */}
+                      <div className="bg-white/70 rounded-lg p-3 border border-amber-100/60 mb-2">
+                        <p className="text-[11px] font-semibold text-stone-700 mb-2">📸 Seçenek 1: Dilekçe fotoğrafını yükle</p>
+                        <input
+                          type="file" accept="image/*,application/pdf" className="hidden"
+                          ref={dilekceInputRef}
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            await handleDilekceYukle(file);
+                            e.target.value = "";
+                          }}
+                        />
+                        {!dilekceDosya && !dilekceDriveUrl && (
+                          <button type="button"
+                            onClick={() => dilekceInputRef.current?.click()}
+                            disabled={dilekceYukleniyor}
+                            className="w-full py-2 border-2 border-dashed border-amber-200 rounded-lg text-xs text-amber-600 hover:bg-amber-50 transition disabled:opacity-50">
+                            {dilekceYukleniyor ? "⏳ Yükleniyor..." : "📎 Dilekçe fotoğrafı seç"}
+                          </button>
+                        )}
+                        {dilekceDosya && (
+                          <div className="relative">
+                            {dilekceDosyaMime !== "application/pdf" && (
+                              <img src={dilekceDosya} alt="Dilekçe" className="w-full max-h-40 object-contain rounded-lg border border-stone-200/60" />
+                            )}
+                            {dilekceDosyaMime === "application/pdf" && (
+                              <div className="flex items-center gap-2 bg-stone-50 rounded-lg p-2 border border-stone-200/60">
+                                <span className="text-lg">📄</span>
+                                <span className="text-xs text-stone-600">PDF yüklendi</span>
+                              </div>
+                            )}
+                            <div className="flex items-center justify-between mt-1.5">
+                              {dilekceDriveUrl ? (
+                                <span className="text-[10px] text-green-600 font-medium">✅ Drive'a yüklendi</span>
+                              ) : (
+                                <span className="text-[10px] text-amber-500">⏳ Yükleniyor...</span>
+                              )}
+                              <button type="button" className="text-[10px] text-red-400 hover:text-red-600"
+                                onClick={() => { setDilekceDosya(null); setDilekceDriveUrl(null); setDilekceDriveFileId(null); }}
+                              >Kaldır</button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      {/* Ayırıcı */}
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 border-t border-amber-200/60" />
+                        <span className="text-[10px] text-amber-400 font-medium">VEYA</span>
+                        <div className="flex-1 border-t border-amber-200/60" />
+                      </div>
+                      {/* Seçenek 2: Teslim dropdown */}
+                      <div className="bg-white/70 rounded-lg p-3 border border-amber-100/60 mt-2">
+                        <p className="text-[11px] font-semibold text-stone-700 mb-2">📋 Seçenek 2: Fiziksel dilekçe teslimi</p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm text-stone-600">Dilekçeyi</span>
+                          <select
+                            value={dilekceTeslimKisi}
+                            onChange={(e) => setDilekceTeslimKisi(e.target.value)}
+                            className="flex-1 min-w-[140px] px-2.5 py-1.5 border border-stone-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400"
+                          >
+                            <option value="">Kişi seçin...</option>
+                            {yoneticiler.map(y => (
+                              <option key={y.id} value={`${y.ad} ${y.soyad}`}>{y.ad} {y.soyad}</option>
+                            ))}
+                          </select>
+                          <span className="text-sm text-stone-600">masasına bıraktım.</span>
+                        </div>
+                        <p className="text-[10px] text-stone-400 mt-1.5">Fiziksel dilekçe teslim edildiyse kişiyi seçin.</p>
+                      </div>
+                    </div>
                   </div>
-                  {(!whatsappOnay || !dilekceOnay) && (
+                  {(!whatsappOnay || (!dilekceDriveUrl && !dilekceTeslimKisi)) && (
                     <p className="mt-3 pt-3 border-t border-amber-200/40 text-[11px] text-amber-600/80">
-                      🔒 Her iki koşul da sağlanmadan izin talebi gönderilemez.
+                      🔒 WhatsApp onayı ve dilekçe teslimi/yüklemesi sağlanmadan izin talebi gönderilemez.
                     </p>
                   )}
-                  {whatsappOnay && dilekceOnay && (
+                  {whatsappOnay && (!!dilekceDriveUrl || !!dilekceTeslimKisi) && (
                     <p className="mt-3 pt-3 border-t border-green-200/40 text-[11px] text-green-600">
                       ✅ Tüm koşullar sağlandı. Talep gönderilebilir.
                     </p>
@@ -569,7 +694,7 @@ export default function Taleplerim() {
                   )}
                 </div>
               )}
-              <button onClick={handleIzinGonder} disabled={gonderiliyor || !yillikIzinKosullariTamam || !raporluKosulTamam || raporYukleniyor}
+              <button onClick={handleIzinGonder} disabled={gonderiliyor || !yillikIzinKosullariTamam || !raporluKosulTamam || raporYukleniyor || dilekceYukleniyor}
                 className="w-full bg-stone-900 hover:bg-stone-800 text-white py-2.5 rounded-xl text-sm font-medium transition disabled:opacity-50">
                 {gonderiliyor ? "Gönderiliyor..." : "Gönder"}
               </button>
