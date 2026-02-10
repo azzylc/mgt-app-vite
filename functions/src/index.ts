@@ -5,6 +5,7 @@ import { defineSecret } from 'firebase-functions/params';
 import { incrementalSync, fullSync } from './lib/calendar-sync';
 import { adminDb, adminAuth, adminMessaging } from './lib/firestore-admin';
 import { sendPasswordResetEmail } from './lib/email';
+import { uploadFileToDrive } from './lib/drive-upload';
 
 // Secret tanımları
 const calendarId = defineSecret('GOOGLE_CALENDAR_ID');
@@ -1193,5 +1194,54 @@ export const cleanOldNotifications = onSchedule({
   } catch (error) {
     console.error('[TEMIZLIK] Hata:', error);
     await logSystemError('bildirimTemizlik', error);
+  }
+});
+
+// ============================================
+// 12. RAPOR / BELGE YÜKLEME (Google Drive)
+// ============================================
+export const uploadToDrive = onCall({
+  region: 'europe-west1',
+  maxInstances: 10,
+  enforceAppCheck: false,
+}, async (request) => {
+  // Auth kontrolü
+  await verifyCallableAuth(request);
+
+  const { base64Data, mimeType, fileName, folderKey } = request.data;
+
+  if (!base64Data || !mimeType || !fileName || !folderKey) {
+    throw new HttpsError('invalid-argument', 'base64Data, mimeType, fileName ve folderKey zorunludur');
+  }
+
+  // Max 10MB kontrol
+  const sizeInBytes = Buffer.from(base64Data, 'base64').length;
+  if (sizeInBytes > 10 * 1024 * 1024) {
+    throw new HttpsError('invalid-argument', 'Dosya boyutu 10MB\'ı aşamaz');
+  }
+
+  // İzin verilen MIME tipleri
+  const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+  if (!allowedMimes.includes(mimeType)) {
+    throw new HttpsError('invalid-argument', `Desteklenmeyen dosya tipi: ${mimeType}`);
+  }
+
+  try {
+    console.log(`[DRIVE-UPLOAD] ${fileName} yükleniyor... (${(sizeInBytes / 1024).toFixed(0)} KB)`);
+
+    const result = await uploadFileToDrive({ base64Data, mimeType, fileName, folderKey });
+
+    console.log(`[DRIVE-UPLOAD] ✅ Başarılı: ${result.fileId}`);
+
+    return {
+      success: true,
+      fileId: result.fileId,
+      webViewLink: result.webViewLink,
+      thumbnailLink: result.thumbnailLink,
+    };
+  } catch (error) {
+    console.error('[DRIVE-UPLOAD] Hata:', error);
+    await logSystemError('driveUpload', error);
+    throw new HttpsError('internal', 'Dosya yüklenemedi: ' + String(error));
   }
 });
