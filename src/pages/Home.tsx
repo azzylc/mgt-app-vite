@@ -21,6 +21,7 @@ import PersonelDurumPanel from "../components/dashboard/PersonelDurumPanel";
 import DikkatPanel from "../components/dashboard/DikkatPanel";
 import SakinGunlerPanel from "../components/dashboard/SakinGunlerPanel";
 import GorevWidget from "../components/dashboard/GorevWidget";
+import TakvimEtkinlikWidget from "../components/dashboard/TakvimEtkinlikWidget";
 import { usePersoneller } from "../hooks/usePersoneller";
 import * as Sentry from '@sentry/react';
 import { useAuth } from "../context/RoleProvider";
@@ -740,6 +741,9 @@ export default function Home() {
 
               {/* Görev Widget */}
               <GorevWidget onCount={setGorevSayisi} />
+
+              {/* Yaklaşan Etkinlikler */}
+              <TakvimEtkinlikWidget personeller={personeller} />
 
               {/* Dikkat Paneli */}
               <DikkatPanel
