@@ -5,7 +5,7 @@ interface MetricCardProps {
   icon: string;
   onClick?: () => void;
   progress?: { current: number; target: number };
-  color: 'pink' | 'purple' | 'blue' | 'green';
+  color: 'pink' | 'purple' | 'blue' | 'green' | 'amber';
 }
 
 const themes = {
@@ -36,6 +36,13 @@ const themes = {
     iconBg: 'bg-emerald-100',
     progress: 'bg-emerald-400',
     border: 'border-emerald-100/80',
+  },
+  amber: {
+    bg: 'bg-gradient-to-br from-amber-50 to-orange-50',
+    text: 'text-amber-600',
+    iconBg: 'bg-amber-100',
+    progress: 'bg-amber-400',
+    border: 'border-amber-100/80',
   },
 };
 
