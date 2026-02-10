@@ -8,9 +8,25 @@ export type FirmaKodu = 'GYS' | 'TCB' | 'MG';
 
 export function getCalendarClient() {
   const auth = new google.auth.GoogleAuth({
-    scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
+    scopes: ['https://www.googleapis.com/auth/calendar'],
   });
   return google.calendar({ version: 'v3', auth });
+}
+
+// Takvimi service account'ın listesine ekle (yoksa ekler, varsa sessizce geçer)
+async function ensureCalendarInList(calendarId: string) {
+  const calendar = getCalendarClient();
+  try {
+    await calendar.calendarList.insert({ requestBody: { id: calendarId } });
+    console.log(`[calendarList] ✅ Takvim listeye eklendi: ${calendarId}`);
+  } catch (err: unknown) {
+    const error = err as { code?: number };
+    if (error.code === 409) {
+      // Zaten listede, sorun yok
+    } else {
+      console.warn(`[calendarList] Eklenemedi (${calendarId}):`, err);
+    }
+  }
 }
 
 function normalizeText(s: string): string {
@@ -155,6 +171,7 @@ function eventToGelin(event: CalendarEvent, firma: FirmaKodu, kisaltmaMap: Recor
 // INCREMENTAL SYNC (firma bazlı)
 // ============================================
 export async function incrementalSync(syncToken: string | undefined, calendarId: string, firma: FirmaKodu) {
+  await ensureCalendarInList(calendarId);
   const calendar = getCalendarClient();
   const kisaltmaMap = await getKisaltmaMap();
   try {
@@ -183,6 +200,7 @@ export async function incrementalSync(syncToken: string | undefined, calendarId:
 // FULL SYNC (firma bazlı)
 // ============================================
 export async function fullSync(calendarId: string, firma: FirmaKodu) {
+  await ensureCalendarInList(calendarId);
   const calendar = getCalendarClient();
   const kisaltmaMap = await getKisaltmaMap();
   const allEvents: CalendarEvent[] = [];
