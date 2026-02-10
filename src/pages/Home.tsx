@@ -597,25 +597,28 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Firma Filtre Chip'leri */}
+      {/* Firma Filtre Logoları */}
       {kullaniciFirmalari.length > 1 && (
         <div className="bg-white/60 backdrop-blur-sm border-b border-stone-100 px-4 md:px-5 py-1.5">
-          <div className="flex items-center gap-1.5 max-w-[1400px] mx-auto">
-            <span className="text-[10px] text-stone-400 mr-1">Firma:</span>
+          <div className="flex items-center gap-2 max-w-[1400px] mx-auto">
             {kullaniciFirmalari.map(firma => {
               const aktif = aktifFirmaKodlari.has(firma.kisaltma);
+              const logoSrc = `/logos/${firma.kisaltma.toLowerCase()}.png`;
               return (
                 <button
                   key={firma.id}
                   onClick={() => toggleFirma(firma.kisaltma)}
-                  className={`px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-all ${
+                  className={`px-3 py-1 rounded-lg transition-all ${
                     aktif
-                      ? 'text-white shadow-sm'
-                      : 'bg-stone-100 text-stone-400 hover:bg-stone-200'
+                      ? 'bg-amber-500/10 ring-1 ring-amber-400/30'
+                      : 'opacity-30 grayscale hover:opacity-50'
                   }`}
-                  style={aktif ? { backgroundColor: firma.renk || '#f43f5e' } : undefined}
                 >
-                  {firma.kisaltma}
+                  <img
+                    src={logoSrc}
+                    alt={firma.firmaAdi}
+                    className="h-5 md:h-6 w-auto object-contain"
+                  />
                 </button>
               );
             })}
