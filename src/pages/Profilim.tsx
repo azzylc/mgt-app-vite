@@ -138,7 +138,6 @@ export default function Profilim() {
         createdAt: serverTimestamp(),
       });
 
-      // Sadece Kurucu'lara bildirim
       try {
         const kurucuQ = query(collection(db, "personnel"), where("kullaniciTuru", "==", "Kurucu"), where("aktif", "==", true));
         const kurucuSnap = await getDocs(kurucuQ);
@@ -147,10 +146,8 @@ export default function Profilim() {
           bildirimYazCoklu(alicilar, {
             baslik: "Profil Değişiklik Talebi",
             mesaj: `${profil?.ad} ${profil?.soyad} profil bilgilerinde değişiklik talep etti`,
-            tip: "sistem",
-            route: "/profilim-talepler",
-            gonderen: user?.email || "",
-            gonderenAd: `${profil?.ad} ${profil?.soyad}`,
+            tip: "sistem", route: "/profilim-talepler",
+            gonderen: user?.email || "", gonderenAd: `${profil?.ad} ${profil?.soyad}`,
           });
         }
       } catch (bildirimErr) { console.warn("Bildirim gönderilemedi:", bildirimErr); }
@@ -176,107 +173,145 @@ export default function Profilim() {
     return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
 
+  const calismaYili = () => {
+    if (!profil?.iseBaslama) return null;
+    const baslangic = new Date(profil.iseBaslama);
+    const simdi = new Date();
+    const yil = simdi.getFullYear() - baslangic.getFullYear();
+    const ay = simdi.getMonth() - baslangic.getMonth();
+    const toplam = yil + (ay < 0 ? -1 : 0);
+    if (toplam < 1) return "1 yıldan az";
+    return `${toplam} yıl`;
+  };
+
   if (loading) {
-    return (<div className="min-h-screen flex items-center justify-center bg-gray-100"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500"></div></div>);
+    return (<div className="min-h-screen flex items-center justify-center bg-gray-100"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-400"></div></div>);
   }
   if (!profil) {
     return (<div className="min-h-screen flex items-center justify-center bg-gray-100"><p className="text-stone-500">Profil bilgileri bulunamadı</p></div>);
   }
 
+  const rolRenk = profil.kullaniciTuru === "Kurucu" ? "bg-amber-400 text-amber-900" : profil.kullaniciTuru === "Yönetici" ? "bg-sky-100 text-sky-700" : "bg-stone-100 text-stone-600";
+
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-white border-b px-4 md:px-6 py-4 sticky top-0 z-30">
         <h1 className="text-lg md:text-xl font-bold text-stone-800">Profilim</h1>
-        <p className="text-xs md:text-sm text-stone-500">Kişisel bilgilerin ve ayarların</p>
       </header>
 
-      <main className="p-4 md:p-6 max-w-3xl mx-auto space-y-4">
-        {/* PROFİL KARTI */}
-        <div className="bg-white rounded-xl border border-stone-100 overflow-hidden">
-          <div className="bg-gradient-to-r from-rose-500 to-amber-400 h-20"></div>
-          <div className="px-5 pb-5">
-            <div className="flex items-end gap-4 -mt-10">
-              {/* Avatar */}
-              <div className="shrink-0">
-                {profil.foto ? (
-                  <img src={profil.foto} alt={profil.ad} className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-md" />
-                ) : (
-                  <div className="w-20 h-20 rounded-full bg-stone-200 border-4 border-white shadow-md flex items-center justify-center">
-                    <span className="text-2xl text-stone-500 font-bold">{profil.ad[0]}{profil.soyad[0]}</span>
-                  </div>
-                )}
-              </div>
-              {/* İsim — banner'ın dışında */}
-              <div className="pb-1 flex-1 min-w-0">
-                <h2 className="text-xl font-bold text-stone-800 truncate">{profil.ad} {profil.soyad}</h2>
-                <p className="text-sm text-stone-500">{profil.email}</p>
-              </div>
-              <span className="text-xs text-stone-600 bg-stone-100 px-3 py-1 rounded-full font-medium shrink-0 mb-1">{profil.kullaniciTuru}</span>
+      <main className="p-4 md:p-6 max-w-2xl mx-auto space-y-4">
+
+        {/* === PROFİL KARTI === */}
+        <div className="bg-white rounded-2xl border border-stone-200/60 shadow-sm overflow-hidden">
+          <div className="p-6 flex flex-col items-center text-center">
+            {/* Avatar */}
+            <div className="relative group mb-4">
+              {profil.foto ? (
+                <img src={profil.foto} alt={profil.ad}
+                  className="w-24 h-24 rounded-2xl object-cover shadow-sm ring-2 ring-stone-100" />
+              ) : (
+                <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-amber-300 to-rose-400 shadow-sm flex items-center justify-center">
+                  <span className="text-3xl text-white font-bold tracking-tight">{profil.ad[0]}{profil.soyad[0]}</span>
+                </div>
+              )}
+              <button onClick={handleFotoSec} disabled={fotoYukleniyor}
+                className="absolute inset-0 rounded-2xl bg-black/0 group-hover:bg-black/40 flex items-center justify-center transition-all cursor-pointer">
+                <svg className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </button>
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFotoYukle} />
             </div>
 
-            {/* Fotoğraf değiştir — açık buton */}
+            <h2 className="text-xl font-bold text-stone-900 tracking-tight">{profil.ad} {profil.soyad}</h2>
+            <p className="text-sm text-stone-400 mt-0.5">{profil.email}</p>
+
+            <div className="flex items-center gap-2 mt-3">
+              <span className={`text-[11px] font-semibold px-3 py-1 rounded-full ${rolRenk}`}>{profil.kullaniciTuru}</span>
+              {profil.aktif && <span className="text-[11px] text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full font-medium">Aktif</span>}
+            </div>
+
+            {/* Mini istatistikler */}
+            <div className="flex items-center gap-6 mt-5 pt-5 border-t border-stone-100 w-full justify-center">
+              {calismaYili() && (
+                <div className="text-center">
+                  <p className="text-lg font-bold text-stone-800">{calismaYili()}</p>
+                  <p className="text-[10px] text-stone-400 uppercase tracking-wider mt-0.5">Kıdem</p>
+                </div>
+              )}
+              {profil.grupEtiketleri && profil.grupEtiketleri.length > 0 && (
+                <div className="text-center">
+                  <p className="text-lg font-bold text-stone-800">{profil.grupEtiketleri.length}</p>
+                  <p className="text-[10px] text-stone-400 uppercase tracking-wider mt-0.5">Grup</p>
+                </div>
+              )}
+              <div className="text-center">
+                <p className="text-lg font-bold text-stone-800">{profil.calismaSaati || "—"}</p>
+                <p className="text-[10px] text-stone-400 uppercase tracking-wider mt-0.5">Mesai</p>
+              </div>
+            </div>
+
             <button onClick={handleFotoSec} disabled={fotoYukleniyor}
-              className="mt-3 text-xs text-amber-600 hover:text-amber-700 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-lg font-medium transition disabled:opacity-50">
-              {fotoYukleniyor ? "Yükleniyor..." : profil.foto ? "Fotoğrafı Değiştir" : "Fotoğraf Ekle"}
+              className="mt-4 text-xs text-stone-500 hover:text-stone-700 underline underline-offset-2 decoration-stone-300 hover:decoration-stone-500 transition">
+              {fotoYukleniyor ? "Yükleniyor..." : profil.foto ? "Fotoğrafı değiştir" : "Fotoğraf yükle"}
             </button>
-            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFotoYukle} />
           </div>
         </div>
 
-        {/* KİŞİSEL BİLGİLER */}
-        <div className="bg-white rounded-xl border border-stone-100 overflow-hidden">
-          <div className="px-4 md:px-5 py-3 border-b border-stone-100 flex items-center justify-between">
-            <span className="text-sm font-semibold text-stone-700">Kişisel Bilgiler</span>
+        {/* === KİŞİSEL BİLGİLER === */}
+        <div className="bg-white rounded-2xl border border-stone-200/60 shadow-sm overflow-hidden">
+          <div className="px-5 py-3.5 border-b border-stone-100 flex items-center justify-between">
+            <span className="text-sm font-semibold text-stone-800">Kişisel Bilgiler</span>
             <button onClick={() => setShowTalepModal(true)}
-              className="text-xs text-amber-600 hover:text-amber-700 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-lg font-medium transition">
+              className="text-[11px] text-amber-600 hover:text-amber-700 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-lg font-medium transition">
               Değişiklik Talep Et
             </button>
           </div>
-          <div className="p-4 md:p-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <BilgiSatir label="Ad" value={profil.ad} />
-              <BilgiSatir label="Soyad" value={profil.soyad} />
-              <BilgiSatir label="E-posta" value={profil.email} />
-              <BilgiSatir label="Telefon" value={profil.telefon || "—"} />
-              <BilgiSatir label="Doğum Tarihi" value={formatTarih(profil.dogumGunu || "")} />
-              <BilgiSatir label="İşe Başlama" value={formatTarih(profil.iseBaslama)} />
-              <BilgiSatir label="Sicil No" value={profil.sicilNo || "—"} />
-              <BilgiSatir label="Çalışma Saati" value={profil.calismaSaati || "—"} />
-              <BilgiSatir label="Rol" value={profil.kullaniciTuru} />
-              <BilgiSatir label="Durum" value={profil.aktif ? "Aktif" : "Pasif"} />
-            </div>
+          <div className="divide-y divide-stone-50">
+            <InfoRow label="Ad Soyad" value={`${profil.ad} ${profil.soyad}`} />
+            <InfoRow label="E-posta" value={profil.email} />
+            <InfoRow label="Telefon" value={profil.telefon || "—"} />
+            <InfoRow label="Doğum Tarihi" value={formatTarih(profil.dogumGunu || "")} />
+            <InfoRow label="İşe Başlama" value={formatTarih(profil.iseBaslama)} />
+            <InfoRow label="Sicil No" value={profil.sicilNo || "—"} />
+            <InfoRow label="Çalışma Saati" value={profil.calismaSaati || "—"} />
+            <InfoRow label="Rol" value={profil.kullaniciTuru} />
+          </div>
 
-            {profil.grupEtiketleri && profil.grupEtiketleri.length > 0 && (
-              <div className="mt-4 pt-3 border-t border-stone-100">
-                <p className="text-xs text-stone-500 mb-2">Grup Etiketleri</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {profil.grupEtiketleri.map(g => (
-                    <span key={g} className="bg-stone-100 text-stone-600 text-xs px-2.5 py-1 rounded-full font-medium">{g}</span>
-                  ))}
-                </div>
+          {profil.grupEtiketleri && profil.grupEtiketleri.length > 0 && (
+            <div className="px-5 py-3 border-t border-stone-100">
+              <p className="text-[11px] text-stone-400 mb-2">Gruplar</p>
+              <div className="flex flex-wrap gap-1.5">
+                {profil.grupEtiketleri.map(g => (
+                  <span key={g} className="bg-stone-100 text-stone-600 text-[11px] px-2.5 py-0.5 rounded-full font-medium">{g}</span>
+                ))}
               </div>
-            )}
+            </div>
+          )}
 
-            <p className="text-[10px] text-stone-400 mt-4 pt-3 border-t border-stone-100">
+          <div className="px-5 py-3 bg-stone-50/50 border-t border-stone-100">
+            <p className="text-[10px] text-stone-400">
               Bilgilerinizi değiştirmek için "Değişiklik Talep Et" butonunu kullanın. Talebiniz kurucuya iletilecektir.
             </p>
           </div>
         </div>
 
-        {/* TALEPLERİM */}
+        {/* === TALEPLERİM === */}
         {talepler.length > 0 && (
-          <div className="bg-white rounded-xl border border-stone-100 overflow-hidden">
-            <div className="px-4 md:px-5 py-3 border-b border-stone-100">
-              <span className="text-sm font-semibold text-stone-700">Değişiklik Taleplerim</span>
+          <div className="bg-white rounded-2xl border border-stone-200/60 shadow-sm overflow-hidden">
+            <div className="px-5 py-3.5 border-b border-stone-100 flex items-center justify-between">
+              <span className="text-sm font-semibold text-stone-800">Taleplerim</span>
+              <span className="text-[10px] text-stone-400 bg-stone-100 px-2 py-0.5 rounded-full">{talepler.length}</span>
             </div>
-            <div className="p-4 md:p-5 space-y-2">
+            <div className="p-4 space-y-2.5">
               {talepler.slice(0, 5).map(talep => (
-                <div key={talep.id} className={`rounded-lg p-3 border ${
-                  talep.durum === "bekliyor" ? "bg-amber-50/50 border-amber-200" :
-                  talep.durum === "onaylandi" ? "bg-emerald-50/50 border-emerald-200" : "bg-red-50/50 border-red-200"
+                <div key={talep.id} className={`rounded-xl p-3.5 border ${
+                  talep.durum === "bekliyor" ? "bg-amber-50/30 border-amber-100" :
+                  talep.durum === "onaylandi" ? "bg-emerald-50/30 border-emerald-100" : "bg-red-50/30 border-red-100"
                 }`}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                  <div className="flex items-center justify-between mb-2">
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
                       talep.durum === "bekliyor" ? "bg-amber-100 text-amber-700" :
                       talep.durum === "onaylandi" ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
                     }`}>
@@ -284,15 +319,15 @@ export default function Profilim() {
                     </span>
                     <span className="text-[10px] text-stone-400">{formatTimestamp(talep.createdAt)}</span>
                   </div>
-                  <div className="space-y-1">
-                    {talep.degisiklikler.map((d, i) => (
-                      <p key={i} className="text-xs text-stone-600">
-                        <span className="font-medium">{d.alan}:</span> {d.mevcutDeger || "—"} → <span className="font-semibold text-stone-800">{d.yeniDeger}</span>
-                      </p>
-                    ))}
-                  </div>
+                  {talep.degisiklikler.map((d, i) => (
+                    <p key={i} className="text-xs text-stone-600">
+                      <span className="font-medium text-stone-500">{d.alan}:</span>{" "}
+                      <span className="text-stone-400 line-through">{d.mevcutDeger || "—"}</span>{" → "}
+                      <span className="font-semibold text-stone-800">{d.yeniDeger}</span>
+                    </p>
+                  ))}
                   {talep.yanitNotu && (
-                    <p className="text-[10px] text-stone-500 mt-1.5 pt-1.5 border-t border-stone-200">{talep.yanitNotu}</p>
+                    <p className="text-[10px] text-stone-500 mt-2 pt-2 border-t border-stone-200/60">{talep.yanitNotu}</p>
                   )}
                 </div>
               ))}
@@ -301,13 +336,15 @@ export default function Profilim() {
         )}
       </main>
 
-      {/* TALEP MODAL */}
+      {/* === TALEP MODAL === */}
       {showTalepModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowTalepModal(false)}>
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="bg-gradient-to-r from-amber-500 to-amber-400 text-white px-5 py-3 rounded-t-xl flex items-center justify-between">
-              <h3 className="font-bold text-sm">Değişiklik Talep Et</h3>
-              <button onClick={() => setShowTalepModal(false)} className="text-white/80 hover:text-white text-xl">✕</button>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowTalepModal(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="px-5 py-4 border-b border-stone-100 flex items-center justify-between">
+              <h3 className="font-bold text-stone-800">Değişiklik Talep Et</h3>
+              <button onClick={() => setShowTalepModal(false)} className="text-stone-400 hover:text-stone-600 transition">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
             </div>
             <div className="p-5 space-y-3">
               <p className="text-xs text-stone-500">Değiştirmek istediğiniz bilgileri belirtin. Talebiniz kurucuya onaya gönderilecektir.</p>
@@ -316,17 +353,19 @@ export default function Profilim() {
                   <div className="flex-1 space-y-1.5">
                     <select value={satir.alan}
                       onChange={(e) => { const y = [...talepSatirlar]; y[idx].alan = e.target.value; setTalepSatirlar(y); }}
-                      className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+                      className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent bg-stone-50/50">
                       <option value="">Alan seçin...</option>
                       {alanSecenekleri.map(a => <option key={a} value={a}>{a}</option>)}
                     </select>
                     <input type="text" placeholder="Yeni değer..." value={satir.yeniDeger}
                       onChange={(e) => { const y = [...talepSatirlar]; y[idx].yeniDeger = e.target.value; setTalepSatirlar(y); }}
-                      className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                      className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent bg-stone-50/50" />
                   </div>
                   {talepSatirlar.length > 1 && (
                     <button onClick={() => setTalepSatirlar(talepSatirlar.filter((_, i) => i !== idx))}
-                      className="text-stone-400 hover:text-red-500 mt-2 text-sm">✕</button>
+                      className="text-stone-300 hover:text-red-400 mt-2.5 transition">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
                   )}
                 </div>
               ))}
@@ -334,12 +373,12 @@ export default function Profilim() {
                 <button onClick={() => setTalepSatirlar([...talepSatirlar, { alan: "", yeniDeger: "" }])}
                   className="text-xs text-amber-600 hover:text-amber-700 font-medium">+ Başka bir alan ekle</button>
               )}
-              <div className="flex gap-3 pt-2">
+              <div className="flex gap-3 pt-3">
                 <button onClick={handleTalepGonder} disabled={talepGonderiliyor}
-                  className="flex-1 bg-amber-500 hover:bg-amber-600 text-white py-2.5 rounded-lg text-sm font-medium transition disabled:opacity-50">
+                  className="flex-1 bg-stone-900 hover:bg-stone-800 text-white py-2.5 rounded-xl text-sm font-medium transition disabled:opacity-50">
                   {talepGonderiliyor ? "Gönderiliyor..." : "Gönder"}</button>
                 <button onClick={() => setShowTalepModal(false)}
-                  className="flex-1 bg-stone-100 hover:bg-stone-200 text-stone-700 py-2.5 rounded-lg text-sm font-medium transition">İptal</button>
+                  className="flex-1 bg-stone-100 hover:bg-stone-200 text-stone-700 py-2.5 rounded-xl text-sm font-medium transition">İptal</button>
               </div>
             </div>
           </div>
@@ -349,11 +388,11 @@ export default function Profilim() {
   );
 }
 
-function BilgiSatir({ label, value }: { label: string; value: string }) {
+function InfoRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-stone-50/60 rounded-lg px-3 py-2.5">
-      <p className="text-[10px] text-stone-400 uppercase tracking-wide mb-0.5">{label}</p>
-      <p className="text-sm text-stone-800 font-medium">{value}</p>
+    <div className="flex items-center justify-between px-5 py-3 hover:bg-stone-50/50 transition">
+      <span className="text-xs text-stone-400 font-medium">{label}</span>
+      <span className="text-sm text-stone-800 font-medium text-right">{value}</span>
     </div>
   );
 }
