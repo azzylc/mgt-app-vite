@@ -812,7 +812,7 @@ export default function Home() {
                       <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
                       <span className="text-sm font-medium text-stone-700">{p.personelAd}</span>
                     </div>
-                    <span className="text-xs text-emerald-600 font-medium">{p.giris || ''}</span>
+                    <span className="text-xs text-emerald-600 font-medium">{p.girisSaati || ''}</span>
                   </div>
                 ))}
               </div>
