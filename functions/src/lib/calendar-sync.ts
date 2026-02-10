@@ -43,6 +43,8 @@ function isErtelendi(title: string): boolean {
 
 function parseDescription(description: string) {
   const lines = description.split('\n').map(line => normalizeText(line));
+  // Helper: tüm check mark varyantlarını yakala (✔ ✔️ ✓ ✅)
+  const hasCheck = (l: string) => l.includes('\u2714') || l.includes('\u2713') || l.includes('\u2705');
   const result: Record<string, unknown> = {
     kinaGunu: '', telefon: '', esiTelefon: '', instagram: '', fotografci: '', modaevi: '',
     anlasildigiTarih: '', bilgilendirmeGonderildi: false, ucretYazildi: false,
@@ -84,24 +86,24 @@ function parseDescription(description: string) {
       if (match) result.anlasildigiTarih = match[3]+'-'+match[2]+'-'+match[1]+'T'+match[4]+':'+match[5]+':00';
     }
     // Checklist - GYS
-    if (lower.includes('bilgilendirme metni gönderildi mi')) result.bilgilendirmeGonderildi = line.includes('✔️') || line.includes('✓');
-    if (lower.includes('müşteriye bilgilendirme metni gönderildi mi')) result.bilgilendirmeGonderildi = line.includes('✔️') || line.includes('✓');
-    if (lower.includes('anlaşılan ve kalan ücret yazıldı mı')) result.ucretYazildi = line.includes('✔️') || line.includes('✓');
-    if (lower.includes('malzeme listesi gönderildi mi')) result.malzemeListesiGonderildi = line.includes('✔️') || line.includes('✓');
-    if (lower.includes('paylaşım izni var mı')) result.paylasimIzni = line.includes('✔️') || line.includes('✓');
+    if (lower.includes('bilgilendirme metni gönderildi mi')) result.bilgilendirmeGonderildi = hasCheck(line);
+    if (lower.includes('müşteriye bilgilendirme metni gönderildi mi')) result.bilgilendirmeGonderildi = hasCheck(line);
+    if (lower.includes('anlaşılan ve kalan ücret yazıldı mı')) result.ucretYazildi = hasCheck(line);
+    if (lower.includes('malzeme listesi gönderildi mi')) result.malzemeListesiGonderildi = hasCheck(line);
+    if (lower.includes('paylaşım izni var mı')) result.paylasimIzni = hasCheck(line);
     // Checklist - TCB
-    if (lower.includes('saç modeli belirlendi mi')) result.sacModeliBelirlendi = line.includes('✔️') || line.includes('✓');
+    if (lower.includes('saç modeli belirlendi mi')) result.sacModeliBelirlendi = hasCheck(line);
     if (lower.includes('prova tercihi:')) result.provaTermini = line.split(':').slice(1).join(':').trim();
-    if (lower.includes('prova tarihi belirlendi mi')) result.provaTarihiBelirlendi = line.includes('✔️') || line.includes('✓');
+    if (lower.includes('prova tarihi belirlendi mi')) result.provaTarihiBelirlendi = hasCheck(line);
     // Checklist - MG
-    if (lower.includes('çekim ücreti alındı mı')) result.cekimUcretiAlindi = line.includes('✔️') || line.includes('✓');
-    if (lower.includes('fotoğraf paylaşım izni')) result.fotografPaylasimIzni = line.includes('✔️') || line.includes('✓');
-    if (lower.includes('çiftin işi bitti mi')) result.ciftinIsiBitti = line.includes('✔️') || line.includes('✓');
-    if (lower.includes('dosya sahipliği aktarıldı mı')) result.dosyaSahipligiAktarildi = line.includes('✔️') || line.includes('✓');
+    if (lower.includes('çekim ücreti alındı mı')) result.cekimUcretiAlindi = hasCheck(line);
+    if (lower.includes('fotoğraf paylaşım izni')) result.fotografPaylasimIzni = hasCheck(line);
+    if (lower.includes('çiftin işi bitti mi')) result.ciftinIsiBitti = hasCheck(line);
+    if (lower.includes('dosya sahipliği aktarıldı mı')) result.dosyaSahipligiAktarildi = hasCheck(line);
     if (lower.includes('ek hizmetler:')) result.ekHizmetler = line.split(':').slice(1).join(':').trim();
     // Ortak
-    if (lower.includes('yorum istensin mi') && !lower.includes('istendi')) result.yorumIstesinMi = (line.includes('✔️') || line.includes('✓')) ? 'Evet' : '';
-    if (lower.includes('yorum istendi mi')) result.yorumIstendiMi = line.includes('✔️') || line.includes('✓');
+    if (lower.includes('yorum istensin mi') && !lower.includes('istendi')) result.yorumIstesinMi = (hasCheck(line)) ? 'Evet' : '';
+    if (lower.includes('yorum istendi mi')) result.yorumIstendiMi = hasCheck(line);
     if (lower.includes('varsa gelin notu:') || lower.includes('varsa çift notu:')) result.gelinNotu = line.split(':').slice(1).join(':').trim();
     if (lower.includes('dekont görseli:')) result.dekontGorseli = line.split(':').slice(1).join(':').trim();
   });
