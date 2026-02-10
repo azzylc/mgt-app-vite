@@ -12,6 +12,7 @@ interface Gelin {
   kalan: number;
   makyaj: string;
   turban: string;
+  firma?: string;
   kinaGunu?: string;
   telefon?: string;
   esiTelefon?: string;
@@ -23,20 +24,127 @@ interface Gelin {
   ucretYazildi?: boolean;
   malzemeListesiGonderildi?: boolean;
   paylasimIzni?: boolean;
-  yorumIstesinMi?: string;  // Kişi ismi (örn: "Zehra Kula") veya boş
+  yorumIstesinMi?: string;
   yorumIstendiMi?: boolean;
   gelinNotu?: string;
   dekontGorseli?: string;
+  // TCB fields
+  sacModeliBelirlendi?: boolean;
+  provaTermini?: string;
+  provaTarihiBelirlendi?: boolean;
+  etkinlikTuru?: string;
+  // MG fields
+  cekimUcretiAlindi?: boolean;
+  fotografPaylasimIzni?: boolean;
+  ciftinIsiBitti?: boolean;
+  dosyaSahipligiAktarildi?: boolean;
+  ekHizmetler?: string;
+  merasimTarihi?: string;
+  gelinlikci?: string;
+  kuafor?: string;
+}
+
+interface CheckItem {
+  label: string;
+  checked: boolean;
+  value?: string;         // Metin değeri varsa (ör: prova tercihi)
+  warn?: boolean;         // Boşsa uyarı göster
+  warnText?: string;
+  subText?: string;       // Tamamlandığında alt not
+}
+
+function getChecklistItems(gelin: Gelin): CheckItem[] {
+  const firma = gelin.firma || 'GYS';
+
+  if (firma === 'TCB') {
+    return [
+      { label: 'Bilgilendirme metni gönderildi mi', checked: !!gelin.bilgilendirmeGonderildi },
+      { label: 'Anlaşılan ve kalan ücret yazıldı mı', checked: !!gelin.ucretYazildi },
+      { label: 'Saç modeli belirlendi mi', checked: !!gelin.sacModeliBelirlendi },
+      { label: 'Paylaşım izni var mı', checked: !!gelin.paylasimIzni },
+      { label: 'Prova tercihi', checked: !!gelin.provaTermini, value: gelin.provaTermini || '' },
+      { label: 'Prova tarihi belirlendi mi', checked: !!gelin.provaTarihiBelirlendi },
+    ];
+  }
+
+  if (firma === 'MG') {
+    return [
+      { label: 'Müşteriye bilgilendirme metni gönderildi mi', checked: !!gelin.bilgilendirmeGonderildi },
+      { label: 'Çekim ücreti alındı mı', checked: !!gelin.cekimUcretiAlindi },
+      { label: 'Fotoğraf paylaşım izni', checked: !!gelin.fotografPaylasimIzni },
+      { label: 'Çiftin işi bitti mi', checked: !!gelin.ciftinIsiBitti },
+      { label: 'Dosya sahipliği aktarıldı mı', checked: !!gelin.dosyaSahipligiAktarildi },
+      { label: 'Ek hizmetler', checked: !!gelin.ekHizmetler, value: gelin.ekHizmetler || '' },
+    ];
+  }
+
+  // GYS (default)
+  return [
+    { label: 'Bilgilendirme metni gönderildi mi', checked: !!gelin.bilgilendirmeGonderildi, subText: '✔️ Her gelinin hazırlayan yorum istensin mi kısmını doldurmalı' },
+    { label: 'Anlaşılan ve kalan ücret yazıldı mı', checked: !!gelin.ucretYazildi, subText: '✔️ Her gelinin hazırlayan yorum istensin mi kısmını doldurmalı' },
+    { label: 'Malzeme listesi gönderildi mi', checked: !!gelin.malzemeListesiGonderildi, subText: '✔️ Her gelinin hazırlayan yorum istensin mi kısmını doldurmalı' },
+    { label: 'Paylaşım izni var mı', checked: !!gelin.paylasimIzni, subText: '✔️ Her gelinin hazırlayan yorum istensin mi kısmını doldurmalı' },
+  ];
+}
+
+const WA_SVG = <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>;
+const WA_SVG_SM = <svg viewBox="0 0 24 24" className="w-3 h-3 fill-current"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>;
+
+function WhatsAppBtn({ tel, size = 'md' }: { tel: string; size?: 'md' | 'sm' }) {
+  const toWhatsApp = (t: string) => {
+    const temiz = t.replace(/[\s\-\(\)]/g, '');
+    if (temiz.startsWith('+')) return temiz.slice(1);
+    if (temiz.startsWith('0')) return '90' + temiz.slice(1);
+    if (temiz.startsWith('90')) return temiz;
+    return '90' + temiz;
+  };
+  const sizeClass = size === 'sm' ? 'w-5 h-5' : 'w-7 h-7';
+  return (
+    <a href={`https://wa.me/${toWhatsApp(tel)}`} target="_blank" rel="noopener noreferrer"
+       className={`inline-flex items-center justify-center ${sizeClass} bg-green-500 hover:bg-green-600 text-white rounded-full transition-colors`} title="WhatsApp">
+      {size === 'sm' ? WA_SVG_SM : WA_SVG}
+    </a>
+  );
+}
+
+function PersonelCard({ label, emoji, personelIsim, personeller, toWhatsApp, altText }: {
+  label: string; emoji: string; personelIsim: string; personeller: any[]; toWhatsApp: (t: string) => string; altText?: string;
+}) {
+  const personel = getPersonelByIsim(personelIsim, personeller);
+  return (
+    <div className={`p-3 md:p-4 ${label === 'Makyaj' || label === 'Kuaför' ? 'bg-rose-50' : 'bg-purple-50'} rounded-lg`}>
+      <p className={`${label === 'Makyaj' || label === 'Kuaför' ? 'text-rose-600' : 'text-purple-600'} text-xs md:text-sm font-medium mb-2`}>{emoji} {label}</p>
+      {personel ? (
+        <>
+          <div className="flex items-center gap-2">
+            <span className="text-xl">{personel.emoji}</span>
+            <span className="font-semibold text-stone-800">{personel.isim}</span>
+          </div>
+          {personel.instagram && <p className="text-xs text-stone-500 mt-1">{personel.instagram}</p>}
+          {personel.telefon && (
+            <div className="flex items-center gap-1.5 mt-1">
+              <a href={`tel:${personel.telefon}`} className="text-xs text-stone-500 hover:underline">{personel.telefon}</a>
+              <WhatsAppBtn tel={personel.telefon} size="sm" />
+            </div>
+          )}
+        </>
+      ) : personelIsim ? (
+        <p className="text-stone-700 font-medium text-sm">{personelIsim}</p>
+      ) : (
+        <p className="text-stone-500">{altText || 'Atanmamış'}</p>
+      )}
+    </div>
+  );
 }
 
 export default function GelinModal({ gelin, onClose }: { gelin: Gelin; onClose: () => void }) {
   const { personeller } = usePersoneller();
-  const makyajPersonel = getPersonelByIsim(gelin.makyaj, personeller);
-  const turbanPersonel = gelin.turban && gelin.turban !== gelin.makyaj ? getPersonelByIsim(gelin.turban, personeller) : null;
+  const firma = gelin.firma || 'GYS';
+  const isMG = firma === 'MG';
+
   const formatTarih = (tarih: string) => new Date(tarih).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
   const formatDateTime = (tarih: string) => new Date(tarih).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
-  // Telefon numarasını WhatsApp formatına çevir (0532xxx → 90532xxx)
   const toWhatsApp = (tel: string) => {
     const temiz = tel.replace(/[\s\-\(\)]/g, '');
     if (temiz.startsWith('+')) return temiz.slice(1);
@@ -45,6 +153,21 @@ export default function GelinModal({ gelin, onClose }: { gelin: Gelin; onClose: 
     return '90' + temiz;
   };
 
+  // Checklist items
+  const checkItems = getChecklistItems(gelin);
+  // Yorum items (tüm firmalar ortak)
+  const yorumItems: CheckItem[] = [
+    { label: 'Yorum istensin mi', checked: !!gelin.yorumIstesinMi, value: gelin.yorumIstesinMi || '', warn: !gelin.yorumIstesinMi, warnText: '⚠️ Boş! Gelin bitişinden 1 saat sonra makyajcı ve türbancıya otomatik görev atanacak' },
+    { label: 'Yorum istendi mi', checked: !!gelin.yorumIstendiMi },
+  ];
+  const allItems = [...checkItems, ...yorumItems];
+  const tamamlanan = allItems.filter(i => i.checked).length;
+  const toplam = allItems.length;
+  const yuzde = Math.round((tamamlanan / toplam) * 100);
+
+  // Firma renkleri
+  const firmaRenk = firma === 'TCB' ? 'from-violet-50 to-purple-50' : firma === 'MG' ? 'from-amber-50 to-orange-50' : 'from-rose-50 to-purple-50';
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-end md:items-center justify-center z-50 md:p-4" onClick={onClose}>
       <div className="bg-white rounded-t-3xl md:rounded-lg shadow-xl max-w-2xl w-full max-h-[95vh] md:max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
@@ -52,45 +175,48 @@ export default function GelinModal({ gelin, onClose }: { gelin: Gelin; onClose: 
           <div className="md:hidden w-12 h-1.5 bg-stone-300 rounded-full mx-auto mb-4"></div>
           <div className="flex items-center justify-between mb-4 md:mb-6">
             <h3 className="text-lg md:text-xl font-bold text-stone-800 flex items-center gap-2">
-              <span>👰</span> Gelin Detayı
+              <span>{isMG ? '📸' : '👰'}</span> {isMG ? 'Çift Detayı' : 'Gelin Detayı'}
             </h3>
             <button onClick={onClose} className="text-stone-400 hover:text-stone-600 text-2xl">×</button>
           </div>
           
-          <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6 p-3 md:p-4 bg-gradient-to-r from-rose-50 to-purple-50 rounded-lg">
-            <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-rose-200 to-purple-200 rounded-lg flex items-center justify-center text-stone-600 text-xl md:text-2xl font-bold">
+          {/* Header */}
+          <div className={`flex items-center gap-3 md:gap-4 mb-4 md:mb-6 p-3 md:p-4 bg-gradient-to-r ${firmaRenk} rounded-lg`}>
+            <div className={`w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br ${firma === 'TCB' ? 'from-violet-200 to-purple-200' : firma === 'MG' ? 'from-amber-200 to-orange-200' : 'from-rose-200 to-purple-200'} rounded-lg flex items-center justify-center text-stone-600 text-xl md:text-2xl font-bold`}>
               {gelin.isim.charAt(0)}
             </div>
-            <div>
+            <div className="flex-1">
               <p className="text-lg md:text-xl font-semibold text-stone-800">{gelin.isim}</p>
-              <p className="text-sm md:text-base text-stone-600">{formatTarih(gelin.tarih)} • {gelin.saat}{gelin.bitisSaati ? ` - ${gelin.bitisSaati}` : ''}</p>
+              <p className="text-sm md:text-base text-stone-600">
+                {formatTarih(gelin.tarih)} • {gelin.saat}{gelin.bitisSaati ? ` - ${gelin.bitisSaati}` : ''}
+              </p>
+              {gelin.etkinlikTuru && <p className="text-xs text-stone-500 mt-0.5">{gelin.etkinlikTuru}</p>}
               {gelin.kinaGunu && <p className="text-xs md:text-sm text-stone-500 mt-1">Kına Günü: {gelin.kinaGunu}</p>}
+              {gelin.merasimTarihi && <p className="text-xs md:text-sm text-stone-500 mt-1">Merasim: {gelin.merasimTarihi}</p>}
             </div>
+            {firma !== 'GYS' && (
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-stone-200 text-stone-500 self-start">{firma}</span>
+            )}
           </div>
 
           <div className="space-y-3 md:space-y-4">
+            {/* İletişim */}
             {gelin.telefon && (
               <div className="bg-blue-50 p-3 md:p-4 rounded-lg">
                 <h4 className="font-semibold text-blue-900 mb-2 md:mb-3 flex items-center gap-2 text-sm md:text-base">
                   <span>📞</span> İletişim Bilgileri
                 </h4>
                 <div className="space-y-2 text-sm">
-                  {gelin.telefon && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-blue-600 font-medium">Tel:</span>
-                      <a href={`tel:${gelin.telefon}`} className="text-blue-700 hover:underline">{gelin.telefon}</a>
-                      <a href={`https://wa.me/${toWhatsApp(gelin.telefon)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center w-7 h-7 bg-green-500 hover:bg-green-600 text-white rounded-full transition-colors" title="WhatsApp ile yaz">
-                        <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                      </a>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <span className="text-blue-600 font-medium">{isMG ? 'Gelin Tel:' : 'Tel:'}</span>
+                    <a href={`tel:${gelin.telefon}`} className="text-blue-700 hover:underline">{gelin.telefon}</a>
+                    <WhatsAppBtn tel={gelin.telefon} />
+                  </div>
                   {gelin.esiTelefon && (
                     <div className="flex items-center gap-2">
-                      <span className="text-blue-600 font-medium">Eşi Tel:</span>
+                      <span className="text-blue-600 font-medium">{isMG ? 'Damat Tel:' : 'Eşi Tel:'}</span>
                       <a href={`tel:${gelin.esiTelefon}`} className="text-blue-700 hover:underline">{gelin.esiTelefon}</a>
-                      <a href={`https://wa.me/${toWhatsApp(gelin.esiTelefon)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center w-7 h-7 bg-green-500 hover:bg-green-600 text-white rounded-full transition-colors" title="WhatsApp ile yaz">
-                        <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                      </a>
+                      <WhatsAppBtn tel={gelin.esiTelefon} />
                     </div>
                   )}
                   {gelin.instagram && (
@@ -103,72 +229,40 @@ export default function GelinModal({ gelin, onClose }: { gelin: Gelin; onClose: 
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-              <div className="p-3 md:p-4 bg-rose-50 rounded-lg">
-                <p className="text-rose-600 text-xs md:text-sm font-medium mb-2">💄 Makyaj</p>
-                {makyajPersonel ? (
-                  <>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl">{makyajPersonel.emoji}</span>
-                      <span className="font-semibold text-stone-800">{makyajPersonel.isim}</span>
-                    </div>
-                    {makyajPersonel.instagram && <p className="text-xs text-stone-500 mt-1">{makyajPersonel.instagram}</p>}
-                    {makyajPersonel.telefon && (
-                      <div className="flex items-center gap-1.5 mt-1">
-                        <a href={`tel:${makyajPersonel.telefon}`} className="text-xs text-stone-500 hover:underline">{makyajPersonel.telefon}</a>
-                        <a href={`https://wa.me/${toWhatsApp(makyajPersonel.telefon)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center w-5 h-5 bg-green-500 hover:bg-green-600 text-white rounded-full transition-colors" title="WhatsApp">
-                          <svg viewBox="0 0 24 24" className="w-3 h-3 fill-current"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                        </a>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <p className="text-stone-500">Atanmamış</p>
-                )}
-              </div>
-              <div className="p-3 md:p-4 bg-purple-50 rounded-lg">
-                <p className="text-purple-600 text-xs md:text-sm font-medium mb-2">🧕 Türban</p>
-                {turbanPersonel ? (
-                  <>
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg md:text-xl">{turbanPersonel.emoji}</span>
-                      <span className="font-semibold text-stone-800 text-sm md:text-base">{turbanPersonel.isim}</span>
-                    </div>
-                    {turbanPersonel.instagram && <p className="text-xs text-stone-500 mt-1">{turbanPersonel.instagram}</p>}
-                    {turbanPersonel.telefon && (
-                      <div className="flex items-center gap-1.5 mt-1">
-                        <a href={`tel:${turbanPersonel.telefon}`} className="text-xs text-stone-500 hover:underline">{turbanPersonel.telefon}</a>
-                        <a href={`https://wa.me/${toWhatsApp(turbanPersonel.telefon)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center w-5 h-5 bg-green-500 hover:bg-green-600 text-white rounded-full transition-colors" title="WhatsApp">
-                          <svg viewBox="0 0 24 24" className="w-3 h-3 fill-current"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                        </a>
-                      </div>
-                    )}
-                  </>
-                ) : makyajPersonel && gelin.turban === gelin.makyaj ? (
-                  <p className="text-stone-600 text-xs md:text-sm">Makyaj ile aynı kişi</p>
-                ) : (
-                  <p className="text-stone-500 text-sm">Atanmamış</p>
-                )}
-              </div>
-            </div>
-
-            {(gelin.fotografci || gelin.modaevi) && (
+            {/* Personel kartları - Firma bazlı */}
+            {isMG ? (
+              /* MG: Gelinlikçi + Kuaför */
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-                {gelin.fotografci && (
-                  <div className="bg-orange-50 p-3 md:p-4 rounded-lg">
-                    <p className="text-orange-600 text-xs md:text-sm font-medium mb-1">📷 Fotoğrafçı</p>
-                    <p className="text-stone-800 font-medium text-sm">{gelin.fotografci}</p>
-                  </div>
-                )}
-                {gelin.modaevi && (
-                  <div className="bg-purple-50 p-3 md:p-4 rounded-lg">
-                    <p className="text-purple-600 text-xs md:text-sm font-medium mb-1">👗 Modaevi</p>
-                    <p className="text-stone-800 font-medium text-sm">{gelin.modaevi}</p>
-                  </div>
-                )}
+                <PersonelCard label="Gelinlikçi" emoji="👗" personelIsim={gelin.gelinlikci || ''} personeller={personeller} toWhatsApp={toWhatsApp} altText="Belli değil" />
+                <PersonelCard label="Kuaför" emoji="💇‍♀️" personelIsim={gelin.kuafor || ''} personeller={personeller} toWhatsApp={toWhatsApp} altText="Belli değil" />
               </div>
+            ) : (
+              /* GYS + TCB: Makyaj + Türban */
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                  <PersonelCard label="Makyaj" emoji="💄" personelIsim={gelin.makyaj} personeller={personeller} toWhatsApp={toWhatsApp} />
+                  <PersonelCard label="Türban" emoji="🧕" personelIsim={gelin.turban} personeller={personeller} toWhatsApp={toWhatsApp} altText={gelin.turban === gelin.makyaj && gelin.makyaj ? 'Makyaj ile aynı kişi' : 'Atanmamış'} />
+                </div>
+                {(gelin.fotografci || gelin.modaevi) && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                    {gelin.fotografci && (
+                      <div className="bg-orange-50 p-3 md:p-4 rounded-lg">
+                        <p className="text-orange-600 text-xs md:text-sm font-medium mb-1">📷 Fotoğrafçı</p>
+                        <p className="text-stone-800 font-medium text-sm">{gelin.fotografci}</p>
+                      </div>
+                    )}
+                    {gelin.modaevi && (
+                      <div className="bg-purple-50 p-3 md:p-4 rounded-lg">
+                        <p className="text-purple-600 text-xs md:text-sm font-medium mb-1">👗 Modaevi</p>
+                        <p className="text-stone-800 font-medium text-sm">{gelin.modaevi}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
             )}
 
+            {/* Ödeme Bilgileri */}
             <div className="bg-stone-50 p-3 md:p-4 rounded-lg">
               <h4 className="font-medium text-stone-700 mb-2 md:mb-3 text-sm md:text-base">💰 Ödeme Bilgileri</h4>
               <div className="grid grid-cols-3 gap-2 md:gap-4 mb-3">
@@ -194,20 +288,15 @@ export default function GelinModal({ gelin, onClose }: { gelin: Gelin; onClose: 
               )}
             </div>
 
-            {/* Takip Listesi - Takvimden Çekilen Checklist */}
-            {(() => {
-              const checkItems = [
-                gelin.bilgilendirmeGonderildi,
-                gelin.ucretYazildi,
-                gelin.malzemeListesiGonderildi,
-                gelin.paylasimIzni,
-                !!gelin.yorumIstesinMi,
-                gelin.yorumIstendiMi,
-              ];
-              const tamamlanan = checkItems.filter(Boolean).length;
-              const toplam = checkItems.length;
-              const yuzde = Math.round((tamamlanan / toplam) * 100);
-              return (
+            {/* MG: Ek Hizmetler */}
+            {isMG && gelin.ekHizmetler && (
+              <div className="bg-amber-50 p-3 md:p-4 rounded-lg border border-amber-100">
+                <h4 className="font-medium text-amber-700 mb-1 text-sm">📦 Ek Hizmetler</h4>
+                <p className="text-stone-800 text-sm font-medium">{gelin.ekHizmetler}</p>
+              </div>
+            )}
+
+            {/* Takip Listesi */}
             <div className="bg-gradient-to-br from-green-50 to-teal-50 p-3 md:p-4 rounded-lg border border-green-100">
               <div className="flex items-center justify-between mb-2">
                 <h4 className="font-semibold text-green-900 flex items-center gap-2 text-sm md:text-base">
@@ -221,64 +310,29 @@ export default function GelinModal({ gelin, onClose }: { gelin: Gelin; onClose: 
                 <div className={`h-1.5 rounded-full transition-all ${tamamlanan === toplam ? 'bg-green-500' : 'bg-amber-400'}`} style={{ width: `${yuzde}%` }} />
               </div>
               <div className="space-y-2">
-                <div className="flex items-start gap-2">
-                  <span className={`text-lg ${gelin.bilgilendirmeGonderildi ? 'opacity-100' : 'opacity-30'}`}>
-                    {gelin.bilgilendirmeGonderildi ? '✔️' : '⬜'}
-                  </span>
-                  <div className="flex-1">
-                    <p className={`text-sm font-medium ${gelin.bilgilendirmeGonderildi ? 'text-stone-800' : 'text-stone-500'}`}>
-                      Bilgilendirme metni gönderildi mi
-                    </p>
-                    {gelin.bilgilendirmeGonderildi && (
-                      <p className="text-[10px] text-amber-600 mt-0.5">✔️ Her gelinin hazırlayan yorum istensin mi kısmını doldurmalı</p>
-                    )}
+                {checkItems.map((item, i) => (
+                  <div key={i} className="flex items-start gap-2">
+                    <span className={`text-lg ${item.checked ? 'opacity-100' : 'opacity-30'}`}>
+                      {item.checked ? '✔️' : '⬜'}
+                    </span>
+                    <div className="flex-1">
+                      <p className={`text-sm font-medium ${item.checked ? 'text-stone-800' : 'text-stone-500'}`}>
+                        {item.label}
+                      </p>
+                      {item.checked && item.value && (
+                        <span className="inline-block px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full font-medium mt-0.5">
+                          {item.value}
+                        </span>
+                      )}
+                      {item.checked && item.subText && (
+                        <p className="text-[10px] text-amber-600 mt-0.5">{item.subText}</p>
+                      )}
+                    </div>
                   </div>
-                </div>
-                
-                <div className="flex items-start gap-2">
-                  <span className={`text-lg ${gelin.ucretYazildi ? 'opacity-100' : 'opacity-30'}`}>
-                    {gelin.ucretYazildi ? '✔️' : '⬜'}
-                  </span>
-                  <div className="flex-1">
-                    <p className={`text-sm font-medium ${gelin.ucretYazildi ? 'text-stone-800' : 'text-stone-500'}`}>
-                      Anlaşılan ve kalan ücret yazıldı mı
-                    </p>
-                    {gelin.ucretYazildi && (
-                      <p className="text-[10px] text-amber-600 mt-0.5">✔️ Her gelinin hazırlayan yorum istensin mi kısmını doldurmalı</p>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-2">
-                  <span className={`text-lg ${gelin.malzemeListesiGonderildi ? 'opacity-100' : 'opacity-30'}`}>
-                    {gelin.malzemeListesiGonderildi ? '✔️' : '⬜'}
-                  </span>
-                  <div className="flex-1">
-                    <p className={`text-sm font-medium ${gelin.malzemeListesiGonderildi ? 'text-stone-800' : 'text-stone-500'}`}>
-                      Malzeme listesi gönderildi mi
-                    </p>
-                    {gelin.malzemeListesiGonderildi && (
-                      <p className="text-[10px] text-amber-600 mt-0.5">✔️ Her gelinin hazırlayan yorum istensin mi kısmını doldurmalı</p>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-2">
-                  <span className={`text-lg ${gelin.paylasimIzni ? 'opacity-100' : 'opacity-30'}`}>
-                    {gelin.paylasimIzni ? '✔️' : '⬜'}
-                  </span>
-                  <div className="flex-1">
-                    <p className={`text-sm font-medium ${gelin.paylasimIzni ? 'text-stone-800' : 'text-stone-500'}`}>
-                      Paylaşım izni var mı
-                    </p>
-                    {gelin.paylasimIzni && (
-                      <p className="text-[10px] text-amber-600 mt-0.5">✔️ Her gelinin hazırlayan yorum istensin mi kısmını doldurmalı</p>
-                    )}
-                  </div>
-                </div>
+                ))}
 
+                {/* Yorum bölümü - tüm firmalar ortak */}
                 <div className="border-t border-green-200 my-3 pt-3">
-                  {/* Yorum İstensin Mi - ÖZEL ALAN */}
                   <div className="flex items-start gap-2">
                     <span className={`text-lg ${gelin.yorumIstesinMi ? 'opacity-100' : 'opacity-30'}`}>
                       {gelin.yorumIstesinMi ? '✅' : '⬜'}
@@ -288,11 +342,9 @@ export default function GelinModal({ gelin, onClose }: { gelin: Gelin; onClose: 
                         Yorum istensin mi
                       </p>
                       {gelin.yorumIstesinMi && (
-                        <div className="mt-1 flex items-center gap-2">
-                          <span className="inline-block px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full font-medium">
-                            {gelin.yorumIstesinMi}
-                          </span>
-                        </div>
+                        <span className="inline-block px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full font-medium mt-1">
+                          {gelin.yorumIstesinMi}
+                        </span>
                       )}
                       {!gelin.yorumIstesinMi && (
                         <p className="text-xs text-red-600 mt-1 font-medium">
@@ -301,8 +353,6 @@ export default function GelinModal({ gelin, onClose }: { gelin: Gelin; onClose: 
                       )}
                     </div>
                   </div>
-                  
-                  {/* Yorum İstendi Mi */}
                   <div className="flex items-start gap-2 mt-2">
                     <span className={`text-lg ${gelin.yorumIstendiMi ? 'opacity-100' : 'opacity-30'}`}>
                       {gelin.yorumIstendiMi ? '✅' : '⬜'}
@@ -319,11 +369,10 @@ export default function GelinModal({ gelin, onClose }: { gelin: Gelin; onClose: 
                 * Bu bilgiler takvimden otomatik çekilir
               </p>
             </div>
-              );
-            })()}
 
+            {/* Gelin/Çift Notu */}
             <div className="bg-stone-50 p-3 md:p-4 rounded-lg">
-              <h4 className="font-medium text-stone-700 mb-2 text-sm md:text-base">📝 Gelin Notu</h4>
+              <h4 className="font-medium text-stone-700 mb-2 text-sm md:text-base">📝 {isMG ? 'Çift Notu' : 'Gelin Notu'}</h4>
               {gelin.gelinNotu ? (
                 <p className="text-stone-700 text-sm whitespace-pre-wrap">{gelin.gelinNotu}</p>
               ) : (
@@ -331,6 +380,7 @@ export default function GelinModal({ gelin, onClose }: { gelin: Gelin; onClose: 
               )}
             </div>
 
+            {/* Dekont */}
             {gelin.dekontGorseli && (
               <div className="bg-emerald-50 p-3 md:p-4 rounded-lg border border-emerald-100">
                 <h4 className="font-medium text-emerald-700 mb-2 text-sm md:text-base">🧾 Dekont</h4>

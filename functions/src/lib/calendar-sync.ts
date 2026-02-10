@@ -47,16 +47,32 @@ function parseDescription(description: string) {
     kinaGunu: '', telefon: '', esiTelefon: '', instagram: '', fotografci: '', modaevi: '',
     anlasildigiTarih: '', bilgilendirmeGonderildi: false, ucretYazildi: false,
     malzemeListesiGonderildi: false, paylasimIzni: false, yorumIstesinMi: '',
-    yorumIstendiMi: false, gelinNotu: '', dekontGorseli: '', ucret: 0, kapora: 0, kalan: 0
+    yorumIstendiMi: false, gelinNotu: '', dekontGorseli: '', ucret: 0, kapora: 0, kalan: 0,
+    // TCB fields
+    sacModeliBelirlendi: false, provaTermini: '', provaTarihiBelirlendi: false, etkinlikTuru: '',
+    // MG fields
+    cekimUcretiAlindi: false, fotografPaylasimIzni: false, ciftinIsiBitti: false,
+    dosyaSahipligiAktarildi: false, ekHizmetler: '', merasimTarihi: '',
+    gelinlikci: '', kuafor: ''
   };
   lines.forEach(line => {
     const lower = line.toLowerCase().trim();
     if (!result.kinaGunu && line.includes('Kına') && !line.includes(':')) result.kinaGunu = line.trim();
+    // İletişim - GYS/TCB format
     if (lower.includes('tel no:') && !lower.includes('eşi')) result.telefon = line.split(':')[1]?.trim() || '';
     if (lower.includes('eşi tel no:')) result.esiTelefon = line.split(':')[1]?.trim() || '';
+    // İletişim - MG format
+    if (lower.includes('gelin tel:')) result.telefon = line.split(':')[1]?.trim() || '';
+    if (lower.includes('damat tel:')) result.esiTelefon = line.split(':')[1]?.trim() || '';
     if (lower.includes('ig:')) result.instagram = line.split(':')[1]?.trim() || '';
     if (lower.includes('fotoğrafçı:')) result.fotografci = line.split(':')[1]?.trim() || '';
     if (lower.includes('modaevi:')) result.modaevi = line.split(':')[1]?.trim() || '';
+    // MG personel
+    if (lower.includes('gelinlikçi:')) result.gelinlikci = line.split(':')[1]?.trim() || '';
+    if (lower.includes('kuaför:')) result.kuafor = line.split(':')[1]?.trim() || '';
+    // MG merasim tarihi
+    if (lower.includes('merasim tarihi:')) result.merasimTarihi = line.split(':').slice(1).join(':').trim();
+    // Ücret - tüm firmalar
     const ucretMatch = line.match(/^anla[şs][ıi]lan\s*[üu]cret\s*:\s*(.+)/i);
     if (ucretMatch) result.ucret = ucretMatch[1].toUpperCase().includes('X') ? -1 : parseInt(ucretMatch[1].replace(/[^0-9]/g, '')) || 0;
     const kaporaMatch = line.match(/^kapora\s*:\s*(.+)/i);
@@ -67,15 +83,33 @@ function parseDescription(description: string) {
       const match = line.split(':').slice(1).join(':').trim().match(/(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})/);
       if (match) result.anlasildigiTarih = match[3]+'-'+match[2]+'-'+match[1]+'T'+match[4]+':'+match[5]+':00';
     }
+    // Checklist - GYS
     if (lower.includes('bilgilendirme metni gönderildi mi')) result.bilgilendirmeGonderildi = line.includes('✔️') || line.includes('✓');
+    if (lower.includes('müşteriye bilgilendirme metni gönderildi mi')) result.bilgilendirmeGonderildi = line.includes('✔️') || line.includes('✓');
     if (lower.includes('anlaşılan ve kalan ücret yazıldı mı')) result.ucretYazildi = line.includes('✔️') || line.includes('✓');
     if (lower.includes('malzeme listesi gönderildi mi')) result.malzemeListesiGonderildi = line.includes('✔️') || line.includes('✓');
     if (lower.includes('paylaşım izni var mı')) result.paylasimIzni = line.includes('✔️') || line.includes('✓');
+    // Checklist - TCB
+    if (lower.includes('saç modeli belirlendi mi')) result.sacModeliBelirlendi = line.includes('✔️') || line.includes('✓');
+    if (lower.includes('prova tercihi:')) result.provaTermini = line.split(':').slice(1).join(':').trim();
+    if (lower.includes('prova tarihi belirlendi mi')) result.provaTarihiBelirlendi = line.includes('✔️') || line.includes('✓');
+    // Checklist - MG
+    if (lower.includes('çekim ücreti alındı mı')) result.cekimUcretiAlindi = line.includes('✔️') || line.includes('✓');
+    if (lower.includes('fotoğraf paylaşım izni')) result.fotografPaylasimIzni = line.includes('✔️') || line.includes('✓');
+    if (lower.includes('çiftin işi bitti mi')) result.ciftinIsiBitti = line.includes('✔️') || line.includes('✓');
+    if (lower.includes('dosya sahipliği aktarıldı mı')) result.dosyaSahipligiAktarildi = line.includes('✔️') || line.includes('✓');
+    if (lower.includes('ek hizmetler:')) result.ekHizmetler = line.split(':').slice(1).join(':').trim();
+    // Ortak
     if (lower.includes('yorum istensin mi') && !lower.includes('istendi')) result.yorumIstesinMi = (line.includes('✔️') || line.includes('✓')) ? 'Evet' : '';
     if (lower.includes('yorum istendi mi')) result.yorumIstendiMi = line.includes('✔️') || line.includes('✓');
-    if (lower.includes('varsa gelin notu:')) result.gelinNotu = line.split(':').slice(1).join(':').trim();
+    if (lower.includes('varsa gelin notu:') || lower.includes('varsa çift notu:')) result.gelinNotu = line.split(':').slice(1).join(':').trim();
     if (lower.includes('dekont görseli:')) result.dekontGorseli = line.split(':').slice(1).join(':').trim();
   });
+  // TCB: ilk satır etkinlik türü olabilir (Nişan Günü, Düğün vs.)
+  const firstLine = lines[0]?.trim();
+  if (firstLine && !firstLine.includes(':') && !firstLine.includes('---') && firstLine.length < 30) {
+    result.etkinlikTuru = firstLine;
+  }
   return result;
 }
 
@@ -127,6 +161,12 @@ interface GelinData {
   malzemeListesiGonderildi: boolean; paylasimIzni: boolean; yorumIstesinMi: string;
   yorumIstendiMi: boolean; gelinNotu: string; dekontGorseli: string; updatedAt: string;
   firma: FirmaKodu;
+  // TCB fields
+  sacModeliBelirlendi: boolean; provaTermini: string; provaTarihiBelirlendi: boolean; etkinlikTuru: string;
+  // MG fields
+  cekimUcretiAlindi: boolean; fotografPaylasimIzni: boolean; ciftinIsiBitti: boolean;
+  dosyaSahipligiAktarildi: boolean; ekHizmetler: string; merasimTarihi: string;
+  gelinlikci: string; kuafor: string;
   __delete?: boolean; reason?: string;
 }
 
@@ -162,6 +202,20 @@ function eventToGelin(event: CalendarEvent, firma: FirmaKodu, kisaltmaMap: Recor
     yorumIstendiMi: parsedData.yorumIstendiMi as boolean,
     gelinNotu: parsedData.gelinNotu as string,
     dekontGorseli: parsedData.dekontGorseli as string,
+    // TCB fields
+    sacModeliBelirlendi: parsedData.sacModeliBelirlendi as boolean,
+    provaTermini: parsedData.provaTermini as string,
+    provaTarihiBelirlendi: parsedData.provaTarihiBelirlendi as boolean,
+    etkinlikTuru: parsedData.etkinlikTuru as string,
+    // MG fields
+    cekimUcretiAlindi: parsedData.cekimUcretiAlindi as boolean,
+    fotografPaylasimIzni: parsedData.fotografPaylasimIzni as boolean,
+    ciftinIsiBitti: parsedData.ciftinIsiBitti as boolean,
+    dosyaSahipligiAktarildi: parsedData.dosyaSahipligiAktarildi as boolean,
+    ekHizmetler: parsedData.ekHizmetler as string,
+    merasimTarihi: parsedData.merasimTarihi as string,
+    gelinlikci: parsedData.gelinlikci as string,
+    kuafor: parsedData.kuafor as string,
     updatedAt: new Date().toISOString(),
     firma
   };
