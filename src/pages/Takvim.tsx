@@ -20,6 +20,7 @@ interface Gelin {
   isim: string;
   tarih: string;
   saat: string;
+  bitisSaati?: string;
   ucret: number;
   kapora: number;
   kalan: number;
@@ -297,7 +298,7 @@ export default function TakvimPage() {
                               <p className="font-medium text-stone-800 text-xs">{gelin.isim}</p>
                               <div className="flex items-center gap-2 mt-0.5">
                                 <span className="text-[10px] text-stone-500">📅 {new Date(gelin.tarih).toLocaleDateString('tr-TR')}</span>
-                                <span className="text-[10px] text-stone-500">🕐 {gelin.saat}</span>
+                                <span className="text-[10px] text-stone-500">🕐 {gelin.saat}{gelin.bitisSaati ? ` - ${gelin.bitisSaati}` : ''}</span>
                               </div>
                             </div>
                             <div className="text-right">
@@ -463,7 +464,7 @@ export default function TakvimPage() {
                                     className="text-xs bg-white border border-stone-200 rounded p-1 hover:bg-primary-50 hover:border-primary-300 transition-colors cursor-pointer"
                                   >
                                     <div className="font-medium text-stone-900 truncate">{gelin.isim}</div>
-                                    <div className="text-stone-500 text-[10px]">{gelin.saat}</div>
+                                    <div className="text-stone-500 text-[10px]">{gelin.saat}{gelin.bitisSaati ? ` - ${gelin.bitisSaati}` : ''}</div>
                                     <div className="text-stone-600 text-[10px] flex items-center gap-1">
                                       <span>{getKisaltma(gelin.makyaj)}</span>
                                       {gelin.turban && gelin.turban !== gelin.makyaj && (
@@ -527,7 +528,7 @@ export default function TakvimPage() {
                       <div className="flex-1 min-w-0">
                         <div className="font-medium text-sm text-stone-900 truncate">{gelin.isim}</div>
                         <div className="text-xs text-stone-500 mt-0.5">
-                          🕐 {gelin.saat} · {getKisaltma(gelin.makyaj)}
+                          🕐 {gelin.saat}{gelin.bitisSaati ? ` - ${gelin.bitisSaati}` : ''} · {getKisaltma(gelin.makyaj)}
                           {gelin.turban && gelin.turban !== gelin.makyaj && ` & ${getKisaltma(gelin.turban)}`}
                         </div>
                       </div>
@@ -599,7 +600,7 @@ export default function TakvimPage() {
                     >
                       <div className="flex items-center justify-between mb-2">
                         <h3 className="font-semibold text-lg">{gelin.isim}</h3>
-                        <span className="text-sm text-stone-500">{gelin.saat}</span>
+                        <span className="text-sm text-stone-500">{gelin.saat}{gelin.bitisSaati ? ` - ${gelin.bitisSaati}` : ''}</span>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                         <div>

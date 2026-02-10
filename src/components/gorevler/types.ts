@@ -31,6 +31,7 @@ export interface Gorev {
     isim: string;
     tarih: string;
     saat: string;
+    bitisSaati?: string;
   };
   // Ortak görev alanları
   ortakMi?: boolean;

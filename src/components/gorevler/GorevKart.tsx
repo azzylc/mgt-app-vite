@@ -147,7 +147,7 @@ export default function GorevKart({
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium text-purple-800 truncate">{gorev.gelinBilgi.isim}</p>
                 <p className="text-[10px] text-purple-500">
-                  {new Date(gorev.gelinBilgi.tarih).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })} • {gorev.gelinBilgi.saat}
+                  {new Date(gorev.gelinBilgi.tarih).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })} • {gorev.gelinBilgi.saat}{gorev.gelinBilgi.bitisSaati ? ` - ${gorev.gelinBilgi.bitisSaati}` : ''}
                 </p>
               </div>
               <span className="text-purple-300 text-xs">→</span>

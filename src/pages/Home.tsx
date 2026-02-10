@@ -31,6 +31,7 @@ interface Gelin {
   isim: string;
   tarih: string;
   saat: string;
+  bitisSaati?: string;
   ucret: number;
   kapora: number;
   kalan: number;
@@ -128,6 +129,13 @@ export default function Home() {
   const bugun = new Date().toISOString().split("T")[0];
   const bugunDate = new Date();
 
+  // Her dakika güncelle (aktif gelin sayısı için)
+  const [minuteTick, setMinuteTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => setMinuteTick(t => t + 1), 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Date helpers
   const formatTarih = (tarih: string) => new Date(tarih).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
   const formatGun = (tarih: string) => {
@@ -191,10 +199,27 @@ export default function Home() {
     [personelDurumlar]
   );
 
-  const aktifGelinSayisi = useMemo(() => 
-    gelinler.filter(g => g.tarih >= bugun).length,
-    [gelinler, bugun]
-  );
+  const suAnAktifGelinler = useMemo(() => {
+    const simdi = new Date();
+    const simdiSaat = simdi.getHours() * 60 + simdi.getMinutes(); // dakika cinsinden
+    
+    return gelinler.filter(g => {
+      if (g.tarih !== bugun) return false;
+      if (!g.saat) return false;
+      
+      const [basH, basM] = g.saat.split(':').map(Number);
+      const baslangicDk = basH * 60 + basM;
+      
+      if (g.bitisSaati) {
+        const [bitH, bitM] = g.bitisSaati.split(':').map(Number);
+        const bitisDk = bitH * 60 + bitM;
+        return simdiSaat >= baslangicDk && simdiSaat <= bitisDk;
+      }
+      
+      // bitisSaati yoksa başlangıçtan +3 saat tahmini
+      return simdiSaat >= baslangicDk && simdiSaat <= baslangicDk + 180;
+    });
+  }, [gelinler, bugun, minuteTick]);
 
   const searchResults = useMemo(() => {
     if (!searchQuery.trim() || searchQuery.length < 2) return [];
@@ -503,7 +528,7 @@ export default function Home() {
                         className="px-3 py-2 hover:bg-stone-50 cursor-pointer border-b border-stone-50 last:border-0 transition"
                       >
                         <p className="text-xs font-medium text-stone-700">{gelin.isim}</p>
-                        <p className="text-[10px] text-stone-400 mt-0.5">{new Date(gelin.tarih).toLocaleDateString('tr-TR')} • {gelin.saat}</p>
+                        <p className="text-[10px] text-stone-400 mt-0.5">{new Date(gelin.tarih).toLocaleDateString('tr-TR')} • {gelin.saat}{gelin.bitisSaati ? ` - ${gelin.bitisSaati}` : ''}</p>
                       </div>
                     ))}
                   </div>
@@ -569,11 +594,11 @@ export default function Home() {
             />
             <MetricCard
               title="Gelin"
-              subtitle="aktif gelin"
-              value={aktifGelinSayisi}
+              subtitle="şu an stüdyoda"
+              value={suAnAktifGelinler.length}
               icon="💍"
               color="green"
-              onClick={() => setGelinListeModal({ open: true, title: "Aktif Gelinler", gelinler: gelinler.filter(g => g.tarih >= bugun) })}
+              onClick={() => suAnAktifGelinler.length > 0 && setGelinListeModal({ open: true, title: "Şu An Stüdyoda", gelinler: suAnAktifGelinler })}
             />
           </div>
 
@@ -683,7 +708,7 @@ export default function Home() {
                   >
                     <div>
                       <p className="text-sm font-medium text-stone-700">{g.isim}</p>
-                      <p className="text-[10px] text-stone-400">{g.saat} • {formatTarih(g.tarih)}</p>
+                      <p className="text-[10px] text-stone-400">{g.saat}{g.bitisSaati ? ` - ${g.bitisSaati}` : ''} • {formatTarih(g.tarih)}</p>
                     </div>
                     {g.kalan > 0 && (
                       <span className="text-xs text-red-400 font-medium">{g.kalan.toLocaleString('tr-TR')} ₺</span>
@@ -742,7 +767,7 @@ export default function Home() {
                   className="p-3 rounded-lg hover:bg-stone-50"
                 >
                   <p className="text-sm font-medium text-stone-700">{gelin.isim}</p>
-                  <p className="text-xs text-stone-400 mt-0.5">{formatTarih(gelin.tarih)} • {gelin.saat}</p>
+                  <p className="text-xs text-stone-400 mt-0.5">{formatTarih(gelin.tarih)} • {gelin.saat}{gelin.bitisSaati ? ` - ${gelin.bitisSaati}` : ''}</p>
                 </div>
               ))}
             </div>

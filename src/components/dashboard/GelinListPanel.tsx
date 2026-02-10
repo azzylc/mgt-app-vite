@@ -3,6 +3,7 @@ interface Gelin {
   isim: string;
   tarih: string;
   saat: string;
+  bitisSaati?: string;
   ucret: number;
   kapora: number;
   kalan: number;
@@ -69,15 +70,15 @@ export default function GelinListPanel({
             <p className="text-stone-400 text-xs mt-1">İş yok!</p>
           </div>
         ) : (
-          <div className="space-y-1.5 max-h-[250px] overflow-y-auto">
+          <div className="space-y-1 max-h-[250px] overflow-y-auto">
             {gelinler.map((gelin) => (
               <div 
                 key={gelin.id}
                 onClick={() => onGelinClick(gelin)}
-                className={`flex items-center justify-between py-1.5 px-2.5 rounded-lg hover:bg-rose-50/60 transition cursor-pointer group bg-stone-50/60`}
+                className="flex items-center justify-between py-1.5 px-2.5 rounded-lg hover:bg-rose-50/40 transition cursor-pointer group"
               >
                 <div className="flex items-center gap-2.5">
-                  <span className="text-[10px] text-stone-400 font-mono w-10 bg-stone-50 group-hover:bg-rose-50 px-1 py-0.5 rounded text-center transition">{gelin.saat}</span>
+                  <span className="text-[10px] text-stone-400 font-mono w-[4.5rem] bg-stone-50 group-hover:bg-rose-50 px-1 py-0.5 rounded text-center transition">{gelin.saat}{gelin.bitisSaati ? `-${gelin.bitisSaati}` : ''}</span>
                   <div>
                     <p className="text-xs text-stone-700 font-medium">{gelin.isim}</p>
                     <p className="text-[10px] text-stone-400">

@@ -18,6 +18,7 @@ interface Gelin {
   isim: string;
   tarih: string;
   saat: string;
+  bitisSaati?: string;
   ucret: number;
   kapora: number;
   kalan: number;
@@ -78,6 +79,7 @@ export default function YonetimPage() {
           isim: doc.data().isim || "",
           tarih: doc.data().tarih || "",
           saat: doc.data().saat || "",
+          bitisSaati: doc.data().bitisSaati || "",
           ucret: doc.data().ucret || 0,
           kapora: doc.data().kapora || 0,
           kalan: doc.data().kalan || 0,
@@ -107,6 +109,7 @@ export default function YonetimPage() {
         isim: doc.data().isim || "",
         tarih: doc.data().tarih || "",
         saat: doc.data().saat || "",
+        bitisSaati: doc.data().bitisSaati || "",
         ucret: doc.data().ucret || 0,
         kapora: doc.data().kapora || 0,
         kalan: doc.data().kalan || 0,
@@ -477,7 +480,7 @@ export default function YonetimPage() {
                     <div key={g.id} className="flex items-center justify-between p-3 bg-red-50 rounded-xl border border-red-100">
                       <div>
                         <p className="font-medium text-gray-800">{g.isim}</p>
-                        <p className="text-xs text-gray-500">{g.saat}</p>
+                        <p className="text-xs text-gray-500">{g.saat}{g.bitisSaati ? ` - ${g.bitisSaati}` : ''}</p>
                       </div>
                       <span className="text-lg font-bold text-red-600">
                         {Number(g.kalan || 0).toLocaleString('tr-TR')} ₺

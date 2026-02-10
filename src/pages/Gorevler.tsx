@@ -650,7 +650,7 @@ export default function GorevlerPage() {
                 durum: "bekliyor", oncelik: "acil",
                 olusturulmaTarihi: serverTimestamp(),
                 gelinId: gelin.id, otomatikMi: true, gorevTuru: "odemeTakip",
-                gelinBilgi: { isim: gelin.isim, tarih: gelin.tarih, saat: gelin.saat }
+                gelinBilgi: { isim: gelin.isim, tarih: gelin.tarih, saat: gelin.saat, bitisSaati: gelin.bitisSaati || "" }
               });
               toplamOlusturulan++;
             }
@@ -678,7 +678,7 @@ export default function GorevlerPage() {
                 durum: "bekliyor", oncelik: "yuksek",
                 olusturulmaTarihi: serverTimestamp(),
                 gelinId: gelin.id, otomatikMi: true, gorevTuru: gorevTuru,
-                gelinBilgi: { isim: gelin.isim, tarih: gelin.tarih, saat: gelin.saat }
+                gelinBilgi: { isim: gelin.isim, tarih: gelin.tarih, saat: gelin.saat, bitisSaati: gelin.bitisSaati || "" }
               });
               toplamOlusturulan++;
             }

@@ -6,6 +6,7 @@ interface Gelin {
   isim: string;
   tarih: string;
   saat: string;
+  bitisSaati?: string;
   ucret: number;
   kapora: number;
   kalan: number;
@@ -62,7 +63,7 @@ export default function GelinModal({ gelin, onClose }: { gelin: Gelin; onClose: 
             </div>
             <div>
               <p className="text-lg md:text-xl font-semibold text-stone-800">{gelin.isim}</p>
-              <p className="text-sm md:text-base text-stone-600">{formatTarih(gelin.tarih)} • {gelin.saat}</p>
+              <p className="text-sm md:text-base text-stone-600">{formatTarih(gelin.tarih)} • {gelin.saat}{gelin.bitisSaati ? ` - ${gelin.bitisSaati}` : ''}</p>
               {gelin.kinaGunu && <p className="text-xs md:text-sm text-stone-500 mt-1">Kına Günü: {gelin.kinaGunu}</p>}
             </div>
           </div>
