@@ -21,7 +21,6 @@ import PersonelDurumPanel from "../components/dashboard/PersonelDurumPanel";
 import DikkatPanel from "../components/dashboard/DikkatPanel";
 import SakinGunlerPanel from "../components/dashboard/SakinGunlerPanel";
 import GorevWidget from "../components/dashboard/GorevWidget";
-import TakvimEtkinlikWidget from "../components/dashboard/TakvimEtkinlikWidget";
 import { usePersoneller } from "../hooks/usePersoneller";
 import * as Sentry from '@sentry/react';
 import { useAuth } from "../context/RoleProvider";
@@ -32,7 +31,6 @@ interface Gelin {
   isim: string;
   tarih: string;
   saat: string;
-  bitisSaati?: string;
   ucret: number;
   kapora: number;
   kalan: number;
@@ -130,13 +128,6 @@ export default function Home() {
   const bugun = new Date().toISOString().split("T")[0];
   const bugunDate = new Date();
 
-  // Her dakika güncelle (aktif gelin sayısı için)
-  const [minuteTick, setMinuteTick] = useState(0);
-  useEffect(() => {
-    const interval = setInterval(() => setMinuteTick(t => t + 1), 60000);
-    return () => clearInterval(interval);
-  }, []);
-
   // Date helpers
   const formatTarih = (tarih: string) => new Date(tarih).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
   const formatGun = (tarih: string) => {
@@ -199,28 +190,6 @@ export default function Home() {
     personelDurumlar.filter(p => p.aktifMi),
     [personelDurumlar]
   );
-
-  const suAnAktifGelinler = useMemo(() => {
-    const simdi = new Date();
-    const simdiSaat = simdi.getHours() * 60 + simdi.getMinutes(); // dakika cinsinden
-    
-    return gelinler.filter(g => {
-      if (g.tarih !== bugun) return false;
-      if (!g.saat) return false;
-      
-      const [basH, basM] = g.saat.split(':').map(Number);
-      const baslangicDk = basH * 60 + basM;
-      
-      if (g.bitisSaati) {
-        const [bitH, bitM] = g.bitisSaati.split(':').map(Number);
-        const bitisDk = bitH * 60 + bitM;
-        return simdiSaat >= baslangicDk && simdiSaat <= bitisDk;
-      }
-      
-      // bitisSaati yoksa başlangıçtan +3 saat tahmini
-      return simdiSaat >= baslangicDk && simdiSaat <= baslangicDk + 180;
-    });
-  }, [gelinler, bugun, minuteTick]);
 
   const searchResults = useMemo(() => {
     if (!searchQuery.trim() || searchQuery.length < 2) return [];
@@ -529,7 +498,7 @@ export default function Home() {
                         className="px-3 py-2 hover:bg-stone-50 cursor-pointer border-b border-stone-50 last:border-0 transition"
                       >
                         <p className="text-xs font-medium text-stone-700">{gelin.isim}</p>
-                        <p className="text-[10px] text-stone-400 mt-0.5">{new Date(gelin.tarih).toLocaleDateString('tr-TR')} • {gelin.saat}{gelin.bitisSaati ? ` - ${gelin.bitisSaati}` : ''}</p>
+                        <p className="text-[10px] text-stone-400 mt-0.5">{new Date(gelin.tarih).toLocaleDateString('tr-TR')} • {gelin.saat}</p>
                       </div>
                     ))}
                   </div>
@@ -559,7 +528,7 @@ export default function Home() {
         <div className="max-w-[1400px] mx-auto space-y-3">
           
           {/* Row 1: Metric Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
             <MetricCard
               title={gelinGunSecim === 'bugun' ? "Bugün" : "Yarın"}
               value={gelinGunSecim === 'bugun' ? bugunGelinler.length : yarinGelinler.length}
@@ -587,24 +556,16 @@ export default function Home() {
               onClick={() => setGelinListeModal({ open: true, title: `${["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"][bugunDate.getMonth()]} Gelinleri`, gelinler: buAyGelinler })}
             />
             <MetricCard
-              title="Çalışan"
-              subtitle="aktif personel"
+              title="Aktif"
               value={suAnCalisanlar.length}
-              icon="👤"
+              icon="🟢"
               color="green"
-            />
-            <MetricCard
-              title="Gelin"
-              subtitle="şu an stüdyoda"
-              value={suAnAktifGelinler.length}
-              icon="💍"
-              color="green"
-              onClick={() => suAnAktifGelinler.length > 0 && setGelinListeModal({ open: true, title: "Şu An Stüdyoda", gelinler: suAnAktifGelinler })}
             />
           </div>
 
-          {/* Row 2: Duyurular + Görevler + Yaklaşan Etkinlikler */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+          {/* Row 2: Duyurular + Görevler (50/50) */}
+          {(duyurular.length > 0 || gorevSayisi > 0) && (
+            <div className={`grid grid-cols-1 ${duyurular.length > 0 && gorevSayisi > 0 ? 'md:grid-cols-2' : ''} gap-2.5`}>
               {/* Duyurular */}
               {duyurular.length > 0 && (
                 <div className="bg-white rounded-xl border border-stone-100 overflow-hidden">
@@ -643,10 +604,8 @@ export default function Home() {
 
               {/* Görev Widget */}
               <GorevWidget onCount={setGorevSayisi} />
-
-              {/* Yaklaşan Etkinlikler */}
-              <TakvimEtkinlikWidget personeller={personeller} />
             </div>
+          )}
 
           {/* Row 2b: Dikkat Paneli */}
           <DikkatPanel
@@ -690,7 +649,14 @@ export default function Home() {
         <GelinModal gelin={selectedGelin} onClose={() => setSelectedGelin(null)} />
       )}
 
-      {gelinListeModal.open && (
+      {gelinListeModal.open && (() => {
+        const dayColors = ['bg-stone-50', 'bg-white', 'bg-amber-50/40', 'bg-stone-50', 'bg-sky-50/30', 'bg-white', 'bg-rose-50/30'];
+        const grouped = gelinListeModal.gelinler.reduce<Record<string, Gelin[]>>((acc, g) => {
+          (acc[g.tarih] = acc[g.tarih] || []).push(g);
+          return acc;
+        }, {});
+        const sortedDays = Object.keys(grouped).sort();
+        return (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={() => setGelinListeModal({ open: false, title: "", gelinler: [] })}>
           <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="p-5">
@@ -698,30 +664,44 @@ export default function Home() {
                 <h3 className="text-base font-bold text-stone-800">{gelinListeModal.title}</h3>
                 <button onClick={() => setGelinListeModal({ open: false, title: "", gelinler: [] })} className="text-stone-300 hover:text-stone-500 text-xl">×</button>
               </div>
-              <div className="space-y-1.5">
-                {gelinListeModal.gelinler.map((g) => (
-                  <div
-                    key={g.id}
-                    onClick={() => {
-                      setSelectedGelin(g);
-                      setGelinListeModal({ open: false, title: "", gelinler: [] });
-                    }}
-                    className="flex items-center justify-between p-2.5 rounded-lg hover:bg-stone-50 transition cursor-pointer"
-                  >
-                    <div>
-                      <p className="text-sm font-medium text-stone-700">{g.isim}</p>
-                      <p className="text-[10px] text-stone-400">{g.saat}{g.bitisSaati ? ` - ${g.bitisSaati}` : ''} • {formatTarih(g.tarih)}</p>
+              <div className="space-y-3">
+                {sortedDays.map((tarih, dayIdx) => {
+                  const d = new Date(tarih);
+                  const gunAdi = d.toLocaleDateString('tr-TR', { weekday: 'long' });
+                  const tarihStr = d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' });
+                  const bgColor = dayColors[dayIdx % dayColors.length];
+                  return (
+                    <div key={tarih} className={`${bgColor} rounded-xl p-3`}>
+                      <p className="text-xs font-semibold text-stone-500 mb-2 uppercase tracking-wide">{tarihStr} {gunAdi}</p>
+                      <div className="space-y-1">
+                        {grouped[tarih].map((g) => (
+                          <div
+                            key={g.id}
+                            onClick={() => {
+                              setSelectedGelin(g);
+                              setGelinListeModal({ open: false, title: "", gelinler: [] });
+                            }}
+                            className="flex items-center justify-between p-2.5 rounded-lg hover:bg-white/70 transition cursor-pointer"
+                          >
+                            <div>
+                              <p className="text-sm font-medium text-stone-700">{g.isim}</p>
+                              <p className="text-[10px] text-stone-400">{g.saat}{g.bitisSaati ? ` - ${g.bitisSaati}` : ''}</p>
+                            </div>
+                            {g.kalan > 0 && (
+                              <span className="text-xs text-red-400 font-medium">{g.kalan.toLocaleString('tr-TR')} ₺</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    {g.kalan > 0 && (
-                      <span className="text-xs text-red-400 font-medium">{g.kalan.toLocaleString('tr-TR')} ₺</span>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {selectedDuyuru && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={() => setSelectedDuyuru(null)}>
@@ -769,7 +749,7 @@ export default function Home() {
                   className="p-3 rounded-lg hover:bg-stone-50"
                 >
                   <p className="text-sm font-medium text-stone-700">{gelin.isim}</p>
-                  <p className="text-xs text-stone-400 mt-0.5">{formatTarih(gelin.tarih)} • {gelin.saat}{gelin.bitisSaati ? ` - ${gelin.bitisSaati}` : ''}</p>
+                  <p className="text-xs text-stone-400 mt-0.5">{formatTarih(gelin.tarih)} • {gelin.saat}</p>
                 </div>
               ))}
             </div>
