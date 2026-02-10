@@ -26,6 +26,11 @@ export default function IzinEkle() {
   const [bitis, setBitis] = useState("");
   const [aciklama, setAciklama] = useState("");
 
+  // Yıllık izin ön koşulları
+  const [whatsappOnay, setWhatsappOnay] = useState(false);
+  const [dilekceOnay, setDilekceOnay] = useState(false);
+  const yillikIzinKosullariTamam = izinTuru !== "Yıllık İzin" || (whatsappOnay && dilekceOnay);
+
   // Enter ile kaydet (textarea hariç)
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && e.target instanceof HTMLInputElement) {
@@ -98,6 +103,10 @@ export default function IzinEkle() {
     }
     if (new Date(bitis) < new Date(baslangic)) {
       alert("Bitiş tarihi başlangıç tarihinden önce olamaz.");
+      return;
+    }
+    if (izinTuru === "Yıllık İzin" && (!whatsappOnay || !dilekceOnay)) {
+      alert("Yıllık izin için ön koşulları sağlamanız gerekmektedir.");
       return;
     }
 
@@ -199,6 +208,8 @@ export default function IzinEkle() {
         setBaslangic("");
         setBitis("");
         setAciklama("");
+        setWhatsappOnay(false);
+        setDilekceOnay(false);
         alert("İzin başarıyla eklendi. Yeni kayıt girebilirsiniz.");
       }
     } catch (error) {
@@ -225,7 +236,7 @@ export default function IzinEkle() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => handleSave("back")}
-              disabled={saving}
+              disabled={saving || !yillikIzinKosullariTamam}
               className="px-4 py-2 bg-primary-500 text-white rounded-lg text-sm font-medium hover:bg-primary-600 transition-colors flex items-center gap-2 disabled:opacity-50"
             >
               <span>💾</span>
@@ -233,7 +244,7 @@ export default function IzinEkle() {
             </button>
             <button
               onClick={() => handleSave("new")}
-              disabled={saving}
+              disabled={saving || !yillikIzinKosullariTamam}
               className="px-4 py-2 bg-primary-500 text-white rounded-lg text-sm font-medium hover:bg-primary-600 transition-colors flex items-center gap-2 disabled:opacity-50"
             >
               <span>+</span>
@@ -288,7 +299,11 @@ export default function IzinEkle() {
               </label>
               <select
                 value={izinTuru}
-                onChange={(e) => setIzinTuru(e.target.value)}
+                onChange={(e) => {
+                  setIzinTuru(e.target.value);
+                  setWhatsappOnay(false);
+                  setDilekceOnay(false);
+                }}
                 className="w-full max-w-md px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
               >
                 <option value="Yıllık İzin">Yıllık İzin</option>
@@ -337,6 +352,55 @@ export default function IzinEkle() {
               </div>
             )}
 
+            {/* Yıllık İzin Ön Koşulları */}
+            {izinTuru === "Yıllık İzin" && (
+              <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-start gap-4">
+                <label className="text-sm font-medium text-stone-700 pt-1">
+                  Ön Koşullar <span className="text-red-500">(*)</span>
+                </label>
+                <div className="bg-amber-50/60 border border-amber-200/60 rounded-xl p-4 max-w-lg">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-amber-500 text-sm">⚠️</span>
+                    <p className="text-xs font-semibold text-amber-700">Yıllık izin talebinde bulunabilmek için aşağıdaki koşulların sağlanması zorunludur.</p>
+                  </div>
+                  <div className="space-y-3">
+                    <label className="flex items-start gap-3 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={whatsappOnay}
+                        onChange={(e) => setWhatsappOnay(e.target.checked)}
+                        className="mt-0.5 w-4 h-4 text-primary-500 rounded border-stone-300 focus:ring-primary-500 shrink-0"
+                      />
+                      <span className={`text-sm leading-snug transition-colors ${whatsappOnay ? 'text-stone-800' : 'text-stone-500 group-hover:text-stone-700'}`}>
+                        Yöneticimden <strong>WhatsApp üzerinden</strong> izin için uygunluk onayı aldım.
+                      </span>
+                    </label>
+                    <label className="flex items-start gap-3 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={dilekceOnay}
+                        onChange={(e) => setDilekceOnay(e.target.checked)}
+                        className="mt-0.5 w-4 h-4 text-primary-500 rounded border-stone-300 focus:ring-primary-500 shrink-0"
+                      />
+                      <span className={`text-sm leading-snug transition-colors ${dilekceOnay ? 'text-stone-800' : 'text-stone-500 group-hover:text-stone-700'}`}>
+                        Yıllık izin dilekçesini doldurdum ve <strong>Aziz Erkan Yolcu</strong>'ya teslim ettim.
+                      </span>
+                    </label>
+                  </div>
+                  {(!whatsappOnay || !dilekceOnay) && (
+                    <p className="mt-3 pt-3 border-t border-amber-200/40 text-[11px] text-amber-600/80">
+                      🔒 Her iki koşul da sağlanmadan izin kaydedilemez.
+                    </p>
+                  )}
+                  {whatsappOnay && dilekceOnay && (
+                    <p className="mt-3 pt-3 border-t border-green-200/40 text-[11px] text-green-600">
+                      ✅ Tüm koşullar sağlandı. İzin kaydedilebilir.
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Kısa Açıklama */}
             <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-start gap-4">
               <label className="text-sm font-medium text-stone-700 pt-2">
@@ -357,7 +421,7 @@ export default function IzinEkle() {
         <div className="mt-6 flex items-center justify-end gap-2">
           <button
             onClick={() => handleSave("back")}
-            disabled={saving}
+            disabled={saving || !yillikIzinKosullariTamam}
             className="px-4 py-2 bg-primary-500 text-white rounded-lg text-sm font-medium hover:bg-primary-600 transition-colors flex items-center gap-2 disabled:opacity-50"
           >
             <span>💾</span>
@@ -365,7 +429,7 @@ export default function IzinEkle() {
           </button>
           <button
             onClick={() => handleSave("new")}
-            disabled={saving}
+            disabled={saving || !yillikIzinKosullariTamam}
             className="px-4 py-2 bg-primary-500 text-white rounded-lg text-sm font-medium hover:bg-primary-600 transition-colors flex items-center gap-2 disabled:opacity-50"
           >
             <span>+</span>
