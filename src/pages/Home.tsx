@@ -191,6 +191,24 @@ export default function Home() {
     [personelDurumlar]
   );
 
+  const aktifGelinler = useMemo(() => {
+    const simdi = new Date();
+    const simdikiDakika = simdi.getHours() * 60 + simdi.getMinutes();
+    return bugunGelinler.filter(g => {
+      if (!g.saat) return false;
+      const [s, d] = g.saat.split(':').map(Number);
+      const baslangic = s * 60 + (d || 0);
+      let bitis: number;
+      if (g.bitisSaati) {
+        const [bs, bd] = g.bitisSaati.split(':').map(Number);
+        bitis = bs * 60 + (bd || 0);
+      } else {
+        bitis = baslangic + 120; // +2 saat varsayılan
+      }
+      return simdikiDakika >= baslangic && simdikiDakika <= bitis;
+    });
+  }, [bugunGelinler]);
+
   const searchResults = useMemo(() => {
     if (!searchQuery.trim() || searchQuery.length < 2) return [];
     const q = searchQuery.toLowerCase().trim();
@@ -528,17 +546,19 @@ export default function Home() {
         <div className="max-w-[1400px] mx-auto space-y-3">
           
           {/* Row 1: Metric Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5">
             <MetricCard
-              title={gelinGunSecim === 'bugun' ? "Bugün" : "Yarın"}
-              value={gelinGunSecim === 'bugun' ? bugunGelinler.length : yarinGelinler.length}
-              icon="💄"
+              title="Aktif Gelin"
+              value={aktifGelinler.length}
+              icon="💍"
               color="pink"
-              onClick={() => setGelinListeModal({ 
-                open: true, 
-                title: gelinGunSecim === 'bugun' ? "Bugünkü Gelinler" : "Yarının Gelinler", 
-                gelinler: gelinGunSecim === 'bugun' ? bugunGelinler : yarinGelinler 
-              })}
+              onClick={aktifGelinler.length > 0 ? () => setGelinListeModal({ open: true, title: "Şu An Aktif Gelinler", gelinler: aktifGelinler }) : undefined}
+            />
+            <MetricCard
+              title="Aktif Çalışan"
+              value={suAnCalisanlar.length}
+              icon="🟢"
+              color="green"
             />
             <MetricCard
               title="Bu Hafta"
@@ -556,10 +576,15 @@ export default function Home() {
               onClick={() => setGelinListeModal({ open: true, title: `${["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"][bugunDate.getMonth()]} Gelinleri`, gelinler: buAyGelinler })}
             />
             <MetricCard
-              title="Aktif"
-              value={suAnCalisanlar.length}
-              icon="🟢"
-              color="green"
+              title={gelinGunSecim === 'bugun' ? "Bugün" : "Yarın"}
+              value={gelinGunSecim === 'bugun' ? bugunGelinler.length : yarinGelinler.length}
+              icon="💄"
+              color="pink"
+              onClick={() => setGelinListeModal({ 
+                open: true, 
+                title: gelinGunSecim === 'bugun' ? "Bugünkü Gelinler" : "Yarının Gelinler", 
+                gelinler: gelinGunSecim === 'bugun' ? bugunGelinler : yarinGelinler 
+              })}
             />
           </div>
 
