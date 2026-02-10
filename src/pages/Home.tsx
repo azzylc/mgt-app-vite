@@ -563,9 +563,14 @@ export default function Home() {
             />
           </div>
 
-          {/* Row 2: Duyurular + Görevler (50/50) */}
-          {(duyurular.length > 0 || gorevSayisi > 0) && (
-            <div className={`grid grid-cols-1 ${duyurular.length > 0 && gorevSayisi > 0 ? 'md:grid-cols-2' : ''} gap-2.5`}>
+          {/* Row 2: Duyurular + Görevler + Dikkat (aynı satır) */}
+          <div className={`grid grid-cols-1 ${
+            [duyurular.length > 0, true, toplamDikkat > 0].filter(Boolean).length >= 3
+              ? 'md:grid-cols-2 lg:grid-cols-3'
+              : [duyurular.length > 0, true, toplamDikkat > 0].filter(Boolean).length >= 2
+                ? 'md:grid-cols-2'
+                : ''
+          } gap-2.5`}>
               {/* Duyurular */}
               {duyurular.length > 0 && (
                 <div className="bg-white rounded-xl border border-stone-100 overflow-hidden">
@@ -604,19 +609,18 @@ export default function Home() {
 
               {/* Görev Widget */}
               <GorevWidget onCount={setGorevSayisi} />
-            </div>
-          )}
 
-          {/* Row 2b: Dikkat Paneli */}
-          <DikkatPanel
-            islenmemisUcretler={islenmemisUcretler}
-            eksikIzinler={eksikIzinler}
-            onGelinClick={(g) => setSelectedGelin(g)}
-            onIzinEkle={handleIzinEkle}
-            onTumIzinleriEkle={handleTumIzinleriEkle}
-            izinEkleniyor={izinEkleniyor}
-            onIslenmemisUcretlerClick={() => navigate("/takvim")}
-          />
+              {/* Dikkat Paneli */}
+              <DikkatPanel
+                islenmemisUcretler={islenmemisUcretler}
+                eksikIzinler={eksikIzinler}
+                onGelinClick={(g) => setSelectedGelin(g)}
+                onIzinEkle={handleIzinEkle}
+                onTumIzinleriEkle={handleTumIzinleriEkle}
+                izinEkleniyor={izinEkleniyor}
+                onIslenmemisUcretlerClick={() => navigate("/takvim")}
+              />
+          </div>
 
           {/* Row 3: Operasyonel Paneller */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-2.5">
@@ -673,7 +677,7 @@ export default function Home() {
                   return (
                     <div key={tarih} className={`${bgColor} rounded-xl p-3`}>
                       <p className="text-xs font-semibold text-stone-500 mb-2 uppercase tracking-wide">{tarihStr} {gunAdi}</p>
-                      <div className="space-y-1">
+                      <div className="space-y-1.5 divide-y divide-stone-100/60">
                         {grouped[tarih].map((g) => (
                           <div
                             key={g.id}
@@ -681,7 +685,7 @@ export default function Home() {
                               setSelectedGelin(g);
                               setGelinListeModal({ open: false, title: "", gelinler: [] });
                             }}
-                            className="flex items-center justify-between p-2.5 rounded-lg hover:bg-white/70 transition cursor-pointer"
+                            className="flex items-center justify-between p-2.5 pt-3 rounded-lg hover:bg-white/70 transition cursor-pointer"
                           >
                             <div>
                               <p className="text-sm font-medium text-stone-700">{g.isim}</p>
