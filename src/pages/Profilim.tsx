@@ -146,7 +146,7 @@ export default function Profilim() {
           bildirimYazCoklu(alicilar, {
             baslik: "Profil Değişiklik Talebi",
             mesaj: `${profil?.ad} ${profil?.soyad} profil bilgilerinde değişiklik talep etti`,
-            tip: "sistem", route: "/profilim-talepler",
+            tip: "sistem", route: "/talepler-merkezi",
             gonderen: user?.email || "", gonderenAd: `${profil?.ad} ${profil?.soyad}`,
           });
         }

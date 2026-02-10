@@ -68,9 +68,10 @@ const RaporlarGirisCikisKayitlari = lazyWithRetry(() => import('./pages/raporlar
 const Yonetim = lazyWithRetry(() => import('./pages/Yonetim'))
 const YonetimCompare = lazyWithRetry(() => import('./pages/yonetim/Compare'))
 
-// Profil
+// Profil & Talepler
 const Profilim = lazyWithRetry(() => import('./pages/Profilim'))
-const ProfilimTalepler = lazyWithRetry(() => import('./pages/ProfilimTalepler'))
+const Taleplerim = lazyWithRetry(() => import('./pages/Taleplerim'))
+const TaleplerMerkezi = lazyWithRetry(() => import('./pages/TaleplerMerkezi'))
 
 // Sayfa yüklenirken gösterilecek loading spinner
 function PageLoader() {
@@ -98,7 +99,8 @@ export default function App() {
               <Route element={<AuthLayout />}>
                 <Route path="/" element={<Home />} />
                 <Route path="/profilim" element={<Suspense fallback={<PageLoader />}><Profilim /></Suspense>} />
-                <Route path="/profilim-talepler" element={<Suspense fallback={<PageLoader />}><ProfilimTalepler /></Suspense>} />
+                <Route path="/taleplerim" element={<Suspense fallback={<PageLoader />}><Taleplerim /></Suspense>} />
+                <Route path="/talepler-merkezi" element={<Suspense fallback={<PageLoader />}><TaleplerMerkezi /></Suspense>} />
                 
                 {/* Ana sayfalar */}
                 <Route path="/takvim" element={<RouteGuard requiredPermission="takvim"><Takvim /></RouteGuard>} />
