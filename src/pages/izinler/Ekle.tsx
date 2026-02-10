@@ -88,7 +88,7 @@ export default function IzinEkle() {
       const p = personeller.find(p => p.id === selectedPersonel);
       const tarih = new Date().toISOString().split("T")[0];
       const ext = mime === "application/pdf" ? "pdf" : "jpg";
-      const fileName = `rapor_${p?.ad || "personel"}_${p?.soyad || ""}_${tarih}.${ext}`;
+      const fileName = `${tarih}-rapor_${p?.ad || "personel"}_${p?.soyad || ""}.${ext}`;
 
       const uploadFn = httpsCallable(functions, "uploadToDrive");
       const result = await uploadFn({ base64Data: base64, mimeType: mime, fileName, folderKey: "raporlar" });

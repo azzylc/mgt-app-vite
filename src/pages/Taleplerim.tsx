@@ -157,7 +157,7 @@ export default function Taleplerim() {
       const soyad = personelData?.soyad || "";
       const tarih = new Date().toISOString().split("T")[0];
       const ext = mime === "application/pdf" ? "pdf" : "jpg";
-      const fileName = `rapor_${ad}_${soyad}_${tarih}.${ext}`;
+      const fileName = `${tarih}-rapor_${ad}_${soyad}.${ext}`;
 
       const result = await uploadFn({ base64Data: base64, mimeType: mime, fileName, folderKey: "raporlar" });
       const data = result.data as { success: boolean; fileId: string; webViewLink: string; thumbnailLink: string };
