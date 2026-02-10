@@ -53,6 +53,8 @@ interface IzinTalebi {
   aciklama?: string;
   durum: string;
   talepTarihi: string;
+  whatsappOnayVerildi?: boolean;
+  dilekceVerildi?: boolean;
 }
 
 export default function TaleplerMerkezi() {
@@ -66,6 +68,7 @@ export default function TaleplerMerkezi() {
   const [oneriTalepleri, setOneriTalepleri] = useState<OneriTalebi[]>([]);
   const [avansTalepleri, setAvansTalepleri] = useState<AvansTalebi[]>([]);
   const [izinTalepleri, setIzinTalepleri] = useState<IzinTalebi[]>([]);
+  const [kurucuTeyit, setKurucuTeyit] = useState<Record<string, { wa: boolean; dilekce: boolean }>>({});
 
   const isKurucu = personelData?.kullaniciTuru === "Kurucu";
   const kurucuAd = personelData ? `${personelData.ad} ${personelData.soyad}` : "Kurucu";
@@ -106,6 +109,7 @@ export default function TaleplerMerkezi() {
         durum: "Onaylandı",
         onaylayanYonetici: user?.email?.split("@")[0] || "",
         onayTarihi: new Date().toISOString(),
+        ...(talep.izinTuru === "Yıllık İzin" && { kurucuWaTeyit: true, kurucuDilekceTeyit: true }),
       });
       // İzin kaydı oluştur
       await addDoc(collection(db, "izinler"), {
@@ -332,11 +336,49 @@ export default function TaleplerMerkezi() {
                 <p className="text-xs text-stone-500 mt-0.5">{formatDate(t.baslangic)} — {formatDate(t.bitis)}</p>
                 {t.aciklama && <p className="text-[10px] text-stone-500 mt-1 pt-1 border-t border-stone-200/50">{t.aciklama}</p>}
               </div>
+              {/* Yıllık İzin: Personel Beyanları */}
+              {t.izinTuru === "Yıllık İzin" && (t.whatsappOnayVerildi || t.dilekceVerildi) && (
+                <div className="bg-blue-50/50 border border-blue-100/60 rounded-lg px-3 py-2 mt-2">
+                  <p className="text-[10px] font-semibold text-blue-600 mb-1.5">📋 Personel Beyanı</p>
+                  <div className="flex flex-wrap gap-2">
+                    {t.whatsappOnayVerildi && (
+                      <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">✅ WA Onay Aldım</span>
+                    )}
+                    {t.dilekceVerildi && (
+                      <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">✅ Dilekçe Teslim Ettim</span>
+                    )}
+                  </div>
+                </div>
+              )}
+              {/* Yıllık İzin: Kurucu Teyit Paneli */}
+              {t.izinTuru === "Yıllık İzin" && isBekliyor(t.durum) && (
+                <div className="bg-amber-50/60 border border-amber-200/60 rounded-lg px-3 py-2.5 mt-2">
+                  <p className="text-[10px] font-semibold text-amber-700 mb-2">⚠️ Onaylamadan önce teyit edin</p>
+                  <div className="space-y-2">
+                    <label className="flex items-start gap-2 cursor-pointer group">
+                      <input type="checkbox" checked={kurucuTeyit[t.id]?.wa || false}
+                        onChange={(e) => setKurucuTeyit(prev => ({ ...prev, [t.id]: { ...prev[t.id], wa: e.target.checked, dilekce: prev[t.id]?.dilekce || false } }))}
+                        className="mt-0.5 w-3.5 h-3.5 text-amber-500 rounded border-stone-300 focus:ring-amber-400 shrink-0" />
+                      <span className={`text-[11px] leading-snug ${kurucuTeyit[t.id]?.wa ? 'text-stone-800' : 'text-stone-500'}`}>
+                        WhatsApp üzerinden uygunluk onayı verildiğini teyit ediyorum.
+                      </span>
+                    </label>
+                    <label className="flex items-start gap-2 cursor-pointer group">
+                      <input type="checkbox" checked={kurucuTeyit[t.id]?.dilekce || false}
+                        onChange={(e) => setKurucuTeyit(prev => ({ ...prev, [t.id]: { wa: prev[t.id]?.wa || false, dilekce: e.target.checked } }))}
+                        className="mt-0.5 w-3.5 h-3.5 text-amber-500 rounded border-stone-300 focus:ring-amber-400 shrink-0" />
+                      <span className={`text-[11px] leading-snug ${kurucuTeyit[t.id]?.dilekce ? 'text-stone-800' : 'text-stone-500'}`}>
+                        Yıllık izin dilekçesi masama ulaştı, teyit ediyorum.
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              )}
               {isBekliyor(t.durum) && (
                 <div className="flex gap-2 mt-3 pt-3 border-t border-stone-100">
-                  <button onClick={() => handleIzinOnayla(t)} disabled={islemYapilan === t.id}
-                    className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-1.5 rounded-lg text-xs font-medium transition disabled:opacity-50">
-                    {islemYapilan === t.id ? "..." : "Onayla"}
+                  <button onClick={() => handleIzinOnayla(t)} disabled={islemYapilan === t.id || (t.izinTuru === "Yıllık İzin" && (!kurucuTeyit[t.id]?.wa || !kurucuTeyit[t.id]?.dilekce))}
+                    className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-1.5 rounded-lg text-xs font-medium transition disabled:opacity-50 disabled:cursor-not-allowed">
+                    {islemYapilan === t.id ? "..." : t.izinTuru === "Yıllık İzin" && (!kurucuTeyit[t.id]?.wa || !kurucuTeyit[t.id]?.dilekce) ? "🔒 Önce teyit edin" : "Onayla"}
                   </button>
                   <button onClick={() => handleIzinReddet(t)} disabled={islemYapilan === t.id}
                     className="flex-1 bg-red-500 hover:bg-red-600 text-white py-1.5 rounded-lg text-xs font-medium transition disabled:opacity-50">

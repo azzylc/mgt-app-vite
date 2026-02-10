@@ -82,6 +82,11 @@ export default function Taleplerim() {
   const [izinAciklama, setIzinAciklama] = useState("");
   const [personelDocId, setPersonelDocId] = useState<string | null>(null);
 
+  // Yıllık izin ön koşulları
+  const [whatsappOnay, setWhatsappOnay] = useState(false);
+  const [dilekceOnay, setDilekceOnay] = useState(false);
+  const yillikIzinKosullariTamam = izinTuru !== "Yıllık İzin" || (whatsappOnay && dilekceOnay);
+
   const [gonderiliyor, setGonderiliyor] = useState(false);
 
   const fullName = personelData ? `${personelData.ad} ${personelData.soyad}` : "";
@@ -211,6 +216,7 @@ export default function Taleplerim() {
     if (!izinTuru) { alert("İzin türü seçin!"); return; }
     if (!izinBaslangic || !izinBitis) { alert("Tarih aralığı seçin!"); return; }
     if (new Date(izinBitis) < new Date(izinBaslangic)) { alert("Bitiş tarihi başlangıçtan önce olamaz!"); return; }
+    if (izinTuru === "Yıllık İzin" && (!whatsappOnay || !dilekceOnay)) { alert("Yıllık izin için ön koşulları sağlamanız gerekmektedir."); return; }
     if (!personelDocId) { alert("Personel bilgisi bulunamadı!"); return; }
     const gunSayisi = gunFarkiHesapla(izinBaslangic, izinBitis);
     setGonderiliyor(true);
@@ -224,9 +230,11 @@ export default function Taleplerim() {
         aciklama: izinAciklama.trim(),
         talepTarihi: new Date().toISOString(),
         durum: "Beklemede",
+        ...(izinTuru === "Yıllık İzin" && { whatsappOnayVerildi: true, dilekceVerildi: true }),
       });
       await bildirimKurucuya("İzin Talebi", `${fullName} ${gunSayisi} günlük ${izinTuru} talep etti`);
       setIzinTuru(""); setIzinBaslangic(""); setIzinBitis(""); setIzinAciklama("");
+      setWhatsappOnay(false); setDilekceOnay(false);
       alert("İzin talebi gönderildi!");
     } catch (err) { Sentry.captureException(err); alert("Gönderilemedi!"); }
     finally { setGonderiliyor(false); }
@@ -296,7 +304,7 @@ export default function Taleplerim() {
           <>
             <div className="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-5 space-y-3">
               <h3 className="text-sm font-semibold text-stone-800">Yeni İzin Talebi</h3>
-              <select value={izinTuru} onChange={(e) => setIzinTuru(e.target.value)}
+              <select value={izinTuru} onChange={(e) => { setIzinTuru(e.target.value); setWhatsappOnay(false); setDilekceOnay(false); }}
                 className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm bg-stone-50/50 focus:outline-none focus:ring-2 focus:ring-amber-400">
                 <option value="">İzin türü seçin...</option>
                 {izinTurleri.map(t => <option key={t} value={t}>{t}</option>)}
@@ -321,7 +329,42 @@ export default function Taleplerim() {
               )}
               <textarea placeholder="Açıklama (opsiyonel)..." value={izinAciklama} onChange={(e) => setIzinAciklama(e.target.value)}
                 rows={2} className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm bg-stone-50/50 focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none" />
-              <button onClick={handleIzinGonder} disabled={gonderiliyor}
+              {/* Yıllık İzin Ön Koşulları */}
+              {izinTuru === "Yıllık İzin" && (
+                <div className="bg-amber-50/60 border border-amber-200/60 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-amber-500 text-sm">⚠️</span>
+                    <p className="text-xs font-semibold text-amber-700">Yıllık izin talebinde bulunabilmek için aşağıdaki koşulların sağlanması zorunludur.</p>
+                  </div>
+                  <div className="space-y-3">
+                    <label className="flex items-start gap-3 cursor-pointer group">
+                      <input type="checkbox" checked={whatsappOnay} onChange={(e) => setWhatsappOnay(e.target.checked)}
+                        className="mt-0.5 w-4 h-4 text-amber-500 rounded border-stone-300 focus:ring-amber-400 shrink-0" />
+                      <span className={`text-sm leading-snug transition-colors ${whatsappOnay ? 'text-stone-800' : 'text-stone-500 group-hover:text-stone-700'}`}>
+                        Yöneticimden <strong>WhatsApp üzerinden</strong> izin için uygunluk onayı aldım.
+                      </span>
+                    </label>
+                    <label className="flex items-start gap-3 cursor-pointer group">
+                      <input type="checkbox" checked={dilekceOnay} onChange={(e) => setDilekceOnay(e.target.checked)}
+                        className="mt-0.5 w-4 h-4 text-amber-500 rounded border-stone-300 focus:ring-amber-400 shrink-0" />
+                      <span className={`text-sm leading-snug transition-colors ${dilekceOnay ? 'text-stone-800' : 'text-stone-500 group-hover:text-stone-700'}`}>
+                        Yıllık izin dilekçesini doldurdum ve <strong>Aziz Erkan Yolcu</strong>'ya teslim ettim.
+                      </span>
+                    </label>
+                  </div>
+                  {(!whatsappOnay || !dilekceOnay) && (
+                    <p className="mt-3 pt-3 border-t border-amber-200/40 text-[11px] text-amber-600/80">
+                      🔒 Her iki koşul da sağlanmadan izin talebi gönderilemez.
+                    </p>
+                  )}
+                  {whatsappOnay && dilekceOnay && (
+                    <p className="mt-3 pt-3 border-t border-green-200/40 text-[11px] text-green-600">
+                      ✅ Tüm koşullar sağlandı. Talep gönderilebilir.
+                    </p>
+                  )}
+                </div>
+              )}
+              <button onClick={handleIzinGonder} disabled={gonderiliyor || !yillikIzinKosullariTamam}
                 className="w-full bg-stone-900 hover:bg-stone-800 text-white py-2.5 rounded-xl text-sm font-medium transition disabled:opacity-50">
                 {gonderiliyor ? "Gönderiliyor..." : "Gönder"}
               </button>
