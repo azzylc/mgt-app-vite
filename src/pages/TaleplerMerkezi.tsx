@@ -57,7 +57,7 @@ interface IzinTalebi {
   dilekceVerildi?: boolean;
   raporDriveUrl?: string;
   raporDriveFileId?: string;
-  raporMasayaBirakildi?: boolean;
+  raporTeslimKisi?: string;
 }
 
 export default function TaleplerMerkezi() {
@@ -379,7 +379,7 @@ export default function TaleplerMerkezi() {
                 </div>
               )}
               {/* Raporlu İzin: Personel Beyanları */}
-              {t.izinTuru === "Raporlu" && (t.raporDriveUrl || t.raporMasayaBirakildi) && (
+              {t.izinTuru === "Raporlu" && (t.raporDriveUrl || t.raporTeslimKisi) && (
                 <div className="bg-blue-50/50 border border-blue-100/60 rounded-lg px-3 py-2 mt-2">
                   <p className="text-[10px] font-semibold text-blue-600 mb-1.5">🏥 Personel Beyanı</p>
                   <div className="flex flex-wrap gap-2">
@@ -389,8 +389,8 @@ export default function TaleplerMerkezi() {
                         📄 Rapor Yüklendi — Görüntüle ↗
                       </a>
                     )}
-                    {t.raporMasayaBirakildi && (
-                      <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">📋 Masaya Bıraktım</span>
+                    {t.raporTeslimKisi && (
+                      <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">📋 {t.raporTeslimKisi} masasına bıraktım</span>
                     )}
                   </div>
                   {t.raporDriveUrl && t.raporDriveFileId && (

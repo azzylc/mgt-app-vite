@@ -95,10 +95,11 @@ export default function Taleplerim() {
   const [raporDosyaMime, setRaporDosyaMime] = useState<string>("");
   const [raporDriveUrl, setRaporDriveUrl] = useState<string | null>(null);
   const [raporDriveFileId, setRaporDriveFileId] = useState<string | null>(null);
-  const [raporMasayaBirakildi, setRaporMasayaBirakildi] = useState(false);
+  const [raporTeslimKisi, setRaporTeslimKisi] = useState("");
   const [raporYukleniyor, setRaporYukleniyor] = useState(false);
   const raporInputRef = useRef<HTMLInputElement>(null);
-  const raporluKosulTamam = izinTuru !== "Raporlu" || (!!raporDriveUrl || raporMasayaBirakildi);
+  const raporluKosulTamam = izinTuru !== "Raporlu" || (!!raporDriveUrl || !!raporTeslimKisi);
+  const [yoneticiler, setYoneticiler] = useState<{ id: string; ad: string; soyad: string }[]>([]);
 
   // Fotoğraf sıkıştırma
   const compressImage = (file: File, maxWidth = 800, quality = 0.5): Promise<{ base64: string; mime: string }> => {
@@ -230,6 +231,14 @@ export default function Taleplerim() {
     return () => unsub();
   }, [personelDocId]);
 
+  // Yönetici/Kurucu listesi (rapor teslim dropdown)
+  useEffect(() => {
+    const q = query(collection(db, "personnel"), where("kullaniciTuru", "in", ["Kurucu", "Yönetici"]), where("aktif", "==", true));
+    getDocs(q).then(snap => {
+      setYoneticiler(snap.docs.map(d => ({ id: d.id, ad: d.data().ad, soyad: d.data().soyad })));
+    }).catch(() => {});
+  }, []);
+
   // Kurucuya bildirim
   const bildirimKurucuya = async (baslik: string, mesaj: string) => {
     try {
@@ -307,7 +316,7 @@ export default function Taleplerim() {
     if (!izinBaslangic || !izinBitis) { alert("Tarih aralığı seçin!"); return; }
     if (new Date(izinBitis) < new Date(izinBaslangic)) { alert("Bitiş tarihi başlangıçtan önce olamaz!"); return; }
     if (izinTuru === "Yıllık İzin" && (!whatsappOnay || !dilekceOnay)) { alert("Yıllık izin için ön koşulları sağlamanız gerekmektedir."); return; }
-    if (izinTuru === "Raporlu" && !raporDriveUrl && !raporMasayaBirakildi) { alert("Raporlu izin için rapor yüklemeniz veya teslim ettiğinizi belirtmeniz gerekmektedir."); return; }
+    if (izinTuru === "Raporlu" && !raporDriveUrl && !raporTeslimKisi) { alert("Raporlu izin için rapor yüklemeniz veya teslim ettiğinizi belirtmeniz gerekmektedir."); return; }
     if (!personelDocId) { alert("Personel bilgisi bulunamadı!"); return; }
     const gunSayisi = gunFarkiHesapla(izinBaslangic, izinBitis);
     setGonderiliyor(true);
@@ -325,13 +334,13 @@ export default function Taleplerim() {
         ...(izinTuru === "Raporlu" && {
           raporDriveUrl: raporDriveUrl || null,
           raporDriveFileId: raporDriveFileId || null,
-          raporMasayaBirakildi: raporMasayaBirakildi,
+          raporTeslimKisi: raporTeslimKisi || null,
         }),
       });
       await bildirimKurucuya("İzin Talebi", `${fullName} ${gunSayisi} günlük ${izinTuru} talep etti`);
       setIzinTuru(""); setIzinBaslangic(""); setIzinBitis(""); setIzinAciklama("");
       setWhatsappOnay(false); setDilekceOnay(false);
-      setRaporDosya(null); setRaporDriveUrl(null); setRaporDriveFileId(null); setRaporMasayaBirakildi(false);
+      setRaporDosya(null); setRaporDriveUrl(null); setRaporDriveFileId(null); setRaporTeslimKisi("");
       alert("İzin talebi gönderildi!");
     } catch (err) { Sentry.captureException(err); alert("Gönderilemedi!"); }
     finally { setGonderiliyor(false); }
@@ -401,7 +410,7 @@ export default function Taleplerim() {
           <>
             <div className="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-5 space-y-3">
               <h3 className="text-sm font-semibold text-stone-800">Yeni İzin Talebi</h3>
-              <select value={izinTuru} onChange={(e) => { setIzinTuru(e.target.value); setWhatsappOnay(false); setDilekceOnay(false); setRaporDosya(null); setRaporDriveUrl(null); setRaporDriveFileId(null); setRaporMasayaBirakildi(false); }}
+              <select value={izinTuru} onChange={(e) => { setIzinTuru(e.target.value); setWhatsappOnay(false); setDilekceOnay(false); setRaporDosya(null); setRaporDriveUrl(null); setRaporDriveFileId(null); setRaporTeslimKisi(""); }}
                 className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm bg-stone-50/50 focus:outline-none focus:ring-2 focus:ring-amber-400">
                 <option value="">İzin türü seçin...</option>
                 {izinTurleri.map(t => <option key={t} value={t}>{t}</option>)}
@@ -529,27 +538,31 @@ export default function Taleplerim() {
                       <div className="flex-1 border-t border-amber-200/60" />
                     </div>
                     {/* Seçenek 2: Masaya bıraktım */}
-                    <label className="flex items-start gap-3 cursor-pointer group bg-white/70 rounded-lg p-3 border border-amber-100/60">
-                      <input
-                        type="checkbox"
-                        checked={raporMasayaBirakildi}
-                        onChange={(e) => setRaporMasayaBirakildi(e.target.checked)}
-                        className="mt-0.5 w-4 h-4 text-amber-500 rounded border-stone-300 focus:ring-amber-400 shrink-0"
-                      />
-                      <div>
-                        <span className={`text-sm leading-snug transition-colors ${raporMasayaBirakildi ? 'text-stone-800' : 'text-stone-500 group-hover:text-stone-700'}`}>
-                          Raporu <strong>Aziz Erkan Yolcu</strong>'nun masasına bıraktım.
-                        </span>
-                        <p className="text-[10px] text-stone-400 mt-0.5">Fiziksel rapor teslim edildiyse işaretleyin.</p>
+                    <div className="bg-white/70 rounded-lg p-3 border border-amber-100/60">
+                      <p className="text-[11px] font-semibold text-stone-700 mb-2">📋 Seçenek 2: Fiziksel rapor teslimi</p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm text-stone-600">Raporu</span>
+                        <select
+                          value={raporTeslimKisi}
+                          onChange={(e) => setRaporTeslimKisi(e.target.value)}
+                          className="flex-1 min-w-[140px] px-2.5 py-1.5 border border-stone-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400"
+                        >
+                          <option value="">Kişi seçin...</option>
+                          {yoneticiler.map(y => (
+                            <option key={y.id} value={`${y.ad} ${y.soyad}`}>{y.ad} {y.soyad}</option>
+                          ))}
+                        </select>
+                        <span className="text-sm text-stone-600">masasına bıraktım.</span>
                       </div>
-                    </label>
+                      <p className="text-[10px] text-stone-400 mt-1.5">Fiziksel rapor teslim edildiyse kişiyi seçin.</p>
+                    </div>
                   </div>
-                  {!raporDriveUrl && !raporMasayaBirakildi && (
+                  {!raporDriveUrl && !raporTeslimKisi && (
                     <p className="mt-3 pt-3 border-t border-amber-200/40 text-[11px] text-amber-600/80">
                       🔒 Rapor yüklemeden veya teslim etmeden izin talebi gönderilemez.
                     </p>
                   )}
-                  {(!!raporDriveUrl || raporMasayaBirakildi) && (
+                  {(!!raporDriveUrl || !!raporTeslimKisi) && (
                     <p className="mt-3 pt-3 border-t border-green-200/40 text-[11px] text-green-600">
                       ✅ Koşul sağlandı. Talep gönderilebilir.
                     </p>
