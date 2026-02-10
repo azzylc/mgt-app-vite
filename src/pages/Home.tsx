@@ -21,6 +21,7 @@ import PersonelDurumPanel from "../components/dashboard/PersonelDurumPanel";
 import DikkatPanel from "../components/dashboard/DikkatPanel";
 import SakinGunlerPanel from "../components/dashboard/SakinGunlerPanel";
 import GorevWidget from "../components/dashboard/GorevWidget";
+import TakvimEtkinlikWidget from "../components/dashboard/TakvimEtkinlikWidget";
 import { usePersoneller } from "../hooks/usePersoneller";
 import * as Sentry from '@sentry/react';
 import { useAuth } from "../context/RoleProvider";
@@ -602,9 +603,8 @@ export default function Home() {
             />
           </div>
 
-          {/* Row 2: Duyurular + Görevler (50/50) */}
-          {(duyurular.length > 0 || gorevSayisi > 0) && (
-            <div className={`grid grid-cols-1 ${duyurular.length > 0 && gorevSayisi > 0 ? 'md:grid-cols-2' : ''} gap-2.5`}>
+          {/* Row 2: Duyurular + Görevler + Yaklaşan Etkinlikler */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
               {/* Duyurular */}
               {duyurular.length > 0 && (
                 <div className="bg-white rounded-xl border border-stone-100 overflow-hidden">
@@ -643,8 +643,10 @@ export default function Home() {
 
               {/* Görev Widget */}
               <GorevWidget onCount={setGorevSayisi} />
+
+              {/* Yaklaşan Etkinlikler */}
+              <TakvimEtkinlikWidget personeller={personeller} />
             </div>
-          )}
 
           {/* Row 2b: Dikkat Paneli */}
           <DikkatPanel
