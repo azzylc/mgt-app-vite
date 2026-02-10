@@ -1,4 +1,7 @@
 "use client";
+import { useState, useEffect } from "react";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "../lib/firebase";
 import { usePersoneller, getPersonelByIsim } from "../hooks/usePersoneller";
 
 interface Gelin {
@@ -137,8 +140,20 @@ function PersonelCard({ label, emoji, personelIsim, personeller, toWhatsApp, alt
   );
 }
 
-export default function GelinModal({ gelin, onClose }: { gelin: Gelin; onClose: () => void }) {
+export default function GelinModal({ gelin: initialGelin, onClose }: { gelin: Gelin; onClose: () => void }) {
   const { personeller } = usePersoneller();
+  const [gelin, setGelin] = useState<Gelin>(initialGelin);
+
+  // Real-time listener — modal açıkken Firestore değişikliklerini anında yansıt
+  useEffect(() => {
+    const unsubscribe = onSnapshot(doc(db, "gelinler", initialGelin.id), (snapshot) => {
+      if (snapshot.exists()) {
+        setGelin({ id: snapshot.id, ...snapshot.data() } as Gelin);
+      }
+    });
+    return () => unsubscribe();
+  }, [initialGelin.id]);
+
   const firma = gelin.firma || 'GYS';
   const isMG = firma === 'MG';
 
