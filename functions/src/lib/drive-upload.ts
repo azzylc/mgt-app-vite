@@ -3,7 +3,8 @@ import { Readable } from 'stream';
 
 // Klasör ID'leri
 const FOLDER_IDS: Record<string, string> = {
-  raporlar: '1l_ZrMO7AlT6lNoJXijeyiyewd4J3JbGS',
+  raporlar: '1Sk-K470u2J6l8yOurHSEGnkyX7c4R6fj',
+  yillikIzinler: '1l_ZrMO7AlT6lNoJXijeyiyewd4J3JbGS',
 };
 
 /**

@@ -172,6 +172,14 @@ function PersonelPageContent() {
     return () => unsubscribe();
   }, [user]);
 
+  // Giriş yapan kullanıcının Kurucu olup olmadığını kontrol et
+  useEffect(() => {
+    if (!user || !personeller.length) return;
+    const currentEmail = user.email || "";
+    const currentUser = personeller.find(p => p.email === currentEmail);
+    setIsKurucu(currentUser?.kullaniciTuru === "Kurucu");
+  }, [user, personeller]);
+
   // Firmaları çek
   useEffect(() => {
     if (!user) return;
