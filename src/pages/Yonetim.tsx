@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { db } from "../lib/firebase";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -12,6 +12,7 @@ import {
   getDocs
 } from "firebase/firestore";
 import { useAuth } from "../context/RoleProvider";
+import { usePersoneller } from "../hooks/usePersoneller";
 
 interface Gelin {
   id: string;
@@ -25,6 +26,7 @@ interface Gelin {
   makyaj: string;
   turban: string;
   anlasildigiTarih: string;
+  firma?: string;
 }
 
 interface HedefAy {
@@ -32,10 +34,19 @@ interface HedefAy {
   hedef: number;
 }
 
+interface FirmaInfo {
+  id: string;
+  firmaAdi: string;
+  kisaltma: string;
+  renk: string;
+  aktif: boolean;
+}
+
 const CACHE_KEY_2025 = "yonetim_gelinler_2025";
 
 export default function YonetimPage() {
   const user = useAuth();
+  const { personeller } = usePersoneller();
   const [yetkisiz, setYetkisiz] = useState(false);
   const [gelinler, setGelinler] = useState<Gelin[]>([]);
   const [hedefler, setHedefler] = useState<HedefAy[]>([]);
@@ -44,6 +55,10 @@ export default function YonetimPage() {
   const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
   
+  // Firma state
+  const [tumFirmalar, setTumFirmalar] = useState<FirmaInfo[]>([]);
+  const [aktifFirmaKodlari, setAktifFirmaKodlari] = useState<Set<string>>(new Set());
+
   // Bugünkü ay satırı için ref
   const bugunAyRef = useRef<HTMLDivElement>(null);
 
@@ -52,14 +67,69 @@ export default function YonetimPage() {
   const buAy = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; })();
   const [odemeSekme, setOdemeSekme] = useState<'bugun' | 'yarin'>('bugun');
 
-  // Auth kontrolü
+  // ✅ Firmaları çek
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db, "companies"), where("aktif", "==", true), orderBy("firmaAdi", "asc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as FirmaInfo));
+      setTumFirmalar(data);
+    });
+    return () => unsubscribe();
+  }, [user]);
+
+  // ✅ Kullanıcının firmalarını bul ve aktif firma kodlarını set et
+  useEffect(() => {
+    if (!user?.email || !personeller.length || !tumFirmalar.length) return;
+    const currentPersonel = personeller.find(p => p.email === user.email);
+    if (!currentPersonel) return;
+
+    const isKurucu = currentPersonel.kullaniciTuru === 'Kurucu';
+    const kullaniciFirmalariIds = (currentPersonel as any).firmalar || [];
+
+    const firmaKodlari = isKurucu
+      ? tumFirmalar.map(f => f.kisaltma)
+      : tumFirmalar.filter(f => kullaniciFirmalariIds.includes(f.id)).map(f => f.kisaltma);
+
+    setAktifFirmaKodlari(prev => prev.size === 0 ? new Set(firmaKodlari) : prev);
+  }, [user, personeller, tumFirmalar]);
+
+  // ✅ Firma toggle
+  const toggleFirma = (kisaltma: string) => {
+    setAktifFirmaKodlari(prev => {
+      const next = new Set(prev);
+      if (next.has(kisaltma)) {
+        if (next.size > 1) next.delete(kisaltma);
+      } else {
+        next.add(kisaltma);
+      }
+      return next;
+    });
+  };
+
+  // ✅ Kullanıcının erişebildiği firmalar (UI'da gösterilecek)
+  const kullaniciFirmalari = useMemo(() => {
+    if (!user?.email || !personeller.length) return tumFirmalar;
+    const currentPersonel = personeller.find(p => p.email === user.email);
+    if (!currentPersonel) return [];
+    const isKurucu = currentPersonel.kullaniciTuru === 'Kurucu';
+    if (isKurucu) return tumFirmalar;
+    const firmaIds = (currentPersonel as any).firmalar || [];
+    return tumFirmalar.filter(f => firmaIds.includes(f.id));
+  }, [user, personeller, tumFirmalar]);
+
+  // ✅ Firma filtrelenmiş gelinler
+  const filteredGelinler = useMemo(() => {
+    if (aktifFirmaKodlari.size === 0) return gelinler;
+    return gelinler.filter(g => !g.firma || aktifFirmaKodlari.has(g.firma));
+  }, [gelinler, aktifFirmaKodlari]);
+
   // ✅ Gelinler - 2025: localStorage cache, 2026+: Firestore real-time
   useEffect(() => {
     if (!user) return;
 
     let gelinler2025: Gelin[] = [];
 
-    // 2025 verisi - localStorage'dan veya Firestore'dan
     const load2025 = async () => {
       const cached = localStorage.getItem(CACHE_KEY_2025);
       
@@ -86,6 +156,7 @@ export default function YonetimPage() {
           makyaj: doc.data().makyaj || "",
           turban: doc.data().turban || "",
           anlasildigiTarih: doc.data().anlasildigiTarih || "",
+          firma: doc.data().firma || "",
         } as Gelin));
         
         localStorage.setItem(CACHE_KEY_2025, JSON.stringify(gelinler2025));
@@ -116,6 +187,7 @@ export default function YonetimPage() {
         makyaj: doc.data().makyaj || "",
         turban: doc.data().turban || "",
         anlasildigiTarih: doc.data().anlasildigiTarih || "",
+        firma: doc.data().firma || "",
       } as Gelin));
 
       
@@ -143,7 +215,7 @@ export default function YonetimPage() {
 
   // Sayfa yüklendiğinde bugünkü aya scroll yap
   useEffect(() => {
-    if (bugunAyRef.current && gelinler.length > 0) {
+    if (bugunAyRef.current && filteredGelinler.length > 0) {
       setTimeout(() => {
         bugunAyRef.current?.scrollIntoView({
           behavior: 'smooth',
@@ -151,7 +223,7 @@ export default function YonetimPage() {
         });
       }, 300);
     }
-  }, [gelinler]);
+  }, [filteredGelinler]);
 
   // Hedef kaydet
   const handleHedefKaydet = async () => {
@@ -176,9 +248,9 @@ export default function YonetimPage() {
     setSaving(false);
   };
 
-  // Ay bazlı hesaplamalar
+  // Ay bazlı hesaplamalar — filteredGelinler kullanıyor
   const getAyVerileri = (ayStr: string) => {
-    const ayGelinler = gelinler.filter(g => g.tarih.startsWith(ayStr));
+    const ayGelinler = filteredGelinler.filter(g => g.tarih.startsWith(ayStr));
     const toplamGelin = ayGelinler.length;
     const toplamUcret = ayGelinler.reduce((sum, g) => sum + Number(g.ucret || 0), 0);
     const toplamKapora = ayGelinler.reduce((sum, g) => sum + Number(g.kapora || 0), 0);
@@ -188,8 +260,8 @@ export default function YonetimPage() {
     return { toplamGelin, toplamUcret, toplamKapora, toplamKalan, hedef };
   };
 
-  // Bu ay anlaşılan gelinler
-  const buAyAnlasanGelinler = gelinler.filter(g => {
+  // Bu ay anlaşılan gelinler — filteredGelinler
+  const buAyAnlasanGelinler = filteredGelinler.filter(g => {
     if (!g.anlasildigiTarih) return false;
     const anlasmaTarihi = g.anlasildigiTarih.slice(0, 10);
     const ayBasi = buAy + "-01";
@@ -206,15 +278,15 @@ export default function YonetimPage() {
   const tahminiAySonuGelin = Math.round(buAyAnlasanGelinler.length + (gunlukOrtalamaGelin * kalanGun));
   const tahminiAySonuKapora = Math.round(buAyAnlasanKapora + (gunlukOrtalamaKapora * kalanGun));
 
-  // Şu andan itibaren kalan bakiye (gelinin bitiş saatine göre, başlangıç + 2 saat)
+  // Şu andan itibaren kalan bakiye — filteredGelinler
   const simdikiSaat = new Date().getHours() * 60 + new Date().getMinutes();
-  const buAyKalanBakiye = gelinler
+  const buAyKalanBakiye = filteredGelinler
     .filter(g => {
       if (!g.tarih.startsWith(buAy)) return false;
       if (g.tarih > bugun) return true;
       if (g.tarih === bugun && g.saat) {
         const [s, d] = g.saat.split(':').map(Number);
-        const bitisDakika = (s * 60 + (d || 0)) + 120; // +2 saat
+        const bitisDakika = (s * 60 + (d || 0)) + 120;
         return bitisDakika >= simdikiSaat;
       }
       if (g.tarih === bugun && !g.saat) return true;
@@ -222,12 +294,12 @@ export default function YonetimPage() {
     })
     .reduce((sum, g) => sum + Number(g.kalan || 0), 0);
 
-  // Bugün ödeme bekleyenler
-  const bugunGelinler = gelinler.filter(g => g.tarih === bugun);
+  // Bugün ödeme bekleyenler — filteredGelinler
+  const bugunGelinler = filteredGelinler.filter(g => g.tarih === bugun);
   const bugunOdemeBekleyen = bugunGelinler.filter(g => g.kalan > 0);
 
-  // Yarın ödeme bekleyenler
-  const yarinGelinler = gelinler.filter(g => g.tarih === yarin);
+  // Yarın ödeme bekleyenler — filteredGelinler
+  const yarinGelinler = filteredGelinler.filter(g => g.tarih === yarin);
   const yarinOdemeBekleyen = yarinGelinler.filter(g => g.kalan > 0);
 
   const aktifOdemeBekleyen = odemeSekme === 'bugun' ? bugunOdemeBekleyen : yarinOdemeBekleyen;
@@ -299,6 +371,35 @@ export default function YonetimPage() {
             </div>
           </div>
         </header>
+
+        {/* ✅ Firma Filtre Logoları */}
+        {kullaniciFirmalari.length > 1 && (
+          <div className="bg-white/60 backdrop-blur-sm border-b border-stone-100 px-4 md:px-5 py-1.5 sticky top-[65px] z-20">
+            <div className="flex items-center gap-2">
+              {kullaniciFirmalari.map(firma => {
+                const aktif = aktifFirmaKodlari.has(firma.kisaltma);
+                const logoSrc = `/logos/${firma.kisaltma.toLowerCase()}.png`;
+                return (
+                  <button
+                    key={firma.id}
+                    onClick={() => toggleFirma(firma.kisaltma)}
+                    className={`px-3 py-1 rounded-lg transition-all ${
+                      aktif
+                        ? 'bg-amber-500/10 ring-1 ring-amber-400/30'
+                        : 'opacity-30 grayscale hover:opacity-50'
+                    }`}
+                  >
+                    <img
+                      src={logoSrc}
+                      alt={firma.firmaAdi}
+                      className="h-5 md:h-6 w-auto object-contain"
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <main className="p-3 md:p-6">
           {/* Üst Kartlar */}
@@ -506,7 +607,6 @@ export default function YonetimPage() {
               <span>📊</span> Aylık Finansal Özet
             </h2>
 
-            {/* Mobile: card view, Desktop: table view */}
             {/* Desktop tablo */}
             <div className="hidden md:block overflow-x-auto -mx-2">
               <div className="min-w-[680px] mx-2">
@@ -520,7 +620,7 @@ export default function YonetimPage() {
                   <div className="w-[20%] text-right text-xs font-medium text-gray-500 uppercase">Kalan</div>
                 </div>
 
-                {/* Body - vertical scroll */}
+                {/* Body */}
                 <div className="max-h-[400px] overflow-y-auto divide-y divide-gray-200">
                   {tumAylar.map(ay => {
                     const veri = getAyVerileri(ay);
