@@ -81,6 +81,8 @@ const menuListesi = [
   { id: "personel", label: "👤 Personel" },
   { id: "izinler", label: "🏖️ İzinler" },
   { id: "raporlar", label: "📈 Raporlar" },
+  { id: "taleplerim", label: "📝 Taleplerim" },
+  { id: "talepler-merkezi", label: "📥 Talepler Merkezi" },
   { id: "yonetim-paneli", label: "👑 Yönetim Paneli" },
   { id: "ayarlar", label: "⚙️ Ayarlar" },
 ];

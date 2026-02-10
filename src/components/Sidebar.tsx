@@ -57,9 +57,24 @@ function SidebarContent({ user }: SidebarProps) {
   const getFilteredMenuItems = () => {
     const kullaniciTuru = personelData?.kullaniciTuru || "Kurucu";
     
-    const allowedIds = (rolYetkileri && rolYetkileri[kullaniciTuru]) 
-      ? rolYetkileri[kullaniciTuru] 
-      : DEFAULT_MENU[kullaniciTuru] || DEFAULT_MENU.Personel;
+    // Firestore'dan gelen yetkileri kullan, yoksa DEFAULT_MENU
+    // Yeni eklenen menü öğeleri: DEFAULT_MENU'de var ama Firestore'da henüz tanımlı değilse otomatik ekle
+    const firestoreIds = (rolYetkileri && rolYetkileri[kullaniciTuru]) ? rolYetkileri[kullaniciTuru] : null;
+    const defaultIds = DEFAULT_MENU[kullaniciTuru] || DEFAULT_MENU.Personel;
+    
+    let allowedIds: string[];
+    if (firestoreIds) {
+      // Firestore'da kayıtlı olan menü ID'lerinin tamamı (tüm roller)
+      const allFirestoreIds = new Set<string>();
+      Object.values(rolYetkileri || {}).forEach((ids: any) => {
+        if (Array.isArray(ids)) ids.forEach((id: string) => allFirestoreIds.add(id));
+      });
+      // DEFAULT'ta olup Firestore'da hiçbir rolde tanımlı olmayan = yeni eklenen menü
+      const yeniMenuler = defaultIds.filter(id => !allFirestoreIds.has(id));
+      allowedIds = [...firestoreIds, ...yeniMenuler];
+    } else {
+      allowedIds = defaultIds;
+    }
 
     let items = [
       { id: "genel-bakis", label: "Genel Bakış", icon: "📊", path: "/" },
