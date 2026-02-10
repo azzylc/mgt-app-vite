@@ -1,39 +1,35 @@
 import { google } from 'googleapis';
-import * as path from 'path';
 import { Readable } from 'stream';
 
-// Service account ile Drive auth
-const serviceAccount = require(path.resolve(__dirname, '../../serviceAccountKey.json'));
-
-const auth = new google.auth.JWT(
-  serviceAccount.client_email,
-  undefined,
-  serviceAccount.private_key,
-  ['https://www.googleapis.com/auth/drive.file']
-);
-
-const drive = google.drive({ version: 'v3', auth });
-
-// Yıllık izin dilekçeleri klasörü (ileride farklı klasörler eklenebilir)
+// Klasör ID'leri
 const FOLDER_IDS: Record<string, string> = {
   raporlar: '1l_ZrMO7AlT6lNoJXijeyiyewd4J3JbGS',
 };
 
 /**
- * Base64 dosyayı Google Drive'a yükle
+ * OAuth2 ile mgtappmail@gmail.com'un Drive'ına dosya yükle
  */
 export async function uploadFileToDrive(params: {
-  base64Data: string;       // Base64 encoded file data (without prefix)
-  mimeType: string;         // image/jpeg, image/png, application/pdf
-  fileName: string;         // dosya adı
-  folderKey: string;        // 'raporlar' vb.
+  base64Data: string;
+  mimeType: string;
+  fileName: string;
+  folderKey: string;
+  clientId: string;
+  clientSecret: string;
+  refreshToken: string;
 }): Promise<{ fileId: string; webViewLink: string; thumbnailLink: string }> {
-  const { base64Data, mimeType, fileName, folderKey } = params;
+  const { base64Data, mimeType, fileName, folderKey, clientId, clientSecret, refreshToken } = params;
 
   const folderId = FOLDER_IDS[folderKey];
   if (!folderId) {
     throw new Error(`Bilinmeyen klasör: ${folderKey}`);
   }
+
+  // OAuth2 client oluştur
+  const oauth2Client = new google.auth.OAuth2(clientId, clientSecret);
+  oauth2Client.setCredentials({ refresh_token: refreshToken });
+
+  const drive = google.drive({ version: 'v3', auth: oauth2Client });
 
   // Base64 → Buffer → Stream
   const buffer = Buffer.from(base64Data, 'base64');
@@ -56,7 +52,7 @@ export async function uploadFileToDrive(params: {
 
   const fileId = response.data.id!;
 
-  // Dosyayı "herkes link ile görüntüleyebilir" yap (preview için)
+  // Dosyayı "herkes link ile görüntüleyebilir" yap
   await drive.permissions.create({
     fileId,
     requestBody: {
@@ -65,7 +61,7 @@ export async function uploadFileToDrive(params: {
     },
   });
 
-  // webViewLink'i tekrar al (permission sonrası)
+  // webViewLink'i tekrar al
   const fileInfo = await drive.files.get({
     fileId,
     fields: 'webViewLink, thumbnailLink',

@@ -11,6 +11,9 @@ import { uploadFileToDrive } from './lib/drive-upload';
 const calendarId = defineSecret('GOOGLE_CALENDAR_ID');
 const webhookToken = defineSecret('WEBHOOK_TOKEN');
 const resendApiKey = defineSecret('RESEND_API_KEY');
+const driveClientId = defineSecret('DRIVE_CLIENT_ID');
+const driveClientSecret = defineSecret('DRIVE_CLIENT_SECRET');
+const driveRefreshToken = defineSecret('DRIVE_REFRESH_TOKEN');
 
 // ============================================
 // HELPER: Rastgele şifre üret
@@ -1204,6 +1207,7 @@ export const uploadToDrive = onCall({
   region: 'europe-west1',
   maxInstances: 10,
   enforceAppCheck: false,
+  secrets: [driveClientId, driveClientSecret, driveRefreshToken],
 }, async (request) => {
   // Auth kontrolü
   await verifyCallableAuth(request);
@@ -1229,7 +1233,12 @@ export const uploadToDrive = onCall({
   try {
     console.log(`[DRIVE-UPLOAD] ${fileName} yükleniyor... (${(sizeInBytes / 1024).toFixed(0)} KB)`);
 
-    const result = await uploadFileToDrive({ base64Data, mimeType, fileName, folderKey });
+    const result = await uploadFileToDrive({
+      base64Data, mimeType, fileName, folderKey,
+      clientId: driveClientId.value(),
+      clientSecret: driveClientSecret.value(),
+      refreshToken: driveRefreshToken.value(),
+    });
 
     console.log(`[DRIVE-UPLOAD] ✅ Başarılı: ${result.fileId}`);
 

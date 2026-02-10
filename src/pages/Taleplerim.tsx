@@ -101,7 +101,7 @@ export default function Taleplerim() {
   const raporluKosulTamam = izinTuru !== "Raporlu" || (!!raporDriveUrl || raporMasayaBirakildi);
 
   // Fotoğraf sıkıştırma
-  const compressImage = (file: File, maxWidth = 1200, quality = 0.7): Promise<{ base64: string; mime: string }> => {
+  const compressImage = (file: File, maxWidth = 800, quality = 0.5): Promise<{ base64: string; mime: string }> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
