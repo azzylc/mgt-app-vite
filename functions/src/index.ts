@@ -1,6 +1,6 @@
 import { onRequest, onCall, HttpsError } from 'firebase-functions/v2/https';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
-import { onDocumentUpdated, onDocumentCreated } from 'firebase-functions/v2/firestore';
+import { onDocumentUpdated, onDocumentCreated, onDocumentDeleted } from 'firebase-functions/v2/firestore';
 import { defineSecret } from 'firebase-functions/params';
 import { incrementalSync, fullSync, FirmaKodu } from './lib/calendar-sync';
 import { adminDb, adminAuth, adminMessaging } from './lib/firestore-admin';
@@ -610,6 +610,35 @@ export const onGelinUpdated = onDocumentUpdated({
       }
     }
   }
+});
+
+// ============================================
+// 6b. GELIN SİLİNDİĞİNDE OTOMATİK GÖREVLERİ TEMİZLE
+// ============================================
+export const onGelinDeleted = onDocumentDeleted({
+  document: 'gelinler/{gelinId}',
+  region: 'europe-west1',
+}, async (event) => {
+  const gelinId = event.params.gelinId;
+  console.log(`[onGelinDeleted] Gelin silindi: ${gelinId} — ilişkili otomatik görevler temizleniyor...`);
+
+  const gorevlerSnap = await adminDb.collection('gorevler')
+    .where('gelinId', '==', gelinId)
+    .where('otomatikMi', '==', true)
+    .get();
+
+  if (gorevlerSnap.empty) {
+    console.log(`[onGelinDeleted] ${gelinId} için otomatik görev bulunamadı.`);
+    return;
+  }
+
+  const batch = adminDb.batch();
+  for (const gorevDoc of gorevlerSnap.docs) {
+    batch.delete(gorevDoc.ref);
+    console.log(`[onGelinDeleted] Görev silindi: ${gorevDoc.id}`);
+  }
+  await batch.commit();
+  console.log(`[onGelinDeleted] ✅ ${gorevlerSnap.size} otomatik görev silindi (gelinId: ${gelinId})`);
 });
 
 // ============================================
