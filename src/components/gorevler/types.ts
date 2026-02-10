@@ -46,6 +46,7 @@ export interface Gelin {
   isim: string;
   tarih: string;
   saat: string;
+  bitisSaati?: string;
   makyaj: string;
   turban: string;
   odemeTamamlandi?: boolean;
