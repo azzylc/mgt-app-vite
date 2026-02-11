@@ -39,6 +39,7 @@ export interface Gorev {
   atananAdlar?: string[];
   tamamlayanlar?: string[];
   grupId?: string;
+  firma?: string; // Gelinin firması (filtreleme için)
 }
 
 export interface Gelin {
@@ -49,6 +50,7 @@ export interface Gelin {
   bitisSaati?: string;
   makyaj: string;
   turban: string;
+  firma?: string;
   odemeTamamlandi?: boolean;
   yorumIstesinMi?: string;
   paylasimIzni?: boolean;

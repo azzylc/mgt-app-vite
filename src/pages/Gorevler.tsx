@@ -152,12 +152,6 @@ export default function GorevlerPage() {
     return tumFirmalar.filter(f => firmaIds.includes(f.id)).map(f => f.kisaltma);
   }, [userRole, personelData?.firmalar, tumFirmalar]);
 
-  // Firma filtreli otomatik görevler (badge sayaçları ve liste için)
-  const firmaFiltreliBirlesikOtomatik = useMemo(() => 
-    birlesikGorevler.filter(g => g.otomatikMi && (!kullaniciFirmaKodlari || (g.firma && kullaniciFirmaKodlari.includes(g.firma)))),
-    [birlesikGorevler, kullaniciFirmaKodlari]
-  );
-
   // Personelleri dinle
   useEffect(() => {
     if (!user) return;
@@ -212,6 +206,12 @@ export default function GorevlerPage() {
     ortakGorevler.forEach(g => map.set(g.id, g));
     return Array.from(map.values());
   }, [gorevler, ortakGorevler]);
+
+  // Firma filtreli otomatik görevler (badge sayaçları ve liste için)
+  const firmaFiltreliBirlesikOtomatik = useMemo(() => 
+    birlesikGorevler.filter(g => g.otomatikMi && (!kullaniciFirmaKodlari || (g.firma && kullaniciFirmaKodlari.includes(g.firma)))),
+    [birlesikGorevler, kullaniciFirmaKodlari]
+  );
 
   // Verdiğim görevler (atayan === ben)
   useEffect(() => {
