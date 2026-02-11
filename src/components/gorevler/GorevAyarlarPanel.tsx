@@ -19,13 +19,13 @@ interface AyarSatirProps {
 
 function AyarSatir({ emoji, baslik, aciklama, aktif, tarih, onTarihDegistir }: AyarSatirProps) {
   return (
-    <div className={`p-3 rounded-lg border ${aktif ? "border-green-400 bg-green-50" : "border-stone-200 bg-stone-50"}`}>
+    <div className={`p-3 rounded-lg border ${aktif ? "border-green-400 bg-green-50" : "border-[#E5E5E5] bg-[#F7F7F7]"}`}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <span className="text-lg">{emoji}</span>
           <div>
-            <h3 className="font-semibold text-stone-800 text-sm">{baslik}</h3>
-            <p className="text-xs text-stone-500">{aciklama}</p>
+            <h3 className="font-semibold text-[#2F2F2F] text-sm">{baslik}</h3>
+            <p className="text-xs text-[#8A8A8A]">{aciklama}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -33,7 +33,7 @@ function AyarSatir({ emoji, baslik, aciklama, aktif, tarih, onTarihDegistir }: A
             type="date" min="2020-01-01" max="2099-12-31"
             value={tarih}
             onChange={(e) => onTarihDegistir(e.target.value)}
-            className="px-2 py-1 border border-stone-300 rounded text-sm w-36"
+            className="px-2 py-1 border border-[#E5E5E5] rounded text-sm w-36"
           />
           {aktif && (
             <span className="px-2 py-0.5 bg-green-500 text-white text-xs rounded-full">✓</span>
@@ -59,10 +59,10 @@ export default function GorevAyarlarPanel({
   };
 
   return (
-    <div className="mb-4 bg-white rounded-xl border border-stone-200 overflow-hidden">
-      <div className="bg-stone-800 text-white px-4 py-2.5 flex items-center justify-between">
+    <div className="mb-4 bg-white rounded-xl border border-[#E5E5E5] overflow-hidden">
+      <div className="bg-[#2F2F2F] text-white px-4 py-2.5 flex items-center justify-between">
         <h2 className="font-bold text-sm">⚙️ Otomatik Görev Ayarları</h2>
-        <button onClick={onKapat} className="text-stone-300 hover:text-white">✕</button>
+        <button onClick={onKapat} className="text-[#8A8A8A] hover:text-white">✕</button>
       </div>
       
       <div className="p-4 space-y-4">
@@ -100,7 +100,7 @@ export default function GorevAyarlarPanel({
         />
 
         {/* Senkronize Butonu */}
-        <div className="pt-3 border-t border-stone-200">
+        <div className="pt-3 border-t border-[#E5E5E5]">
           <button
             onClick={onSenkronizeEt}
             disabled={senkronizeLoading !== null}
@@ -108,7 +108,7 @@ export default function GorevAyarlarPanel({
           >
             {senkronizeLoading ? "⏳ İşleniyor..." : "🔄 Tümünü Kaydet & Senkronize Et"}
           </button>
-          <p className="text-xs text-stone-500 mt-2 text-center">
+          <p className="text-xs text-[#8A8A8A] mt-2 text-center">
             Belirlediğiniz tarihten bugüne kadarki gelinler kontrol edilir. Gelecek gelinler hesaba katılmaz.
           </p>
           <p className="text-xs text-purple-600 mt-1 text-center font-medium">

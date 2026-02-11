@@ -182,26 +182,26 @@ function SidebarContent({ user }: SidebarProps) {
 
   const MenuContent = () => (
     <>
-      <div className="px-4 py-4 border-b border-stone-100/50">
-        <div className="bg-amber-400 text-stone-900 px-3 py-2.5 rounded-lg mb-3">
+      <div className="px-4 py-4 border-b border-[#E5E5E5]/50">
+        <div className="bg-[#8FAF9A] text-[#2F2F2F] px-3 py-2.5 rounded-lg mb-3">
           <h1 className="text-sm font-semibold">GYS Studio</h1>
-          <p className="text-xs text-stone-700">Gizem Yolcu</p>
+          <p className="text-xs text-[#2F2F2F]">Gizem Yolcu</p>
         </div>
-        <div className="flex items-center gap-2.5 cursor-pointer hover:bg-stone-50 rounded-lg p-1 -m-1 transition" onClick={() => window.location.hash = "#/profilim"}>
+        <div className="flex items-center gap-2.5 cursor-pointer hover:bg-[#F7F7F7] rounded-lg p-1 -m-1 transition" onClick={() => window.location.hash = "#/profilim"}>
           {personelData?.foto ? (
             <img src={personelData.foto} alt="" className="w-8 h-8 rounded-full object-cover" />
           ) : (
-            <div className="w-8 h-8 bg-stone-200 rounded-full flex items-center justify-center">
-              <span className="text-stone-600 font-medium text-xs">
+            <div className="w-8 h-8 bg-[#E5E5E5] rounded-full flex items-center justify-center">
+              <span className="text-[#2F2F2F] font-medium text-xs">
                 {user?.email?.[0]?.toUpperCase() || "A"}
               </span>
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-stone-800 truncate">
+            <p className="text-sm font-medium text-[#2F2F2F] truncate">
               {personelData?.ad ? `${personelData.ad} ${personelData.soyad || ''}` : user?.email?.split("@")[0] || "Admin"}
             </p>
-            <p className="text-[10px] text-amber-600 font-medium hover:underline">Profilim →</p>
+            <p className="text-[10px] text-[#8FAF9A] font-medium hover:underline">Profilim →</p>
           </div>
           <BildirimPaneli userEmail={user?.email} kompakt />
         </div>
@@ -216,8 +216,8 @@ function SidebarContent({ user }: SidebarProps) {
                   onClick={() => toggleMenu(item.id)}
                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-all ${
                     isParentActive(item.submenu)
-                      ? "bg-amber-400 text-stone-900"
-                      : "text-stone-600 hover:bg-white/60"
+                      ? "bg-[#8FAF9A] text-[#2F2F2F]"
+                      : "text-[#2F2F2F] hover:bg-white/60"
                   }`}
                 >
                   <span className="text-base w-5 text-center">{item.icon}</span>
@@ -228,13 +228,13 @@ function SidebarContent({ user }: SidebarProps) {
                   <div className="ml-7 space-y-0.5 py-1">
                     {item.submenu.map((subItem: any, idx: number) => (
                       subItem.type === "header" ? (
-                        <div key={idx} className="px-3 py-1.5 text-[10px] font-semibold text-stone-400 uppercase tracking-wider mt-2 first:mt-0">
+                        <div key={idx} className="px-3 py-1.5 text-[10px] font-semibold text-[#8A8A8A] uppercase tracking-wider mt-2 first:mt-0">
                           {subItem.label}
                         </div>
                       ) : (
                         <Link key={subItem.path} to={subItem.path}
                           className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                            isActive(subItem.path) ? "bg-white text-stone-800" : "text-stone-500 hover:bg-white/60"
+                            isActive(subItem.path) ? "bg-white text-[#2F2F2F]" : "text-[#8A8A8A] hover:bg-white/60"
                           }`}
                         >
                           <span>{subItem.label}</span>
@@ -247,7 +247,7 @@ function SidebarContent({ user }: SidebarProps) {
             ) : (
               <Link to={item.path!}
                 className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-all ${
-                  isActive(item.path!) ? "bg-amber-400 text-stone-900" : "text-stone-600 hover:bg-white/60"
+                  isActive(item.path!) ? "bg-[#8FAF9A] text-[#2F2F2F]" : "text-[#2F2F2F] hover:bg-white/60"
                 }`}
               >
                 <span className="text-base w-5 text-center">{item.icon}</span>
@@ -258,9 +258,9 @@ function SidebarContent({ user }: SidebarProps) {
         ))}
       </nav>
 
-      <div className="p-3 border-t border-stone-100/50">
+      <div className="p-3 border-t border-[#E5E5E5]/50">
         <button onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 text-stone-500 hover:bg-white/60 rounded-lg transition-all text-xs font-medium"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 text-[#8A8A8A] hover:bg-white/60 rounded-lg transition-all text-xs font-medium"
         >
           <span>🚪</span>
           <span>Çıkış Yap</span>
@@ -275,20 +275,20 @@ function SidebarContent({ user }: SidebarProps) {
       <>
         {/* Mobil Header - iOS safe area top */}
         <header 
-          className="fixed top-0 left-0 right-0 bg-white border-b border-stone-100 flex items-center justify-between px-3 z-40"
+          className="fixed top-0 left-0 right-0 bg-white border-b border-[#E5E5E5] flex items-center justify-between px-3 z-40"
           style={{ paddingTop: 'env(safe-area-inset-top, 0px)', height: 'calc(48px + env(safe-area-inset-top, 0px))' }}
         >
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-amber-400 rounded-md flex items-center justify-center">
-              <span className="text-stone-900 text-[10px] font-bold">GYS</span>
+            <div className="w-7 h-7 bg-[#8FAF9A] rounded-md flex items-center justify-center">
+              <span className="text-[#2F2F2F] text-[10px] font-bold">GYS</span>
             </div>
-            <span className="font-medium text-stone-800 text-sm">GYS Studio</span>
+            <span className="font-medium text-[#2F2F2F] text-sm">GYS Studio</span>
           </div>
           <div className="flex items-center gap-1">
             <BildirimPaneli userEmail={user?.email} />
             <button 
               onClick={() => setIsMobileOpen(true)}
-              className="w-9 h-9 flex items-center justify-center text-stone-500 hover:bg-stone-100 rounded-lg transition"
+              className="w-9 h-9 flex items-center justify-center text-[#8A8A8A] hover:bg-[#F7F7F7] rounded-lg transition"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -311,7 +311,7 @@ function SidebarContent({ user }: SidebarProps) {
         >
           <button 
             onClick={() => setIsMobileOpen(false)}
-            className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-full transition z-10"
+            className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center text-[#8A8A8A] hover:text-[#2F2F2F] hover:bg-[#F7F7F7] rounded-full transition z-10"
             style={{ marginTop: 'env(safe-area-inset-top, 0px)' }}
           >
             ✕
@@ -321,13 +321,13 @@ function SidebarContent({ user }: SidebarProps) {
 
         {/* Bottom Navigation - iOS safe area bottom */}
         <nav 
-          className="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 flex items-center justify-around z-40 px-2"
+          className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E5E5E5] flex items-center justify-around z-40 px-2"
           style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)', height: 'calc(64px + env(safe-area-inset-bottom, 0px))' }}
         >
           {bottomNavItems.map((item, index) => (
             item.action === "menu" ? (
               <button key={index} onClick={() => setIsMobileOpen(true)}
-                className="flex flex-col items-center justify-center w-14 h-12 rounded-lg text-stone-500"
+                className="flex flex-col items-center justify-center w-14 h-12 rounded-lg text-[#8A8A8A]"
               >
                 <span className="text-xl mb-0.5">{item.icon}</span>
                 <span className="text-[10px]">{item.label}</span>
@@ -335,7 +335,7 @@ function SidebarContent({ user }: SidebarProps) {
             ) : (
               <Link key={index} to={item.path!}
                 className={`flex flex-col items-center justify-center w-14 h-12 rounded-lg transition-all ${
-                  isActive(item.path!) ? "text-rose-500 bg-rose-50" : "text-stone-500"
+                  isActive(item.path!) ? "text-rose-500 bg-rose-50" : "text-[#8A8A8A]"
                 }`}
               >
                 <span className="text-xl mb-0.5">{item.icon}</span>
@@ -353,7 +353,7 @@ function SidebarContent({ user }: SidebarProps) {
 
   // ============ DESKTOP GÖRÜNÜM ============
   return (
-    <div className="fixed left-0 top-0 h-full w-56 bg-[#fef7f0] border-r border-stone-100 flex flex-col z-40">
+    <div className="fixed left-0 top-0 h-full w-56 bg-[#fef7f0] border-r border-[#E5E5E5] flex flex-col z-40">
       <MenuContent />
     </div>
   );
@@ -362,8 +362,8 @@ function SidebarContent({ user }: SidebarProps) {
 export default function Sidebar({ user }: SidebarProps) {
   return (
     <Suspense fallback={
-      <div className="fixed left-0 top-0 h-full w-56 bg-[#fef7f0] border-r border-stone-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-amber-400"></div>
+      <div className="fixed left-0 top-0 h-full w-56 bg-[#fef7f0] border-r border-[#E5E5E5] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#8FAF9A]"></div>
       </div>
     }>
       <SidebarContent user={user} />

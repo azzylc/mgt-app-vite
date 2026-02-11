@@ -71,19 +71,19 @@ export default function PersonelGorevleri({ personelId }: { personelId: string }
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg p-6 shadow-sm border border-stone-100">
-        <div className="text-center py-8 text-stone-500">Yükleniyor...</div>
+      <div className="bg-white rounded-lg p-6 shadow-sm border border-[#E5E5E5]">
+        <div className="text-center py-8 text-[#8A8A8A]">Yükleniyor...</div>
       </div>
     );
   }
 
   if (gorevler.length === 0) {
     return (
-      <div className="bg-white rounded-lg p-6 shadow-sm border border-stone-100">
-        <h3 className="text-lg font-bold text-stone-800 mb-4 flex items-center gap-2">
+      <div className="bg-white rounded-lg p-6 shadow-sm border border-[#E5E5E5]">
+        <h3 className="text-lg font-bold text-[#2F2F2F] mb-4 flex items-center gap-2">
           <span>📋</span> Görevlerim
         </h3>
-        <div className="text-center py-8 text-stone-500">
+        <div className="text-center py-8 text-[#8A8A8A]">
           <span className="text-4xl">✅</span>
           <p className="mt-2">Şu anda aktif göreviniz yok</p>
         </div>
@@ -93,25 +93,25 @@ export default function PersonelGorevleri({ personelId }: { personelId: string }
 
   return (
     <>
-      <div className="bg-white rounded-lg p-6 shadow-sm border border-stone-100">
-        <h3 className="text-lg font-bold text-stone-800 mb-4 flex items-center gap-2">
+      <div className="bg-white rounded-lg p-6 shadow-sm border border-[#E5E5E5]">
+        <h3 className="text-lg font-bold text-[#2F2F2F] mb-4 flex items-center gap-2">
           <span>📋</span> Görevlerim ({gorevler.length})
         </h3>
 
         <div className="space-y-3">
           {siraliGorevler.map((gorev) => {
             const oncelikRenk = {
-              acil: "border-red-300 bg-red-50",
+              acil: "border-[#D96C6C] bg-[#D96C6C]/10",
               yuksek: "border-orange-300 bg-orange-50",
               normal: "border-blue-300 bg-blue-50",
-              dusuk: "border-stone-300 bg-stone-50"
+              dusuk: "border-[#E5E5E5] bg-[#F7F7F7]"
             }[gorev.oncelik];
 
             const durumRenk = {
-              bekliyor: "bg-yellow-100 text-yellow-700",
+              bekliyor: "bg-[#E6B566]/20 text-[#E6B566]",
               "devam-ediyor": "bg-blue-100 text-blue-700",
               tamamlandi: "bg-green-100 text-green-700",
-              iptal: "bg-stone-100 text-stone-700"
+              iptal: "bg-[#F7F7F7] text-[#2F2F2F]"
             }[gorev.durum];
 
             return (
@@ -122,14 +122,14 @@ export default function PersonelGorevleri({ personelId }: { personelId: string }
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <h4 className="font-bold text-stone-800">{gorev.baslik}</h4>
-                      {gorev.oncelik === "acil" && <span className="text-red-500">🔴</span>}
+                      <h4 className="font-bold text-[#2F2F2F]">{gorev.baslik}</h4>
+                      {gorev.oncelik === "acil" && <span className="text-[#D96C6C]">🔴</span>}
                       {gorev.oncelik === "yuksek" && <span className="text-orange-500">🟡</span>}
                     </div>
                     {gorev.aciklama && (
-                      <p className="text-sm text-stone-600 mb-2">{gorev.aciklama}</p>
+                      <p className="text-sm text-[#2F2F2F] mb-2">{gorev.aciklama}</p>
                     )}
-                    <div className="flex items-center gap-3 text-xs text-stone-500">
+                    <div className="flex items-center gap-3 text-xs text-[#8A8A8A]">
                       <span>👔 {gorev.atayanAd}</span>
                       <span>📅 {new Date(gorev.olusturulmaTarihi).toLocaleDateString('tr-TR')}</span>
                     </div>

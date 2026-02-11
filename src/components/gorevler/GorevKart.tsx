@@ -41,13 +41,13 @@ export default function GorevKart({
   return (
     <div
       onClick={() => onDetayAc(gorev)}
-      className={`bg-white rounded-xl border border-stone-100 border-l-[3px] ${oncelikRenk(gorev.oncelik)} p-3 transition hover:shadow-md cursor-pointer`}
+      className={`bg-white rounded-xl border border-[#E5E5E5] border-l-[3px] ${oncelikRenk(gorev.oncelik)} p-3 transition hover:shadow-md cursor-pointer`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           {/* Başlık + Badge'ler */}
           <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
-            <h3 className="text-xs md:text-sm font-semibold text-stone-800 truncate">{gorev.baslik}</h3>
+            <h3 className="text-xs md:text-sm font-semibold text-[#2F2F2F] truncate">{gorev.baslik}</h3>
             {gorev.otomatikMi && (
               <span className="bg-purple-50 text-purple-600 text-[10px] px-1.5 py-0.5 rounded-full font-medium shrink-0">🤖 Oto</span>
             )}
@@ -58,8 +58,8 @@ export default function GorevKart({
             )}
             {!gorev.otomatikMi && gorev.oncelik && gorev.oncelik !== "normal" && (
               <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium shrink-0 ${
-                gorev.oncelik === "acil" ? "bg-red-50 text-red-600" :
-                gorev.oncelik === "yuksek" ? "bg-amber-50 text-amber-600" :
+                gorev.oncelik === "acil" ? "bg-[#D96C6C]/10 text-[#D96C6C]" :
+                gorev.oncelik === "yuksek" ? "bg-[#EAF2ED] text-[#8FAF9A]" :
                 "bg-sky-50 text-sky-600"
               }`}>
                 {gorev.oncelik === "acil" ? "Acil" : gorev.oncelik === "yuksek" ? "Yüksek" : "Düşük"}
@@ -69,15 +69,15 @@ export default function GorevKart({
 
           {/* Açıklama */}
           {gorev.aciklama && (
-            <p className="text-[10px] md:text-xs text-stone-500 mb-1.5 line-clamp-1 break-all">{gorev.aciklama}</p>
+            <p className="text-[10px] md:text-xs text-[#8A8A8A] mb-1.5 line-clamp-1 break-all">{gorev.aciklama}</p>
           )}
 
           {/* Meta Bilgiler */}
-          <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-stone-400">
+          <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-[#8A8A8A]">
             {(aktifSekme === "tumgorevler" || aktifSekme === "verdigim") && !gorev.ortakMi && (
-              <div className="flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-full">
+              <div className="flex items-center gap-1 bg-[#EAF2ED] px-2 py-0.5 rounded-full">
                 <span>🎯</span>
-                <span className="font-medium text-emerald-700">Atanan: {gorev.atananAd}</span>
+                <span className="font-medium text-[#8FAF9A]">Atanan: {gorev.atananAd}</span>
               </div>
             )}
             {gorev.ortakMi && gorev.atananAdlar && (
@@ -105,8 +105,8 @@ export default function GorevKart({
             {gorev.sonTarih && (
               <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${
                 new Date(gorev.sonTarih) < new Date() && gorev.durum !== "tamamlandi" 
-                  ? "bg-red-50 text-red-600 font-medium" 
-                  : "bg-stone-50"
+                  ? "bg-[#D96C6C]/10 text-[#D96C6C] font-medium" 
+                  : "bg-[#F7F7F7]"
               }`}>
                 <span>⏰</span>
                 <span>Son: {new Date(gorev.sonTarih).toLocaleDateString('tr-TR')}</span>
@@ -153,7 +153,7 @@ export default function GorevKart({
               <span className="text-purple-300 text-xs">→</span>
             </button>
           ) : (
-            <p className="text-[10px] text-stone-400">Yükleniyor...</p>
+            <p className="text-[10px] text-[#8A8A8A]">Yükleniyor...</p>
           )}
         </div>
       )}
@@ -163,27 +163,27 @@ export default function GorevKart({
         <div className="mt-2" onClick={e => e.stopPropagation()}>
           {/* Ortak görevde bu kişi zaten tamamladıysa */}
           {gorev.ortakMi && gorev.tamamlayanlar?.includes(userEmail) ? (
-            <span className="text-[10px] text-emerald-600 font-medium">✅ Siz tamamladınız — diğerleri bekleniyor</span>
+            <span className="text-[10px] text-[#8FAF9A] font-medium">✅ Siz tamamladınız — diğerleri bekleniyor</span>
           ) : tamamlaGorevId === gorev.id ? (
             <div className="space-y-2">
               <textarea
                 value={tamamlaYorum}
                 onChange={e => onTamamlaYorumDegistir(e.target.value)}
                 placeholder="Ne yaptınız? Kısa bir not bırakın..."
-                className="w-full px-3 py-2 border border-stone-200 rounded-lg text-xs resize-none focus:ring-2 focus:ring-emerald-200 focus:border-emerald-300 outline-none"
+                className="w-full px-3 py-2 border border-[#E5E5E5] rounded-lg text-xs resize-none focus:ring-2 focus:ring-[#8FAF9A]/30 focus:border-[#8FAF9A] outline-none"
                 rows={2}
                 autoFocus
               />
               <div className="flex gap-1.5">
                 <button
                   onClick={() => onTamamla(gorev.id)}
-                  className="px-3 py-1.5 bg-emerald-500 text-white rounded-lg text-xs font-medium hover:bg-emerald-600 transition"
+                  className="px-3 py-1.5 bg-[#8FAF9A] text-white rounded-lg text-xs font-medium hover:bg-[#7A9E86] transition"
                 >
                   ✅ Onayla
                 </button>
                 <button
                   onClick={onTamamlaIptal}
-                  className="px-3 py-1.5 bg-stone-100 text-stone-600 rounded-lg text-xs hover:bg-stone-200 transition"
+                  className="px-3 py-1.5 bg-[#F7F7F7] text-[#2F2F2F] rounded-lg text-xs hover:bg-[#E5E5E5] transition"
                 >
                   Vazgeç
                 </button>
@@ -193,14 +193,14 @@ export default function GorevKart({
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => onTamamlaBasla(gorev.id)}
-                className="px-3 py-1.5 bg-emerald-500 text-white rounded-lg text-xs font-medium hover:bg-emerald-600 transition"
+                className="px-3 py-1.5 bg-[#8FAF9A] text-white rounded-lg text-xs font-medium hover:bg-[#7A9E86] transition"
               >
                 ✅ Tamamla
               </button>
               {canDelete && (
                 <button
                   onClick={() => onSil(gorev.id)}
-                  className="p-1.5 text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
+                  className="p-1.5 text-[#8A8A8A] hover:text-[#D96C6C] hover:bg-[#D96C6C]/10 rounded-lg transition"
                 >
                   🗑️
                 </button>
@@ -212,15 +212,15 @@ export default function GorevKart({
 
       {/* Tamamlanmış görev */}
       {!gorev.otomatikMi && gorev.durum === "tamamlandi" && (
-        <div className="mt-2 flex items-center gap-2 text-[10px] text-emerald-600" onClick={e => e.stopPropagation()}>
+        <div className="mt-2 flex items-center gap-2 text-[10px] text-[#8FAF9A]" onClick={e => e.stopPropagation()}>
           <span>✅ {gorev.ortakMi ? `Herkes tamamladı (${gorev.tamamlayanlar?.length || 0}/${gorev.atananlar?.length || 0})` : "Tamamlandı"}</span>
           {gorev.yorumlar && gorev.yorumlar.length > 0 && (
-            <span className="text-stone-400">• {gorev.yorumlar.length} yorum</span>
+            <span className="text-[#8A8A8A]">• {gorev.yorumlar.length} yorum</span>
           )}
           {canDelete && (
             <button
               onClick={() => onSil(gorev.id)}
-              className="ml-auto p-1 text-stone-400 hover:text-red-500 hover:bg-red-50 rounded transition"
+              className="ml-auto p-1 text-[#8A8A8A] hover:text-[#D96C6C] hover:bg-[#D96C6C]/10 rounded transition"
             >
               🗑️
             </button>
@@ -231,7 +231,7 @@ export default function GorevKart({
       {/* Otomatik görevlerde Yaptım butonu */}
       {gorev.otomatikMi && (
         <div className="mt-2 flex items-center justify-between" onClick={e => e.stopPropagation()}>
-          <span className={`text-[10px] italic ${gorev.gorevTuru === "odemeTakip" ? "text-red-400" : "text-purple-400"}`}>
+          <span className={`text-[10px] italic ${gorev.gorevTuru === "odemeTakip" ? "text-[#D96C6C]" : "text-purple-400"}`}>
             {gorev.gorevTuru === "odemeTakip" 
               ? '💰 "--" eklenince silinir'
               : "ℹ️ Alan dolunca silinir"}
@@ -239,7 +239,7 @@ export default function GorevKart({
           <button
             onClick={() => onYaptim(gorev)}
             disabled={yaptimLoading === gorev.id}
-            className="px-2.5 py-1 bg-emerald-500 text-white rounded-lg text-xs font-medium hover:bg-emerald-600 disabled:opacity-50 transition"
+            className="px-2.5 py-1 bg-[#8FAF9A] text-white rounded-lg text-xs font-medium hover:bg-[#7A9E86] disabled:opacity-50 transition"
           >
             {yaptimLoading === gorev.id ? "⏳..." : "✅ Yaptım"}
           </button>

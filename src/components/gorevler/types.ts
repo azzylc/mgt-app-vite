@@ -104,21 +104,21 @@ export function compositeGorevId(gelinId: string, gorevTuru: string, atananEmail
 // UI yardımcıları
 export const oncelikRenk = (oncelik: string) => {
   switch (oncelik) {
-    case "acil": return "border-l-red-400";
-    case "yuksek": return "border-l-amber-400";
+    case "acil": return "border-l-[#D96C6C]";
+    case "yuksek": return "border-l-[#E6B566]";
     case "normal": return "border-l-sky-300";
-    case "dusuk": return "border-l-stone-300";
-    default: return "border-l-stone-200";
+    case "dusuk": return "border-l-[#8A8A8A]";
+    default: return "border-l-[#E5E5E5]";
   }
 };
 
 export const durumBadge = (durum: string) => {
   switch (durum) {
-    case "bekliyor": return "bg-yellow-50 text-yellow-700";
+    case "bekliyor": return "bg-[#E6B566]/10 text-[#E6B566]";
     case "devam-ediyor": return "bg-blue-50 text-blue-700";
-    case "tamamlandi": return "bg-emerald-50 text-emerald-700";
-    case "iptal": return "bg-stone-100 text-stone-600";
-    default: return "bg-stone-100 text-stone-600";
+    case "tamamlandi": return "bg-[#EAF2ED] text-[#8FAF9A]";
+    case "iptal": return "bg-[#F7F7F7] text-[#2F2F2F]";
+    default: return "bg-[#F7F7F7] text-[#2F2F2F]";
   }
 };
 

@@ -107,12 +107,12 @@ function PersonelBadge({ label, personelIsim, personeller }: {
   if (!personelIsim && !personel) return null;
   return (
     <div className="flex items-center gap-2 py-1.5">
-      <div className="w-6 h-6 rounded-full bg-stone-100 flex items-center justify-center text-xs">
+      <div className="w-6 h-6 rounded-full bg-[#F7F7F7] flex items-center justify-center text-xs">
         {personel?.emoji || personelIsim?.charAt(0) || '?'}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[10px] text-stone-400 uppercase tracking-wider leading-none">{label}</p>
-        <p className="text-xs font-medium text-stone-800 truncate">{personel?.isim || personelIsim}</p>
+        <p className="text-[10px] text-[#8A8A8A] uppercase tracking-wider leading-none">{label}</p>
+        <p className="text-xs font-medium text-[#2F2F2F] truncate">{personel?.isim || personelIsim}</p>
       </div>
     </div>
   );
@@ -149,7 +149,7 @@ export default function GelinModal({ gelin: initialGelin, onClose }: { gelin: Ge
   const accent = firma === 'TCB' ? 'violet' : firma === 'MG' ? 'amber' : 'rose';
   const accentMap: Record<string, { bg: string; text: string; badge: string }> = {
     violet: { bg: 'bg-violet-50', text: 'text-violet-700', badge: 'bg-violet-100 text-violet-700' },
-    amber: { bg: 'bg-amber-50', text: 'text-amber-700', badge: 'bg-amber-100 text-amber-700' },
+    amber: { bg: 'bg-[#EAF2ED]', text: 'text-[#2F2F2F]', badge: 'bg-[#EAF2ED] text-[#2F2F2F]' },
     rose: { bg: 'bg-rose-50', text: 'text-rose-700', badge: 'bg-rose-100 text-rose-700' },
   };
   const c = accentMap[accent];
@@ -159,7 +159,7 @@ export default function GelinModal({ gelin: initialGelin, onClose }: { gelin: Ge
       <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-2xl max-w-md w-full max-h-[92vh] md:max-h-[88vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
         
         {/* Drag handle (mobile) */}
-        <div className="md:hidden w-10 h-1 bg-stone-200 rounded-full mx-auto mt-2.5 mb-1" />
+        <div className="md:hidden w-10 h-1 bg-[#E5E5E5] rounded-full mx-auto mt-2.5 mb-1" />
 
         {/* Scrollable content */}
         <div className="overflow-y-auto flex-1 px-4 pb-4">
@@ -173,17 +173,17 @@ export default function GelinModal({ gelin: initialGelin, onClose }: { gelin: Ge
                     <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${c.badge}`}>{firma}</span>
                   )}
                   {gelin.etkinlikTuru && (
-                    <span className="text-[10px] text-stone-400">{gelin.etkinlikTuru}</span>
+                    <span className="text-[10px] text-[#8A8A8A]">{gelin.etkinlikTuru}</span>
                   )}
                 </div>
-                <h2 className="text-base font-bold text-stone-900 tracking-tight truncate">{gelin.isim}</h2>
-                <p className="text-xs text-stone-500 mt-0.5">
+                <h2 className="text-base font-bold text-[#2F2F2F] tracking-tight truncate">{gelin.isim}</h2>
+                <p className="text-xs text-[#8A8A8A] mt-0.5">
                   {formatTarih(gelin.tarih)} · {gelin.saat}{gelin.bitisSaati ? `–${gelin.bitisSaati}` : ''}
                 </p>
-                {gelin.kinaGunu && <p className="text-xs text-stone-400 mt-0.5">Kına: {gelin.kinaGunu}</p>}
-                {gelin.merasimTarihi && <p className="text-xs text-stone-400 mt-0.5">Merasim: {gelin.merasimTarihi}</p>}
+                {gelin.kinaGunu && <p className="text-xs text-[#8A8A8A] mt-0.5">Kına: {gelin.kinaGunu}</p>}
+                {gelin.merasimTarihi && <p className="text-xs text-[#8A8A8A] mt-0.5">Merasim: {gelin.merasimTarihi}</p>}
               </div>
-              <button onClick={onClose} className="ml-3 w-8 h-8 flex items-center justify-center rounded-full hover:bg-stone-100 text-stone-400 hover:text-stone-600 transition">
+              <button onClick={onClose} className="ml-3 w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#F7F7F7] text-[#8A8A8A] hover:text-[#2F2F2F] transition">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
@@ -193,22 +193,22 @@ export default function GelinModal({ gelin: initialGelin, onClose }: { gelin: Ge
           <div className={`flex items-center gap-2.5 px-3 py-2 rounded-xl ${c.bg} mb-3`}>
             <div className="relative w-8 h-8">
               <svg className="w-8 h-8 -rotate-90" viewBox="0 0 36 36">
-                <circle cx="18" cy="18" r="15.5" fill="none" stroke="currentColor" className="text-stone-200" strokeWidth="3" />
+                <circle cx="18" cy="18" r="15.5" fill="none" stroke="currentColor" className="text-[#E5E5E5]" strokeWidth="3" />
                 <circle cx="18" cy="18" r="15.5" fill="none" stroke="currentColor" className={c.text} strokeWidth="3"
                   strokeDasharray={`${yuzde} 100`} strokeLinecap="round" />
               </svg>
-              <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-stone-700">{yuzde}%</span>
+              <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-[#2F2F2F]">{yuzde}%</span>
             </div>
             <div>
-              <p className="text-xs font-semibold text-stone-800">Takip Durumu</p>
-              <p className="text-[11px] text-stone-500">{tamamlanan}/{toplam} tamamlandı</p>
+              <p className="text-xs font-semibold text-[#2F2F2F]">Takip Durumu</p>
+              <p className="text-[11px] text-[#8A8A8A]">{tamamlanan}/{toplam} tamamlandı</p>
             </div>
           </div>
 
           {/* Ekip */}
           <div className="mb-3">
-            <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider mb-1 px-1">Ekip</p>
-            <div className="bg-stone-50 rounded-xl px-3 divide-y divide-stone-100">
+            <p className="text-[10px] font-semibold text-[#8A8A8A] uppercase tracking-wider mb-1 px-1">Ekip</p>
+            <div className="bg-[#F7F7F7] rounded-xl px-3 divide-y divide-[#E5E5E5]">
               {isMG ? (
                 <>
                   <PersonelBadge label="Gelinlikçi" personelIsim={gelin.gelinlikci || ''} personeller={personeller} />
@@ -228,13 +228,13 @@ export default function GelinModal({ gelin: initialGelin, onClose }: { gelin: Ge
           {/* İletişim */}
           {(gelin.telefon || gelin.esiTelefon || gelin.instagram) && (
             <div className="mb-3">
-              <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider mb-1 px-1">İletişim</p>
-              <div className="bg-stone-50 rounded-xl px-3 divide-y divide-stone-100">
+              <p className="text-[10px] font-semibold text-[#8A8A8A] uppercase tracking-wider mb-1 px-1">İletişim</p>
+              <div className="bg-[#F7F7F7] rounded-xl px-3 divide-y divide-[#E5E5E5]">
                 {gelin.telefon && (
                   <div className="flex items-center justify-between py-2">
                     <div>
-                      <p className="text-[10px] text-stone-400">{isMG ? 'Gelin' : 'Telefon'}</p>
-                      <a href={`tel:${gelin.telefon}`} className="text-xs font-medium text-stone-800">{gelin.telefon}</a>
+                      <p className="text-[10px] text-[#8A8A8A]">{isMG ? 'Gelin' : 'Telefon'}</p>
+                      <a href={`tel:${gelin.telefon}`} className="text-xs font-medium text-[#2F2F2F]">{gelin.telefon}</a>
                     </div>
                     <a href={`https://wa.me/${toWhatsApp(gelin.telefon)}`} target="_blank" rel="noopener noreferrer"
                       className="w-6 h-6 flex items-center justify-center rounded-full bg-green-500 hover:bg-green-600 text-white transition-colors">
@@ -245,8 +245,8 @@ export default function GelinModal({ gelin: initialGelin, onClose }: { gelin: Ge
                 {gelin.esiTelefon && (
                   <div className="flex items-center justify-between py-2">
                     <div>
-                      <p className="text-[10px] text-stone-400">{isMG ? 'Damat' : 'Eşi'}</p>
-                      <a href={`tel:${gelin.esiTelefon}`} className="text-xs font-medium text-stone-800">{gelin.esiTelefon}</a>
+                      <p className="text-[10px] text-[#8A8A8A]">{isMG ? 'Damat' : 'Eşi'}</p>
+                      <a href={`tel:${gelin.esiTelefon}`} className="text-xs font-medium text-[#2F2F2F]">{gelin.esiTelefon}</a>
                     </div>
                     <a href={`https://wa.me/${toWhatsApp(gelin.esiTelefon)}`} target="_blank" rel="noopener noreferrer"
                       className="w-6 h-6 flex items-center justify-center rounded-full bg-green-500 hover:bg-green-600 text-white transition-colors">
@@ -257,7 +257,7 @@ export default function GelinModal({ gelin: initialGelin, onClose }: { gelin: Ge
                 {gelin.instagram && (
                   <div className="flex items-center justify-between py-2">
                     <div>
-                      <p className="text-[10px] text-stone-400">Instagram</p>
+                      <p className="text-[10px] text-[#8A8A8A]">Instagram</p>
                       <a href={`https://instagram.com/${gelin.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer"
                         className="text-xs font-medium text-blue-600 hover:underline">{gelin.instagram}</a>
                     </div>
@@ -269,27 +269,27 @@ export default function GelinModal({ gelin: initialGelin, onClose }: { gelin: Ge
 
           {/* Ödeme */}
           <div className="mb-3">
-            <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider mb-1 px-1">Ödeme</p>
+            <p className="text-[10px] font-semibold text-[#8A8A8A] uppercase tracking-wider mb-1 px-1">Ödeme</p>
             <div className="grid grid-cols-3 gap-1.5">
-              <div className="bg-stone-50 rounded-lg p-2 text-center">
-                <p className="text-[9px] text-stone-400 mb-0.5">Ücret</p>
-                <p className="text-sm font-bold text-stone-800">
+              <div className="bg-[#F7F7F7] rounded-lg p-2 text-center">
+                <p className="text-[9px] text-[#8A8A8A] mb-0.5">Ücret</p>
+                <p className="text-sm font-bold text-[#2F2F2F]">
                   {gelin.ucret === -1 ? '—' : `${gelin.ucret.toLocaleString('tr-TR')}₺`}
                 </p>
               </div>
-              <div className="bg-emerald-50 rounded-lg p-2 text-center">
-                <p className="text-[9px] text-emerald-500 mb-0.5">Kapora</p>
-                <p className="text-sm font-bold text-emerald-700">{gelin.kapora.toLocaleString('tr-TR')}₺</p>
+              <div className="bg-[#EAF2ED] rounded-lg p-2 text-center">
+                <p className="text-[9px] text-[#8FAF9A] mb-0.5">Kapora</p>
+                <p className="text-sm font-bold text-[#8FAF9A]">{gelin.kapora.toLocaleString('tr-TR')}₺</p>
               </div>
-              <div className={`rounded-lg p-2 text-center ${gelin.kalan > 0 ? 'bg-red-50' : 'bg-stone-50'}`}>
-                <p className={`text-[9px] mb-0.5 ${gelin.kalan > 0 ? 'text-red-400' : 'text-stone-400'}`}>Kalan</p>
-                <p className={`text-sm font-bold ${gelin.kalan > 0 ? 'text-red-600' : 'text-stone-800'}`}>
+              <div className={`rounded-lg p-2 text-center ${gelin.kalan > 0 ? 'bg-[#D96C6C]/10' : 'bg-[#F7F7F7]'}`}>
+                <p className={`text-[9px] mb-0.5 ${gelin.kalan > 0 ? 'text-[#D96C6C]' : 'text-[#8A8A8A]'}`}>Kalan</p>
+                <p className={`text-sm font-bold ${gelin.kalan > 0 ? 'text-[#D96C6C]' : 'text-[#2F2F2F]'}`}>
                   {gelin.ucret === -1 ? '—' : `${gelin.kalan.toLocaleString('tr-TR')}₺`}
                 </p>
               </div>
             </div>
             {gelin.anlasildigiTarih && (
-              <p className="text-[11px] text-stone-400 mt-1.5 px-1">
+              <p className="text-[11px] text-[#8A8A8A] mt-1.5 px-1">
                 Anlaşma: {new Date(gelin.anlasildigiTarih).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
               </p>
             )}
@@ -298,67 +298,67 @@ export default function GelinModal({ gelin: initialGelin, onClose }: { gelin: Ge
           {/* MG: Ek Hizmetler */}
           {isMG && gelin.ekHizmetler && (
             <div className="mb-3">
-              <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider mb-1 px-1">Ek Hizmetler</p>
-              <div className="bg-amber-50 rounded-xl px-3 py-2">
-                <p className="text-xs text-stone-800">{gelin.ekHizmetler}</p>
+              <p className="text-[10px] font-semibold text-[#8A8A8A] uppercase tracking-wider mb-1 px-1">Ek Hizmetler</p>
+              <div className="bg-[#EAF2ED] rounded-xl px-3 py-2">
+                <p className="text-xs text-[#2F2F2F]">{gelin.ekHizmetler}</p>
               </div>
             </div>
           )}
 
           {/* Checklist */}
           <div className="mb-3">
-            <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider mb-1.5 px-1">Takip Listesi</p>
+            <p className="text-[10px] font-semibold text-[#8A8A8A] uppercase tracking-wider mb-1.5 px-1">Takip Listesi</p>
             <div className="space-y-0.5">
               {checkItems.map((item, i) => (
-                <div key={i} className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg transition-colors ${item.checked ? 'bg-emerald-50/60' : 'bg-stone-50'}`}>
-                  <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${item.checked ? 'bg-emerald-500 text-white' : 'border-2 border-stone-200'}`}>
+                <div key={i} className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg transition-colors ${item.checked ? 'bg-[#EAF2ED]/60' : 'bg-[#F7F7F7]'}`}>
+                  <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${item.checked ? 'bg-[#8FAF9A] text-white' : 'border-2 border-[#E5E5E5]'}`}>
                     {item.checked && <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={`text-xs ${item.checked ? 'text-stone-700' : 'text-stone-400'}`}>{item.label}</p>
+                    <p className={`text-xs ${item.checked ? 'text-[#2F2F2F]' : 'text-[#8A8A8A]'}`}>{item.label}</p>
                     {item.checked && item.value && (
-                      <span className="text-[11px] text-emerald-600 font-medium">{item.value}</span>
+                      <span className="text-[11px] text-[#8FAF9A] font-medium">{item.value}</span>
                     )}
                   </div>
                 </div>
               ))}
 
               {/* Yorum separator */}
-              <div className="h-px bg-stone-100 my-1.5" />
+              <div className="h-px bg-[#F7F7F7] my-1.5" />
 
               {/* Yorum istensin mi */}
-              <div className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg ${gelin.yorumIstesinMi ? 'bg-emerald-50/60' : 'bg-red-50/60'}`}>
-                <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${gelin.yorumIstesinMi ? 'bg-emerald-500 text-white' : 'border-2 border-red-300'}`}>
+              <div className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg ${gelin.yorumIstesinMi ? 'bg-[#EAF2ED]/60' : 'bg-[#D96C6C]/10/60'}`}>
+                <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${gelin.yorumIstesinMi ? 'bg-[#8FAF9A] text-white' : 'border-2 border-[#D96C6C]'}`}>
                   {gelin.yorumIstesinMi && <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
                 </div>
                 <div className="flex-1">
-                  <p className={`text-xs ${gelin.yorumIstesinMi ? 'text-stone-700' : 'text-red-500 font-medium'}`}>Yorum istensin mi</p>
+                  <p className={`text-xs ${gelin.yorumIstesinMi ? 'text-[#2F2F2F]' : 'text-[#D96C6C] font-medium'}`}>Yorum istensin mi</p>
                   {gelin.yorumIstesinMi ? (
-                    <span className="text-[11px] text-emerald-600 font-medium">{gelin.yorumIstesinMi}</span>
+                    <span className="text-[11px] text-[#8FAF9A] font-medium">{gelin.yorumIstesinMi}</span>
                   ) : (
-                    <p className="text-[10px] text-red-400">Boş — otomatik görev atanacak</p>
+                    <p className="text-[10px] text-[#D96C6C]">Boş — otomatik görev atanacak</p>
                   )}
                 </div>
               </div>
 
               {/* Yorum istendi mi */}
-              <div className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg ${gelin.yorumIstendiMi ? 'bg-emerald-50/60' : 'bg-stone-50'}`}>
-                <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${gelin.yorumIstendiMi ? 'bg-emerald-500 text-white' : 'border-2 border-stone-200'}`}>
+              <div className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg ${gelin.yorumIstendiMi ? 'bg-[#EAF2ED]/60' : 'bg-[#F7F7F7]'}`}>
+                <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${gelin.yorumIstendiMi ? 'bg-[#8FAF9A] text-white' : 'border-2 border-[#E5E5E5]'}`}>
                   {gelin.yorumIstendiMi && <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
                 </div>
-                <p className={`text-xs ${gelin.yorumIstendiMi ? 'text-stone-700' : 'text-stone-400'}`}>Yorum istendi mi</p>
+                <p className={`text-xs ${gelin.yorumIstendiMi ? 'text-[#2F2F2F]' : 'text-[#8A8A8A]'}`}>Yorum istendi mi</p>
               </div>
             </div>
           </div>
 
           {/* Not */}
           <div className="mb-3">
-            <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider mb-1 px-1">{isMG ? 'Çift Notu' : 'Gelin Notu'}</p>
-            <div className="bg-stone-50 rounded-xl px-3 py-2">
+            <p className="text-[10px] font-semibold text-[#8A8A8A] uppercase tracking-wider mb-1 px-1">{isMG ? 'Çift Notu' : 'Gelin Notu'}</p>
+            <div className="bg-[#F7F7F7] rounded-xl px-3 py-2">
               {gelin.gelinNotu ? (
-                <p className="text-xs text-stone-700 whitespace-pre-wrap leading-relaxed">{gelin.gelinNotu}</p>
+                <p className="text-xs text-[#2F2F2F] whitespace-pre-wrap leading-relaxed">{gelin.gelinNotu}</p>
               ) : (
-                <p className="text-xs text-stone-300 italic">Henüz not eklenmemiş</p>
+                <p className="text-xs text-[#8A8A8A] italic">Henüz not eklenmemiş</p>
               )}
             </div>
           </div>
@@ -366,19 +366,19 @@ export default function GelinModal({ gelin: initialGelin, onClose }: { gelin: Ge
           {/* Dekont */}
           {gelin.dekontGorseli && (
             <div className="mb-2">
-              <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider mb-1 px-1">Dekont</p>
+              <p className="text-[10px] font-semibold text-[#8A8A8A] uppercase tracking-wider mb-1 px-1">Dekont</p>
               <a href={gelin.dekontGorseli} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100 rounded-xl px-3 py-2 transition-colors group">
-                <div className="w-6 h-6 rounded-lg bg-emerald-200/50 flex items-center justify-center">
-                  <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                className="flex items-center gap-2 bg-[#EAF2ED] hover:bg-[#EAF2ED] rounded-xl px-3 py-2 transition-colors group">
+                <div className="w-6 h-6 rounded-lg bg-[#EAF2ED] flex items-center justify-center">
+                  <svg className="w-3.5 h-3.5 text-[#8FAF9A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                 </div>
-                <span className="text-xs font-medium text-emerald-700 group-hover:underline">Dekont görselini aç</span>
+                <span className="text-xs font-medium text-[#8FAF9A] group-hover:underline">Dekont görselini aç</span>
               </a>
             </div>
           )}
 
           {/* Footer note */}
-          <p className="text-[10px] text-stone-300 text-center mt-3 pb-1">Veriler Google Takvim'den otomatik çekilir</p>
+          <p className="text-[10px] text-[#8A8A8A] text-center mt-3 pb-1">Veriler Google Takvim'den otomatik çekilir</p>
         </div>
       </div>
     </div>

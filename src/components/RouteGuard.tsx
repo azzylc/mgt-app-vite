@@ -21,7 +21,7 @@ export default function RouteGuard({ children, requiredPermission }: RouteGuardP
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-400"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#8FAF9A]"></div>
       </div>
     );
   }

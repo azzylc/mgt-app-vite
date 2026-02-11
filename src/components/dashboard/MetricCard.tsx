@@ -10,39 +10,29 @@ interface MetricCardProps {
 
 const themes = {
   pink: {
-    bg: 'bg-gradient-to-br from-rose-50 to-pink-50',
-    text: 'text-rose-600',
-    iconBg: 'bg-rose-100',
-    progress: 'bg-rose-400',
-    border: 'border-rose-100/80',
+    bg: 'bg-[#F7F7F7]',
+    iconBg: 'bg-[#EAF2ED]',
+    border: 'border-[#E5E5E5]',
   },
   purple: {
-    bg: 'bg-gradient-to-br from-violet-50 to-purple-50',
-    text: 'text-violet-600',
-    iconBg: 'bg-violet-100',
-    progress: 'bg-violet-400',
-    border: 'border-violet-100/80',
+    bg: 'bg-[#F7F7F7]',
+    iconBg: 'bg-[#EAF2ED]',
+    border: 'border-[#E5E5E5]',
   },
   blue: {
-    bg: 'bg-gradient-to-br from-sky-50 to-blue-50',
-    text: 'text-sky-600',
-    iconBg: 'bg-sky-100',
-    progress: 'bg-sky-400',
-    border: 'border-sky-100/80',
+    bg: 'bg-[#EAF2ED]',
+    iconBg: 'bg-white',
+    border: 'border-[#8FAF9A]/20',
   },
   green: {
-    bg: 'bg-gradient-to-br from-emerald-50 to-teal-50',
-    text: 'text-emerald-600',
-    iconBg: 'bg-emerald-100',
-    progress: 'bg-emerald-400',
-    border: 'border-emerald-100/80',
+    bg: 'bg-[#F7F7F7]',
+    iconBg: 'bg-[#EAF2ED]',
+    border: 'border-[#E5E5E5]',
   },
   amber: {
-    bg: 'bg-gradient-to-br from-amber-50 to-orange-50',
-    text: 'text-amber-600',
-    iconBg: 'bg-amber-100',
-    progress: 'bg-amber-400',
-    border: 'border-amber-100/80',
+    bg: 'bg-[#F7F7F7]',
+    iconBg: 'bg-[#EAF2ED]',
+    border: 'border-[#E5E5E5]',
   },
 };
 
@@ -63,14 +53,14 @@ export default function MetricCard({
     >
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-stone-500 text-[10px] font-semibold uppercase tracking-wider">{title}</p>
-          <p className={`text-2xl font-bold mt-0.5 ${t.text}`}>
+          <p className="text-[#8A8A8A] text-[10px] font-semibold uppercase tracking-wider">{title}</p>
+          <p className="text-2xl font-bold mt-0.5 text-[#2F2F2F]">
             {value}
             {progress && (
-              <span className="text-xs text-stone-300 font-normal ml-0.5">/{progress.target}</span>
+              <span className="text-xs text-[#8A8A8A] font-normal ml-0.5">/{progress.target}</span>
             )}
           </p>
-          <p className="text-stone-400 text-[10px] mt-0.5">{subtitle}</p>
+          <p className="text-[#8A8A8A] text-[10px] mt-0.5">{subtitle}</p>
         </div>
         <div className={`w-8 h-8 ${t.iconBg} rounded-lg flex items-center justify-center`}>
           <span className="text-sm">{icon}</span>
@@ -80,7 +70,7 @@ export default function MetricCard({
         <div className="mt-2">
           <div className="h-1.5 bg-white/60 rounded-full overflow-hidden">
             <div 
-              className={`h-full ${t.progress} rounded-full transition-all`}
+              className="h-full bg-[#8FAF9A] rounded-full transition-all"
               style={{ width: `${Math.min((progress.current / progress.target) * 100, 100)}%` }}
             />
           </div>

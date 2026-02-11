@@ -133,25 +133,25 @@ export default function PinGuard({ children }: PinGuardProps) {
 
   if (durum === "loading") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-amber-400"></div>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#8FAF9A]"></div>
       </div>
     );
   }
 
   // PIN giriş ekranı
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl border border-stone-200/60 shadow-lg max-w-sm w-full p-8 text-center">
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl border border-[#E5E5E5]/60 shadow-lg max-w-sm w-full p-8 text-center">
         {/* Kilit ikonu */}
-        <div className="w-16 h-16 bg-stone-900 rounded-2xl flex items-center justify-center mx-auto mb-5">
+        <div className="w-16 h-16 bg-[#2F2F2F] rounded-2xl flex items-center justify-center mx-auto mb-5">
           <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
           </svg>
         </div>
 
-        <h2 className="text-lg font-bold text-stone-900 mb-1">Yönetim Paneli</h2>
-        <p className="text-sm text-stone-500 mb-6">Devam etmek için 6 haneli PIN girin</p>
+        <h2 className="text-lg font-bold text-[#2F2F2F] mb-1">Yönetim Paneli</h2>
+        <p className="text-sm text-[#8A8A8A] mb-6">Devam etmek için 6 haneli PIN girin</p>
 
         {/* PIN input boxes */}
         <div className="flex justify-center gap-2.5 mb-4" onPaste={handlePaste}>
@@ -167,9 +167,9 @@ export default function PinGuard({ children }: PinGuardProps) {
               onKeyDown={(e) => handleKeyDown(i, e)}
               disabled={kilitli}
               className={`w-11 h-14 text-center text-xl font-bold rounded-xl border-2 transition-all outline-none
-                ${digit ? "border-stone-900 bg-stone-50" : "border-stone-200 bg-white"}
-                ${hata ? "border-red-300 shake" : ""}
-                focus:border-amber-400 focus:ring-2 focus:ring-amber-100
+                ${digit ? "border-[#2F2F2F] bg-[#F7F7F7]" : "border-[#E5E5E5] bg-white"}
+                ${hata ? "border-[#D96C6C] shake" : ""}
+                focus:border-[#8FAF9A] focus:ring-2 focus:ring-[#8FAF9A]/30
                 disabled:opacity-40 disabled:cursor-not-allowed`}
             />
           ))}
@@ -177,19 +177,19 @@ export default function PinGuard({ children }: PinGuardProps) {
 
         {/* Hata mesajı */}
         {hata && (
-          <p className="text-xs text-red-500 font-medium mb-3">{hata}</p>
+          <p className="text-xs text-[#D96C6C] font-medium mb-3">{hata}</p>
         )}
 
         {/* Kilit sayacı */}
         {kilitli && kilitSure > 0 && (
-          <div className="bg-red-50 rounded-xl px-4 py-3 mb-3">
-            <p className="text-sm text-red-600 font-medium">{kilitSure} saniye bekleyin</p>
+          <div className="bg-[#D96C6C]/10 rounded-xl px-4 py-3 mb-3">
+            <p className="text-sm text-[#D96C6C] font-medium">{kilitSure} saniye bekleyin</p>
           </div>
         )}
 
         {/* Geri dön */}
         <button onClick={() => window.history.back()}
-          className="text-xs text-stone-400 hover:text-stone-600 mt-4 underline underline-offset-2 transition">
+          className="text-xs text-[#8A8A8A] hover:text-[#2F2F2F] mt-4 underline underline-offset-2 transition">
           Geri dön
         </button>
       </div>

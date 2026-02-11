@@ -125,28 +125,28 @@ export default function TakvimEtkinlikWidget({ personeller }: Props) {
   };
 
   const kalanGunRenk = (gun: number) => {
-    if (gun === 0) return "text-emerald-600 bg-emerald-50 font-bold";
-    if (gun <= 3) return "text-amber-600 bg-amber-50";
+    if (gun === 0) return "text-[#8FAF9A] bg-[#EAF2ED] font-bold";
+    if (gun <= 3) return "text-[#8FAF9A] bg-[#EAF2ED]";
     if (gun <= 7) return "text-blue-600 bg-blue-50";
-    return "text-stone-500 bg-stone-50";
+    return "text-[#8A8A8A] bg-[#F7F7F7]";
   };
 
   const kategoriRenk = (kat: string) => {
     switch (kat) {
-      case "tatil": return "bg-red-100";
-      case "anma": return "bg-stone-200";
+      case "tatil": return "bg-[#D96C6C]/20";
+      case "anma": return "bg-[#E5E5E5]";
       case "dogumgunu": return "bg-pink-100";
-      case "ozel": return "bg-amber-100";
-      default: return "bg-stone-100";
+      case "ozel": return "bg-[#EAF2ED]";
+      default: return "bg-[#F7F7F7]";
     }
   };
 
   const kategoriBg = (kat: string) => {
     switch (kat) {
-      case "tatil": return "bg-red-50/40";
-      case "anma": return "bg-stone-50/60";
+      case "tatil": return "bg-[#D96C6C]/10/40";
+      case "anma": return "bg-[#F7F7F7]";
       case "dogumgunu": return "bg-pink-50/40";
-      case "ozel": return "bg-amber-50/40";
+      case "ozel": return "bg-[#EAF2ED]";
       default: return "";
     }
   };
@@ -154,16 +154,16 @@ export default function TakvimEtkinlikWidget({ personeller }: Props) {
   if (tumEtkinlikler.length === 0) return null;
 
   return (
-    <div className="bg-white rounded-xl border border-stone-100 overflow-hidden">
+    <div className="bg-white rounded-xl border border-[#E5E5E5] overflow-hidden">
       {/* Header */}
-      <div className="px-3 py-2 border-b border-stone-100 flex items-center justify-between bg-gradient-to-r from-emerald-50/50 to-transparent">
+      <div className="px-3 py-2 border-b border-[#E5E5E5] flex items-center justify-between bg-gradient-to-r from-[#EAF2ED] to-transparent">
         <div className="flex items-center gap-2">
           <span className="text-sm">📅</span>
-          <span className="text-xs font-semibold text-stone-700">Yaklaşan Etkinlikler</span>
-          <span className="text-[10px] text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded-full">{tumEtkinlikler.length}</span>
+          <span className="text-xs font-semibold text-[#2F2F2F]">Yaklaşan Etkinlikler</span>
+          <span className="text-[10px] text-[#8A8A8A] bg-[#F7F7F7] px-1.5 py-0.5 rounded-full">{tumEtkinlikler.length}</span>
         </div>
         <button onClick={() => navigate("/duyurular?tab=tarihler")}
-          className="text-[10px] text-stone-400 hover:text-emerald-500 font-medium transition">
+          className="text-[10px] text-[#8A8A8A] hover:text-[#8FAF9A] font-medium transition">
           Tümü →
         </button>
       </div>
@@ -176,8 +176,8 @@ export default function TakvimEtkinlikWidget({ personeller }: Props) {
               <span className="text-xs">{e.emoji}</span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-stone-700 font-medium truncate">{e.baslik}</p>
-              <p className="text-[10px] text-stone-400">
+              <p className="text-xs text-[#2F2F2F] font-medium truncate">{e.baslik}</p>
+              <p className="text-[10px] text-[#8A8A8A]">
                 {formatTarih(e.tarihStr)}
                 {e.ekBilgi && ` (${e.ekBilgi})`}
               </p>
