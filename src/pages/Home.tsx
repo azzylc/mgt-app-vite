@@ -516,12 +516,12 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-50/50">
+    <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-stone-100 px-4 md:px-5 py-2.5 sticky top-0 z-40">
         <div className="flex items-center justify-between gap-3 max-w-[1400px] mx-auto">
           <div className="flex-shrink-0">
-            <h1 className="text-sm md:text-base font-semibold text-stone-800">Merhaba, {user?.email?.split('@')[0]}!</h1>
+            <h1 className="text-sm md:text-base font-semibold text-[#2F2F2F]">Merhaba, {user?.email?.split('@')[0]}!</h1>
             <p className="text-[10px] text-stone-400">{formatTarihUzun(bugun)} • {formatGun(bugun)}</p>
           </div>
           
@@ -538,7 +538,7 @@ export default function Home() {
                 }}
                 onFocus={() => setShowSearchDropdown(true)}
                 placeholder="Gelin ara..."
-                className="w-full pl-8 pr-3 py-1.5 bg-stone-50 border border-stone-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-100 focus:border-amber-200 focus:bg-white transition"
+                className="w-full pl-8 pr-3 py-1.5 bg-[#F7F7F7] border border-stone-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#8FAF9A]/30 focus:border-[#8FAF9A] focus:bg-white transition"
               />
               {searchQuery && (
                 <button 
@@ -556,7 +556,7 @@ export default function Home() {
                   <p className="px-3 py-4 text-center text-stone-400 text-xs">"{searchQuery}" bulunamadı</p>
                 ) : (
                   <div>
-                    <p className="px-3 py-1.5 bg-stone-50 border-b border-stone-100 text-[10px] text-stone-400">{searchResults.length} sonuç</p>
+                    <p className="px-3 py-1.5 bg-[#F7F7F7] border-b border-stone-100 text-[10px] text-stone-400">{searchResults.length} sonuç</p>
                     {searchResults.map((gelin) => (
                       <div
                         key={gelin.id}
@@ -565,7 +565,7 @@ export default function Home() {
                           setSearchQuery("");
                           setShowSearchDropdown(false);
                         }}
-                        className="px-3 py-2 hover:bg-stone-50 cursor-pointer border-b border-stone-50 last:border-0 transition"
+                        className="px-3 py-2 hover:bg-[#F7F7F7] cursor-pointer border-b border-stone-100/50 last:border-0 transition"
                       >
                         <p className="text-xs font-medium text-stone-700">{gelin.isim}</p>
                         <p className="text-[10px] text-stone-400 mt-0.5">{new Date(gelin.tarih).toLocaleDateString('tr-TR')} • {gelin.saat}</p>
@@ -588,7 +588,7 @@ export default function Home() {
               <span className="hidden md:inline text-[10px] text-stone-400">✓ {lastUpdate}</span>
             )}
             {dataLoading && (
-              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-amber-400"></div>
+              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-[#8FAF9A]"></div>
             )}
           </div>
         </div>
@@ -607,7 +607,7 @@ export default function Home() {
                   onClick={() => toggleFirma(firma.kisaltma)}
                   className={`px-3 py-1 rounded-lg transition-all ${
                     aktif
-                      ? 'bg-amber-500/10 ring-1 ring-amber-400/30'
+                      ? 'bg-[#EAF2ED] ring-1 ring-[#8FAF9A]/40'
                       : 'opacity-30 grayscale hover:opacity-50'
                   }`}
                 >
@@ -682,15 +682,15 @@ export default function Home() {
               {/* Duyurular */}
               {duyurular.length > 0 && (
                 <div className="bg-white rounded-xl border border-stone-100 overflow-hidden">
-                  <div className="px-3 py-2 border-b border-stone-100 flex items-center justify-between bg-gradient-to-r from-amber-50/50 to-transparent">
+                  <div className="px-3 py-2 border-b border-stone-100 flex items-center justify-between bg-gradient-to-r from-[#EAF2ED] to-transparent">
                     <div className="flex items-center gap-2">
                       <span className="text-sm">📢</span>
                       <span className="text-xs font-semibold text-stone-700">Duyurular</span>
-                      <span className="text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full font-medium">{duyurular.length}</span>
+                      <span className="text-[10px] text-[#8FAF9A] bg-[#EAF2ED] px-1.5 py-0.5 rounded-full font-medium">{duyurular.length}</span>
                     </div>
                     <button
                       onClick={() => navigate("/duyurular")}
-                      className="text-[10px] text-stone-400 hover:text-amber-500 font-medium transition"
+                      className="text-[10px] text-stone-400 hover:text-[#8FAF9A] font-medium transition"
                     >
                       Tümü →
                     </button>
@@ -700,14 +700,14 @@ export default function Home() {
                       <div 
                         key={d.id} 
                         onClick={() => setSelectedDuyuru(d)}
-                        className="py-1.5 px-2.5 rounded-lg cursor-pointer hover:bg-amber-50/40 transition"
+                        className="py-1.5 px-2.5 rounded-lg cursor-pointer hover:bg-[#EAF2ED]/50 transition"
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
                             <p className="text-xs text-stone-700 font-medium truncate">{d.title}</p>
                             <p className="text-[10px] text-stone-400 mt-0.5 line-clamp-1">{d.content}</p>
                           </div>
-                          {d.important && <span className="text-[10px] text-amber-400">🔥</span>}
+                          {d.important && <span className="text-[10px] text-[#8FAF9A]">🔥</span>}
                         </div>
                       </div>
                     ))}
@@ -758,7 +758,7 @@ export default function Home() {
       )}
 
       {gelinListeModal.open && (() => {
-        const dayColors = ['bg-stone-50', 'bg-white', 'bg-amber-50/40', 'bg-stone-50', 'bg-sky-50/30', 'bg-white', 'bg-rose-50/30'];
+        const dayColors = ['bg-[#F7F7F7]', 'bg-white', 'bg-[#EAF2ED]', 'bg-[#F7F7F7]', 'bg-white', 'bg-[#EAF2ED]/50', 'bg-[#F7F7F7]'];
         const grouped = gelinListeModal.gelinler.reduce<Record<string, Gelin[]>>((acc, g) => {
           (acc[g.tarih] = acc[g.tarih] || []).push(g);
           return acc;
@@ -769,7 +769,7 @@ export default function Home() {
           <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="p-5">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-base font-bold text-stone-800">{gelinListeModal.title}</h3>
+                <h3 className="text-base font-bold text-[#2F2F2F]">{gelinListeModal.title}</h3>
                 <button onClick={() => setGelinListeModal({ open: false, title: "", gelinler: [] })} className="text-stone-300 hover:text-stone-500 text-xl">×</button>
               </div>
               <div className="space-y-3">
@@ -816,7 +816,7 @@ export default function Home() {
           <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full" onClick={e => e.stopPropagation()}>
             <div className="p-5">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-base font-bold text-stone-800">{selectedDuyuru.title}</h3>
+                <h3 className="text-base font-bold text-[#2F2F2F]">{selectedDuyuru.title}</h3>
                 <button onClick={() => setSelectedDuyuru(null)} className="text-stone-300 hover:text-stone-500 text-xl">×</button>
               </div>
               <p className="text-sm text-stone-600 whitespace-pre-wrap">{selectedDuyuru.content}</p>
@@ -836,7 +836,7 @@ export default function Home() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Gelin ara..."
                 autoFocus
-                className="flex-1 px-3 py-2 bg-stone-50 border border-stone-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-100"
+                className="flex-1 px-3 py-2 bg-[#F7F7F7] border border-stone-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#8FAF9A]/30"
               />
               <button
                 onClick={() => { setShowMobileSearch(false); setSearchQuery(""); }}
@@ -854,7 +854,7 @@ export default function Home() {
                     setShowMobileSearch(false);
                     setSearchQuery("");
                   }}
-                  className="p-3 rounded-lg hover:bg-stone-50"
+                  className="p-3 rounded-lg hover:bg-[#F7F7F7]"
                 >
                   <p className="text-sm font-medium text-stone-700">{gelin.isim}</p>
                   <p className="text-xs text-stone-400 mt-0.5">{formatTarih(gelin.tarih)} • {gelin.saat}</p>
@@ -871,17 +871,17 @@ export default function Home() {
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full" onClick={e => e.stopPropagation()}>
             <div className="p-5">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-base font-bold text-stone-800">Şu An Çalışanlar</h3>
+                <h3 className="text-base font-bold text-[#2F2F2F]">Şu An Çalışanlar</h3>
                 <button onClick={() => setAktifCalisanModal(false)} className="text-stone-300 hover:text-stone-500 text-xl">×</button>
               </div>
               <div className="space-y-2">
                 {suAnCalisanlar.map((p) => (
-                  <div key={p.personelId} className="flex items-center justify-between p-2.5 bg-emerald-50/50 rounded-lg">
+                  <div key={p.personelId} className="flex items-center justify-between p-2.5 bg-[#EAF2ED] rounded-lg">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
+                      <div className="w-2 h-2 bg-[#8FAF9A] rounded-full"></div>
                       <span className="text-sm font-medium text-stone-700">{p.personelAd}</span>
                     </div>
-                    <span className="text-xs text-emerald-600 font-medium">{p.girisSaati || ''}</span>
+                    <span className="text-xs text-[#8FAF9A] font-medium">{p.girisSaati || ''}</span>
                   </div>
                 ))}
               </div>
@@ -896,7 +896,7 @@ export default function Home() {
           <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full" onClick={e => e.stopPropagation()}>
             <div className="p-5 text-center">
               <p className="text-3xl mb-3">🤷</p>
-              <h3 className="text-base font-bold text-stone-800 mb-1">{bilgiModal.title}</h3>
+              <h3 className="text-base font-bold text-[#2F2F2F] mb-1">{bilgiModal.title}</h3>
               <p className="text-sm text-stone-500">{bilgiModal.mesaj}</p>
               <button 
                 onClick={() => setBilgiModal({open: false, title: '', mesaj: ''})}

@@ -13,8 +13,8 @@ export default function AuthLayout() {
   // Auth henüz hazır değilse veya roller yükleniyorsa bekle
   if (!authReady || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-900">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-400"></div>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#8FAF9A]"></div>
       </div>
     )
   }
@@ -26,7 +26,7 @@ export default function AuthLayout() {
   return (
     <>
       <Sidebar user={user} />
-      <div className="md:ml-56 pb-20 md:pb-0 min-h-screen bg-gray-100">
+      <div className="md:ml-56 pb-20 md:pb-0 min-h-screen bg-white">
         <Outlet />
       </div>
     </>
