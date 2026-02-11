@@ -521,7 +521,7 @@ export default function Home() {
       <header className="bg-white/80 backdrop-blur-sm border-b border-[#E5E5E5] px-4 md:px-5 py-2.5 sticky top-0 z-40">
         <div className="flex items-center justify-between gap-3 max-w-[1400px] mx-auto">
           <div className="flex-shrink-0">
-            <h1 className="text-sm md:text-base font-semibold text-[#2F2F2F]">Merhaba, {user?.email?.split('@')[0]}!</h1>
+            <h1 className="text-sm md:text-base font-semibold text-[#2F2F2F]">Merhaba, {personeller.find(p => p.email === user?.email)?.ad || user?.email?.split('@')[0]}!</h1>
             <p className="text-[10px] text-[#8A8A8A]">{formatTarihUzun(bugun)} • {formatGun(bugun)}</p>
           </div>
           
