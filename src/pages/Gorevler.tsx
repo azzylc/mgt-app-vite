@@ -42,6 +42,7 @@ export default function GorevlerPage() {
   // --- State ---
   const [gorevler, setGorevler] = useState<Gorev[]>([]);
   const [ortakGorevler, setOrtakGorevler] = useState<Gorev[]>([]);
+  const [verdigimGorevler, setVerdigimGorevler] = useState<Gorev[]>([]);
   const [tumGorevler, setTumGorevler] = useState<Gorev[]>([]);
   const [personeller, setPersoneller] = useState<Personel[]>([]);
   const [filtreliGorevler, setFiltreliGorevler] = useState<Gorev[]>([]);
@@ -185,6 +186,18 @@ export default function GorevlerPage() {
     return Array.from(map.values());
   }, [gorevler, ortakGorevler]);
 
+  // Verdiğim görevler (atayan === ben)
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db, "gorevler"), where("atayan", "==", user.email), orderBy("olusturulmaTarihi", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setVerdigimGorevler(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Gorev)));
+    }, (error) => {
+      console.error("[Gorevler/verdigimGorevler] Firestore hatası:", error);
+    });
+    return () => unsubscribe();
+  }, [user]);
+
   // Bildirimden görev açma — custom event ile
   useEffect(() => {
     const handleOpenGorev = (e: Event) => {
@@ -227,9 +240,11 @@ export default function GorevlerPage() {
     return true;
   }, [gorevAtamaYetkisi, userRole]);
 
-  // Kurucu/Yönetici veya görev atayabilen: tüm görevler
+  // Kurucu/Yönetici: tüm görevler (sadece admin roller)
+  const isAdmin = userRole === "Kurucu" || userRole === "Yönetici";
+  
   useEffect(() => {
-    if (!user || !gorevAtayabilir) return;
+    if (!user || !isAdmin) { setTumGorevler([]); return; }
     const q = query(collection(db, "gorevler"), orderBy("olusturulmaTarihi", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setTumGorevler(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Gorev)));
@@ -238,7 +253,7 @@ export default function GorevlerPage() {
       Sentry.captureException(error, { tags: { module: "Gorevler", collection: "gorevler-all" } });
     });
     return () => unsubscribe();
-  }, [user, gorevAtayabilir]);
+  }, [user, isAdmin]);
 
   // ============================================
   // COMPUTED VALUES
@@ -287,7 +302,7 @@ export default function GorevlerPage() {
         });
       }
     } else if (aktifSekme === "verdigim") {
-      sonuc = tumGorevler.filter(g => g.atayan === user?.email && !g.otomatikMi);
+      sonuc = verdigimGorevler.filter(g => !g.otomatikMi);
     } else if (aktifSekme === "otomatik") {
       sonuc = birlesikGorevler.filter(g => g.otomatikMi === true && (otomatikAltSekme === "hepsi" || g.gorevTuru === otomatikAltSekme));
     } else {
@@ -309,7 +324,7 @@ export default function GorevlerPage() {
     });
     
     setFiltreliGorevler(sonuc);
-  }, [birlesikGorevler, tumGorevler, filtre, aktifSekme, seciliPersoneller, otomatikAltSekme, siralama, user?.email]);
+  }, [birlesikGorevler, verdigimGorevler, tumGorevler, filtre, aktifSekme, seciliPersoneller, otomatikAltSekme, siralama, user?.email]);
 
   // ============================================
   // HANDLERS
@@ -350,7 +365,7 @@ export default function GorevlerPage() {
 
   const handleTamamla = async (gorevId: string) => {
     // Görevi bul
-    const gorev = birlesikGorevler.find(g => g.id === gorevId) || tumGorevler.find(g => g.id === gorevId);
+    const gorev = birlesikGorevler.find(g => g.id === gorevId) || verdigimGorevler.find(g => g.id === gorevId) || tumGorevler.find(g => g.id === gorevId);
     const mevcutYorumVar = gorev?.yorumlar && gorev.yorumlar.length > 0;
     if (!mevcutYorumVar && !tamamlaYorum.trim()) {
       alert("Lütfen ne yaptığınızı yazın!");
@@ -747,7 +762,7 @@ export default function GorevlerPage() {
               >
                 📤 <span className="hidden md:inline">Verdiğim </span>Görevler
                 <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs ${aktifSekme === "verdigim" ? "bg-sky-100 text-sky-700" : "bg-[#F7F7F7] text-[#8A8A8A]"}`}>
-                  {tumGorevler.filter(g => g.atayan === user?.email && !g.otomatikMi).length}
+                  {verdigimGorevler.filter(g => !g.otomatikMi).length}
                 </span>
               </button>
             )}
@@ -765,7 +780,7 @@ export default function GorevlerPage() {
               </span>
             </button>
             
-            {gorevAtayabilir && (
+            {isAdmin && (
               <button
                 onClick={() => { setAktifSekme("tumgorevler"); setFiltre("aktif"); setSeciliPersoneller([]); }}
                 className={`px-2.5 md:px-4 py-2 md:py-2.5 font-medium text-xs md:text-sm transition border-b-2 whitespace-nowrap ${
