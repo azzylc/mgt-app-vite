@@ -183,10 +183,6 @@ function SidebarContent({ user }: SidebarProps) {
   const MenuContent = () => (
     <>
       <div className="px-4 py-4 border-b border-[#E5E5E5]/50">
-        <div className="bg-[#8FAF9A] text-[#2F2F2F] px-3 py-2.5 rounded-lg mb-3">
-          <h1 className="text-sm font-semibold">GYS Studio</h1>
-          <p className="text-xs text-[#2F2F2F]">Gizem Yolcu</p>
-        </div>
         <div className="flex items-center gap-2.5 cursor-pointer hover:bg-[#F7F7F7] rounded-lg p-1 -m-1 transition" onClick={() => window.location.hash = "#/profilim"}>
           {personelData?.foto ? (
             <img src={personelData.foto} alt="" className="w-8 h-8 rounded-full object-cover" />
@@ -265,6 +261,10 @@ function SidebarContent({ user }: SidebarProps) {
           <span>🚪</span>
           <span>Çıkış Yap</span>
         </button>
+        <div className="mt-2 text-center">
+          <p className="text-[11px] font-semibold text-[#8A8A8A]/60 tracking-wide">MGT App®</p>
+          <p className="text-[9px] text-[#8A8A8A]/40">powered by Aziz Erkan Yolcu</p>
+        </div>
       </div>
     </>
   );
