@@ -456,7 +456,7 @@ export default function Home() {
     const currentPersonel = personeller.find(p => p.email === user.email);
     if (!currentPersonel) return;
     const isKurucu = currentPersonel.kullaniciTuru === 'Kurucu';
-    const kullaniciFirmalariIds = (currentPersonel as any).firmalar || [];
+    const kullaniciFirmalariIds = currentPersonel.firmalar || [];
     const firmaKodlari = isKurucu
       ? tumFirmalar.map(f => f.kisaltma)
       : tumFirmalar.filter(f => kullaniciFirmalariIds.includes(f.id)).map(f => f.kisaltma);
@@ -483,7 +483,7 @@ export default function Home() {
     if (!currentPersonel) return [];
     const isKurucu = currentPersonel.kullaniciTuru === 'Kurucu';
     if (isKurucu) return tumFirmalar;
-    const firmaIds = (currentPersonel as any).firmalar || [];
+    const firmaIds = currentPersonel.firmalar || [];
     return tumFirmalar.filter(f => firmaIds.includes(f.id));
   }, [user, personeller, tumFirmalar]);
 

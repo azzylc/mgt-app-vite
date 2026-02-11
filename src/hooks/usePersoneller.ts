@@ -19,6 +19,8 @@ interface Personel {
   aktif: boolean;
   kullaniciTuru?: string;
   yillikIzinHakki?: number;
+  firmalar?: string[];
+  yonettigiFirmalar?: string[];
 }
 
 type PersonelFiltre = 'aktif' | 'pasif' | 'hepsi';
@@ -68,6 +70,8 @@ export function usePersoneller(filtre: PersonelFiltre = 'aktif') {
         aktif: doc.data().aktif !== false,
         kullaniciTuru: doc.data().kullaniciTuru || 'Personel',
         yillikIzinHakki: doc.data().yillikIzinHakki || 0,
+        firmalar: doc.data().firmalar || [],
+        yonettigiFirmalar: doc.data().yonettigiFirmalar || [],
       } as Personel));
       
       setPersoneller(data);
