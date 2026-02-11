@@ -209,7 +209,7 @@ export default function GorevlerPage() {
 
   // Firma filtreli otomatik görevler (badge sayaçları ve liste için)
   const firmaFiltreliBirlesikOtomatik = useMemo(() => 
-    birlesikGorevler.filter(g => g.otomatikMi && (!kullaniciFirmaKodlari || (g.firma && kullaniciFirmaKodlari.includes(g.firma)))),
+    birlesikGorevler.filter(g => g.otomatikMi && (!kullaniciFirmaKodlari || !g.firma || kullaniciFirmaKodlari.includes(g.firma))),
     [birlesikGorevler, kullaniciFirmaKodlari]
   );
 
@@ -332,9 +332,9 @@ export default function GorevlerPage() {
       sonuc = verdigimGorevler.filter(g => !g.otomatikMi);
     } else if (aktifSekme === "otomatik") {
       sonuc = birlesikGorevler.filter(g => g.otomatikMi === true && (otomatikAltSekme === "hepsi" || g.gorevTuru === otomatikAltSekme));
-      // Firma filtresi: Kurucu hariç, sadece kendi firmasının otomatik görevlerini görsün
+      // Firma filtresi: farklı firmaya ait görevleri gizle, firma alanı boş olanları göster
       if (kullaniciFirmaKodlari) {
-        sonuc = sonuc.filter(g => g.firma && kullaniciFirmaKodlari.includes(g.firma));
+        sonuc = sonuc.filter(g => !g.firma || kullaniciFirmaKodlari.includes(g.firma));
       }
     } else {
       sonuc = birlesikGorevler.filter(g => !g.otomatikMi);
