@@ -79,7 +79,7 @@ export default function Login() {
             
             {/* Title */}
             <h1 className="text-xl font-bold text-center text-white tracking-wide mb-1">
-              MGT Holding
+              MGT Wedding
             </h1>
             <p className="text-center text-[#8A8A8A] text-xs tracking-wider mb-8">
               Şirket İçi Yönetim ve Operasyon Sistemi
