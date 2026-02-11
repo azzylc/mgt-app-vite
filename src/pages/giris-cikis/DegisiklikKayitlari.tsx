@@ -73,13 +73,13 @@ export default function DegisiklikKayitlariPage() {
   }, [kayitlar, searchTerm, filterType]);
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-white">
       <div>
         <header className="bg-white border-b px-4 md:px-6 py-4 sticky top-0 z-30">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-xl font-bold text-stone-800">Değişiklik Kayıtları</h1>
-              <p className="text-sm text-stone-500 mt-1">Bu sayfada, giriş - çıkış işlemleri üzerinde yapılan işlemlerin kayıtlarını görüntüleyebilirsiniz.</p>
+              <h1 className="text-xl font-bold text-[#2F2F2F]">Değişiklik Kayıtları</h1>
+              <p className="text-sm text-[#8A8A8A] mt-1">Bu sayfada, giriş - çıkış işlemleri üzerinde yapılan işlemlerin kayıtlarını görüntüleyebilirsiniz.</p>
             </div>
             <button
               onClick={() => window.print()}
@@ -99,18 +99,18 @@ export default function DegisiklikKayitlariPage() {
                 placeholder="Kullanıcı ara..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
+                className="flex-1 px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
               />
               <select
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
-                className="px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
+                className="px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
               >
                 <option value="Tümünde">Tümünde</option>
                 <option value="Kayıt Eklendi">Kayıt Eklendi</option>
                 <option value="Kayıt Silindi">Kayıt Silindi</option>
               </select>
-              <button className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-medium transition">
+              <button className="bg-[#8FAF9A] hover:bg-[#7A9E86] text-white px-6 py-2 rounded-lg font-medium transition">
                 Ara
               </button>
             </div>
@@ -120,23 +120,23 @@ export default function DegisiklikKayitlariPage() {
           <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-stone-50 border-b">
+                <thead className="bg-[#F7F7F7] border-b">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">#</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Değişikliği Yapan</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">↓ Değişiklik Tarihi</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Değişiklik Türü</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Değişiklik Öncesi</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Değişiklik Sonrası</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Kullanıcı Adı</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Konum</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Giriş / Çıkış Tarih</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">#</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Değişikliği Yapan</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">↓ Değişiklik Tarihi</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Değişiklik Türü</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Değişiklik Öncesi</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Değişiklik Sonrası</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Kullanıcı Adı</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Konum</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Giriş / Çıkış Tarih</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-stone-100">
+                <tbody className="divide-y divide-[#E5E5E5]">
                   {filteredKayitlar.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="px-4 py-12 text-center text-stone-500">
+                      <td colSpan={9} className="px-4 py-12 text-center text-[#8A8A8A]">
                         Değişiklik kaydı bulunamadı
                       </td>
                     </tr>
@@ -146,40 +146,40 @@ export default function DegisiklikKayitlariPage() {
                       const girisCikisTarihi = kayit.girisCikisTarih?.toDate?.() ? kayit.girisCikisTarih.toDate() : null;
                       
                       return (
-                        <tr key={kayit.id} className="hover:bg-stone-50">
-                          <td className="px-4 py-3 text-sm text-stone-600">{index + 1}</td>
-                          <td className="px-4 py-3 text-sm text-stone-600">{kayit.degisiklikYapan}</td>
-                          <td className="px-4 py-3 text-sm text-stone-600">
+                        <tr key={kayit.id} className="hover:bg-[#F7F7F7]">
+                          <td className="px-4 py-3 text-sm text-[#2F2F2F]">{index + 1}</td>
+                          <td className="px-4 py-3 text-sm text-[#2F2F2F]">{kayit.degisiklikYapan}</td>
+                          <td className="px-4 py-3 text-sm text-[#2F2F2F]">
                             {degisiklikTarihi.toLocaleDateString('tr-TR')} {degisiklikTarihi.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                           </td>
                           <td className="px-4 py-3">
                             <span className={`inline-flex px-2 py-1 rounded text-xs font-medium ${
                               kayit.degisiklikTuru === "Kayıt Eklendi" 
-                                ? "bg-green-100 text-green-700" 
+                                ? "bg-[#EAF2ED] text-[#8FAF9A]" 
                                 : kayit.degisiklikTuru === "Kayıt Silindi"
-                                ? "bg-red-100 text-red-700"
-                                : "bg-stone-100 text-stone-700"
+                                ? "bg-[#D96C6C]/20 text-[#D96C6C]"
+                                : "bg-[#F7F7F7] text-[#2F2F2F]"
                             }`}>
                               {kayit.degisiklikTuru}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-sm text-stone-600">{kayit.oncekiDeger || "-"}</td>
+                          <td className="px-4 py-3 text-sm text-[#2F2F2F]">{kayit.oncekiDeger || "-"}</td>
                           <td className="px-4 py-3">
                             {kayit.sonrakiDeger ? (
                               <span className={`inline-flex px-2 py-1 rounded text-xs font-medium ${
                                 kayit.sonrakiDeger === "Giriş" 
-                                  ? "bg-green-100 text-green-700" 
+                                  ? "bg-[#EAF2ED] text-[#8FAF9A]" 
                                   : kayit.sonrakiDeger === "Çıkış"
-                                  ? "bg-red-100 text-red-700"
-                                  : "bg-stone-100 text-stone-700"
+                                  ? "bg-[#D96C6C]/20 text-[#D96C6C]"
+                                  : "bg-[#F7F7F7] text-[#2F2F2F]"
                               }`}>
                                 {kayit.sonrakiDeger}
                               </span>
                             ) : "-"}
                           </td>
-                          <td className="px-4 py-3 text-sm font-medium text-stone-800">{kayit.kullaniciAdi}</td>
-                          <td className="px-4 py-3 text-sm text-stone-600">{kayit.konum || "-"}</td>
-                          <td className="px-4 py-3 text-sm text-stone-600">
+                          <td className="px-4 py-3 text-sm font-medium text-[#2F2F2F]">{kayit.kullaniciAdi}</td>
+                          <td className="px-4 py-3 text-sm text-[#2F2F2F]">{kayit.konum || "-"}</td>
+                          <td className="px-4 py-3 text-sm text-[#2F2F2F]">
                             {girisCikisTarihi 
                               ? `${girisCikisTarihi.toLocaleDateString('tr-TR')} ${girisCikisTarihi.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`
                               : "-"

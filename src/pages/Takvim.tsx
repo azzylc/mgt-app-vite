@@ -298,7 +298,7 @@ export default function TakvimPage() {
     .slice(0, 4); // En yoğun 4 gün
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-white">
       <div>
         <header className="page-header">
           <div className="flex items-center justify-between gap-3">
@@ -310,7 +310,7 @@ export default function TakvimPage() {
             {/* Gelin Arama */}
             <div ref={searchRef} className="hidden md:block flex-1 max-w-xs relative">
               <div className="relative">
-                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-400 text-sm">🔍</span>
+                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#8A8A8A] text-sm">🔍</span>
                 <input
                   type="text"
                   value={searchQuery}
@@ -320,12 +320,12 @@ export default function TakvimPage() {
                   }}
                   onFocus={() => setShowSearchDropdown(true)}
                   placeholder="Gelin ara..."
-                  className="w-full pl-8 pr-3 py-1.5 bg-stone-50 border border-stone-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-300 focus:bg-white transition"
+                  className="w-full pl-8 pr-3 py-1.5 bg-[#F7F7F7] border border-[#E5E5E5] rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#8FAF9A]/30 focus:border-[#8FAF9A] focus:bg-white transition"
                 />
                 {searchQuery && (
                   <button 
                     onClick={() => { setSearchQuery(""); setShowSearchDropdown(false); }}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 text-xs"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#8A8A8A] hover:text-[#2F2F2F] text-xs"
                   >
                     ✕
                   </button>
@@ -334,15 +334,15 @@ export default function TakvimPage() {
               
               {/* Arama Sonuçları Dropdown */}
               {showSearchDropdown && searchQuery.length >= 2 && (
-                <div className="absolute top-full left-0 right-0 mt-1.5 bg-white rounded-lg shadow-lg border border-stone-100 overflow-hidden z-50 max-h-[300px] overflow-y-auto">
+                <div className="absolute top-full left-0 right-0 mt-1.5 bg-white rounded-lg shadow-lg border border-[#E5E5E5] overflow-hidden z-50 max-h-[300px] overflow-y-auto">
                   {searchResults.length === 0 ? (
-                    <div className="px-3 py-4 text-center text-stone-500">
+                    <div className="px-3 py-4 text-center text-[#8A8A8A]">
                       <span className="text-xl block mb-1">🔍</span>
                       <p className="text-xs">"{searchQuery}" için sonuç bulunamadı</p>
                     </div>
                   ) : (
                     <div>
-                      <div className="px-3 py-1.5 bg-stone-50 border-b border-stone-100 text-[10px] text-stone-500 font-medium">
+                      <div className="px-3 py-1.5 bg-[#F7F7F7] border-b border-[#E5E5E5] text-[10px] text-[#8A8A8A] font-medium">
                         {searchResults.length} sonuç bulundu
                       </div>
                       {searchResults.map((gelin) => (
@@ -356,19 +356,19 @@ export default function TakvimPage() {
                             const gelinTarih = new Date(gelin.tarih);
                             setCurrentDate(new Date(gelinTarih.getFullYear(), gelinTarih.getMonth(), 1));
                           }}
-                          className="px-3 py-2 hover:bg-amber-50 cursor-pointer border-b border-stone-50 last:border-0 transition"
+                          className="px-3 py-2 hover:bg-[#EAF2ED] cursor-pointer border-b border-[#E5E5E5]/50 last:border-0 transition"
                         >
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium text-stone-800 text-xs">{gelin.isim}</p>
+                              <p className="font-medium text-[#2F2F2F] text-xs">{gelin.isim}</p>
                               <div className="flex items-center gap-2 mt-0.5">
-                                <span className="text-[10px] text-stone-500">📅 {new Date(gelin.tarih).toLocaleDateString('tr-TR')}</span>
-                                <span className="text-[10px] text-stone-500">🕐 {gelin.saat}{gelin.bitisSaati ? ` - ${gelin.bitisSaati}` : ''}</span>
+                                <span className="text-[10px] text-[#8A8A8A]">📅 {new Date(gelin.tarih).toLocaleDateString('tr-TR')}</span>
+                                <span className="text-[10px] text-[#8A8A8A]">🕐 {gelin.saat}{gelin.bitisSaati ? ` - ${gelin.bitisSaati}` : ''}</span>
                               </div>
                             </div>
                             <div className="text-right">
                               {gelin.kalan > 0 && (
-                                <p className="text-[10px] text-red-500">{gelin.kalan.toLocaleString('tr-TR')} ₺</p>
+                                <p className="text-[10px] text-[#D96C6C]">{gelin.kalan.toLocaleString('tr-TR')} ₺</p>
                               )}
                             </div>
                           </div>
@@ -389,12 +389,12 @@ export default function TakvimPage() {
                     alert("📅 En fazla 3 ay öncesine bakabilirsiniz.");
                   }
                 }} 
-                className="p-1.5 hover:bg-stone-100 rounded-lg transition"
+                className="p-1.5 hover:bg-[#F7F7F7] rounded-lg transition"
               >◀️</button>
               <div className="gradient-primary text-white px-3 py-1.5 rounded-lg font-medium min-w-[140px] text-center text-sm">
                 {aylar[month]} {year}
               </div>
-              <button onClick={nextMonth} className="p-1.5 hover:bg-stone-100 rounded-lg transition">▶️</button>
+              <button onClick={nextMonth} className="p-1.5 hover:bg-[#F7F7F7] rounded-lg transition">▶️</button>
               <button onClick={goToToday} className="btn btn-ghost btn-sm ml-1">
                 Bugün
               </button>
@@ -404,7 +404,7 @@ export default function TakvimPage() {
 
         {/* Firma Filtre Logoları */}
         {kullaniciFirmalari.length > 1 && (
-          <div className="bg-white/60 backdrop-blur-sm border-b border-stone-100 px-4 py-1.5">
+          <div className="bg-white/60 backdrop-blur-sm border-b border-[#E5E5E5] px-4 py-1.5">
             <div className="flex items-center gap-2">
               {kullaniciFirmalari.map(firma => {
                 const aktif = aktifFirmaKodlari.has(firma.kisaltma);
@@ -415,7 +415,7 @@ export default function TakvimPage() {
                     onClick={() => toggleFirma(firma.kisaltma)}
                     className={`px-3 py-1 rounded-lg transition-all ${
                       aktif
-                        ? 'bg-amber-500/10 ring-1 ring-amber-400/30'
+                        ? 'bg-[#8FAF9A]/10 ring-1 ring-[#8FAF9A]/30'
                         : 'opacity-30 grayscale hover:opacity-50'
                     }`}
                   >
@@ -450,7 +450,7 @@ export default function TakvimPage() {
                         onClick={() => setSelectedDay(gunTarihi)}
                         className="flex justify-between items-center text-sm cursor-pointer hover:bg-rose-50 px-2 py-1 rounded transition-colors"
                       >
-                        <span className="text-stone-700 font-medium">
+                        <span className="text-[#2F2F2F] font-medium">
                           {item.gun} {aylar[month].slice(0, 3)}
                         </span>
                         <span className="text-rose-600 font-bold">
@@ -460,7 +460,7 @@ export default function TakvimPage() {
                     );
                   })
                 ) : (
-                  <p className="text-stone-400 text-xs italic text-center py-2">Veri yok</p>
+                  <p className="text-[#8A8A8A] text-xs italic text-center py-2">Veri yok</p>
                 )}
               </div>
             </div>
@@ -471,10 +471,10 @@ export default function TakvimPage() {
           </div>
 
           {/* Calendar - Firestore'dan (her ay dinamik) */}
-          <div className="bg-white rounded-lg shadow-sm border border-stone-100 overflow-hidden">
+          <div className="bg-white rounded-lg shadow-sm border border-[#E5E5E5] overflow-hidden">
             <div className="grid grid-cols-7 bg-neutral-cream border-b">
               {gunler.map((gun) => (
-                <div key={gun} className="p-1.5 md:p-2 text-center text-[10px] md:text-xs font-medium text-stone-600 uppercase">{gun}</div>
+                <div key={gun} className="p-1.5 md:p-2 text-center text-[10px] md:text-xs font-medium text-[#2F2F2F] uppercase">{gun}</div>
               ))}
             </div>
 
@@ -499,14 +499,14 @@ export default function TakvimPage() {
                     <div 
                       key={index}
                       className={`
-                        border border-stone-100 p-1 md:p-2 cursor-pointer transition-colors
+                        border border-[#E5E5E5] p-1 md:p-2 cursor-pointer transition-colors
                         ${isMobile ? 'min-h-[48px]' : 'min-h-[120px]'}
-                        ${!isValidDay ? 'bg-stone-50' : ''}
+                        ${!isValidDay ? 'bg-[#F7F7F7]' : ''}
                         ${isToday ? 'bg-blue-50 border-blue-300' : ''}
-                        ${isSelected && isMobile ? 'bg-amber-50 border-amber-400 border-2' : ''}
-                        ${tatilIsmi ? 'bg-red-50' : ''}
-                        ${isWeekend && !tatilIsmi ? 'bg-orange-50' : ''}
-                        hover:bg-stone-50
+                        ${isSelected && isMobile ? 'bg-[#EAF2ED] border-[#8FAF9A] border-2' : ''}
+                        ${tatilIsmi ? 'bg-[#D96C6C]/10' : ''}
+                        ${isWeekend && !tatilIsmi ? 'bg-[#E6B566]/10' : ''}
+                        hover:bg-[#F7F7F7]
                       `}
                       onClick={() => {
                         if (isValidDay) {
@@ -520,8 +520,8 @@ export default function TakvimPage() {
                             <span className={`
                               text-xs md:text-sm font-medium
                               ${isToday ? 'text-blue-600' : ''}
-                              ${tatilIsmi ? 'text-red-600' : ''}
-                              ${isWeekend && !tatilIsmi ? 'text-orange-600' : ''}
+                              ${tatilIsmi ? 'text-[#D96C6C]' : ''}
+                              ${isWeekend && !tatilIsmi ? 'text-[#E6B566]' : ''}
                             `}>
                               {dayNumber}
                             </span>
@@ -536,7 +536,7 @@ export default function TakvimPage() {
                           {!isMobile && (
                             <>
                               {tatilIsmi && (
-                                <div className="text-xs text-red-600 font-medium mb-1">
+                                <div className="text-xs text-[#D96C6C] font-medium mb-1">
                                   🎉 {tatilIsmi}
                                 </div>
                               )}
@@ -555,15 +555,15 @@ export default function TakvimPage() {
                                       e.stopPropagation();
                                       setSelectedGelin(gelin);
                                     }}
-                                    className="text-xs bg-white border border-stone-200 rounded p-1 hover:bg-primary-50 hover:border-primary-300 transition-colors cursor-pointer"
+                                    className="text-xs bg-white border border-[#E5E5E5] rounded p-1 hover:bg-primary-50 hover:border-primary-300 transition-colors cursor-pointer"
                                   >
-                                    <div className="font-medium text-stone-900 truncate">{gelin.isim}</div>
-                                    <div className="text-stone-500 text-[10px]">{gelin.saat}{gelin.bitisSaati ? ` - ${gelin.bitisSaati}` : ''}</div>
-                                    <div className="text-stone-600 text-[10px] flex items-center gap-1">
+                                    <div className="font-medium text-[#2F2F2F] truncate">{gelin.isim}</div>
+                                    <div className="text-[#8A8A8A] text-[10px]">{gelin.saat}{gelin.bitisSaati ? ` - ${gelin.bitisSaati}` : ''}</div>
+                                    <div className="text-[#2F2F2F] text-[10px] flex items-center gap-1">
                                       <span>{getKisaltma(gelin.makyaj)}</span>
                                       {gelin.turban && gelin.turban !== gelin.makyaj && (
                                         <>
-                                          <span className="text-stone-400">&</span>
+                                          <span className="text-[#8A8A8A]">&</span>
                                           <span>{getKisaltma(gelin.turban)}</span>
                                         </>
                                       )}
@@ -571,7 +571,7 @@ export default function TakvimPage() {
                                   </div>
                                 ))}
                                 {dayGelinler.length > 3 && (
-                                  <div className="text-xs text-center text-stone-500 py-1">
+                                  <div className="text-xs text-center text-[#8A8A8A] py-1">
                                     +{dayGelinler.length - 3} daha
                                   </div>
                                 )}
@@ -581,7 +581,7 @@ export default function TakvimPage() {
 
                           {/* Mobilde tatil/doğum günü nokta göster */}
                           {isMobile && tatilIsmi && (
-                            <div className="text-[9px] text-red-600 truncate">🎉</div>
+                            <div className="text-[9px] text-[#D96C6C] truncate">🎉</div>
                           )}
                         </>
                       )}
@@ -598,35 +598,35 @@ export default function TakvimPage() {
             const tatil = getTatilIsmi(selectedDay);
             const dogumlar = getDogumGunuPersoneller(selectedDay);
             return (
-              <div className="mt-3 bg-white rounded-lg shadow-sm border border-amber-200 overflow-hidden">
-                <div className="bg-amber-50 px-3 py-2 border-b border-amber-200 flex items-center justify-between">
-                  <h3 className="font-semibold text-sm text-stone-800">
+              <div className="mt-3 bg-white rounded-lg shadow-sm border border-[#8FAF9A]/30 overflow-hidden">
+                <div className="bg-[#EAF2ED] px-3 py-2 border-b border-[#8FAF9A]/30 flex items-center justify-between">
+                  <h3 className="font-semibold text-sm text-[#2F2F2F]">
                     {new Date(selectedDay).toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long' })}
                   </h3>
-                  <button onClick={() => setSelectedDay(null)} className="text-stone-400 text-lg">✕</button>
+                  <button onClick={() => setSelectedDay(null)} className="text-[#8A8A8A] text-lg">✕</button>
                 </div>
                 <div className="p-3 space-y-2">
-                  {tatil && <div className="text-sm text-red-600 font-medium">🎉 {tatil}</div>}
+                  {tatil && <div className="text-sm text-[#D96C6C] font-medium">🎉 {tatil}</div>}
                   {dogumlar.map(p => (
                     <div key={p.id} className="text-sm text-rose-600">🎂 {p.kisaltma || p.ad} doğum günü</div>
                   ))}
                   {dayGelinlerMobil.length === 0 && !tatil && dogumlar.length === 0 && (
-                    <p className="text-sm text-stone-400 text-center py-2">Bu günde etkinlik yok</p>
+                    <p className="text-sm text-[#8A8A8A] text-center py-2">Bu günde etkinlik yok</p>
                   )}
                   {dayGelinlerMobil.map(gelin => (
                     <div 
                       key={gelin.id}
                       onClick={() => setSelectedGelin(gelin)}
-                      className="flex items-center gap-3 p-2.5 bg-stone-50 rounded-lg border border-stone-200 active:bg-primary-50 cursor-pointer"
+                      className="flex items-center gap-3 p-2.5 bg-[#F7F7F7] rounded-lg border border-[#E5E5E5] active:bg-primary-50 cursor-pointer"
                     >
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium text-sm text-stone-900 truncate">{gelin.isim}</div>
-                        <div className="text-xs text-stone-500 mt-0.5">
+                        <div className="font-medium text-sm text-[#2F2F2F] truncate">{gelin.isim}</div>
+                        <div className="text-xs text-[#8A8A8A] mt-0.5">
                           🕐 {gelin.saat}{gelin.bitisSaati ? ` - ${gelin.bitisSaati}` : ''} · {getKisaltma(gelin.makyaj)}
                           {gelin.turban && gelin.turban !== gelin.makyaj && ` & ${getKisaltma(gelin.turban)}`}
                         </div>
                       </div>
-                      <span className="text-stone-400">→</span>
+                      <span className="text-[#8A8A8A]">→</span>
                     </div>
                   ))}
                 </div>
@@ -659,7 +659,7 @@ export default function TakvimPage() {
               </h2>
               <button 
                 onClick={() => setSelectedDay(null)}
-                className="text-stone-500 hover:text-stone-700"
+                className="text-[#8A8A8A] hover:text-[#2F2F2F]"
               >
                 ✕
               </button>
@@ -680,7 +680,7 @@ export default function TakvimPage() {
               )}
 
               {getGelinlerForDate(selectedDay).length === 0 ? (
-                <p className="text-stone-500 text-center py-8">Bu gün için gelin kaydı yok</p>
+                <p className="text-[#8A8A8A] text-center py-8">Bu gün için gelin kaydı yok</p>
               ) : (
                 <div className="space-y-3">
                   {getGelinlerForDate(selectedDay).map((gelin) => (
@@ -690,28 +690,28 @@ export default function TakvimPage() {
                         setSelectedDay(null);
                         setSelectedGelin(gelin);
                       }}
-                      className="border border-stone-200 rounded-lg p-4 hover:bg-stone-50 cursor-pointer transition-colors"
+                      className="border border-[#E5E5E5] rounded-lg p-4 hover:bg-[#F7F7F7] cursor-pointer transition-colors"
                     >
                       <div className="flex items-center justify-between mb-2">
                         <h3 className="font-semibold text-lg">{gelin.isim}</h3>
-                        <span className="text-sm text-stone-500">{gelin.saat}{gelin.bitisSaati ? ` - ${gelin.bitisSaati}` : ''}</span>
+                        <span className="text-sm text-[#8A8A8A]">{gelin.saat}{gelin.bitisSaati ? ` - ${gelin.bitisSaati}` : ''}</span>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                         <div>
-                          <span className="text-stone-500">Makyaj:</span>{' '}
+                          <span className="text-[#8A8A8A]">Makyaj:</span>{' '}
                           <span className="font-medium">{gelin.makyaj || '-'}</span>
                         </div>
                         <div>
-                          <span className="text-stone-500">Türban:</span>{' '}
+                          <span className="text-[#8A8A8A]">Türban:</span>{' '}
                           <span className="font-medium">{gelin.turban || '-'}</span>
                         </div>
                         <div>
-                          <span className="text-stone-500">Ücret:</span>{' '}
+                          <span className="text-[#8A8A8A]">Ücret:</span>{' '}
                           <span className="font-medium">{gelin.ucret.toLocaleString('tr-TR')} ₺</span>
                         </div>
                         <div>
-                          <span className="text-stone-500">Kalan:</span>{' '}
-                          <span className="font-medium text-amber-600">{gelin.kalan.toLocaleString('tr-TR')} ₺</span>
+                          <span className="text-[#8A8A8A]">Kalan:</span>{' '}
+                          <span className="font-medium text-[#8FAF9A]">{gelin.kalan.toLocaleString('tr-TR')} ₺</span>
                         </div>
                       </div>
                     </div>

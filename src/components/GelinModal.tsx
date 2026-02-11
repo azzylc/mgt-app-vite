@@ -193,7 +193,7 @@ export default function GelinModal({ gelin: initialGelin, onClose }: { gelin: Ge
           <div className={`flex items-center gap-2.5 px-3 py-2 rounded-xl ${c.bg} mb-3`}>
             <div className="relative w-8 h-8">
               <svg className="w-8 h-8 -rotate-90" viewBox="0 0 36 36">
-                <circle cx="18" cy="18" r="15.5" fill="none" stroke="currentColor" className="text-[#E5E5E5]" strokeWidth="3" />
+                <circle cx="18" cy="18" r="15.5" fill="none" stroke="currentColor" className="text-[#8A8A8A]" strokeWidth="3" />
                 <circle cx="18" cy="18" r="15.5" fill="none" stroke="currentColor" className={c.text} strokeWidth="3"
                   strokeDasharray={`${yuzde} 100`} strokeLinecap="round" />
               </svg>
@@ -237,7 +237,7 @@ export default function GelinModal({ gelin: initialGelin, onClose }: { gelin: Ge
                       <a href={`tel:${gelin.telefon}`} className="text-xs font-medium text-[#2F2F2F]">{gelin.telefon}</a>
                     </div>
                     <a href={`https://wa.me/${toWhatsApp(gelin.telefon)}`} target="_blank" rel="noopener noreferrer"
-                      className="w-6 h-6 flex items-center justify-center rounded-full bg-green-500 hover:bg-green-600 text-white transition-colors">
+                      className="w-6 h-6 flex items-center justify-center rounded-full bg-[#8FAF9A] hover:bg-[#7A9E86] text-white transition-colors">
                       <WaIcon />
                     </a>
                   </div>
@@ -249,7 +249,7 @@ export default function GelinModal({ gelin: initialGelin, onClose }: { gelin: Ge
                       <a href={`tel:${gelin.esiTelefon}`} className="text-xs font-medium text-[#2F2F2F]">{gelin.esiTelefon}</a>
                     </div>
                     <a href={`https://wa.me/${toWhatsApp(gelin.esiTelefon)}`} target="_blank" rel="noopener noreferrer"
-                      className="w-6 h-6 flex items-center justify-center rounded-full bg-green-500 hover:bg-green-600 text-white transition-colors">
+                      className="w-6 h-6 flex items-center justify-center rounded-full bg-[#8FAF9A] hover:bg-[#7A9E86] text-white transition-colors">
                       <WaIcon />
                     </a>
                   </div>

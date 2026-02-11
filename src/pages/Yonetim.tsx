@@ -336,11 +336,11 @@ export default function YonetimPage() {
 
   if (yetkisiz) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
           <span className="text-6xl">🚫</span>
-          <h1 className="text-2xl font-bold text-gray-800 mt-4">Yetkisiz Erişim</h1>
-          <p className="text-gray-500 mt-2">Bu sayfaya erişim yetkiniz bulunmamaktadır.</p>
+          <h1 className="text-2xl font-bold text-[#2F2F2F] mt-4">Yetkisiz Erişim</h1>
+          <p className="text-[#8A8A8A] mt-2">Bu sayfaya erişim yetkiniz bulunmamaktadır.</p>
           <button 
             onClick={() => navigate("/")}
             className="mt-4 bg-pink-500 text-white px-6 py-2 rounded-xl hover:bg-pink-600 transition"
@@ -353,18 +353,18 @@ export default function YonetimPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#F7F7F7]">
       <div>
         <header className="bg-white border-b px-6 py-4 sticky top-0 z-30">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold text-gray-800">👑 Yönetim Paneli</h1>
-              <p className="text-sm text-gray-500">Finansal özet ve hedef yönetimi</p>
+              <h1 className="text-xl font-bold text-[#2F2F2F]">👑 Yönetim Paneli</h1>
+              <p className="text-sm text-[#8A8A8A]">Finansal özet ve hedef yönetimi</p>
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => navigate("/yonetim/compare")}
-                className="px-4 py-2 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 text-sm font-medium"
+                className="px-4 py-2 bg-[#E6B566]/20 text-orange-700 rounded-lg hover:bg-orange-200 text-sm font-medium"
               >
                 🔍 Karşılaştır
               </button>
@@ -374,7 +374,7 @@ export default function YonetimPage() {
 
         {/* ✅ Firma Filtre Logoları */}
         {kullaniciFirmalari.length > 1 && (
-          <div className="bg-white/60 backdrop-blur-sm border-b border-stone-100 px-4 md:px-5 py-1.5 sticky top-[65px] z-20">
+          <div className="bg-white/60 backdrop-blur-sm border-b border-[#E5E5E5] px-4 md:px-5 py-1.5 sticky top-[65px] z-20">
             <div className="flex items-center gap-2">
               {kullaniciFirmalari.map(firma => {
                 const aktif = aktifFirmaKodlari.has(firma.kisaltma);
@@ -385,7 +385,7 @@ export default function YonetimPage() {
                     onClick={() => toggleFirma(firma.kisaltma)}
                     className={`px-3 py-1 rounded-lg transition-all ${
                       aktif
-                        ? 'bg-amber-500/10 ring-1 ring-amber-400/30'
+                        ? 'bg-[#8FAF9A]/10 ring-1 ring-[#8FAF9A]/30'
                         : 'opacity-30 grayscale hover:opacity-50'
                     }`}
                   >
@@ -404,70 +404,70 @@ export default function YonetimPage() {
         <main className="p-3 md:p-6">
           {/* Üst Kartlar */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-4 md:mb-6">
-            <div className="bg-white rounded-2xl p-3 md:p-4 shadow-sm border border-gray-100">
-              <p className="text-gray-500 text-[10px] md:text-xs">Bu Ay Gelin</p>
+            <div className="bg-white rounded-2xl p-3 md:p-4 shadow-sm border border-[#E5E5E5]">
+              <p className="text-[#8A8A8A] text-[10px] md:text-xs">Bu Ay Gelin</p>
               <p className="text-lg md:text-2xl font-bold text-pink-600 mt-1">
                 {buAyVerileri.toplamGelin}
                 {buAyVerileri.hedef > 0 && (
-                  <span className="text-xs md:text-sm text-gray-400 font-normal">/{buAyVerileri.hedef}</span>
+                  <span className="text-xs md:text-sm text-[#8A8A8A] font-normal">/{buAyVerileri.hedef}</span>
                 )}
               </p>
               {buAyVerileri.hedef > 0 && (
                 <div className="mt-2">
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-2 bg-white rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-pink-500 rounded-full transition-all"
                       style={{ width: `${Math.min((buAyVerileri.toplamGelin / buAyVerileri.hedef) * 100, 100)}%` }}
                     />
                   </div>
-                  <p className="text-[10px] md:text-xs text-gray-400 mt-1">
+                  <p className="text-[10px] md:text-xs text-[#8A8A8A] mt-1">
                     %{Math.round((buAyVerileri.toplamGelin / buAyVerileri.hedef) * 100)} tamamlandı
                   </p>
                 </div>
               )}
             </div>
 
-            <div className="bg-white rounded-2xl p-3 md:p-4 shadow-sm border border-gray-100">
-              <p className="text-gray-500 text-[10px] md:text-xs">Bu Ayın Cirosu</p>
+            <div className="bg-white rounded-2xl p-3 md:p-4 shadow-sm border border-[#E5E5E5]">
+              <p className="text-[#8A8A8A] text-[10px] md:text-xs">Bu Ayın Cirosu</p>
               <p className="text-lg md:text-2xl font-bold text-blue-600 mt-1">
                 {buAyVerileri.toplamUcret.toLocaleString('tr-TR')} ₺
               </p>
-              <p className="text-[10px] md:text-xs text-gray-400 mt-1">Anlaşılan ücret</p>
+              <p className="text-[10px] md:text-xs text-[#8A8A8A] mt-1">Anlaşılan ücret</p>
             </div>
 
-            <div className="bg-white rounded-2xl p-3 md:p-4 shadow-sm border border-gray-100">
-              <p className="text-gray-500 text-[10px] md:text-xs">Bu Ay Alınan Kapora</p>
-              <p className="text-lg md:text-2xl font-bold text-green-600 mt-1">
+            <div className="bg-white rounded-2xl p-3 md:p-4 shadow-sm border border-[#E5E5E5]">
+              <p className="text-[#8A8A8A] text-[10px] md:text-xs">Bu Ay Alınan Kapora</p>
+              <p className="text-lg md:text-2xl font-bold text-[#8FAF9A] mt-1">
                 <span className="text-purple-600">{buAyAnlasanGelinler.length}</span>
-                <span className="text-sm md:text-base text-gray-400 mx-1">/</span>
+                <span className="text-sm md:text-base text-[#8A8A8A] mx-1">/</span>
                 {buAyAnlasanKapora.toLocaleString('tr-TR')} ₺
               </p>
-              <p className="text-[10px] md:text-xs text-gray-400 mt-1">{buAyAnlasanGelinler.length} gelin anlaştı</p>
+              <p className="text-[10px] md:text-xs text-[#8A8A8A] mt-1">{buAyAnlasanGelinler.length} gelin anlaştı</p>
               {kalanGun > 0 && buAyAnlasanGelinler.length > 0 && (
-                <div className="mt-2 pt-2 border-t border-gray-100">
-                  <p className="text-[10px] md:text-xs text-orange-500 font-medium">
+                <div className="mt-2 pt-2 border-t border-[#E5E5E5]">
+                  <p className="text-[10px] md:text-xs text-[#E6B566] font-medium">
                     📈 Ay sonu tahmini: <span className="text-purple-600">{tahminiAySonuGelin}</span>
-                    <span className="text-gray-400 mx-1">/</span>
-                    <span className="text-green-600">{tahminiAySonuKapora.toLocaleString('tr-TR')} ₺</span>
+                    <span className="text-[#8A8A8A] mx-1">/</span>
+                    <span className="text-[#8FAF9A]">{tahminiAySonuKapora.toLocaleString('tr-TR')} ₺</span>
                   </p>
-                  <p className="text-[9px] md:text-[10px] text-gray-400">Günlük ort. {gunlukOrtalamaGelin.toFixed(1)} gelin • {kalanGun} gün kaldı</p>
+                  <p className="text-[9px] md:text-[10px] text-[#8A8A8A]">Günlük ort. {gunlukOrtalamaGelin.toFixed(1)} gelin • {kalanGun} gün kaldı</p>
                 </div>
               )}
             </div>
 
-            <div className="bg-white rounded-2xl p-3 md:p-4 shadow-sm border border-gray-100">
-              <p className="text-gray-500 text-[10px] md:text-xs">Bu Ay Kalan Bakiye</p>
-              <p className="text-lg md:text-2xl font-bold text-red-600 mt-1">
+            <div className="bg-white rounded-2xl p-3 md:p-4 shadow-sm border border-[#E5E5E5]">
+              <p className="text-[#8A8A8A] text-[10px] md:text-xs">Bu Ay Kalan Bakiye</p>
+              <p className="text-lg md:text-2xl font-bold text-[#D96C6C] mt-1">
                 {buAyKalanBakiye.toLocaleString('tr-TR')} ₺
               </p>
-              <p className="text-[10px] md:text-xs text-gray-400 mt-1">Şu andan itibaren</p>
+              <p className="text-[10px] md:text-xs text-[#8A8A8A] mt-1">Şu andan itibaren</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Sol: Hedef Belirleme */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-              <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#E5E5E5]">
+              <h2 className="text-lg font-bold text-[#2F2F2F] mb-4 flex items-center gap-2">
                 <span>🎯</span> Aylık Hedef Belirleme
               </h2>
               
@@ -479,9 +479,9 @@ export default function YonetimPage() {
                   const isEditing = selectedAy === ay;
                   
                   return (
-                    <div key={ay} className={`p-3 rounded-xl transition ${isEditing ? 'bg-pink-50 ring-2 ring-pink-300' : 'bg-gray-50 hover:bg-gray-100'}`}>
+                    <div key={ay} className={`p-3 rounded-xl transition ${isEditing ? 'bg-pink-50 ring-2 ring-pink-300' : 'bg-[#F7F7F7] hover:bg-white'}`}>
                       <div className="flex items-center justify-between gap-3">
-                        <span className="font-medium text-gray-700 min-w-[100px]">{formatAy(ay)}</span>
+                        <span className="font-medium text-[#2F2F2F] min-w-[100px]">{formatAy(ay)}</span>
                         
                         {isEditing ? (
                           <div className="flex items-center gap-2 flex-1">
@@ -502,7 +502,7 @@ export default function YonetimPage() {
                             </button>
                             <button
                               onClick={() => { setSelectedAy(""); setHedefInput(""); }}
-                              className="text-gray-400 hover:text-gray-600 px-2 py-1.5 text-sm"
+                              className="text-[#8A8A8A] hover:text-[#2F2F2F] px-2 py-1.5 text-sm"
                             >
                               ✕
                             </button>
@@ -511,18 +511,18 @@ export default function YonetimPage() {
                           <div className="flex items-center gap-3 flex-1">
                             {mevcutHedef > 0 ? (
                               <>
-                                <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                <div className="flex-1 h-2 bg-[#E5E5E5] rounded-full overflow-hidden">
                                   <div 
-                                    className={`h-full rounded-full ${yuzde >= 100 ? 'bg-green-500' : 'bg-pink-500'}`}
+                                    className={`h-full rounded-full ${yuzde >= 100 ? 'bg-[#8FAF9A]' : 'bg-pink-500'}`}
                                     style={{ width: `${Math.min(yuzde, 100)}%` }}
                                   />
                                 </div>
-                                <span className={`text-sm font-bold min-w-[60px] text-right ${yuzde >= 100 ? 'text-green-600' : 'text-gray-600'}`}>
+                                <span className={`text-sm font-bold min-w-[60px] text-right ${yuzde >= 100 ? 'text-[#8FAF9A]' : 'text-[#2F2F2F]'}`}>
                                   {ayVerileri.toplamGelin}/{mevcutHedef}
                                 </span>
                               </>
                             ) : (
-                              <span className="text-gray-400 text-sm flex-1">Hedef yok</span>
+                              <span className="text-[#8A8A8A] text-sm flex-1">Hedef yok</span>
                             )}
                             <button
                               onClick={() => { setSelectedAy(ay); setHedefInput(mevcutHedef > 0 ? mevcutHedef.toString() : ""); }}
@@ -540,21 +540,21 @@ export default function YonetimPage() {
             </div>
 
             {/* Sağ: Ödeme Bekleyen */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#E5E5E5]">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <h2 className="text-lg font-bold text-[#2F2F2F] flex items-center gap-2">
                   <span>💰</span> Ödeme Bekleyen
                   {aktifOdemeBekleyen.length > 0 && (
-                    <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                    <span className="bg-[#D96C6C] text-white text-xs px-2 py-1 rounded-full">
                       {aktifOdemeBekleyen.length}
                     </span>
                   )}
                 </h2>
-                <div className="flex bg-gray-100 rounded-lg p-0.5">
+                <div className="flex bg-white rounded-lg p-0.5">
                   <button
                     onClick={() => setOdemeSekme('bugun')}
                     className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
-                      odemeSekme === 'bugun' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500'
+                      odemeSekme === 'bugun' ? 'bg-white text-[#2F2F2F] shadow-sm' : 'text-[#8A8A8A]'
                     }`}
                   >
                     Bugün
@@ -562,7 +562,7 @@ export default function YonetimPage() {
                   <button
                     onClick={() => setOdemeSekme('yarin')}
                     className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
-                      odemeSekme === 'yarin' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500'
+                      odemeSekme === 'yarin' ? 'bg-white text-[#2F2F2F] shadow-sm' : 'text-[#8A8A8A]'
                     }`}
                   >
                     Yarın
@@ -571,27 +571,27 @@ export default function YonetimPage() {
               </div>
 
               {aktifOdemeBekleyen.length === 0 ? (
-                <div className="text-center py-8 text-gray-400">
+                <div className="text-center py-8 text-[#8A8A8A]">
                   <span className="text-4xl">✅</span>
                   <p className="mt-2">{odemeSekme === 'bugun' ? 'Bugün' : 'Yarın'} ödeme bekleyen yok</p>
                 </div>
               ) : (
                 <div className="space-y-2">
                   {aktifOdemeBekleyen.map(g => (
-                    <div key={g.id} className="flex items-center justify-between p-3 bg-red-50 rounded-xl border border-red-100">
+                    <div key={g.id} className="flex items-center justify-between p-3 bg-[#D96C6C]/10 rounded-xl border border-[#D96C6C]/20">
                       <div>
-                        <p className="font-medium text-gray-800">{g.isim}</p>
-                        <p className="text-xs text-gray-500">{g.saat}{g.bitisSaati ? ` - ${g.bitisSaati}` : ''}</p>
+                        <p className="font-medium text-[#2F2F2F]">{g.isim}</p>
+                        <p className="text-xs text-[#8A8A8A]">{g.saat}{g.bitisSaati ? ` - ${g.bitisSaati}` : ''}</p>
                       </div>
-                      <span className="text-lg font-bold text-red-600">
+                      <span className="text-lg font-bold text-[#D96C6C]">
                         {Number(g.kalan || 0).toLocaleString('tr-TR')} ₺
                       </span>
                     </div>
                   ))}
-                  <div className="mt-4 pt-4 border-t border-gray-200">
+                  <div className="mt-4 pt-4 border-t border-[#E5E5E5]">
                     <div className="flex items-center justify-between">
-                      <span className="font-medium text-gray-600">Toplam</span>
-                      <span className="text-xl font-bold text-red-600">
+                      <span className="font-medium text-[#2F2F2F]">Toplam</span>
+                      <span className="text-xl font-bold text-[#D96C6C]">
                         {aktifOdemeBekleyen.reduce((sum, g) => sum + Number(g.kalan || 0), 0).toLocaleString('tr-TR')} ₺
                       </span>
                     </div>
@@ -602,8 +602,8 @@ export default function YonetimPage() {
           </div>
 
           {/* Aylık Özet Tablosu */}
-          <div className="mt-6 bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <div className="mt-6 bg-white rounded-2xl p-6 shadow-sm border border-[#E5E5E5]">
+            <h2 className="text-lg font-bold text-[#2F2F2F] mb-4 flex items-center gap-2">
               <span>📊</span> Aylık Finansal Özet
             </h2>
 
@@ -611,17 +611,17 @@ export default function YonetimPage() {
             <div className="hidden md:block overflow-x-auto -mx-2">
               <div className="min-w-[680px] mx-2">
                 {/* Header */}
-                <div className="flex bg-gray-50 px-4 py-3 border-b border-gray-200 rounded-t-lg">
-                  <div className="w-[15%] text-left text-xs font-medium text-gray-500 uppercase">Ay</div>
-                  <div className="w-[10%] text-center text-xs font-medium text-gray-500 uppercase">Gelin</div>
-                  <div className="w-[15%] text-center text-xs font-medium text-gray-500 uppercase">Hedef</div>
-                  <div className="w-[20%] text-right text-xs font-medium text-gray-500 uppercase">Toplam Ücret</div>
-                  <div className="w-[20%] text-right text-xs font-medium text-gray-500 uppercase">Kapora</div>
-                  <div className="w-[20%] text-right text-xs font-medium text-gray-500 uppercase">Kalan</div>
+                <div className="flex bg-[#F7F7F7] px-4 py-3 border-b border-[#E5E5E5] rounded-t-lg">
+                  <div className="w-[15%] text-left text-xs font-medium text-[#8A8A8A] uppercase">Ay</div>
+                  <div className="w-[10%] text-center text-xs font-medium text-[#8A8A8A] uppercase">Gelin</div>
+                  <div className="w-[15%] text-center text-xs font-medium text-[#8A8A8A] uppercase">Hedef</div>
+                  <div className="w-[20%] text-right text-xs font-medium text-[#8A8A8A] uppercase">Toplam Ücret</div>
+                  <div className="w-[20%] text-right text-xs font-medium text-[#8A8A8A] uppercase">Kapora</div>
+                  <div className="w-[20%] text-right text-xs font-medium text-[#8A8A8A] uppercase">Kalan</div>
                 </div>
 
                 {/* Body */}
-                <div className="max-h-[400px] overflow-y-auto divide-y divide-gray-200">
+                <div className="max-h-[400px] overflow-y-auto divide-y divide-[#E5E5E5]">
                   {tumAylar.map(ay => {
                     const veri = getAyVerileri(ay);
                     const isBuAy = ay === buAy;
@@ -629,41 +629,41 @@ export default function YonetimPage() {
                       <div
                         key={ay}
                         ref={isBuAy ? bugunAyRef : null}
-                        className={`flex px-4 py-3 ${isBuAy ? 'bg-pink-50' : 'hover:bg-gray-50'}`}
+                        className={`flex px-4 py-3 ${isBuAy ? 'bg-pink-50' : 'hover:bg-[#F7F7F7]'}`}
                       >
                         <div className="w-[15%] text-left">
-                          <span className={`font-medium ${isBuAy ? 'text-pink-600' : 'text-gray-700'}`}>
+                          <span className={`font-medium ${isBuAy ? 'text-pink-600' : 'text-[#2F2F2F]'}`}>
                             {formatAy(ay)}
                           </span>
                         </div>
                         <div className="w-[10%] text-center">
-                          <span className={`font-bold ${isBuAy ? 'text-pink-600' : 'text-gray-800'}`}>
+                          <span className={`font-bold ${isBuAy ? 'text-pink-600' : 'text-[#2F2F2F]'}`}>
                             {veri.toplamGelin}
                           </span>
                         </div>
                         <div className="w-[15%] text-center">
                           {veri.hedef > 0 ? (
                             <div className="flex items-center justify-center gap-2">
-                              <span className="text-gray-600">{veri.hedef}</span>
+                              <span className="text-[#2F2F2F]">{veri.hedef}</span>
                               <span className={`text-xs px-1.5 py-0.5 rounded whitespace-nowrap ${
                                 veri.toplamGelin >= veri.hedef
-                                  ? 'bg-green-100 text-green-700'
-                                  : 'bg-gray-100 text-gray-600'
+                                  ? 'bg-[#EAF2ED] text-[#8FAF9A]'
+                                  : 'bg-white text-[#2F2F2F]'
                               }`}>
                                 %{Math.round((veri.toplamGelin / veri.hedef) * 100)}
                               </span>
                             </div>
                           ) : (
-                            <span className="text-gray-400">-</span>
+                            <span className="text-[#8A8A8A]">-</span>
                           )}
                         </div>
-                        <div className="w-[20%] text-right font-medium text-gray-800">
+                        <div className="w-[20%] text-right font-medium text-[#2F2F2F]">
                           {veri.toplamUcret.toLocaleString('tr-TR')} ₺
                         </div>
-                        <div className="w-[20%] text-right font-medium text-green-600">
+                        <div className="w-[20%] text-right font-medium text-[#8FAF9A]">
                           {veri.toplamKapora.toLocaleString('tr-TR')} ₺
                         </div>
-                        <div className="w-[20%] text-right font-medium text-red-600">
+                        <div className="w-[20%] text-right font-medium text-[#D96C6C]">
                           {veri.toplamKalan.toLocaleString('tr-TR')} ₺
                         </div>
                       </div>
@@ -682,19 +682,19 @@ export default function YonetimPage() {
                   <div
                     key={ay}
                     ref={isBuAy ? bugunAyRef : null}
-                    className={`p-3 rounded-lg border ${isBuAy ? 'bg-pink-50 border-pink-200' : 'bg-gray-50 border-gray-200'}`}
+                    className={`p-3 rounded-lg border ${isBuAy ? 'bg-pink-50 border-pink-200' : 'bg-[#F7F7F7] border-[#E5E5E5]'}`}
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <span className={`font-bold text-sm ${isBuAy ? 'text-pink-600' : 'text-gray-700'}`}>
+                      <span className={`font-bold text-sm ${isBuAy ? 'text-pink-600' : 'text-[#2F2F2F]'}`}>
                         {formatAy(ay)}
                       </span>
                       <div className="flex items-center gap-2">
-                        <span className={`font-bold ${isBuAy ? 'text-pink-600' : 'text-gray-800'}`}>
+                        <span className={`font-bold ${isBuAy ? 'text-pink-600' : 'text-[#2F2F2F]'}`}>
                           {veri.toplamGelin} gelin
                         </span>
                         {veri.hedef > 0 && (
                           <span className={`text-xs px-1.5 py-0.5 rounded ${
-                            veri.toplamGelin >= veri.hedef ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'
+                            veri.toplamGelin >= veri.hedef ? 'bg-[#EAF2ED] text-[#8FAF9A]' : 'bg-[#E5E5E5] text-[#2F2F2F]'
                           }`}>
                             %{Math.round((veri.toplamGelin / veri.hedef) * 100)}
                           </span>
@@ -703,16 +703,16 @@ export default function YonetimPage() {
                     </div>
                     <div className="grid grid-cols-3 gap-2 text-xs">
                       <div>
-                        <span className="text-gray-500">Toplam</span>
-                        <p className="font-semibold text-gray-800">{veri.toplamUcret.toLocaleString('tr-TR')} ₺</p>
+                        <span className="text-[#8A8A8A]">Toplam</span>
+                        <p className="font-semibold text-[#2F2F2F]">{veri.toplamUcret.toLocaleString('tr-TR')} ₺</p>
                       </div>
                       <div>
-                        <span className="text-gray-500">Kapora</span>
-                        <p className="font-semibold text-green-600">{veri.toplamKapora.toLocaleString('tr-TR')} ₺</p>
+                        <span className="text-[#8A8A8A]">Kapora</span>
+                        <p className="font-semibold text-[#8FAF9A]">{veri.toplamKapora.toLocaleString('tr-TR')} ₺</p>
                       </div>
                       <div>
-                        <span className="text-gray-500">Kalan</span>
-                        <p className="font-semibold text-red-600">{veri.toplamKalan.toLocaleString('tr-TR')} ₺</p>
+                        <span className="text-[#8A8A8A]">Kalan</span>
+                        <p className="font-semibold text-[#D96C6C]">{veri.toplamKalan.toLocaleString('tr-TR')} ₺</p>
                       </div>
                     </div>
                   </div>

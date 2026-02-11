@@ -85,13 +85,13 @@ export default function IzinDegisiklikKayitlari() {
   const getRowClass = (tur: string) => {
     switch (tur) {
       case "İzin Eklendi":
-        return "bg-green-50/70 hover:bg-green-100/70";
+        return "bg-[#EAF2ED]/70 hover:bg-[#EAF2ED]/70";
       case "İzin Düzenlendi":
-        return "bg-amber-50/70 hover:bg-amber-100/70";
+        return "bg-[#EAF2ED]/70 hover:bg-[#EAF2ED]/70";
       case "İzin Silindi":
-        return "bg-red-50/70 hover:bg-red-100/70";
+        return "bg-[#D96C6C]/10/70 hover:bg-[#D96C6C]/20/70";
       default:
-        return "hover:bg-stone-50";
+        return "hover:bg-[#F7F7F7]";
     }
   };
 
@@ -99,13 +99,13 @@ export default function IzinDegisiklikKayitlari() {
   const getTextClass = (tur: string) => {
     switch (tur) {
       case "İzin Eklendi":
-        return "text-green-700";
+        return "text-[#8FAF9A]";
       case "İzin Düzenlendi":
-        return "text-amber-700";
+        return "text-[#2F2F2F]";
       case "İzin Silindi":
-        return "text-red-700";
+        return "text-[#D96C6C]";
       default:
-        return "text-stone-700";
+        return "text-[#2F2F2F]";
     }
   };
 
@@ -113,29 +113,29 @@ export default function IzinDegisiklikKayitlari() {
   const getBadgeClass = (tur: string) => {
     switch (tur) {
       case "İzin Eklendi":
-        return "bg-green-100 text-green-800 border-green-200";
+        return "bg-[#EAF2ED] text-green-800 border-green-200";
       case "İzin Düzenlendi":
-        return "bg-amber-100 text-amber-800 border-amber-200";
+        return "bg-[#EAF2ED] text-[#2F2F2F] border-[#8FAF9A]/30";
       case "İzin Silindi":
-        return "bg-red-100 text-red-800 border-red-200";
+        return "bg-[#D96C6C]/20 text-red-800 border-[#D96C6C]/30";
       default:
-        return "bg-stone-100 text-stone-800 border-stone-200";
+        return "bg-[#F7F7F7] text-[#2F2F2F] border-[#E5E5E5]";
     }
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-white">
       <main className="flex-1 p-4 lg:p-6 ">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-xl font-bold text-stone-800">İzin Değişiklik Kayıtları</h1>
-          <p className="text-sm text-stone-500">
+          <h1 className="text-xl font-bold text-[#2F2F2F]">İzin Değişiklik Kayıtları</h1>
+          <p className="text-sm text-[#8A8A8A]">
             Bu sayfada, izin işlemleri üzerinde yapılan işlemlerin kayıtlarını görüntüleyebilirsiniz.
           </p>
         </div>
 
         {/* Filters & Actions */}
-        <div className="bg-white rounded-lg shadow-sm border border-stone-100 p-4 mb-4">
+        <div className="bg-white rounded-lg shadow-sm border border-[#E5E5E5] p-4 mb-4">
           <div className="flex flex-wrap items-center gap-3">
             {/* Arama */}
             <div className="flex-1 min-w-[200px]">
@@ -144,7 +144,7 @@ export default function IzinDegisiklikKayitlari() {
                 placeholder="Ara..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                className="w-full px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
               />
             </div>
 
@@ -152,7 +152,7 @@ export default function IzinDegisiklikKayitlari() {
             <select
               value={filterTur}
               onChange={(e) => setFilterTur(e.target.value)}
-              className="px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+              className="px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
             >
               <option value="Tümü">Tümünde</option>
               <option value="İzin Eklendi">İzin Eklendi</option>
@@ -179,25 +179,25 @@ export default function IzinDegisiklikKayitlari() {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-lg shadow-sm border border-stone-100 overflow-hidden">
+        <div className="bg-white rounded-lg shadow-sm border border-[#E5E5E5] overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-stone-50 border-b border-stone-100">
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-stone-600">#</th>
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-stone-600">Değişikliği Yapan</th>
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-stone-600">↓ Değişiklik Tarihi</th>
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-stone-600">Değişiklik Türü</th>
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-stone-600">Değişiklik Öncesi</th>
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-stone-600">Değişiklik Sonrası</th>
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-stone-600">Kullanıcı Adı</th>
-                  <th className="px-3 py-3 text-center text-xs font-semibold text-stone-600"></th>
+                <tr className="bg-[#F7F7F7] border-b border-[#E5E5E5]">
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#2F2F2F]">#</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#2F2F2F]">Değişikliği Yapan</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#2F2F2F]">↓ Değişiklik Tarihi</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#2F2F2F]">Değişiklik Türü</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#2F2F2F]">Değişiklik Öncesi</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#2F2F2F]">Değişiklik Sonrası</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#2F2F2F]">Kullanıcı Adı</th>
+                  <th className="px-3 py-3 text-center text-xs font-semibold text-[#2F2F2F]"></th>
                 </tr>
               </thead>
               <tbody>
                 {filteredKayitlar.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-3 py-8 text-center text-stone-500">
+                    <td colSpan={8} className="px-3 py-8 text-center text-[#8A8A8A]">
                       {kayitlar.length === 0
                         ? "Henüz değişiklik kaydı bulunmuyor."
                         : "Aramanızla eşleşen kayıt bulunamadı."}
@@ -207,9 +207,9 @@ export default function IzinDegisiklikKayitlari() {
                   filteredKayitlar.map((kayit, index) => (
                     <tr
                       key={kayit.id}
-                      className={`border-b border-stone-50 transition-colors ${getRowClass(kayit.degisiklikTuru)}`}
+                      className={`border-b border-[#E5E5E5]/50 transition-colors ${getRowClass(kayit.degisiklikTuru)}`}
                     >
-                      <td className="px-3 py-3 text-sm text-stone-500">
+                      <td className="px-3 py-3 text-sm text-[#8A8A8A]">
                         {index + 1}
                       </td>
                       <td className={`px-3 py-3 text-sm font-medium ${getTextClass(kayit.degisiklikTuru)}`}>
@@ -233,7 +233,7 @@ export default function IzinDegisiklikKayitlari() {
                       <td className="px-3 py-3">
                         <button
                           onClick={() => setSelectedKayit(kayit)}
-                          className="p-1.5 text-stone-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                          className="p-1.5 text-[#8A8A8A] hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
                           title="Görüntüle"
                         >
                           🔍
@@ -248,8 +248,8 @@ export default function IzinDegisiklikKayitlari() {
 
           {/* Footer */}
           {filteredKayitlar.length > 0 && (
-            <div className="px-4 py-3 border-t border-stone-100 bg-stone-50">
-              <div className="flex items-center justify-between text-sm text-stone-600">
+            <div className="px-4 py-3 border-t border-[#E5E5E5] bg-[#F7F7F7]">
+              <div className="flex items-center justify-between text-sm text-[#2F2F2F]">
                 <span>Toplam <span className="font-semibold">{filteredKayitlar.length}</span> kayıt</span>
                 <div className="flex items-center gap-4">
                   <span className="flex items-center gap-1">
@@ -257,7 +257,7 @@ export default function IzinDegisiklikKayitlari() {
                     Eklenen: {filteredKayitlar.filter(k => k.degisiklikTuru === "İzin Eklendi").length}
                   </span>
                   <span className="flex items-center gap-1">
-                    <span className="w-3 h-3 bg-amber-200 rounded"></span>
+                    <span className="w-3 h-3 bg-[#EAF2ED] rounded"></span>
                     Düzenlenen: {filteredKayitlar.filter(k => k.degisiklikTuru === "İzin Düzenlendi").length}
                   </span>
                   <span className="flex items-center gap-1">
@@ -271,17 +271,17 @@ export default function IzinDegisiklikKayitlari() {
         </div>
 
         {/* Legend */}
-        <div className="mt-4 flex items-center gap-6 text-xs text-stone-500">
+        <div className="mt-4 flex items-center gap-6 text-xs text-[#8A8A8A]">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-green-100 border border-green-300 rounded"></div>
+            <div className="w-4 h-4 bg-[#EAF2ED] border border-green-300 rounded"></div>
             <span>İzin Eklendi</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-amber-100 border border-amber-300 rounded"></div>
+            <div className="w-4 h-4 bg-[#EAF2ED] border border-[#8FAF9A] rounded"></div>
             <span>İzin Düzenlendi</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-red-100 border border-red-300 rounded"></div>
+            <div className="w-4 h-4 bg-[#D96C6C]/20 border border-[#D96C6C] rounded"></div>
             <span>İzin Silindi</span>
           </div>
         </div>
@@ -298,11 +298,11 @@ export default function IzinDegisiklikKayitlari() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-stone-100">
-              <h2 className="text-lg font-bold text-stone-800">Değişiklik Detayı</h2>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[#E5E5E5]">
+              <h2 className="text-lg font-bold text-[#2F2F2F]">Değişiklik Detayı</h2>
               <button
                 onClick={() => setSelectedKayit(null)}
-                className="p-1.5 text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-lg transition-colors"
+                className="p-1.5 text-[#8A8A8A] hover:text-[#2F2F2F] hover:bg-[#F7F7F7] rounded-lg transition-colors"
               >
                 ✕
               </button>
@@ -312,7 +312,7 @@ export default function IzinDegisiklikKayitlari() {
             <div className="px-5 py-4 space-y-4">
               {/* Değişiklik Türü Badge */}
               <div className="flex items-center gap-3">
-                <span className="text-sm text-stone-500">Değişiklik Türü:</span>
+                <span className="text-sm text-[#8A8A8A]">Değişiklik Türü:</span>
                 <span className={`inline-block px-3 py-1 text-sm font-semibold rounded-full border ${getBadgeClass(selectedKayit.degisiklikTuru)}`}>
                   {selectedKayit.degisiklikTuru}
                 </span>
@@ -320,49 +320,49 @@ export default function IzinDegisiklikKayitlari() {
 
               {/* Bilgi Satırları */}
               <div className="grid grid-cols-1 gap-3">
-                <div className="bg-stone-50 rounded-lg px-4 py-3">
-                  <span className="text-xs text-stone-400 block mb-1">Kullanıcı Adı</span>
-                  <span className="text-sm font-medium text-stone-800">{selectedKayit.kullaniciAdi || "-"}</span>
+                <div className="bg-[#F7F7F7] rounded-lg px-4 py-3">
+                  <span className="text-xs text-[#8A8A8A] block mb-1">Kullanıcı Adı</span>
+                  <span className="text-sm font-medium text-[#2F2F2F]">{selectedKayit.kullaniciAdi || "-"}</span>
                 </div>
 
-                <div className="bg-stone-50 rounded-lg px-4 py-3">
-                  <span className="text-xs text-stone-400 block mb-1">Değişikliği Yapan</span>
-                  <span className="text-sm font-medium text-stone-800">{selectedKayit.degisikligiYapan || "-"}</span>
+                <div className="bg-[#F7F7F7] rounded-lg px-4 py-3">
+                  <span className="text-xs text-[#8A8A8A] block mb-1">Değişikliği Yapan</span>
+                  <span className="text-sm font-medium text-[#2F2F2F]">{selectedKayit.degisikligiYapan || "-"}</span>
                 </div>
 
-                <div className="bg-stone-50 rounded-lg px-4 py-3">
-                  <span className="text-xs text-stone-400 block mb-1">Değişiklik Tarihi</span>
-                  <span className="text-sm font-medium text-stone-800">{formatDateTimeSingle(selectedKayit.degisiklikTarihi)}</span>
+                <div className="bg-[#F7F7F7] rounded-lg px-4 py-3">
+                  <span className="text-xs text-[#8A8A8A] block mb-1">Değişiklik Tarihi</span>
+                  <span className="text-sm font-medium text-[#2F2F2F]">{formatDateTimeSingle(selectedKayit.degisiklikTarihi)}</span>
                 </div>
               </div>
 
               {/* Öncesi / Sonrası Karşılaştırma */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="bg-red-50 border border-red-100 rounded-lg px-4 py-3">
-                  <span className="text-xs text-red-400 block mb-1">Değişiklik Öncesi</span>
-                  <span className="text-sm text-red-700 whitespace-pre-wrap">
+                <div className="bg-[#D96C6C]/10 border border-[#D96C6C]/20 rounded-lg px-4 py-3">
+                  <span className="text-xs text-[#D96C6C] block mb-1">Değişiklik Öncesi</span>
+                  <span className="text-sm text-[#D96C6C] whitespace-pre-wrap">
                     {selectedKayit.degisiklikOncesi || "-"}
                   </span>
                 </div>
-                <div className="bg-green-50 border border-green-100 rounded-lg px-4 py-3">
+                <div className="bg-[#EAF2ED] border border-green-100 rounded-lg px-4 py-3">
                   <span className="text-xs text-green-400 block mb-1">Değişiklik Sonrası</span>
-                  <span className="text-sm text-green-700 whitespace-pre-wrap">
+                  <span className="text-sm text-[#8FAF9A] whitespace-pre-wrap">
                     {selectedKayit.degisiklikSonrasi || "-"}
                   </span>
                 </div>
               </div>
 
               {/* Kayıt ID */}
-              <div className="text-xs text-stone-300 text-right">
+              <div className="text-xs text-[#8A8A8A] text-right">
                 Kayıt ID: {selectedKayit.id}
               </div>
             </div>
 
             {/* Modal Footer */}
-            <div className="px-5 py-3 border-t border-stone-100 flex justify-end">
+            <div className="px-5 py-3 border-t border-[#E5E5E5] flex justify-end">
               <button
                 onClick={() => setSelectedKayit(null)}
-                className="px-4 py-2 bg-stone-100 text-stone-700 rounded-lg text-sm font-medium hover:bg-stone-200 transition-colors"
+                className="px-4 py-2 bg-[#F7F7F7] text-[#2F2F2F] rounded-lg text-sm font-medium hover:bg-[#E5E5E5] transition-colors"
               >
                 Kapat
               </button>

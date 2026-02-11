@@ -45,14 +45,14 @@ export default function VardiyaPage() {
     sabah: { 
       label: "Sabah Vardiyası", 
       icon: "🌅", 
-      color: "bg-yellow-100 text-yellow-700",
+      color: "bg-[#E6B566]/20 text-[#E6B566]",
       defaultBaslangic: "09:00",
       defaultBitis: "18:00"
     },
     aksam: { 
       label: "Akşam Vardiyası", 
       icon: "🌆", 
-      color: "bg-orange-100 text-orange-700",
+      color: "bg-[#E6B566]/20 text-orange-700",
       defaultBaslangic: "14:00",
       defaultBitis: "23:00"
     },
@@ -66,9 +66,9 @@ export default function VardiyaPage() {
   };
 
   const durumConfig = {
-    planli: { label: "Planlı", color: "bg-stone-100 text-stone-700", icon: "📅" },
+    planli: { label: "Planlı", color: "bg-[#F7F7F7] text-[#2F2F2F]", icon: "📅" },
     devam: { label: "Devam Ediyor", color: "bg-blue-100 text-blue-700", icon: "🔄" },
-    tamamlandi: { label: "Tamamlandı", color: "bg-green-100 text-green-700", icon: "✅" }
+    tamamlandi: { label: "Tamamlandı", color: "bg-[#EAF2ED] text-[#8FAF9A]", icon: "✅" }
   };
 
   useEffect(() => {
@@ -183,13 +183,13 @@ export default function VardiyaPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-white">
       <div>
         <header className="bg-white border-b px-6 py-4 sticky top-0 z-30">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold text-stone-800">📅 Vardiya Planı</h1>
-              <p className="text-sm text-stone-500">Personel vardiya yönetimi</p>
+              <h1 className="text-xl font-bold text-[#2F2F2F]">📅 Vardiya Planı</h1>
+              <p className="text-sm text-[#8A8A8A]">Personel vardiya yönetimi</p>
             </div>
             <button onClick={() => setShowModal(true)} className="bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm">
               ➕ Vardiya Ekle
@@ -204,8 +204,8 @@ export default function VardiyaPage() {
               <p className="text-blue-100 text-sm mb-1">Toplam Vardiya</p>
               <p className="text-3xl font-bold">{shifts.length}</p>
             </div>
-            <div className="bg-gradient-to-br from-stone-500 to-stone-600 p-5 rounded-lg shadow-md text-white">
-              <p className="text-stone-100 text-sm mb-1">Planlı</p>
+            <div className="bg-gradient-to-br from-[#8A8A8A] to-[#4A4A4A] p-5 rounded-lg shadow-md text-white">
+              <p className="text-white/80 text-sm mb-1">Planlı</p>
               <p className="text-3xl font-bold">{planliVardiyalar.length}</p>
             </div>
             <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-5 rounded-lg shadow-md text-white">
@@ -219,22 +219,22 @@ export default function VardiyaPage() {
           </div>
 
           {/* Filtreler */}
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-stone-100 mb-6">
+          <div className="bg-white p-4 rounded-lg shadow-sm border border-[#E5E5E5] mb-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="text-sm font-medium text-stone-700 mb-2 block">📅 Tarih:</label>
-                <input type="date" min="2020-01-01" max="2099-12-31" value={filterTarih} onChange={e => setFilterTarih(e.target.value)} className="w-full px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
+                <label className="text-sm font-medium text-[#2F2F2F] mb-2 block">📅 Tarih:</label>
+                <input type="date" min="2020-01-01" max="2099-12-31" value={filterTarih} onChange={e => setFilterTarih(e.target.value)} className="w-full px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
               </div>
               <div>
-                <label className="text-sm font-medium text-stone-700 mb-2 block">👤 Personel:</label>
-                <select value={filterPersonel} onChange={e => setFilterPersonel(e.target.value)} className="w-full px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white">
+                <label className="text-sm font-medium text-[#2F2F2F] mb-2 block">👤 Personel:</label>
+                <select value={filterPersonel} onChange={e => setFilterPersonel(e.target.value)} className="w-full px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white">
                   <option value="hepsi">Tüm Personel</option>
                   {personelListesi.map(p => <option key={p} value={p}>{p}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-sm font-medium text-stone-700 mb-2 block">🕐 Vardiya:</label>
-                <select value={filterVardiya} onChange={e => setFilterVardiya(e.target.value)} className="w-full px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white">
+                <label className="text-sm font-medium text-[#2F2F2F] mb-2 block">🕐 Vardiya:</label>
+                <select value={filterVardiya} onChange={e => setFilterVardiya(e.target.value)} className="w-full px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white">
                   <option value="hepsi">Tüm Vardiyalar</option>
                   {Object.entries(vardiyaTipleri).map(([key, value]) => <option key={key} value={key}>{value.icon} {value.label}</option>)}
                 </select>
@@ -245,7 +245,7 @@ export default function VardiyaPage() {
           {/* Vardiya Listesi */}
           <div className="space-y-3">
             {filteredShifts.length === 0 ? (
-              <div className="bg-white rounded-lg p-12 text-center text-stone-500 border border-stone-100">
+              <div className="bg-white rounded-lg p-12 text-center text-[#8A8A8A] border border-[#E5E5E5]">
                 <span className="text-5xl mb-4 block">📅</span>
                 <p className="text-lg font-medium">Vardiya bulunamadı</p>
               </div>
@@ -255,11 +255,11 @@ export default function VardiyaPage() {
                 const durum = durumConfig[shift.durum];
                 
                 return (
-                  <div key={shift.id} className="bg-white rounded-lg shadow-sm border border-stone-100 p-5 hover:shadow-md transition cursor-pointer" onClick={() => { setSelectedShift(shift); setShowDetailModal(true); }}>
+                  <div key={shift.id} className="bg-white rounded-lg shadow-sm border border-[#E5E5E5] p-5 hover:shadow-md transition cursor-pointer" onClick={() => { setSelectedShift(shift); setShowDetailModal(true); }}>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-semibold text-stone-800 text-lg">{shift.personel}</h3>
+                          <h3 className="font-semibold text-[#2F2F2F] text-lg">{shift.personel}</h3>
                           <span className={`text-xs px-3 py-1 rounded-full ${vardiyaTipi.color} font-medium`}>
                             {vardiyaTipi.icon} {vardiyaTipi.label}
                           </span>
@@ -267,10 +267,10 @@ export default function VardiyaPage() {
                             {durum.icon} {durum.label}
                           </span>
                         </div>
-                        <div className="text-sm text-stone-600">
+                        <div className="text-sm text-[#2F2F2F]">
                           <p>📅 {formatTarih(shift.tarih)}</p>
                           <p className="mt-1">🕐 {shift.baslangic} - {shift.bitis}</p>
-                          {shift.notlar && <p className="mt-1 text-stone-500">📝 {shift.notlar}</p>}
+                          {shift.notlar && <p className="mt-1 text-[#8A8A8A]">📝 {shift.notlar}</p>}
                         </div>
                       </div>
                       <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
@@ -278,10 +278,10 @@ export default function VardiyaPage() {
                           <button onClick={() => handleChangeDurum(shift, 'devam')} className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm">🔄 Başlat</button>
                         )}
                         {shift.durum === 'devam' && (
-                          <button onClick={() => handleChangeDurum(shift, 'tamamlandi')} className="px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 transition text-sm">✅ Bitir</button>
+                          <button onClick={() => handleChangeDurum(shift, 'tamamlandi')} className="px-3 py-1 bg-[#8FAF9A] text-white rounded-lg hover:bg-[#7A9E86] transition text-sm">✅ Bitir</button>
                         )}
-                        <button onClick={() => openEditModal(shift)} className="p-2 hover:bg-stone-100 rounded-lg transition">✏️</button>
-                        <button onClick={() => handleDelete(shift.id)} className="p-2 hover:bg-red-100 rounded-lg transition">🗑️</button>
+                        <button onClick={() => openEditModal(shift)} className="p-2 hover:bg-[#F7F7F7] rounded-lg transition">✏️</button>
+                        <button onClick={() => handleDelete(shift.id)} className="p-2 hover:bg-[#D96C6C]/20 rounded-lg transition">🗑️</button>
                       </div>
                     </div>
                   </div>
@@ -297,28 +297,28 @@ export default function VardiyaPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowModal(false)}>
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold text-stone-800">📅 Yeni Vardiya</h3>
-              <button onClick={() => setShowModal(false)} className="text-stone-400 hover:text-stone-600 text-3xl">×</button>
+              <h3 className="text-2xl font-bold text-[#2F2F2F]">📅 Yeni Vardiya</h3>
+              <button onClick={() => setShowModal(false)} className="text-[#8A8A8A] hover:text-[#2F2F2F] text-3xl">×</button>
             </div>
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-2">Personel *</label>
-                  <select value={formData.personel} onChange={e => setFormData({...formData, personel: e.target.value})} className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white">
+                  <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Personel *</label>
+                  <select value={formData.personel} onChange={e => setFormData({...formData, personel: e.target.value})} className="w-full px-4 py-3 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white">
                     <option value="">Seçin...</option>
                     {personelListesi.map(p => <option key={p} value={p}>{p}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-2">Tarih *</label>
-                  <input type="date" min="2020-01-01" max="2099-12-31" value={formData.tarih} onChange={e => setFormData({...formData, tarih: e.target.value})} className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
+                  <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Tarih *</label>
+                  <input type="date" min="2020-01-01" max="2099-12-31" value={formData.tarih} onChange={e => setFormData({...formData, tarih: e.target.value})} className="w-full px-4 py-3 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">Vardiya Türü *</label>
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Vardiya Türü *</label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {Object.entries(vardiyaTipleri).map(([key, value]) => (
-                    <button key={key} type="button" onClick={() => setFormData({...formData, vardiya: key as any, baslangic: value.defaultBaslangic, bitis: value.defaultBitis})} className={`px-4 py-3 rounded-lg border-2 transition ${formData.vardiya === key ? 'border-rose-500 bg-rose-50' : 'border-stone-200 hover:border-stone-300'}`}>
+                    <button key={key} type="button" onClick={() => setFormData({...formData, vardiya: key as any, baslangic: value.defaultBaslangic, bitis: value.defaultBitis})} className={`px-4 py-3 rounded-lg border-2 transition ${formData.vardiya === key ? 'border-rose-500 bg-rose-50' : 'border-[#E5E5E5] hover:border-[#E5E5E5]'}`}>
                       <div className="text-2xl mb-1">{value.icon}</div>
                       <div className="text-xs font-medium">{value.label.split(' ')[0]}</div>
                     </button>
@@ -327,20 +327,20 @@ export default function VardiyaPage() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-2">Başlangıç Saati</label>
-                  <input type="time" value={formData.baslangic} onChange={e => setFormData({...formData, baslangic: e.target.value})} className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
+                  <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Başlangıç Saati</label>
+                  <input type="time" value={formData.baslangic} onChange={e => setFormData({...formData, baslangic: e.target.value})} className="w-full px-4 py-3 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-2">Bitiş Saati</label>
-                  <input type="time" value={formData.bitis} onChange={e => setFormData({...formData, bitis: e.target.value})} className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
+                  <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Bitiş Saati</label>
+                  <input type="time" value={formData.bitis} onChange={e => setFormData({...formData, bitis: e.target.value})} className="w-full px-4 py-3 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">Notlar</label>
-                <textarea value={formData.notlar} onChange={e => setFormData({...formData, notlar: e.target.value})} rows={3} className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" placeholder="Ek notlar (opsiyonel)" />
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Notlar</label>
+                <textarea value={formData.notlar} onChange={e => setFormData({...formData, notlar: e.target.value})} rows={3} className="w-full px-4 py-3 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" placeholder="Ek notlar (opsiyonel)" />
               </div>
               <div className="flex gap-3 pt-4">
-                <button onClick={() => setShowModal(false)} className="flex-1 px-6 py-3 border border-stone-300 rounded-lg text-stone-700 hover:bg-stone-50 transition font-medium">İptal</button>
+                <button onClick={() => setShowModal(false)} className="flex-1 px-6 py-3 border border-[#E5E5E5] rounded-lg text-[#2F2F2F] hover:bg-[#F7F7F7] transition font-medium">İptal</button>
                 <button onClick={handleAdd} className="flex-1 px-6 py-3 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition font-medium shadow-sm">Ekle</button>
               </div>
             </div>
@@ -353,27 +353,27 @@ export default function VardiyaPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowEditModal(false)}>
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold text-stone-800">✏️ Vardiyayı Düzenle</h3>
-              <button onClick={() => setShowEditModal(false)} className="text-stone-400 hover:text-stone-600 text-3xl">×</button>
+              <h3 className="text-2xl font-bold text-[#2F2F2F]">✏️ Vardiyayı Düzenle</h3>
+              <button onClick={() => setShowEditModal(false)} className="text-[#8A8A8A] hover:text-[#2F2F2F] text-3xl">×</button>
             </div>
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-2">Personel *</label>
-                  <select value={formData.personel} onChange={e => setFormData({...formData, personel: e.target.value})} className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white">
+                  <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Personel *</label>
+                  <select value={formData.personel} onChange={e => setFormData({...formData, personel: e.target.value})} className="w-full px-4 py-3 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white">
                     {personelListesi.map(p => <option key={p} value={p}>{p}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-2">Tarih *</label>
-                  <input type="date" min="2020-01-01" max="2099-12-31" value={formData.tarih} onChange={e => setFormData({...formData, tarih: e.target.value})} className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
+                  <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Tarih *</label>
+                  <input type="date" min="2020-01-01" max="2099-12-31" value={formData.tarih} onChange={e => setFormData({...formData, tarih: e.target.value})} className="w-full px-4 py-3 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">Vardiya Türü *</label>
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Vardiya Türü *</label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {Object.entries(vardiyaTipleri).map(([key, value]) => (
-                    <button key={key} type="button" onClick={() => setFormData({...formData, vardiya: key as any})} className={`px-4 py-3 rounded-lg border-2 transition ${formData.vardiya === key ? 'border-rose-500 bg-rose-50' : 'border-stone-200 hover:border-stone-300'}`}>
+                    <button key={key} type="button" onClick={() => setFormData({...formData, vardiya: key as any})} className={`px-4 py-3 rounded-lg border-2 transition ${formData.vardiya === key ? 'border-rose-500 bg-rose-50' : 'border-[#E5E5E5] hover:border-[#E5E5E5]'}`}>
                       <div className="text-2xl mb-1">{value.icon}</div>
                       <div className="text-xs font-medium">{value.label.split(' ')[0]}</div>
                     </button>
@@ -382,20 +382,20 @@ export default function VardiyaPage() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-2">Başlangıç Saati</label>
-                  <input type="time" value={formData.baslangic} onChange={e => setFormData({...formData, baslangic: e.target.value})} className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
+                  <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Başlangıç Saati</label>
+                  <input type="time" value={formData.baslangic} onChange={e => setFormData({...formData, baslangic: e.target.value})} className="w-full px-4 py-3 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-2">Bitiş Saati</label>
-                  <input type="time" value={formData.bitis} onChange={e => setFormData({...formData, bitis: e.target.value})} className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
+                  <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Bitiş Saati</label>
+                  <input type="time" value={formData.bitis} onChange={e => setFormData({...formData, bitis: e.target.value})} className="w-full px-4 py-3 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">Notlar</label>
-                <textarea value={formData.notlar} onChange={e => setFormData({...formData, notlar: e.target.value})} rows={3} className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Notlar</label>
+                <textarea value={formData.notlar} onChange={e => setFormData({...formData, notlar: e.target.value})} rows={3} className="w-full px-4 py-3 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
               </div>
               <div className="flex gap-3 pt-4">
-                <button onClick={() => setShowEditModal(false)} className="flex-1 px-6 py-3 border border-stone-300 rounded-lg text-stone-700 hover:bg-stone-50 transition font-medium">İptal</button>
+                <button onClick={() => setShowEditModal(false)} className="flex-1 px-6 py-3 border border-[#E5E5E5] rounded-lg text-[#2F2F2F] hover:bg-[#F7F7F7] transition font-medium">İptal</button>
                 <button onClick={handleEdit} className="flex-1 px-6 py-3 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition font-medium shadow-sm">Güncelle</button>
               </div>
             </div>
@@ -408,15 +408,15 @@ export default function VardiyaPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowDetailModal(false)}>
           <div className="bg-white rounded-lg shadow-xl max-w-lg w-full p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold text-stone-800">📅 Vardiya Detayları</h3>
-              <button onClick={() => setShowDetailModal(false)} className="text-stone-400 hover:text-stone-600 text-3xl">×</button>
+              <h3 className="text-2xl font-bold text-[#2F2F2F]">📅 Vardiya Detayları</h3>
+              <button onClick={() => setShowDetailModal(false)} className="text-[#8A8A8A] hover:text-[#2F2F2F] text-3xl">×</button>
             </div>
             <div className="space-y-4">
-              <div className="flex items-center gap-3 p-4 bg-stone-50 rounded-lg">
+              <div className="flex items-center gap-3 p-4 bg-[#F7F7F7] rounded-lg">
                 <div className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center text-xl">👤</div>
                 <div>
-                  <p className="text-sm text-stone-500">Personel</p>
-                  <p className="font-semibold text-stone-800">{selectedShift.personel}</p>
+                  <p className="text-sm text-[#8A8A8A]">Personel</p>
+                  <p className="font-semibold text-[#2F2F2F]">{selectedShift.personel}</p>
                 </div>
               </div>
               <div className="flex gap-3">
@@ -429,27 +429,27 @@ export default function VardiyaPage() {
               </div>
               <div className="p-4 bg-blue-50 rounded-lg">
                 <p className="text-sm text-blue-600 mb-1">📅 Tarih</p>
-                <p className="font-semibold text-stone-800">{formatTarih(selectedShift.tarih)}</p>
+                <p className="font-semibold text-[#2F2F2F]">{formatTarih(selectedShift.tarih)}</p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="p-4 bg-green-50 rounded-lg">
-                  <p className="text-sm text-green-600 mb-1">🕐 Başlangıç</p>
-                  <p className="font-bold text-stone-800 text-xl">{selectedShift.baslangic}</p>
+                <div className="p-4 bg-[#EAF2ED] rounded-lg">
+                  <p className="text-sm text-[#8FAF9A] mb-1">🕐 Başlangıç</p>
+                  <p className="font-bold text-[#2F2F2F] text-xl">{selectedShift.baslangic}</p>
                 </div>
-                <div className="p-4 bg-red-50 rounded-lg">
-                  <p className="text-sm text-red-600 mb-1">🕐 Bitiş</p>
-                  <p className="font-bold text-stone-800 text-xl">{selectedShift.bitis}</p>
+                <div className="p-4 bg-[#D96C6C]/10 rounded-lg">
+                  <p className="text-sm text-[#D96C6C] mb-1">🕐 Bitiş</p>
+                  <p className="font-bold text-[#2F2F2F] text-xl">{selectedShift.bitis}</p>
                 </div>
               </div>
               {selectedShift.notlar && (
-                <div className="p-4 bg-stone-50 rounded-lg">
-                  <p className="text-sm text-stone-500 mb-2">📝 Notlar:</p>
-                  <p className="text-stone-700">{selectedShift.notlar}</p>
+                <div className="p-4 bg-[#F7F7F7] rounded-lg">
+                  <p className="text-sm text-[#8A8A8A] mb-2">📝 Notlar:</p>
+                  <p className="text-[#2F2F2F]">{selectedShift.notlar}</p>
                 </div>
               )}
             </div>
             <div className="mt-6">
-              <button onClick={() => setShowDetailModal(false)} className="w-full px-6 py-3 bg-stone-100 text-stone-700 rounded-lg hover:bg-stone-200 transition font-medium">Kapat</button>
+              <button onClick={() => setShowDetailModal(false)} className="w-full px-6 py-3 bg-[#F7F7F7] text-[#2F2F2F] rounded-lg hover:bg-[#E5E5E5] transition font-medium">Kapat</button>
             </div>
           </div>
         </div>

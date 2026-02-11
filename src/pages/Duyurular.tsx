@@ -53,12 +53,12 @@ type AktifSekme = "duyurular" | "tarihler";
 
 // Renk seçenekleri
 const RENK_SECENEKLERI = [
-  { id: "amber", label: "Sarı", bg: "bg-amber-500", light: "bg-amber-50", text: "text-amber-700", border: "border-amber-200" },
+  { id: "amber", label: "Sarı", bg: "bg-[#8FAF9A]", light: "bg-[#EAF2ED]", text: "text-[#2F2F2F]", border: "border-[#8FAF9A]/30" },
   { id: "rose", label: "Kırmızı", bg: "bg-rose-500", light: "bg-rose-50", text: "text-rose-700", border: "border-rose-200" },
   { id: "purple", label: "Mor", bg: "bg-purple-500", light: "bg-purple-50", text: "text-purple-700", border: "border-purple-200" },
   { id: "blue", label: "Mavi", bg: "bg-blue-500", light: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" },
-  { id: "emerald", label: "Yeşil", bg: "bg-emerald-500", light: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200" },
-  { id: "stone", label: "Gri", bg: "bg-stone-500", light: "bg-stone-50", text: "text-stone-700", border: "border-stone-200" },
+  { id: "emerald", label: "Yeşil", bg: "bg-[#8FAF9A]", light: "bg-[#EAF2ED]", text: "text-[#8FAF9A]", border: "border-[#8FAF9A]/30" },
+  { id: "stone", label: "Gri", bg: "bg-[#8A8A8A]", light: "bg-[#F7F7F7]", text: "text-[#2F2F2F]", border: "border-[#E5E5E5]" },
 ];
 
 const EMOJI_SECENEKLERI = ["🎉", "🎊", "📌", "⭐", "🏆", "🎯", "💼", "🎈", "💡", "📅", "🗓️", "❤️"];
@@ -359,11 +359,11 @@ export default function DuyurularPage() {
   const counts = getGroupCounts();
 
   const kalanGunBadge = (gun: number) => {
-    if (gun === 0) return "bg-emerald-500 text-white animate-pulse";
-    if (gun <= 3) return "bg-amber-100 text-amber-800";
+    if (gun === 0) return "bg-[#8FAF9A] text-white animate-pulse";
+    if (gun <= 3) return "bg-[#EAF2ED] text-[#2F2F2F]";
     if (gun <= 7) return "bg-blue-100 text-blue-800";
-    if (gun <= 30) return "bg-stone-100 text-stone-600";
-    return "bg-stone-50 text-stone-400";
+    if (gun <= 30) return "bg-[#F7F7F7] text-[#2F2F2F]";
+    return "bg-[#F7F7F7] text-[#8A8A8A]";
   };
 
   const kalanGunText = (gun: number) => {
@@ -382,20 +382,20 @@ export default function DuyurularPage() {
 
   if (grupLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-white">
       {/* HEADER */}
       <header className="bg-white border-b px-4 md:px-6 py-4 sticky top-0 z-30">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h1 className="text-lg md:text-xl font-bold text-stone-800">📢 Duyurular & Önemli Tarihler</h1>
-            <p className="text-xs md:text-sm text-stone-500">Ekip duyuruları ve yaklaşan tarihler</p>
+            <h1 className="text-lg md:text-xl font-bold text-[#2F2F2F]">📢 Duyurular & Önemli Tarihler</h1>
+            <p className="text-xs md:text-sm text-[#8A8A8A]">Ekip duyuruları ve yaklaşan tarihler</p>
           </div>
           <div className="flex gap-2">
             {aktifSekme === "duyurular" ? (
@@ -405,7 +405,7 @@ export default function DuyurularPage() {
               </button>
             ) : (
               <button onClick={() => setShowTarihModal(true)}
-                className="bg-amber-500 hover:bg-amber-600 text-white px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition">
+                className="bg-[#8FAF9A] hover:bg-[#7A9E86] text-white px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition">
                 ➕ Yeni Tarih
               </button>
             )}
@@ -413,18 +413,18 @@ export default function DuyurularPage() {
         </div>
 
         {/* SEKME SEÇİCİ */}
-        <div className="flex gap-1 bg-stone-100 rounded-lg p-1 w-fit">
+        <div className="flex gap-1 bg-[#F7F7F7] rounded-lg p-1 w-fit">
           <button
             onClick={() => setAktifSekme("duyurular")}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-              aktifSekme === "duyurular" ? "bg-white text-stone-800 shadow-sm" : "text-stone-500 hover:text-stone-700"
+              aktifSekme === "duyurular" ? "bg-white text-[#2F2F2F] shadow-sm" : "text-[#8A8A8A] hover:text-[#2F2F2F]"
             }`}>
             📢 Duyurular <span className="ml-1 text-xs opacity-70">({announcements.length})</span>
           </button>
           <button
             onClick={() => setAktifSekme("tarihler")}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-              aktifSekme === "tarihler" ? "bg-white text-stone-800 shadow-sm" : "text-stone-500 hover:text-stone-700"
+              aktifSekme === "tarihler" ? "bg-white text-[#2F2F2F] shadow-sm" : "text-[#8A8A8A] hover:text-[#2F2F2F]"
             }`}>
             📅 Önemli Tarihler <span className="ml-1 text-xs opacity-70">({tumTarihler.length})</span>
           </button>
@@ -440,7 +440,7 @@ export default function DuyurularPage() {
             <div className="flex items-center gap-2 flex-wrap mb-4">
               <button onClick={() => setActiveFilter("tumu")}
                 className={`px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition ${
-                  activeFilter === "tumu" ? "bg-stone-800 text-white" : "bg-white text-stone-600 hover:bg-stone-50 border border-stone-200"
+                  activeFilter === "tumu" ? "bg-[#2F2F2F] text-white" : "bg-white text-[#2F2F2F] hover:bg-[#F7F7F7] border border-[#E5E5E5]"
                 }`}>
                 Tümü ({counts.tumu})
               </button>
@@ -449,7 +449,7 @@ export default function DuyurularPage() {
                 return (
                   <button key={grup.id} onClick={() => setActiveFilter(grup.grupAdi)}
                     className={`px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition flex items-center gap-1.5 ${
-                      activeFilter === grup.grupAdi ? `${stiller.bg} text-white` : "bg-white text-stone-600 hover:bg-stone-50 border border-stone-200"
+                      activeFilter === grup.grupAdi ? `${stiller.bg} text-white` : "bg-white text-[#2F2F2F] hover:bg-[#F7F7F7] border border-[#E5E5E5]"
                     }`}>
                     <span className={`w-2 h-2 rounded-full ${activeFilter === grup.grupAdi ? "bg-white" : stiller.bg}`}></span>
                     {grup.grupAdi} ({counts[grup.grupAdi] || 0})
@@ -460,7 +460,7 @@ export default function DuyurularPage() {
 
             {/* Duyuru Listesi */}
             {filteredAnnouncements.length === 0 ? (
-              <div className="bg-white rounded-lg p-12 text-center text-stone-500 border border-stone-100">
+              <div className="bg-white rounded-lg p-12 text-center text-[#8A8A8A] border border-[#E5E5E5]">
                 <span className="text-5xl mb-4 block">📭</span>
                 <p className="text-lg font-medium">
                   {activeFilter === "tumu" ? "Henüz duyuru yok" : `${activeFilter} grubunda duyuru yok`}
@@ -473,7 +473,7 @@ export default function DuyurularPage() {
                   return (
                     <div key={announcement.id}
                       className={`bg-white rounded-lg shadow-sm border overflow-hidden ${
-                        announcement.important ? 'border-red-300 ring-2 ring-red-100' : groupInfo.stiller.border
+                        announcement.important ? 'border-[#D96C6C] ring-2 ring-red-100' : groupInfo.stiller.border
                       }`}>
                       <div className="p-4 md:p-5">
                         <div className="flex items-start justify-between mb-2">
@@ -482,19 +482,19 @@ export default function DuyurularPage() {
                               {groupInfo.grupAdi}
                             </span>
                             {announcement.important && (
-                              <span className="bg-red-500 text-white text-xs font-bold px-2.5 py-0.5 rounded-full animate-pulse">
+                              <span className="bg-[#D96C6C] text-white text-xs font-bold px-2.5 py-0.5 rounded-full animate-pulse">
                                 🔥 ÖNEMLİ
                               </span>
                             )}
-                            <h3 className="text-base font-semibold text-stone-800">{announcement.title}</h3>
+                            <h3 className="text-base font-semibold text-[#2F2F2F]">{announcement.title}</h3>
                           </div>
                           <button onClick={() => handleDeleteAnnouncement(announcement.id)}
-                            className="text-stone-300 hover:text-red-500 transition text-sm ml-2 shrink-0">
+                            className="text-[#8A8A8A] hover:text-[#D96C6C] transition text-sm ml-2 shrink-0">
                             🗑️
                           </button>
                         </div>
-                        <p className="text-stone-600 text-sm mb-3 whitespace-pre-wrap">{announcement.content}</p>
-                        <div className="flex items-center justify-between text-xs text-stone-400">
+                        <p className="text-[#2F2F2F] text-sm mb-3 whitespace-pre-wrap">{announcement.content}</p>
+                        <div className="flex items-center justify-between text-xs text-[#8A8A8A]">
                           <span>👤 {announcement.author}</span>
                           <span>📅 {formatTarih(announcement.createdAt)}</span>
                         </div>
@@ -522,8 +522,8 @@ export default function DuyurularPage() {
                 <button key={f.key} onClick={() => setTarihFiltre(f.key)}
                   className={`px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition ${
                     tarihFiltre === f.key 
-                      ? "bg-amber-500 text-white" 
-                      : "bg-white text-stone-600 hover:bg-stone-50 border border-stone-200"
+                      ? "bg-[#8FAF9A] text-white" 
+                      : "bg-white text-[#2F2F2F] hover:bg-[#F7F7F7] border border-[#E5E5E5]"
                   }`}>
                   {f.emoji} {f.label} ({kategoriSayilari[f.key]})
                 </button>
@@ -532,7 +532,7 @@ export default function DuyurularPage() {
 
             {/* Tarih Listesi */}
             {filtrelenmisT.length === 0 ? (
-              <div className="bg-white rounded-lg p-12 text-center text-stone-500 border border-stone-100">
+              <div className="bg-white rounded-lg p-12 text-center text-[#8A8A8A] border border-[#E5E5E5]">
                 <span className="text-5xl mb-4 block">📅</span>
                 <p className="text-lg font-medium">Yaklaşan tarih yok</p>
               </div>
@@ -555,12 +555,12 @@ export default function DuyurularPage() {
                         {/* İçerik */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="font-semibold text-stone-800 text-sm md:text-base truncate">{tarih.baslik}</h3>
+                            <h3 className="font-semibold text-[#2F2F2F] text-sm md:text-base truncate">{tarih.baslik}</h3>
                             {tarih.tekrarliMi && (
-                              <span className="text-[10px] bg-stone-100 text-stone-500 px-1.5 py-0.5 rounded-full">🔄 her yıl</span>
+                              <span className="text-[10px] bg-[#F7F7F7] text-[#8A8A8A] px-1.5 py-0.5 rounded-full">🔄 her yıl</span>
                             )}
                           </div>
-                          <p className="text-xs text-stone-500 mt-0.5">{formatTarihFull(tarih.tarihStr)}</p>
+                          <p className="text-xs text-[#8A8A8A] mt-0.5">{formatTarihFull(tarih.tarihStr)}</p>
                         </div>
 
                         {/* Kalan gün badge */}
@@ -577,7 +577,7 @@ export default function DuyurularPage() {
                           {/* Silme (sadece özel tarihler) */}
                           {isOzel && firestoreId && (
                             <button onClick={() => handleDeleteTarih(firestoreId)}
-                              className="text-stone-300 hover:text-red-500 transition text-sm">
+                              className="text-[#8A8A8A] hover:text-[#D96C6C] transition text-sm">
                               🗑️
                             </button>
                           )}
@@ -589,15 +589,15 @@ export default function DuyurularPage() {
                 </div>
                 {/* Pagination */}
                 {tarihToplamSayfa > 1 && (
-                  <div className="flex items-center justify-center gap-3 mt-4 pt-3 border-t border-stone-100">
+                  <div className="flex items-center justify-center gap-3 mt-4 pt-3 border-t border-[#E5E5E5]">
                     <button onClick={() => setTarihSayfa(s => Math.max(0, s - 1))} disabled={tarihSayfa === 0}
                       className={`px-3 py-1.5 rounded-lg text-sm transition ${
-                        tarihSayfa === 0 ? "text-stone-300 cursor-not-allowed" : "text-stone-600 hover:bg-stone-100"
+                        tarihSayfa === 0 ? "text-[#8A8A8A] cursor-not-allowed" : "text-[#2F2F2F] hover:bg-[#F7F7F7]"
                       }`}>← Önceki</button>
-                    <span className="text-xs text-stone-400">{tarihSayfa + 1} / {tarihToplamSayfa}</span>
+                    <span className="text-xs text-[#8A8A8A]">{tarihSayfa + 1} / {tarihToplamSayfa}</span>
                     <button onClick={() => setTarihSayfa(s => Math.min(tarihToplamSayfa - 1, s + 1))} disabled={tarihSayfa >= tarihToplamSayfa - 1}
                       className={`px-3 py-1.5 rounded-lg text-sm transition ${
-                        tarihSayfa >= tarihToplamSayfa - 1 ? "text-stone-300 cursor-not-allowed" : "text-stone-600 hover:bg-stone-100"
+                        tarihSayfa >= tarihToplamSayfa - 1 ? "text-[#8A8A8A] cursor-not-allowed" : "text-[#2F2F2F] hover:bg-[#F7F7F7]"
                       }`}>Sonraki →</button>
                   </div>
                 )}
@@ -618,7 +618,7 @@ export default function DuyurularPage() {
             <div className="p-5 space-y-4">
               {/* Grup */}
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">Grup</label>
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Grup</label>
                 <div className="flex flex-wrap gap-2">
                   {grupEtiketleri.map(grup => {
                     const stiller = getRenkStilleri(grup.renk);
@@ -626,7 +626,7 @@ export default function DuyurularPage() {
                       <button key={grup.id} type="button"
                         onClick={() => setNewAnnouncement({...newAnnouncement, group: grup.grupAdi})}
                         className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-                          newAnnouncement.group === grup.grupAdi ? `${stiller.bg} text-white` : "bg-stone-100 text-stone-600"
+                          newAnnouncement.group === grup.grupAdi ? `${stiller.bg} text-white` : "bg-[#F7F7F7] text-[#2F2F2F]"
                         }`}>
                         {grup.grupAdi}
                       </button>
@@ -635,25 +635,25 @@ export default function DuyurularPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-1">Başlık</label>
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-1">Başlık</label>
                 <input type="text" value={newAnnouncement.title}
                   onChange={(e) => setNewAnnouncement({...newAnnouncement, title: e.target.value})}
-                  className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm"
+                  className="w-full px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm"
                   placeholder="Duyuru başlığı..." />
               </div>
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-1">İçerik</label>
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-1">İçerik</label>
                 <textarea value={newAnnouncement.content}
                   onChange={(e) => setNewAnnouncement({...newAnnouncement, content: e.target.value})}
                   rows={4}
-                  className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm resize-none"
+                  className="w-full px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm resize-none"
                   placeholder="Duyuru içeriği..." />
               </div>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={newAnnouncement.important}
                   onChange={(e) => setNewAnnouncement({...newAnnouncement, important: e.target.checked})}
-                  className="rounded border-stone-300 text-rose-500" />
-                <span className="text-sm text-stone-700">🔥 Önemli duyuru</span>
+                  className="rounded border-[#E5E5E5] text-rose-500" />
+                <span className="text-sm text-[#2F2F2F]">🔥 Önemli duyuru</span>
               </label>
               <div className="flex gap-3 pt-1">
                 <button onClick={handleAddAnnouncement}
@@ -661,7 +661,7 @@ export default function DuyurularPage() {
                   Ekle
                 </button>
                 <button onClick={() => setShowModal(false)}
-                  className="flex-1 bg-stone-100 hover:bg-stone-200 text-stone-700 py-2.5 rounded-lg text-sm font-medium transition">
+                  className="flex-1 bg-[#F7F7F7] hover:bg-[#E5E5E5] text-[#2F2F2F] py-2.5 rounded-lg text-sm font-medium transition">
                   İptal
                 </button>
               </div>
@@ -674,33 +674,33 @@ export default function DuyurularPage() {
       {showTarihModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowTarihModal(false)}>
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="bg-gradient-to-r from-amber-500 to-amber-400 text-white px-5 py-3 rounded-t-xl flex items-center justify-between">
+            <div className="bg-gradient-to-r from-[#8FAF9A] to-[#7A9E86] text-white px-5 py-3 rounded-t-xl flex items-center justify-between">
               <h3 className="font-bold text-sm">📌 Yeni Önemli Tarih</h3>
               <button onClick={() => setShowTarihModal(false)} className="text-white/80 hover:text-white text-xl">✕</button>
             </div>
             <div className="p-5 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-1">Başlık *</label>
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-1">Başlık *</label>
                 <input type="text" value={yeniTarih.baslik}
                   onChange={(e) => setYeniTarih({...yeniTarih, baslik: e.target.value})}
-                  className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+                  className="w-full px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8FAF9A] text-sm"
                   placeholder="Örn: Şirket kuruluş yıldönümü" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-1">Tarih *</label>
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-1">Tarih *</label>
                 <input type="date" value={yeniTarih.tarih}
                   onChange={(e) => setYeniTarih({...yeniTarih, tarih: e.target.value})}
-                  className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm" />
+                  className="w-full px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8FAF9A] text-sm" />
               </div>
 
               {/* Emoji Seçimi */}
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-1">Emoji</label>
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-1">Emoji</label>
                 <div className="flex flex-wrap gap-2">
                   {EMOJI_SECENEKLERI.map(e => (
                     <button key={e} type="button" onClick={() => setYeniTarih({...yeniTarih, emoji: e})}
                       className={`w-9 h-9 rounded-lg text-lg flex items-center justify-center transition ${
-                        yeniTarih.emoji === e ? "bg-amber-100 ring-2 ring-amber-400" : "bg-stone-50 hover:bg-stone-100"
+                        yeniTarih.emoji === e ? "bg-[#EAF2ED] ring-2 ring-[#8FAF9A]" : "bg-[#F7F7F7] hover:bg-[#F7F7F7]"
                       }`}>
                       {e}
                     </button>
@@ -710,12 +710,12 @@ export default function DuyurularPage() {
 
               {/* Renk Seçimi */}
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-1">Renk</label>
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-1">Renk</label>
                 <div className="flex flex-wrap gap-2">
                   {RENK_SECENEKLERI.map(r => (
                     <button key={r.id} type="button" onClick={() => setYeniTarih({...yeniTarih, renk: r.id})}
                       className={`w-8 h-8 rounded-full ${r.bg} transition ${
-                        yeniTarih.renk === r.id ? "ring-2 ring-offset-2 ring-stone-400 scale-110" : "opacity-60 hover:opacity-100"
+                        yeniTarih.renk === r.id ? "ring-2 ring-offset-2 ring-[#8A8A8A] scale-110" : "opacity-60 hover:opacity-100"
                       }`} title={r.label} />
                   ))}
                 </div>
@@ -724,17 +724,17 @@ export default function DuyurularPage() {
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={yeniTarih.tekrarliMi}
                   onChange={(e) => setYeniTarih({...yeniTarih, tekrarliMi: e.target.checked})}
-                  className="rounded border-stone-300 text-amber-500" />
-                <span className="text-sm text-stone-700">🔄 Her yıl tekrarlansın</span>
+                  className="rounded border-[#E5E5E5] text-[#E6B566]" />
+                <span className="text-sm text-[#2F2F2F]">🔄 Her yıl tekrarlansın</span>
               </label>
 
               <div className="flex gap-3 pt-1">
                 <button onClick={handleAddTarih}
-                  className="flex-1 bg-amber-500 hover:bg-amber-600 text-white py-2.5 rounded-lg text-sm font-medium transition">
+                  className="flex-1 bg-[#8FAF9A] hover:bg-[#7A9E86] text-white py-2.5 rounded-lg text-sm font-medium transition">
                   Ekle
                 </button>
                 <button onClick={() => setShowTarihModal(false)}
-                  className="flex-1 bg-stone-100 hover:bg-stone-200 text-stone-700 py-2.5 rounded-lg text-sm font-medium transition">
+                  className="flex-1 bg-[#F7F7F7] hover:bg-[#E5E5E5] text-[#2F2F2F] py-2.5 rounded-lg text-sm font-medium transition">
                   İptal
                 </button>
               </div>

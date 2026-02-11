@@ -101,13 +101,13 @@ export default function IzinHakkiDuzenleClient() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-white">
       <main className="flex-1 p-4 lg:p-6 ">
         {/* Header */}
         <div className="mb-6 flex items-start justify-between">
           <div>
-            <h1 className="text-xl font-bold text-stone-800">İzin Hakkı Düzenle</h1>
-            <p className="text-sm text-stone-500">
+            <h1 className="text-xl font-bold text-[#2F2F2F]">İzin Hakkı Düzenle</h1>
+            <p className="text-sm text-[#8A8A8A]">
               İzin hakkı kaydını düzenleyebilirsiniz.
             </p>
           </div>
@@ -133,9 +133,9 @@ export default function IzinHakkiDuzenleClient() {
         </div>
 
         {/* Form Card */}
-        <div className="bg-white rounded-lg shadow-sm border border-stone-100" onKeyDown={handleKeyDown}>
+        <div className="bg-white rounded-lg shadow-sm border border-[#E5E5E5]" onKeyDown={handleKeyDown}>
           {/* Tab Header */}
-          <div className="border-b border-stone-100 px-6 pt-4">
+          <div className="border-b border-[#E5E5E5] px-6 pt-4">
             <div className="inline-block">
               <span className="text-primary-500 font-medium text-sm pb-3 block border-b-2 border-primary-500">
                 Genel
@@ -147,18 +147,18 @@ export default function IzinHakkiDuzenleClient() {
           <div className="p-6 space-y-6">
             {/* Kullanıcı (readonly) */}
             <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
-              <label className="text-sm font-medium text-stone-700">
+              <label className="text-sm font-medium text-[#2F2F2F]">
                 Kullanıcı
               </label>
-              <div className="px-3 py-2 bg-stone-100 rounded-lg text-sm text-stone-700 w-full max-w-md">
+              <div className="px-3 py-2 bg-[#F7F7F7] rounded-lg text-sm text-[#2F2F2F] w-full max-w-md">
                 {personelAd} {personelSoyad}
               </div>
             </div>
 
             {/* Hak kazandığı gün */}
             <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
-              <label className="text-sm font-medium text-stone-700">
-                Hak kazandığı gün <span className="text-red-500">(*)</span>
+              <label className="text-sm font-medium text-[#2F2F2F]">
+                Hak kazandığı gün <span className="text-[#D96C6C]">(*)</span>
               </label>
               <input
                 type="number"
@@ -166,21 +166,21 @@ export default function IzinHakkiDuzenleClient() {
                 value={hakGunu}
                 onChange={(e) => setHakGunu(e.target.value)}
                 placeholder="Örn: 14"
-                className="w-full max-w-md px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                className="w-full max-w-md px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
               />
             </div>
 
             {/* Kısa Açıklama */}
             <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-start gap-4">
-              <label className="text-sm font-medium text-stone-700 pt-2">
-                Kısa Açıklama <span className="text-red-500">(*)</span>
+              <label className="text-sm font-medium text-[#2F2F2F] pt-2">
+                Kısa Açıklama <span className="text-[#D96C6C]">(*)</span>
               </label>
               <textarea
                 value={aciklama}
                 onChange={(e) => setAciklama(e.target.value)}
                 placeholder="Örn: 2025 yılı yıllık izin hakkı"
                 rows={5}
-                className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 resize-y"
+                className="w-full px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 resize-y"
               />
             </div>
           </div>

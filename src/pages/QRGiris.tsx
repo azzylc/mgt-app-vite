@@ -537,7 +537,7 @@ export default function QRGirisPage() {
     if (bugunOzet.girisVar && !bugunOzet.cikisVar) {
       return { 
         durum: "ÇALIŞIYOR", 
-        renk: "bg-green-500", 
+        renk: "bg-[#8FAF9A]", 
         detay: `Giriş: ${bugunOzet.ilkGirisSaat}`,
         emoji: "🟢"
       };
@@ -545,14 +545,14 @@ export default function QRGirisPage() {
     if (bugunOzet.girisVar && bugunOzet.cikisVar) {
       return { 
         durum: "ÇIKTI", 
-        renk: "bg-orange-500", 
+        renk: "bg-[#E6B566]", 
         detay: `Giriş: ${bugunOzet.ilkGirisSaat} → Çıkış: ${bugunOzet.sonCikisSaat}`,
         emoji: "🔴"
       };
     }
     return { 
       durum: "ÇIKTI", 
-      renk: "bg-stone-400", 
+      renk: "bg-[#8A8A8A]", 
       detay: "Bugün giriş yapılmadı",
       emoji: "⚪"
     };
@@ -581,7 +581,7 @@ export default function QRGirisPage() {
         </div>
         <div className="absolute top-0 left-0 right-0 p-6 text-center">
           <div className={`inline-block px-4 py-2 rounded-full text-white font-medium ${
-            islemSecimi === "giris" ? "bg-green-500" : "bg-orange-500"
+            islemSecimi === "giris" ? "bg-[#8FAF9A]" : "bg-[#E6B566]"
           }`}>
             {islemSecimi === "giris" ? "✅ Giriş Kaydı" : "🚪 Çıkış Kaydı"}
           </div>
@@ -600,11 +600,11 @@ export default function QRGirisPage() {
   // 🖥️ Ana sayfa render
   // ============================================
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-white">
       <div>
         <header className="bg-white border-b px-4 md:px-6 py-4 sticky top-0 z-30">
-          <h1 className="text-lg md:text-xl font-bold text-stone-800">📱 Giriş-Çıkış</h1>
-          <p className="text-sm text-stone-500">QR kod okutarak giriş veya çıkış yapın</p>
+          <h1 className="text-lg md:text-xl font-bold text-[#2F2F2F]">📱 Giriş-Çıkış</h1>
+          <p className="text-sm text-[#8A8A8A]">QR kod okutarak giriş veya çıkış yapın</p>
         </header>
 
         {/* Tab Navigation */}
@@ -613,7 +613,7 @@ export default function QRGirisPage() {
             <button
               onClick={() => setActiveTab("qr")}
               className={`flex-1 py-3 text-sm font-medium border-b-2 transition ${
-                activeTab === "qr" ? "border-rose-500 text-rose-600" : "border-transparent text-stone-500"
+                activeTab === "qr" ? "border-rose-500 text-rose-600" : "border-transparent text-[#8A8A8A]"
               }`}
             >
               📷 QR Okut
@@ -621,7 +621,7 @@ export default function QRGirisPage() {
             <button
               onClick={() => setActiveTab("kayitlarim")}
               className={`flex-1 py-3 text-sm font-medium border-b-2 transition ${
-                activeTab === "kayitlarim" ? "border-rose-500 text-rose-600" : "border-transparent text-stone-500"
+                activeTab === "kayitlarim" ? "border-rose-500 text-rose-600" : "border-transparent text-[#8A8A8A]"
               }`}
             >
               📋 Kayıtlarım
@@ -636,7 +636,7 @@ export default function QRGirisPage() {
             {activeTab === "qr" && (
               <>
                 {/* Personel Bilgisi + Durum */}
-                <div className="bg-white rounded-lg p-4 md:p-6 shadow-sm border border-stone-100 mb-4">
+                <div className="bg-white rounded-lg p-4 md:p-6 shadow-sm border border-[#E5E5E5] mb-4">
                   <div className="flex items-center gap-4">
                     {personel?.foto ? (
                       <img src={personel.foto} alt="" className="w-14 h-14 md:w-16 md:h-16 rounded-full object-cover" />
@@ -646,29 +646,29 @@ export default function QRGirisPage() {
                       </div>
                     )}
                     <div className="flex-1">
-                      <h2 className="text-base md:text-lg font-bold text-stone-800">
+                      <h2 className="text-base md:text-lg font-bold text-[#2F2F2F]">
                         {personel ? `${personel.ad} ${personel.soyad}` : "Yükleniyor..."}
                       </h2>
-                      <p className="text-sm text-stone-500">{personel?.email}</p>
+                      <p className="text-sm text-[#8A8A8A]">{personel?.email}</p>
                     </div>
                   </div>
 
                   {/* Durum Bandı: ÇALIŞIYOR / ÇIKTI */}
                   {durumBilgisi && (
                     <div className={`mt-4 p-3 rounded-lg ${
-                      durumBilgisi.durum === "ÇALIŞIYOR" ? "bg-green-50 border border-green-200" : 
-                      bugunOzet?.girisVar ? "bg-orange-50 border border-orange-200" : 
-                      "bg-stone-50 border border-stone-200"
+                      durumBilgisi.durum === "ÇALIŞIYOR" ? "bg-[#EAF2ED] border border-green-200" : 
+                      bugunOzet?.girisVar ? "bg-[#E6B566]/10 border border-orange-200" : 
+                      "bg-[#F7F7F7] border border-[#E5E5E5]"
                     }`}>
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm font-semibold">
                             {durumBilgisi.emoji} Şu an: <span className={
-                              durumBilgisi.durum === "ÇALIŞIYOR" ? "text-green-700" : 
-                              bugunOzet?.girisVar ? "text-orange-700" : "text-stone-600"
+                              durumBilgisi.durum === "ÇALIŞIYOR" ? "text-[#8FAF9A]" : 
+                              bugunOzet?.girisVar ? "text-orange-700" : "text-[#2F2F2F]"
                             }>{durumBilgisi.durum}</span>
                           </p>
-                          <p className="text-xs text-stone-500 mt-0.5">{durumBilgisi.detay}</p>
+                          <p className="text-xs text-[#8A8A8A] mt-0.5">{durumBilgisi.detay}</p>
                         </div>
                       </div>
                     </div>
@@ -677,12 +677,12 @@ export default function QRGirisPage() {
 
                 {/* Uyarı Mesajı (onay gerektiren) */}
                 {uyariMesaj && !uyariOnay && (
-                  <div className="bg-amber-50 border border-amber-300 rounded-lg p-4 mb-4">
-                    <p className="text-sm text-amber-800 whitespace-pre-line mb-3">{uyariMesaj}</p>
+                  <div className="bg-[#EAF2ED] border border-[#8FAF9A] rounded-lg p-4 mb-4">
+                    <p className="text-sm text-[#2F2F2F] whitespace-pre-line mb-3">{uyariMesaj}</p>
                     <div className="flex gap-2">
                       <button
                         onClick={() => { setUyariMesaj(""); setIslemSecimi(null); }}
-                        className="flex-1 py-2 px-3 bg-white border border-stone-200 rounded-lg text-sm font-medium text-stone-700"
+                        className="flex-1 py-2 px-3 bg-white border border-[#E5E5E5] rounded-lg text-sm font-medium text-[#2F2F2F]"
                       >
                         İptal
                       </button>
@@ -690,7 +690,7 @@ export default function QRGirisPage() {
                       {!uyariMesaj.includes("⏱️") && (
                         <button
                           onClick={uyariOnayla}
-                          className="flex-1 py-2 px-3 bg-amber-500 rounded-lg text-sm font-medium text-white"
+                          className="flex-1 py-2 px-3 bg-[#8FAF9A] rounded-lg text-sm font-medium text-white"
                         >
                           Evet, Devam Et
                         </button>
@@ -701,22 +701,22 @@ export default function QRGirisPage() {
 
                 {/* Konum Hatası */}
                 {locationError && (
-                  <div className="mb-4 p-4 bg-red-50 rounded-lg text-red-600 text-sm border border-red-200">{locationError}</div>
+                  <div className="mb-4 p-4 bg-[#D96C6C]/10 rounded-lg text-[#D96C6C] text-sm border border-[#D96C6C]/30">{locationError}</div>
                 )}
 
                 {/* Başarı / Hata Mesajı + Geri Al */}
                 {durum !== "bekleniyor" && (
-                  <div className={`mb-4 p-4 rounded-lg text-center ${durum === "basarili" ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200"}`}>
+                  <div className={`mb-4 p-4 rounded-lg text-center ${durum === "basarili" ? "bg-[#EAF2ED] border border-green-200" : "bg-[#D96C6C]/10 border border-[#D96C6C]/30"}`}>
                     <span className="text-3xl mb-2 block">{durum === "basarili" ? "✅" : "❌"}</span>
-                    <p className={`font-semibold ${durum === "basarili" ? "text-green-700" : "text-red-700"}`}>{mesaj}</p>
+                    <p className={`font-semibold ${durum === "basarili" ? "text-[#8FAF9A]" : "text-[#D96C6C]"}`}>{mesaj}</p>
                   </div>
                 )}
 
                 {/* İşleniyor */}
                 {processing ? (
-                  <div className="bg-white rounded-lg p-8 shadow-sm border border-stone-100 text-center">
+                  <div className="bg-white rounded-lg p-8 shadow-sm border border-[#E5E5E5] text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-4 border-rose-500 border-t-transparent mx-auto mb-4"></div>
-                    <p className="text-stone-600">İşleniyor...</p>
+                    <p className="text-[#2F2F2F]">İşleniyor...</p>
                   </div>
                 ) : (
                   /* ===== GİRİŞ / ÇIKIŞ BUTONLARI ===== */
@@ -724,13 +724,13 @@ export default function QRGirisPage() {
                     <button
                       onClick={() => kontrolEtVeBasla("giris")}
                       disabled={!personel || scanning}
-                      className="bg-white border-2 border-green-200 rounded-xl p-6 text-center shadow-sm hover:border-green-400 hover:shadow-md transition active:scale-95 disabled:opacity-50 group"
+                      className="bg-white border-2 border-green-200 rounded-xl p-6 text-center shadow-sm hover:border-[#8FAF9A] hover:shadow-md transition active:scale-95 disabled:opacity-50 group"
                     >
-                      <div className="w-16 h-16 mx-auto mb-3 bg-green-50 rounded-2xl flex items-center justify-center group-hover:bg-green-100 transition">
+                      <div className="w-16 h-16 mx-auto mb-3 bg-[#EAF2ED] rounded-2xl flex items-center justify-center group-hover:bg-[#EAF2ED] transition">
                         <span className="text-3xl">✅</span>
                       </div>
-                      <p className="font-bold text-stone-800 text-lg">Giriş</p>
-                      <p className="text-xs text-stone-500 mt-1">QR okutarak giriş yapın</p>
+                      <p className="font-bold text-[#2F2F2F] text-lg">Giriş</p>
+                      <p className="text-xs text-[#8A8A8A] mt-1">QR okutarak giriş yapın</p>
                     </button>
 
                     <button
@@ -738,11 +738,11 @@ export default function QRGirisPage() {
                       disabled={!personel || scanning}
                       className="bg-white border-2 border-orange-200 rounded-xl p-6 text-center shadow-sm hover:border-orange-400 hover:shadow-md transition active:scale-95 disabled:opacity-50 group"
                     >
-                      <div className="w-16 h-16 mx-auto mb-3 bg-orange-50 rounded-2xl flex items-center justify-center group-hover:bg-orange-100 transition">
+                      <div className="w-16 h-16 mx-auto mb-3 bg-[#E6B566]/10 rounded-2xl flex items-center justify-center group-hover:bg-[#E6B566]/20 transition">
                         <span className="text-3xl">🚪</span>
                       </div>
-                      <p className="font-bold text-stone-800 text-lg">Çıkış</p>
-                      <p className="text-xs text-stone-500 mt-1">QR okutarak çıkış yapın</p>
+                      <p className="font-bold text-[#2F2F2F] text-lg">Çıkış</p>
+                      <p className="text-xs text-[#8A8A8A] mt-1">QR okutarak çıkış yapın</p>
                     </button>
                   </div>
                 )}
@@ -760,21 +760,21 @@ export default function QRGirisPage() {
             {activeTab === "kayitlarim" && (
               <div className="space-y-4">
                 {/* Hafta Seçici */}
-                <div className="bg-white rounded-lg p-4 shadow-sm border border-stone-100">
+                <div className="bg-white rounded-lg p-4 shadow-sm border border-[#E5E5E5]">
                   <div className="flex items-center justify-between">
                     <button
                       onClick={() => haftaDegistir(-1)}
-                      className="w-10 h-10 rounded-lg bg-stone-100 flex items-center justify-center text-stone-600 hover:bg-stone-200 transition"
+                      className="w-10 h-10 rounded-lg bg-[#F7F7F7] flex items-center justify-center text-[#2F2F2F] hover:bg-[#E5E5E5] transition"
                     >
                       ←
                     </button>
                     <div className="text-center">
-                      <p className="text-xs text-stone-500">Hafta</p>
-                      <p className="font-semibold text-stone-800">{haftaLabel}</p>
+                      <p className="text-xs text-[#8A8A8A]">Hafta</p>
+                      <p className="font-semibold text-[#2F2F2F]">{haftaLabel}</p>
                     </div>
                     <button
                       onClick={() => haftaDegistir(1)}
-                      className="w-10 h-10 rounded-lg bg-stone-100 flex items-center justify-center text-stone-600 hover:bg-stone-200 transition"
+                      className="w-10 h-10 rounded-lg bg-[#F7F7F7] flex items-center justify-center text-[#2F2F2F] hover:bg-[#E5E5E5] transition"
                     >
                       →
                     </button>
@@ -783,9 +783,9 @@ export default function QRGirisPage() {
 
                 {/* Haftalık Özet */}
                 {kayitLoading ? (
-                  <div className="bg-white rounded-lg p-8 shadow-sm border border-stone-100 text-center">
+                  <div className="bg-white rounded-lg p-8 shadow-sm border border-[#E5E5E5] text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-2 border-rose-500 border-t-transparent mx-auto mb-3"></div>
-                    <p className="text-stone-500 text-sm">Yükleniyor...</p>
+                    <p className="text-[#8A8A8A] text-sm">Yükleniyor...</p>
                   </div>
                 ) : haftalikOzet ? (
                   <>
@@ -803,31 +803,31 @@ export default function QRGirisPage() {
 
                     {/* Eksik Çıkış Uyarısı */}
                     {haftalikOzet.eksikCikislar.length > 0 && (
-                      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                      <div className="bg-[#D96C6C]/10 border border-[#D96C6C]/30 rounded-lg p-4">
                         <p className="text-sm font-medium text-red-800 mb-2">⚠️ Eksik Çıkış Kaydı</p>
                         <div className="space-y-1">
                           {haftalikOzet.eksikCikislar.map((gun) => {
                             const tarih = new Date(gun);
                             const girisData = haftalikOzet.gunler[gun];
                             return (
-                              <div key={gun} className="flex items-center gap-2 text-xs text-red-700 bg-red-100/50 rounded px-3 py-1.5">
+                              <div key={gun} className="flex items-center gap-2 text-xs text-[#D96C6C] bg-[#D96C6C]/20/50 rounded px-3 py-1.5">
                                 <span>{tarih.toLocaleDateString("tr-TR", { weekday: "short", day: "numeric", month: "short" })}</span>
                                 <span>→ Giriş: {girisData?.giris ? girisData.giris.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }) : "-"}</span>
-                                <span className="text-red-400">| Çıkış yok</span>
+                                <span className="text-[#D96C6C]">| Çıkış yok</span>
                               </div>
                             );
                           })}
                         </div>
-                        <p className="text-xs text-red-500 mt-2">Bu günlerin çalışma süresi hesaba katılamadı.</p>
+                        <p className="text-xs text-[#D96C6C] mt-2">Bu günlerin çalışma süresi hesaba katılamadı.</p>
                       </div>
                     )}
 
                     {/* Günlük Detay */}
-                    <div className="bg-white rounded-lg shadow-sm border border-stone-100 overflow-hidden">
-                      <div className="px-4 py-3 bg-stone-50 border-b border-stone-100">
-                        <h3 className="text-sm font-semibold text-stone-700">Günlük Detay</h3>
+                    <div className="bg-white rounded-lg shadow-sm border border-[#E5E5E5] overflow-hidden">
+                      <div className="px-4 py-3 bg-[#F7F7F7] border-b border-[#E5E5E5]">
+                        <h3 className="text-sm font-semibold text-[#2F2F2F]">Günlük Detay</h3>
                       </div>
-                      <div className="divide-y divide-stone-100">
+                      <div className="divide-y divide-[#E5E5E5]">
                         {Array.from({ length: 7 }).map((_, i) => {
                           const gun = new Date(seciliHafta);
                           gun.setDate(gun.getDate() + i);
@@ -836,21 +836,21 @@ export default function QRGirisPage() {
                           const bugun = toDateStr(new Date()) === gunKey;
 
                           return (
-                            <div key={i} className={`px-4 py-3 flex items-center justify-between ${bugun ? "bg-amber-50" : ""}`}>
+                            <div key={i} className={`px-4 py-3 flex items-center justify-between ${bugun ? "bg-[#EAF2ED]" : ""}`}>
                               <div className="flex items-center gap-3">
                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
-                                  bugun ? "bg-amber-500 text-white" :
-                                  gunData?.giris ? "bg-green-100 text-green-700" : "bg-stone-100 text-stone-400"
+                                  bugun ? "bg-[#8FAF9A] text-white" :
+                                  gunData?.giris ? "bg-[#EAF2ED] text-[#8FAF9A]" : "bg-[#F7F7F7] text-[#8A8A8A]"
                                 }`}>
                                   {gun.toLocaleDateString("tr-TR", { weekday: "short" }).slice(0, 2)}
                                 </div>
                                 <div>
-                                  <p className="text-sm font-medium text-stone-800">
+                                  <p className="text-sm font-medium text-[#2F2F2F]">
                                     {gun.toLocaleDateString("tr-TR", { day: "numeric", month: "short" })}
-                                    {bugun && <span className="text-amber-600 text-xs ml-1">(Bugün)</span>}
+                                    {bugun && <span className="text-[#8FAF9A] text-xs ml-1">(Bugün)</span>}
                                   </p>
                                   {gunData?.giris && (
-                                    <p className="text-xs text-stone-500">{gunData.kayitSayisi} kayıt</p>
+                                    <p className="text-xs text-[#8A8A8A]">{gunData.kayitSayisi} kayıt</p>
                                   )}
                                 </div>
                               </div>
@@ -858,16 +858,16 @@ export default function QRGirisPage() {
                               <div className="flex items-center gap-4 text-sm">
                                 {gunData?.giris ? (
                                   <>
-                                    <span className="text-green-600 font-medium">
+                                    <span className="text-[#8FAF9A] font-medium">
                                       {gunData.giris.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}
                                     </span>
-                                    <span className="text-stone-300">→</span>
+                                    <span className="text-[#8A8A8A]">→</span>
                                     {gunData.cikis ? (
-                                      <span className="text-orange-600 font-medium">
+                                      <span className="text-[#E6B566] font-medium">
                                         {gunData.cikis.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}
                                       </span>
                                     ) : (
-                                      <span className="text-red-400 text-xs">Çıkış yok</span>
+                                      <span className="text-[#D96C6C] text-xs">Çıkış yok</span>
                                     )}
                                     {gunData.giris && gunData.cikis && (
                                       <span className="text-purple-600 font-medium text-xs bg-purple-50 px-2 py-0.5 rounded">
@@ -881,7 +881,7 @@ export default function QRGirisPage() {
                                     )}
                                   </>
                                 ) : (
-                                  <span className="text-stone-300 text-xs">—</span>
+                                  <span className="text-[#8A8A8A] text-xs">—</span>
                                 )}
                               </div>
                             </div>
@@ -892,22 +892,22 @@ export default function QRGirisPage() {
 
                     {/* Tüm Kayıtlar Listesi */}
                     {kayitlar.length > 0 && (
-                      <div className="bg-white rounded-lg shadow-sm border border-stone-100 overflow-hidden">
-                        <div className="px-4 py-3 bg-stone-50 border-b border-stone-100">
-                          <h3 className="text-sm font-semibold text-stone-700">Tüm Kayıtlar ({kayitlar.length})</h3>
+                      <div className="bg-white rounded-lg shadow-sm border border-[#E5E5E5] overflow-hidden">
+                        <div className="px-4 py-3 bg-[#F7F7F7] border-b border-[#E5E5E5]">
+                          <h3 className="text-sm font-semibold text-[#2F2F2F]">Tüm Kayıtlar ({kayitlar.length})</h3>
                         </div>
-                        <div className="divide-y divide-stone-100 max-h-64 overflow-y-auto">
+                        <div className="divide-y divide-[#E5E5E5] max-h-64 overflow-y-auto">
                           {kayitlar.map(r => (
                             <div key={r.id} className="px-4 py-2.5 flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <span className={`w-2 h-2 rounded-full ${r.tip === "giris" ? "bg-green-500" : "bg-orange-500"}`}></span>
-                                <span className={`text-xs font-medium ${r.tip === "giris" ? "text-green-700" : "text-orange-700"}`}>
+                                <span className={`w-2 h-2 rounded-full ${r.tip === "giris" ? "bg-[#8FAF9A]" : "bg-[#E6B566]"}`}></span>
+                                <span className={`text-xs font-medium ${r.tip === "giris" ? "text-[#8FAF9A]" : "text-orange-700"}`}>
                                   {r.tip === "giris" ? "Giriş" : "Çıkış"}
                                 </span>
                               </div>
                               <div className="text-right">
-                                <p className="text-sm font-medium text-stone-800">{formatSaat(r.tarih)}</p>
-                                <p className="text-xs text-stone-400">{formatGun(r.tarih)}</p>
+                                <p className="text-sm font-medium text-[#2F2F2F]">{formatSaat(r.tarih)}</p>
+                                <p className="text-xs text-[#8A8A8A]">{formatGun(r.tarih)}</p>
                               </div>
                             </div>
                           ))}
@@ -916,9 +916,9 @@ export default function QRGirisPage() {
                     )}
                   </>
                 ) : (
-                  <div className="bg-white rounded-lg p-12 text-center shadow-sm border border-stone-100">
+                  <div className="bg-white rounded-lg p-12 text-center shadow-sm border border-[#E5E5E5]">
                     <span className="text-4xl mb-3 block">📋</span>
-                    <p className="text-stone-500">Bu haftada kayıt bulunamadı</p>
+                    <p className="text-[#8A8A8A]">Bu haftada kayıt bulunamadı</p>
                   </div>
                 )}
               </div>

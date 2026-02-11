@@ -151,13 +151,13 @@ export default function ManuelIslemEklePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-white">
       <div>
         <header className="bg-white border-b px-4 md:px-6 py-4 sticky top-0 z-30">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-xl font-bold text-stone-800">Manuel İşlem Ekle</h1>
-              <p className="text-sm text-stone-500 mt-1">Bu sayfada, manuel olarak bir giriş - çıkış kaydı ekleyebilirsiniz.</p>
+              <h1 className="text-xl font-bold text-[#2F2F2F]">Manuel İşlem Ekle</h1>
+              <p className="text-sm text-[#8A8A8A] mt-1">Bu sayfada, manuel olarak bir giriş - çıkış kaydı ekleyebilirsiniz.</p>
             </div>
             <div className="hidden md:flex gap-2">
               <button
@@ -176,7 +176,7 @@ export default function ManuelIslemEklePage() {
               </button>
               <button
                 onClick={() => navigate("/giris-cikis/islem-listesi")}
-                className="bg-stone-100 hover:bg-stone-200 text-stone-700 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2"
+                className="bg-[#F7F7F7] hover:bg-[#E5E5E5] text-[#2F2F2F] px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2"
               >
                 ↩️ Geri dön
               </button>
@@ -190,11 +190,11 @@ export default function ManuelIslemEklePage() {
               <div className="space-y-6">
                 {/* Kullanıcı Adı */}
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-2">Kullanıcı Adı</label>
+                  <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Kullanıcı Adı</label>
                   <select
                     value={seciliPersonel}
                     onChange={(e) => setSeciliPersonel(e.target.value)}
-                    className="w-full px-4 py-3 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
+                    className="w-full px-4 py-3 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
                   >
                     <option value="">- Seçiniz -</option>
                     {personeller.map(p => (
@@ -205,11 +205,11 @@ export default function ManuelIslemEklePage() {
 
                 {/* Konum */}
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-2">Konum</label>
+                  <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Konum</label>
                   <select
                     value={seciliKonum}
                     onChange={(e) => setSeciliKonum(e.target.value)}
-                    className="w-full px-4 py-3 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
+                    className="w-full px-4 py-3 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
                   >
                     <option value="">- Seçiniz -</option>
                     {konumlar.map(k => (
@@ -220,22 +220,22 @@ export default function ManuelIslemEklePage() {
 
                 {/* Tarih */}
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-2">Tarih</label>
+                  <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Tarih</label>
                   <input
                     type="datetime-local" min="2020-01-01T00:00" max="2099-12-31T23:59"
                     value={tarih}
                     onChange={(e) => setTarih(e.target.value)}
-                    className="w-full px-4 py-3 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
+                    className="w-full px-4 py-3 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
                   />
                 </div>
 
                 {/* Kayıt Türü */}
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-2">Kayıt Türü</label>
+                  <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Kayıt Türü</label>
                   <select
                     value={kayitTuru}
                     onChange={(e) => setKayitTuru(e.target.value)}
-                    className="w-full px-4 py-3 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
+                    className="w-full px-4 py-3 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
                   >
                     <option value="giris">Giriş</option>
                     <option value="cikis">Çıkış</option>
@@ -244,13 +244,13 @@ export default function ManuelIslemEklePage() {
 
                 {/* Mazeret */}
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-2">Mazeret</label>
+                  <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Mazeret</label>
                   <textarea
                     value={mazeret}
                     onChange={(e) => setMazeret(e.target.value)}
                     placeholder="Mazeret notu girin (opsiyonel)..."
                     rows={3}
-                    className="w-full px-4 py-3 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 resize-none"
+                    className="w-full px-4 py-3 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 resize-none"
                   />
                 </div>
 
@@ -272,7 +272,7 @@ export default function ManuelIslemEklePage() {
                   </button>
                   <button
                     onClick={() => navigate("/giris-cikis/islem-listesi")}
-                    className="flex-1 bg-stone-100 hover:bg-stone-200 text-stone-700 px-4 py-3 rounded-lg font-medium transition flex items-center justify-center gap-2"
+                    className="flex-1 bg-[#F7F7F7] hover:bg-[#E5E5E5] text-[#2F2F2F] px-4 py-3 rounded-lg font-medium transition flex items-center justify-center gap-2"
                   >
                     ↩️ Geri dön
                   </button>

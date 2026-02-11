@@ -120,11 +120,11 @@ export default function ComparePage() {
 
   if (yetkisiz) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
           <div className="text-6xl mb-4">🔒</div>
-          <h2 className="text-2xl font-bold text-stone-800">Yetkisiz Erişim</h2>
-          <p className="text-stone-600 mt-2">Bu sayfaya sadece kurucular erişebilir.</p>
+          <h2 className="text-2xl font-bold text-[#2F2F2F]">Yetkisiz Erişim</h2>
+          <p className="text-[#2F2F2F] mt-2">Bu sayfaya sadece kurucular erişebilir.</p>
           <button 
             onClick={() => navigate("/yonetim")}
             className="mt-4 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
@@ -137,17 +137,17 @@ export default function ComparePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#F7F7F7]">
       <div>
         <header className="bg-white border-b px-6 py-4 sticky top-0 z-30">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold text-gray-800">🔄 Firestore vs Excel Karşılaştırma</h1>
-              <p className="text-sm text-gray-500">2025 ve sonrası gelinleri karşılaştır</p>
+              <h1 className="text-xl font-bold text-[#2F2F2F]">🔄 Firestore vs Excel Karşılaştırma</h1>
+              <p className="text-sm text-[#8A8A8A]">2025 ve sonrası gelinleri karşılaştır</p>
             </div>
             <button
               onClick={() => navigate("/yonetim")}
-              className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+              className="px-4 py-2 text-[#2F2F2F] hover:bg-white rounded-lg"
             >
               ← Geri
             </button>
@@ -157,7 +157,7 @@ export default function ComparePage() {
         <main className="p-4 md:p-6">
 
         {/* Karşılaştır Butonu */}
-        <div className="bg-white rounded-lg shadow-sm border border-stone-100 p-6 mb-6">
+        <div className="bg-white rounded-lg shadow-sm border border-[#E5E5E5] p-6 mb-6">
           <button
             onClick={karsilastir}
             disabled={comparing}
@@ -176,7 +176,7 @@ export default function ComparePage() {
           </button>
           
           {error && (
-            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+            <div className="mt-4 p-4 bg-[#D96C6C]/10 border border-[#D96C6C]/30 rounded-lg text-[#D96C6C]">
               ❌ {error}
             </div>
           )}
@@ -187,38 +187,38 @@ export default function ComparePage() {
           <div className="space-y-6">
             {/* Özet Kartlar */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-white rounded-lg shadow-sm border border-stone-100 p-4">
+              <div className="bg-white rounded-lg shadow-sm border border-[#E5E5E5] p-4">
                 <div className="text-3xl font-bold text-blue-600">{sonuc.firestoreCount}</div>
-                <div className="text-sm text-stone-600">Firestore (2025+)</div>
+                <div className="text-sm text-[#2F2F2F]">Firestore (2025+)</div>
               </div>
-              <div className="bg-white rounded-lg shadow-sm border border-stone-100 p-4">
-                <div className="text-3xl font-bold text-green-600">{sonuc.excelCount}</div>
-                <div className="text-sm text-stone-600">Excel (2025+)</div>
+              <div className="bg-white rounded-lg shadow-sm border border-[#E5E5E5] p-4">
+                <div className="text-3xl font-bold text-[#8FAF9A]">{sonuc.excelCount}</div>
+                <div className="text-sm text-[#2F2F2F]">Excel (2025+)</div>
               </div>
-              <div className="bg-white rounded-lg shadow-sm border border-stone-100 p-4">
-                <div className="text-3xl font-bold text-emerald-600">{sonuc.eslesenler.length}</div>
-                <div className="text-sm text-stone-600">✅ Eşleşen</div>
+              <div className="bg-white rounded-lg shadow-sm border border-[#E5E5E5] p-4">
+                <div className="text-3xl font-bold text-[#8FAF9A]">{sonuc.eslesenler.length}</div>
+                <div className="text-sm text-[#2F2F2F]">✅ Eşleşen</div>
               </div>
-              <div className="bg-white rounded-lg shadow-sm border border-stone-100 p-4">
-                <div className="text-3xl font-bold text-orange-600">{sonuc.sadeceFistore.length + sonuc.sadeceExcel.length}</div>
-                <div className="text-sm text-stone-600">⚠️ Farklı</div>
+              <div className="bg-white rounded-lg shadow-sm border border-[#E5E5E5] p-4">
+                <div className="text-3xl font-bold text-[#E6B566]">{sonuc.sadeceFistore.length + sonuc.sadeceExcel.length}</div>
+                <div className="text-sm text-[#2F2F2F]">⚠️ Farklı</div>
               </div>
             </div>
 
             {/* Sadece Firestore */}
             {sonuc.sadeceFistore.length > 0 && (
               <div className="bg-white rounded-lg shadow-sm border border-orange-200 overflow-hidden">
-                <div className="px-4 py-3 bg-orange-50 border-b border-orange-200">
+                <div className="px-4 py-3 bg-[#E6B566]/10 border-b border-orange-200">
                   <h3 className="font-semibold text-orange-800">
                     ⚠️ Sadece Firestore'da ({sonuc.sadeceFistore.length})
                   </h3>
-                  <p className="text-sm text-orange-600">Excel'de bulunamadı</p>
+                  <p className="text-sm text-[#E6B566]">Excel'de bulunamadı</p>
                 </div>
-                <div className="divide-y divide-stone-100 max-h-64 overflow-y-auto">
+                <div className="divide-y divide-[#E5E5E5] max-h-64 overflow-y-auto">
                   {sonuc.sadeceFistore.map((g, i) => (
                     <div key={i} className="px-4 py-2 text-sm">
                       <span className="font-medium">{g.isim}</span>
-                      <span className="text-stone-500 ml-2">{g.tarih}</span>
+                      <span className="text-[#8A8A8A] ml-2">{g.tarih}</span>
                     </div>
                   ))}
                 </div>
@@ -234,11 +234,11 @@ export default function ComparePage() {
                   </h3>
                   <p className="text-sm text-purple-600">Firestore'da bulunamadı</p>
                 </div>
-                <div className="divide-y divide-stone-100 max-h-64 overflow-y-auto">
+                <div className="divide-y divide-[#E5E5E5] max-h-64 overflow-y-auto">
                   {sonuc.sadeceExcel.map((g, i) => (
                     <div key={i} className="px-4 py-2 text-sm">
                       <span className="font-medium">{g.isim}</span>
-                      <span className="text-stone-500 ml-2">{g.tarih}</span>
+                      <span className="text-[#8A8A8A] ml-2">{g.tarih}</span>
                     </div>
                   ))}
                 </div>
@@ -247,10 +247,10 @@ export default function ComparePage() {
 
             {/* Hepsi Eşleşti */}
             {sonuc.sadeceFistore.length === 0 && sonuc.sadeceExcel.length === 0 && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+              <div className="bg-[#EAF2ED] border border-green-200 rounded-lg p-6 text-center">
                 <div className="text-4xl mb-2">✅</div>
                 <h3 className="text-xl font-bold text-green-800">Mükemmel!</h3>
-                <p className="text-green-600">Tüm veriler senkronize, farklılık yok.</p>
+                <p className="text-[#8FAF9A]">Tüm veriler senkronize, farklılık yok.</p>
               </div>
             )}
           </div>

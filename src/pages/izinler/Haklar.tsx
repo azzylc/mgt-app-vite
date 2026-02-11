@@ -164,12 +164,12 @@ export default function IzinHaklariListele() {
   const toplamEklenenGun = filteredKayitlar.reduce((sum, k) => sum + k.eklenenGun, 0);
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-white">
       <main className="flex-1 p-4 lg:p-6 ">
         <div className="mb-6 flex items-start justify-between">
           <div>
-            <h1 className="text-xl font-bold text-stone-800">İzin Haklarını Listele</h1>
-            <p className="text-sm text-stone-500">
+            <h1 className="text-xl font-bold text-[#2F2F2F]">İzin Haklarını Listele</h1>
+            <p className="text-sm text-[#8A8A8A]">
               Personellere tanımlanan izin hakkı kayıtlarını görüntüleyebilirsiniz.
             </p>
           </div>
@@ -183,7 +183,7 @@ export default function IzinHaklariListele() {
           </button>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-stone-100 p-4 mb-4">
+        <div className="bg-white rounded-lg shadow-sm border border-[#E5E5E5] p-4 mb-4">
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex-1 min-w-[200px]">
               <input
@@ -191,7 +191,7 @@ export default function IzinHaklariListele() {
                 placeholder="Ara... (İsim, Açıklama, İşlem Yapan)"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                className="w-full px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
               />
             </div>
 
@@ -202,7 +202,7 @@ export default function IzinHaklariListele() {
             <div className="ml-auto">
               <button
                 onClick={() => window.print()}
-                className="px-4 py-2 bg-stone-100 text-stone-700 rounded-lg text-sm font-medium hover:bg-stone-200 transition-colors flex items-center gap-2"
+                className="px-4 py-2 bg-[#F7F7F7] text-[#2F2F2F] rounded-lg text-sm font-medium hover:bg-[#E5E5E5] transition-colors flex items-center gap-2"
               >
                 <span>🖨️</span>
                 <span>Yazdır</span>
@@ -211,25 +211,25 @@ export default function IzinHaklariListele() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-stone-100 overflow-hidden">
+        <div className="bg-white rounded-lg shadow-sm border border-[#E5E5E5] overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-stone-50 border-b border-stone-100">
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-stone-600">#</th>
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-stone-600">Personel</th>
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-stone-600">İşe Giriş Tarihi</th>
-                  <th className="px-3 py-3 text-center text-xs font-semibold text-stone-600">Eklenen Gün</th>
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-stone-600">Açıklama</th>
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-stone-600">İşlem Tarihi</th>
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-stone-600">İşlem Yapan</th>
-                  <th className="px-3 py-3 text-center text-xs font-semibold text-stone-600">İşlemler</th>
+                <tr className="bg-[#F7F7F7] border-b border-[#E5E5E5]">
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#2F2F2F]">#</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#2F2F2F]">Personel</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#2F2F2F]">İşe Giriş Tarihi</th>
+                  <th className="px-3 py-3 text-center text-xs font-semibold text-[#2F2F2F]">Eklenen Gün</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#2F2F2F]">Açıklama</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#2F2F2F]">İşlem Tarihi</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#2F2F2F]">İşlem Yapan</th>
+                  <th className="px-3 py-3 text-center text-xs font-semibold text-[#2F2F2F]">İşlemler</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredKayitlar.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-3 py-8 text-center text-stone-500">
+                    <td colSpan={8} className="px-3 py-8 text-center text-[#8A8A8A]">
                       {kayitlar.length === 0
                         ? "Henüz izin hakkı kaydı bulunmuyor."
                         : "Aramanızla eşleşen kayıt bulunamadı."}
@@ -239,43 +239,43 @@ export default function IzinHaklariListele() {
                   filteredKayitlar.map((kayit, index) => (
                     <tr
                       key={kayit.id}
-                      className="border-b border-stone-50 hover:bg-stone-50/50 transition-colors"
+                      className="border-b border-[#E5E5E5]/50 hover:bg-[#F7F7F7] transition-colors"
                     >
-                      <td className="px-3 py-3 text-sm text-stone-500">
+                      <td className="px-3 py-3 text-sm text-[#8A8A8A]">
                         {index + 1}
                       </td>
-                      <td className="px-3 py-3 text-sm font-medium text-stone-800">
+                      <td className="px-3 py-3 text-sm font-medium text-[#2F2F2F]">
                         {kayit.personelAd} {kayit.personelSoyad}
                       </td>
-                      <td className="px-3 py-3 text-sm text-stone-600">
+                      <td className="px-3 py-3 text-sm text-[#2F2F2F]">
                         {formatDate(personelMap[kayit.personelId] || "")}
                       </td>
                       <td className="px-3 py-3 text-center">
-                        <span className="inline-block px-3 py-1 bg-green-100 text-green-800 text-sm font-semibold rounded">
+                        <span className="inline-block px-3 py-1 bg-[#EAF2ED] text-green-800 text-sm font-semibold rounded">
                           +{kayit.eklenenGun} gün
                         </span>
                       </td>
-                      <td className="px-3 py-3 text-sm text-stone-600">
+                      <td className="px-3 py-3 text-sm text-[#2F2F2F]">
                         {kayit.aciklama}
                       </td>
-                      <td className="px-3 py-3 text-sm text-stone-500">
+                      <td className="px-3 py-3 text-sm text-[#8A8A8A]">
                         {formatDateTime(kayit.islemTarihi)}
                       </td>
-                      <td className="px-3 py-3 text-sm text-stone-600">
+                      <td className="px-3 py-3 text-sm text-[#2F2F2F]">
                         {kayit.islemYapan}
                       </td>
                       <td className="px-3 py-3">
                         <div className="flex items-center justify-center gap-1">
                           <button
                             onClick={() => handleEditOpen(kayit)}
-                            className="p-1.5 text-stone-400 hover:text-amber-600 hover:bg-amber-50 rounded transition-colors"
+                            className="p-1.5 text-[#8A8A8A] hover:text-[#8FAF9A] hover:bg-[#EAF2ED] rounded transition-colors"
                             title="Düzenle"
                           >
                             ✏️
                           </button>
                           <button
                             onClick={() => handleDelete(kayit)}
-                            className="p-1.5 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                            className="p-1.5 text-[#8A8A8A] hover:text-[#D96C6C] hover:bg-[#D96C6C]/10 rounded transition-colors"
                             title="Sil"
                           >
                             🗑️
@@ -290,11 +290,11 @@ export default function IzinHaklariListele() {
           </div>
 
           {filteredKayitlar.length > 0 && (
-            <div className="px-4 py-3 border-t border-stone-100 bg-stone-50">
-              <div className="flex items-center justify-between text-sm text-stone-600">
+            <div className="px-4 py-3 border-t border-[#E5E5E5] bg-[#F7F7F7]">
+              <div className="flex items-center justify-between text-sm text-[#2F2F2F]">
                 <span>Toplam <span className="font-semibold">{filteredKayitlar.length}</span> kayıt</span>
                 <span>
-                  Toplam Eklenen: <span className="font-semibold text-green-600">+{toplamEklenenGun} gün</span>
+                  Toplam Eklenen: <span className="font-semibold text-[#8FAF9A]">+{toplamEklenenGun} gün</span>
                 </span>
               </div>
             </div>
@@ -313,11 +313,11 @@ export default function IzinHaklariListele() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-stone-100">
-              <h2 className="text-lg font-bold text-stone-800">İzin Hakkı Düzenle</h2>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[#E5E5E5]">
+              <h2 className="text-lg font-bold text-[#2F2F2F]">İzin Hakkı Düzenle</h2>
               <button
                 onClick={() => !editSaving && setEditKayit(null)}
-                className="p-1.5 text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-lg transition-colors"
+                className="p-1.5 text-[#8A8A8A] hover:text-[#2F2F2F] hover:bg-[#F7F7F7] rounded-lg transition-colors"
                 disabled={editSaving}
               >
                 ✕
@@ -327,22 +327,22 @@ export default function IzinHaklariListele() {
             {/* Modal Body */}
             <div className="px-5 py-4 space-y-4">
               {/* Personel Bilgisi (readonly) */}
-              <div className="bg-stone-50 rounded-lg px-4 py-3">
-                <span className="text-xs text-stone-400 block mb-1">Personel</span>
-                <span className="text-sm font-medium text-stone-800">
+              <div className="bg-[#F7F7F7] rounded-lg px-4 py-3">
+                <span className="text-xs text-[#8A8A8A] block mb-1">Personel</span>
+                <span className="text-sm font-medium text-[#2F2F2F]">
                   {editKayit.personelAd} {editKayit.personelSoyad}
                 </span>
               </div>
 
               {/* Mevcut Gün Bilgisi */}
-              <div className="bg-stone-50 rounded-lg px-4 py-3">
-                <span className="text-xs text-stone-400 block mb-1">Mevcut Eklenen Gün</span>
-                <span className="text-sm font-semibold text-green-600">+{editKayit.eklenenGun} gün</span>
+              <div className="bg-[#F7F7F7] rounded-lg px-4 py-3">
+                <span className="text-xs text-[#8A8A8A] block mb-1">Mevcut Eklenen Gün</span>
+                <span className="text-sm font-semibold text-[#8FAF9A]">+{editKayit.eklenenGun} gün</span>
               </div>
 
               {/* Yeni Gün */}
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-1">
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-1">
                   Yeni Gün Sayısı
                 </label>
                 <input
@@ -350,11 +350,11 @@ export default function IzinHaklariListele() {
                   min="1"
                   value={editGun}
                   onChange={(e) => setEditGun(Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                  className="w-full px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
                   disabled={editSaving}
                 />
                 {editGun !== editKayit.eklenenGun && (
-                  <p className="mt-1 text-xs text-amber-600">
+                  <p className="mt-1 text-xs text-[#8FAF9A]">
                     Fark: {editGun - editKayit.eklenenGun > 0 ? "+" : ""}{editGun - editKayit.eklenenGun} gün
                     (personelin toplam izin hakkı da güncellenecek)
                   </p>
@@ -363,24 +363,24 @@ export default function IzinHaklariListele() {
 
               {/* Açıklama */}
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-1">
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-1">
                   Açıklama
                 </label>
                 <textarea
                   rows={3}
                   value={editAciklama}
                   onChange={(e) => setEditAciklama(e.target.value)}
-                  className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 resize-none"
+                  className="w-full px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 resize-none"
                   disabled={editSaving}
                 />
               </div>
             </div>
 
             {/* Modal Footer */}
-            <div className="px-5 py-3 border-t border-stone-100 flex items-center justify-end gap-2">
+            <div className="px-5 py-3 border-t border-[#E5E5E5] flex items-center justify-end gap-2">
               <button
                 onClick={() => setEditKayit(null)}
-                className="px-4 py-2 bg-stone-100 text-stone-700 rounded-lg text-sm font-medium hover:bg-stone-200 transition-colors"
+                className="px-4 py-2 bg-[#F7F7F7] text-[#2F2F2F] rounded-lg text-sm font-medium hover:bg-[#E5E5E5] transition-colors"
                 disabled={editSaving}
               >
                 İptal

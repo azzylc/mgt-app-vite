@@ -616,12 +616,12 @@ export default function AyarlarPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-white">
       <div>
         <header className="bg-white border-b px-6 py-4 sticky top-0 z-30">
           <div>
-            <h1 className="text-xl font-bold text-stone-800">⚙️ Ayarlar</h1>
-            <p className="text-sm text-stone-500">Sistem ayarlarını yönetin</p>
+            <h1 className="text-xl font-bold text-[#2F2F2F]">⚙️ Ayarlar</h1>
+            <p className="text-sm text-[#8A8A8A]">Sistem ayarlarını yönetin</p>
           </div>
         </header>
 
@@ -635,7 +635,7 @@ export default function AyarlarPage() {
                 className={`px-6 py-3 text-sm font-medium transition ${
                   activeTab === tab.id
                     ? 'text-rose-600 border-b-2 border-rose-600'
-                    : 'text-stone-500 hover:text-stone-700'
+                    : 'text-[#8A8A8A] hover:text-[#2F2F2F]'
                 }`}
               >
                 {tab.label}
@@ -649,35 +649,35 @@ export default function AyarlarPage() {
           {activeTab === 0 && (
             <div className="space-y-6">
               {/* Şirket Ayarları */}
-              <div className="bg-white rounded-lg p-6 shadow-sm border border-stone-100">
-                <h2 className="text-lg font-bold text-stone-800 mb-4 flex items-center gap-2">
+              <div className="bg-white rounded-lg p-6 shadow-sm border border-[#E5E5E5]">
+                <h2 className="text-lg font-bold text-[#2F2F2F] mb-4 flex items-center gap-2">
                   <span>🏢</span> Şirket Ayarları
                 </h2>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-stone-700 mb-1">Şirket Adı</label>
+                    <label className="block text-sm font-medium text-[#2F2F2F] mb-1">Şirket Adı</label>
                     <input 
                       type="text" 
                       value={genelAyarlar.sirketAdi} 
                       onChange={(e) => setGenelAyarlar({...genelAyarlar, sirketAdi: e.target.value})}
-                      className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" 
+                      className="w-full px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" 
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-stone-700 mb-1">Yönetici Bilgileri</label>
+                    <label className="block text-sm font-medium text-[#2F2F2F] mb-1">Yönetici Bilgileri</label>
                     <textarea 
                       rows={2} 
                       value={genelAyarlar.yoneticiInfo}
                       onChange={(e) => setGenelAyarlar({...genelAyarlar, yoneticiInfo: e.target.value})}
-                      className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" 
+                      className="w-full px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" 
                     />
                   </div>
                 </div>
               </div>
 
               {/* İzin Ayarları */}
-              <div className="bg-white rounded-lg p-6 shadow-sm border border-stone-100">
-                <h2 className="text-lg font-bold text-stone-800 mb-4 flex items-center gap-2">
+              <div className="bg-white rounded-lg p-6 shadow-sm border border-[#E5E5E5]">
+                <h2 className="text-lg font-bold text-[#2F2F2F] mb-4 flex items-center gap-2">
                   <span>🏖️</span> İzin Ayarları
                 </h2>
                 <div className="space-y-4">
@@ -689,8 +689,8 @@ export default function AyarlarPage() {
                       className="w-5 h-5 text-rose-600 rounded mt-1" 
                     />
                     <div>
-                      <p className="text-sm font-medium text-stone-700">Hafta sonu günleri izin hesaplamalarına dahil</p>
-                      <p className="text-xs text-stone-500">Cumartesi ve Pazar günleri izin hesabına dahil edilsin mi?</p>
+                      <p className="text-sm font-medium text-[#2F2F2F]">Hafta sonu günleri izin hesaplamalarına dahil</p>
+                      <p className="text-xs text-[#8A8A8A]">Cumartesi ve Pazar günleri izin hesabına dahil edilsin mi?</p>
                     </div>
                   </label>
                   <label className="flex items-start gap-3 cursor-pointer">
@@ -701,8 +701,8 @@ export default function AyarlarPage() {
                       className="w-5 h-5 text-rose-600 rounded mt-1" 
                     />
                     <div>
-                      <p className="text-sm font-medium text-stone-700">İzin onaylandığında otomatik e-posta</p>
-                      <p className="text-xs text-stone-500">Personele otomatik mail gönderilsin mi?</p>
+                      <p className="text-sm font-medium text-[#2F2F2F]">İzin onaylandığında otomatik e-posta</p>
+                      <p className="text-xs text-[#8A8A8A]">Personele otomatik mail gönderilsin mi?</p>
                     </div>
                   </label>
                   <label className="flex items-start gap-3 cursor-pointer">
@@ -713,8 +713,8 @@ export default function AyarlarPage() {
                       className="w-5 h-5 text-rose-600 rounded mt-1" 
                     />
                     <div>
-                      <p className="text-sm font-medium text-stone-700">Mobil'de izin talep etme</p>
-                      <p className="text-xs text-stone-500">Personel mobil uygulamadan izin talebinde bulunabilsin mi?</p>
+                      <p className="text-sm font-medium text-[#2F2F2F]">Mobil'de izin talep etme</p>
+                      <p className="text-xs text-[#8A8A8A]">Personel mobil uygulamadan izin talebinde bulunabilsin mi?</p>
                     </div>
                   </label>
                   <label className="flex items-start gap-3 cursor-pointer">
@@ -725,25 +725,25 @@ export default function AyarlarPage() {
                       className="w-5 h-5 text-rose-600 rounded mt-1" 
                     />
                     <div>
-                      <p className="text-sm font-medium text-stone-700">Yönetici ön onayı zorunlu</p>
-                      <p className="text-xs text-stone-500">İzin talebi önce yönetici onayından geçsin mi?</p>
+                      <p className="text-sm font-medium text-[#2F2F2F]">Yönetici ön onayı zorunlu</p>
+                      <p className="text-xs text-[#8A8A8A]">İzin talebi önce yönetici onayından geçsin mi?</p>
                     </div>
                   </label>
                 </div>
               </div>
 
               {/* Uygulama Ayarları */}
-              <div className="bg-white rounded-lg p-6 shadow-sm border border-stone-100">
-                <h2 className="text-lg font-bold text-stone-800 mb-4 flex items-center gap-2">
+              <div className="bg-white rounded-lg p-6 shadow-sm border border-[#E5E5E5]">
+                <h2 className="text-lg font-bold text-[#2F2F2F] mb-4 flex items-center gap-2">
                   <span>📱</span> Uygulama Ayarları
                 </h2>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-stone-700 mb-2">Varsayılan Açılış Sayfası</label>
+                    <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Varsayılan Açılış Sayfası</label>
                     <select 
                       value={genelAyarlar.varsayilanSayfa}
                       onChange={(e) => setGenelAyarlar({...genelAyarlar, varsayilanSayfa: e.target.value})}
-                      className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white"
+                      className="w-full px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white"
                     >
                       <option>Genel Bakış</option>
                       <option>Gelinler</option>
@@ -759,8 +759,8 @@ export default function AyarlarPage() {
                       className="w-5 h-5 text-rose-600 rounded mt-1" 
                     />
                     <div>
-                      <p className="text-sm font-medium text-stone-700">QR kamera izni</p>
-                      <p className="text-xs text-stone-500">QR kod okutma özelliği aktif olsun mu?</p>
+                      <p className="text-sm font-medium text-[#2F2F2F]">QR kamera izni</p>
+                      <p className="text-xs text-[#8A8A8A]">QR kod okutma özelliği aktif olsun mu?</p>
                     </div>
                   </label>
                   <label className="flex items-start gap-3 cursor-pointer">
@@ -771,8 +771,8 @@ export default function AyarlarPage() {
                       className="w-5 h-5 text-rose-600 rounded mt-1" 
                     />
                     <div>
-                      <p className="text-sm font-medium text-stone-700">Konum tabanlı işlem</p>
-                      <p className="text-xs text-stone-500">Konum kontrolü yapılsın mı?</p>
+                      <p className="text-sm font-medium text-[#2F2F2F]">Konum tabanlı işlem</p>
+                      <p className="text-xs text-[#8A8A8A]">Konum kontrolü yapılsın mı?</p>
                     </div>
                   </label>
                   <label className="flex items-start gap-3 cursor-pointer">
@@ -783,8 +783,8 @@ export default function AyarlarPage() {
                       className="w-5 h-5 text-rose-600 rounded mt-1" 
                     />
                     <div>
-                      <p className="text-sm font-medium text-stone-700">Kişisel QR kod</p>
-                      <p className="text-xs text-stone-500">Her personel kendi QR kodu ile işlem yapabilsin mi?</p>
+                      <p className="text-sm font-medium text-[#2F2F2F]">Kişisel QR kod</p>
+                      <p className="text-xs text-[#8A8A8A]">Her personel kendi QR kodu ile işlem yapabilsin mi?</p>
                     </div>
                   </label>
                   <label className="flex items-start gap-3 cursor-pointer">
@@ -795,23 +795,23 @@ export default function AyarlarPage() {
                       className="w-5 h-5 text-rose-600 rounded mt-1" 
                     />
                     <div>
-                      <p className="text-sm font-medium text-stone-700">Manuel giriş-çıkış ekleme</p>
-                      <p className="text-xs text-stone-500">Yetkililer manuel giriş-çıkış ekleyebilsin mi?</p>
+                      <p className="text-sm font-medium text-[#2F2F2F]">Manuel giriş-çıkış ekleme</p>
+                      <p className="text-xs text-[#8A8A8A]">Yetkililer manuel giriş-çıkış ekleyebilsin mi?</p>
                     </div>
                   </label>
                 </div>
               </div>
 
               {/* Görev Ayarları */}
-              <div className="bg-white rounded-lg p-6 shadow-sm border border-stone-100">
-                <h2 className="text-lg font-bold text-stone-800 mb-4 flex items-center gap-2">
+              <div className="bg-white rounded-lg p-6 shadow-sm border border-[#E5E5E5]">
+                <h2 className="text-lg font-bold text-[#2F2F2F] mb-4 flex items-center gap-2">
                   <span>✅</span> Görev Ayarları
                 </h2>
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-2">Görev atama yetkisi</label>
-                  <p className="text-xs text-stone-500 mb-3">Kim kimlere görev atayabilir?</p>
+                  <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Görev atama yetkisi</label>
+                  <p className="text-xs text-[#8A8A8A] mb-3">Kim kimlere görev atayabilir?</p>
                   <div className="space-y-2">
-                    <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-stone-50" style={{ borderColor: genelAyarlar.gorevAtamaYetkisi === "herkes" ? "#f43f5e" : "#e7e5e4" }}>
+                    <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-[#F7F7F7]" style={{ borderColor: genelAyarlar.gorevAtamaYetkisi === "herkes" ? "#f43f5e" : "#e7e5e4" }}>
                       <input 
                         type="radio" 
                         name="gorevAtamaYetkisi"
@@ -821,11 +821,11 @@ export default function AyarlarPage() {
                         className="w-4 h-4 text-rose-600" 
                       />
                       <div>
-                        <p className="text-sm font-medium text-stone-700">🌐 Herkes herkese</p>
-                        <p className="text-xs text-stone-500">Tüm personel birbirine görev atayabilir</p>
+                        <p className="text-sm font-medium text-[#2F2F2F]">🌐 Herkes herkese</p>
+                        <p className="text-xs text-[#8A8A8A]">Tüm personel birbirine görev atayabilir</p>
                       </div>
                     </label>
-                    <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-stone-50" style={{ borderColor: genelAyarlar.gorevAtamaYetkisi === "yonetici" ? "#f43f5e" : "#e7e5e4" }}>
+                    <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-[#F7F7F7]" style={{ borderColor: genelAyarlar.gorevAtamaYetkisi === "yonetici" ? "#f43f5e" : "#e7e5e4" }}>
                       <input 
                         type="radio" 
                         name="gorevAtamaYetkisi"
@@ -835,11 +835,11 @@ export default function AyarlarPage() {
                         className="w-4 h-4 text-rose-600" 
                       />
                       <div>
-                        <p className="text-sm font-medium text-stone-700">👔 Sadece Kurucu & Yönetici</p>
-                        <p className="text-xs text-stone-500">Personel görev atayamaz, sadece alır</p>
+                        <p className="text-sm font-medium text-[#2F2F2F]">👔 Sadece Kurucu & Yönetici</p>
+                        <p className="text-xs text-[#8A8A8A]">Personel görev atayamaz, sadece alır</p>
                       </div>
                     </label>
-                    <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-stone-50" style={{ borderColor: genelAyarlar.gorevAtamaYetkisi === "firma" ? "#f43f5e" : "#e7e5e4" }}>
+                    <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-[#F7F7F7]" style={{ borderColor: genelAyarlar.gorevAtamaYetkisi === "firma" ? "#f43f5e" : "#e7e5e4" }}>
                       <input 
                         type="radio" 
                         name="gorevAtamaYetkisi"
@@ -849,8 +849,8 @@ export default function AyarlarPage() {
                         className="w-4 h-4 text-rose-600" 
                       />
                       <div>
-                        <p className="text-sm font-medium text-stone-700">🏢 Firma bazlı</p>
-                        <p className="text-xs text-stone-500">Kurucu herkese, Yönetici kendi firmasına atayabilir. Personel atayamaz.</p>
+                        <p className="text-sm font-medium text-[#2F2F2F]">🏢 Firma bazlı</p>
+                        <p className="text-xs text-[#8A8A8A]">Kurucu herkese, Yönetici kendi firmasına atayabilir. Personel atayamaz.</p>
                       </div>
                     </label>
                   </div>
@@ -858,27 +858,27 @@ export default function AyarlarPage() {
               </div>
 
               {/* Yönetim Paneli PIN */}
-              <div className="bg-white rounded-lg p-6 shadow-sm border border-stone-100">
-                <h2 className="text-lg font-bold text-stone-800 mb-2 flex items-center gap-2">
+              <div className="bg-white rounded-lg p-6 shadow-sm border border-[#E5E5E5]">
+                <h2 className="text-lg font-bold text-[#2F2F2F] mb-2 flex items-center gap-2">
                   <span>🔒</span> Yönetim Paneli PIN Koruması
                 </h2>
-                <p className="text-sm text-stone-500 mb-4">
+                <p className="text-sm text-[#8A8A8A] mb-4">
                   Yönetim Paneline erişim için 6 haneli PIN belirleyin. {pinMevcut ? "PIN aktif." : "PIN tanımlı değil."}
                 </p>
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-sm font-medium text-stone-700 mb-1">
+                    <label className="block text-sm font-medium text-[#2F2F2F] mb-1">
                       {pinMevcut ? "Yeni PIN (değiştirmek için)" : "PIN belirle"}
                     </label>
                     <input type="password" inputMode="numeric" maxLength={6} placeholder="6 haneli PIN"
                       value={pinGirisi} onChange={(e) => setPinGirisi(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                      className="w-full px-4 py-3 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 tracking-[0.5em] text-center font-mono" />
+                      className="w-full px-4 py-3 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#8FAF9A] tracking-[0.5em] text-center font-mono" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-stone-700 mb-1">PIN Tekrar</label>
+                    <label className="block text-sm font-medium text-[#2F2F2F] mb-1">PIN Tekrar</label>
                     <input type="password" inputMode="numeric" maxLength={6} placeholder="Tekrar girin"
                       value={pinTekrar} onChange={(e) => setPinTekrar(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                      className="w-full px-4 py-3 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 tracking-[0.5em] text-center font-mono" />
+                      className="w-full px-4 py-3 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#8FAF9A] tracking-[0.5em] text-center font-mono" />
                   </div>
                   <div className="flex gap-2">
                     <button onClick={async () => {
@@ -894,7 +894,7 @@ export default function AyarlarPage() {
                         finally { setPinKaydediliyor(false); }
                       }}
                       disabled={pinKaydediliyor || pinGirisi.length !== 6}
-                      className="flex-1 px-4 py-2.5 bg-stone-900 text-white rounded-lg text-sm font-medium hover:bg-stone-800 transition disabled:opacity-50">
+                      className="flex-1 px-4 py-2.5 bg-[#2F2F2F] text-white rounded-lg text-sm font-medium hover:bg-[#2F2F2F] transition disabled:opacity-50">
                       {pinKaydediliyor ? "Kaydediliyor..." : pinMevcut ? "PIN'i Güncelle" : "PIN Belirle"}
                     </button>
                     {pinMevcut && (
@@ -910,7 +910,7 @@ export default function AyarlarPage() {
                           finally { setPinKaydediliyor(false); }
                         }}
                         disabled={pinKaydediliyor}
-                        className="px-4 py-2.5 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition disabled:opacity-50">
+                        className="px-4 py-2.5 bg-[#D96C6C] text-white rounded-lg text-sm font-medium hover:bg-[#C25A5A] transition disabled:opacity-50">
                         Kaldır
                       </button>
                     )}
@@ -934,26 +934,26 @@ export default function AyarlarPage() {
           {/* TAB 1: Rol Yetkileri */}
           {activeTab === 1 && (
             <div className="space-y-6">
-              <div className="bg-white rounded-lg p-6 shadow-sm border border-stone-100">
-                <h2 className="text-lg font-bold text-stone-800 mb-2 flex items-center gap-2">
+              <div className="bg-white rounded-lg p-6 shadow-sm border border-[#E5E5E5]">
+                <h2 className="text-lg font-bold text-[#2F2F2F] mb-2 flex items-center gap-2">
                   <span>🔐</span> Rol Yetkileri
                 </h2>
-                <p className="text-sm text-stone-500 mb-6">Her rolün hangi menülere erişebileceğini belirleyin.</p>
+                <p className="text-sm text-[#8A8A8A] mb-6">Her rolün hangi menülere erişebileceğini belirleyin.</p>
                 
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-stone-200">
-                        <th className="text-left py-3 px-4 text-sm font-semibold text-stone-700">Menü</th>
-                        <th className="text-center py-3 px-4 text-sm font-semibold text-stone-700 w-32">Kurucu</th>
-                        <th className="text-center py-3 px-4 text-sm font-semibold text-stone-700 w-32">Yönetici</th>
-                        <th className="text-center py-3 px-4 text-sm font-semibold text-stone-700 w-32">Personel</th>
+                      <tr className="border-b border-[#E5E5E5]">
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-[#2F2F2F]">Menü</th>
+                        <th className="text-center py-3 px-4 text-sm font-semibold text-[#2F2F2F] w-32">Kurucu</th>
+                        <th className="text-center py-3 px-4 text-sm font-semibold text-[#2F2F2F] w-32">Yönetici</th>
+                        <th className="text-center py-3 px-4 text-sm font-semibold text-[#2F2F2F] w-32">Personel</th>
                       </tr>
                     </thead>
                     <tbody>
                       {menuListesi.map((menu) => (
-                        <tr key={menu.id} className="border-b border-stone-100 hover:bg-stone-50">
-                          <td className="py-3 px-4 text-sm text-stone-700">{menu.label}</td>
+                        <tr key={menu.id} className="border-b border-[#E5E5E5] hover:bg-[#F7F7F7]">
+                          <td className="py-3 px-4 text-sm text-[#2F2F2F]">{menu.label}</td>
                           <td className="py-3 px-4 text-center">
                             <input
                               type="checkbox"
@@ -1002,7 +1002,7 @@ export default function AyarlarPage() {
           {activeTab === 3 && (
             <div>
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-bold text-stone-800">📍 Konumlar</h2>
+                <h2 className="text-lg font-bold text-[#2F2F2F]">📍 Konumlar</h2>
                 <button
                   onClick={() => { setShowKonumModal(true); setEditingKonum(null); resetKonumForm(); }}
                   className="bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
@@ -1012,27 +1012,27 @@ export default function AyarlarPage() {
               </div>
 
               {konumlar.length === 0 ? (
-                <div className="bg-white rounded-lg p-12 text-center text-stone-500 border border-stone-100">
+                <div className="bg-white rounded-lg p-12 text-center text-[#8A8A8A] border border-[#E5E5E5]">
                   <span className="text-5xl mb-4 block">📍</span>
                   <p className="text-lg font-medium">Konum bulunamadı</p>
                 </div>
               ) : (
-                <div className="bg-white rounded-lg shadow-sm border border-stone-100 overflow-hidden overflow-x-auto">
+                <div className="bg-white rounded-lg shadow-sm border border-[#E5E5E5] overflow-hidden overflow-x-auto">
                   <table className="w-full min-w-[600px]">
-                    <thead className="bg-stone-50">
+                    <thead className="bg-[#F7F7F7]">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">QR Kod</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Karekod</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Konum Adı</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Max Uzaklık</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">GPS</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Durum</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">İşlemler</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">QR Kod</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Karekod</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Konum Adı</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Max Uzaklık</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">GPS</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Durum</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">İşlemler</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-stone-200">
+                    <tbody className="divide-y divide-[#E5E5E5]">
                       {konumlar.map(konum => (
-                        <tr key={konum.id} className="hover:bg-stone-50">
+                        <tr key={konum.id} className="hover:bg-[#F7F7F7]">
                           <td className="px-4 py-4">
                             <div className="flex flex-col items-center gap-2">
                               <img 
@@ -1050,25 +1050,25 @@ export default function AyarlarPage() {
                               </a>
                             </div>
                           </td>
-                          <td className="px-4 py-4 text-sm font-mono text-stone-900">{konum.karekod}</td>
-                          <td className="px-4 py-4 text-sm font-medium text-stone-900">{konum.konumAdi}</td>
-                          <td className="px-4 py-4 text-sm text-stone-600">{konum.maksimumOkutmaUzakligi} m</td>
+                          <td className="px-4 py-4 text-sm font-mono text-[#2F2F2F]">{konum.karekod}</td>
+                          <td className="px-4 py-4 text-sm font-medium text-[#2F2F2F]">{konum.konumAdi}</td>
+                          <td className="px-4 py-4 text-sm text-[#2F2F2F]">{konum.maksimumOkutmaUzakligi} m</td>
                           <td className="px-4 py-4">
                             {konum.lat && konum.lng ? (
-                              <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">✓ Ayarlı</span>
+                              <span className="text-xs text-[#8FAF9A] bg-[#EAF2ED] px-2 py-1 rounded">✓ Ayarlı</span>
                             ) : (
-                              <span className="text-xs text-red-600 bg-red-50 px-2 py-1 rounded">✗ Ayarlanmadı</span>
+                              <span className="text-xs text-[#D96C6C] bg-[#D96C6C]/10 px-2 py-1 rounded">✗ Ayarlanmadı</span>
                             )}
                           </td>
                           <td className="px-4 py-4">
-                            <span className={`px-2 py-1 text-xs rounded-full ${konum.aktif ? 'bg-green-100 text-green-700' : 'bg-stone-100 text-stone-600'}`}>
+                            <span className={`px-2 py-1 text-xs rounded-full ${konum.aktif ? 'bg-[#EAF2ED] text-[#8FAF9A]' : 'bg-[#F7F7F7] text-[#2F2F2F]'}`}>
                               {konum.aktif ? 'Aktif' : 'Pasif'}
                             </span>
                           </td>
                           <td className="px-4 py-4">
                             <div className="flex gap-2">
-                              <button onClick={() => openKonumEditModal(konum)} className="w-8 h-8 hover:bg-yellow-50 text-yellow-600 rounded" title="Düzenle">✏️</button>
-                              <button onClick={() => handleKonumDelete(konum.id)} className="w-8 h-8 hover:bg-red-50 text-red-600 rounded" title="Sil">🗑️</button>
+                              <button onClick={() => openKonumEditModal(konum)} className="w-8 h-8 hover:bg-[#E6B566]/10 text-[#E6B566] rounded" title="Düzenle">✏️</button>
+                              <button onClick={() => handleKonumDelete(konum.id)} className="w-8 h-8 hover:bg-[#D96C6C]/10 text-[#D96C6C] rounded" title="Sil">🗑️</button>
                             </div>
                           </td>
                         </tr>
@@ -1084,7 +1084,7 @@ export default function AyarlarPage() {
           {activeTab === 2 && (
             <div>
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-bold text-stone-800">🏢 Firmalar</h2>
+                <h2 className="text-lg font-bold text-[#2F2F2F]">🏢 Firmalar</h2>
                 <button
                   onClick={() => { setShowFirmaModal(true); setEditingFirma(null); resetFirmaForm(); }}
                   className="bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
@@ -1094,29 +1094,29 @@ export default function AyarlarPage() {
               </div>
 
               {firmalar.length === 0 ? (
-                <div className="bg-white rounded-lg p-12 text-center text-stone-500 border border-stone-100">
+                <div className="bg-white rounded-lg p-12 text-center text-[#8A8A8A] border border-[#E5E5E5]">
                   <p className="text-4xl mb-4">🏢</p>
                   <p>Henüz firma eklenmemiş</p>
                   <p className="text-sm mt-2">Yukarıdaki butona tıklayarak firma ekleyin</p>
                 </div>
               ) : (
-                <div className="bg-white rounded-lg shadow-sm overflow-hidden overflow-x-auto border border-stone-100">
+                <div className="bg-white rounded-lg shadow-sm overflow-hidden overflow-x-auto border border-[#E5E5E5]">
                   <table className="w-full min-w-[400px]">
-                    <thead className="bg-stone-50">
+                    <thead className="bg-[#F7F7F7]">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase">Firma</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase">Kısaltma</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase">Durum</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase">İşlem</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Firma</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Kısaltma</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Durum</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">İşlem</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-stone-200">
+                    <tbody className="divide-y divide-[#E5E5E5]">
                       {firmalar.map((firma) => (
-                        <tr key={firma.id} className="hover:bg-stone-50">
+                        <tr key={firma.id} className="hover:bg-[#F7F7F7]">
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
                               <span className={`w-3 h-3 rounded-full bg-${firma.renk}-500`}></span>
-                              <span className="font-medium text-stone-900">{firma.firmaAdi}</span>
+                              <span className="font-medium text-[#2F2F2F]">{firma.firmaAdi}</span>
                             </div>
                           </td>
                           <td className="px-6 py-4">
@@ -1125,14 +1125,14 @@ export default function AyarlarPage() {
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <span className={`px-2 py-1 rounded-full text-xs ${firma.aktif ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                            <span className={`px-2 py-1 rounded-full text-xs ${firma.aktif ? 'bg-[#EAF2ED] text-[#8FAF9A]' : 'bg-[#D96C6C]/20 text-[#D96C6C]'}`}>
                               {firma.aktif ? 'Aktif' : 'Pasif'}
                             </span>
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex gap-2">
-                              <button onClick={() => openFirmaEditModal(firma)} className="w-8 h-8 hover:bg-yellow-50 text-yellow-600 rounded" title="Düzenle">✏️</button>
-                              <button onClick={() => handleFirmaDelete(firma.id, firma.firmaAdi)} className="w-8 h-8 hover:bg-red-50 text-red-600 rounded" title="Sil">🗑️</button>
+                              <button onClick={() => openFirmaEditModal(firma)} className="w-8 h-8 hover:bg-[#E6B566]/10 text-[#E6B566] rounded" title="Düzenle">✏️</button>
+                              <button onClick={() => handleFirmaDelete(firma.id, firma.firmaAdi)} className="w-8 h-8 hover:bg-[#D96C6C]/10 text-[#D96C6C] rounded" title="Sil">🗑️</button>
                             </div>
                           </td>
                         </tr>
@@ -1148,7 +1148,7 @@ export default function AyarlarPage() {
           {activeTab === 4 && (
             <div>
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-bold text-stone-800">🏷️ Grup Etiketleri</h2>
+                <h2 className="text-lg font-bold text-[#2F2F2F]">🏷️ Grup Etiketleri</h2>
                 <button
                   onClick={() => { setShowGrupModal(true); setEditingGrup(null); resetGrupForm(); }}
                   className="bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
@@ -1158,30 +1158,30 @@ export default function AyarlarPage() {
               </div>
 
               {grupEtiketleri.length === 0 ? (
-                <div className="bg-white rounded-lg p-12 text-center text-stone-500 border border-stone-100">
+                <div className="bg-white rounded-lg p-12 text-center text-[#8A8A8A] border border-[#E5E5E5]">
                   <span className="text-5xl mb-4 block">🏷️</span>
                   <p className="text-lg font-medium">Grup etiketi bulunamadı</p>
                 </div>
               ) : (
-                <div className="bg-white rounded-lg shadow-sm border border-stone-100 overflow-hidden overflow-x-auto">
+                <div className="bg-white rounded-lg shadow-sm border border-[#E5E5E5] overflow-hidden overflow-x-auto">
                   <table className="w-full min-w-[500px]">
-                    <thead className="bg-stone-50">
+                    <thead className="bg-[#F7F7F7]">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase">Grup Adı</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase">Renk</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase">Önizleme</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase">Oluşturulma</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase">İşlemler</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Grup Adı</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Renk</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Önizleme</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Oluşturulma</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">İşlemler</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-stone-200">
+                    <tbody className="divide-y divide-[#E5E5E5]">
                       {grupEtiketleri.map(grup => (
-                        <tr key={grup.id} className="hover:bg-stone-50">
-                          <td className="px-6 py-4 font-medium text-stone-900">{grup.grupAdi}</td>
+                        <tr key={grup.id} className="hover:bg-[#F7F7F7]">
+                          <td className="px-6 py-4 font-medium text-[#2F2F2F]">{grup.grupAdi}</td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
                               <span className={`w-4 h-4 rounded-full bg-${grup.renk}-500`}></span>
-                              <span className="text-sm text-stone-600 capitalize">{grup.renk}</span>
+                              <span className="text-sm text-[#2F2F2F] capitalize">{grup.renk}</span>
                             </div>
                           </td>
                           <td className="px-6 py-4">
@@ -1189,13 +1189,13 @@ export default function AyarlarPage() {
                               {grup.grupAdi}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-sm text-stone-600">
+                          <td className="px-6 py-4 text-sm text-[#2F2F2F]">
                             {grup.olusturulmaTarihi ? new Date(grup.olusturulmaTarihi.seconds * 1000).toLocaleDateString('tr-TR') : '-'}
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex gap-2">
-                              <button onClick={() => openGrupEditModal(grup)} className="w-8 h-8 hover:bg-yellow-50 text-yellow-600 rounded" title="Düzenle">✏️</button>
-                              <button onClick={() => handleGrupDelete(grup.id, grup.grupAdi)} className="w-8 h-8 hover:bg-red-50 text-red-600 rounded" title="Sil">🗑️</button>
+                              <button onClick={() => openGrupEditModal(grup)} className="w-8 h-8 hover:bg-[#E6B566]/10 text-[#E6B566] rounded" title="Düzenle">✏️</button>
+                              <button onClick={() => handleGrupDelete(grup.id, grup.grupAdi)} className="w-8 h-8 hover:bg-[#D96C6C]/10 text-[#D96C6C] rounded" title="Sil">🗑️</button>
                             </div>
                           </td>
                         </tr>
@@ -1214,26 +1214,26 @@ export default function AyarlarPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-stone-800">{editingKonum ? "✏️ Konum Düzenle" : "➕ Yeni Konum"}</h3>
-              <button onClick={() => { setShowKonumModal(false); resetKonumForm(); }} className="text-stone-400 hover:text-stone-600 text-2xl">×</button>
+              <h3 className="text-xl font-bold text-[#2F2F2F]">{editingKonum ? "✏️ Konum Düzenle" : "➕ Yeni Konum"}</h3>
+              <button onClick={() => { setShowKonumModal(false); resetKonumForm(); }} className="text-[#8A8A8A] hover:text-[#2F2F2F] text-2xl">×</button>
             </div>
 
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-1">Karekod *</label>
-                  <input type="text" value={konumFormData.karekod} onChange={(e) => setKonumFormData({ ...konumFormData, karekod: e.target.value })} className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" placeholder="110-OFİS" />
+                  <label className="block text-sm font-medium text-[#2F2F2F] mb-1">Karekod *</label>
+                  <input type="text" value={konumFormData.karekod} onChange={(e) => setKonumFormData({ ...konumFormData, karekod: e.target.value })} className="w-full px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" placeholder="110-OFİS" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-1">Konum Adı *</label>
-                  <input type="text" value={konumFormData.konumAdi} onChange={(e) => setKonumFormData({ ...konumFormData, konumAdi: e.target.value })} className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" placeholder="Ofis Girişi" />
+                  <label className="block text-sm font-medium text-[#2F2F2F] mb-1">Konum Adı *</label>
+                  <input type="text" value={konumFormData.konumAdi} onChange={(e) => setKonumFormData({ ...konumFormData, konumAdi: e.target.value })} className="w-full px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" placeholder="Ofis Girişi" />
                 </div>
               </div>
 
               {/* GPS Koordinatları */}
               <div className="p-4 bg-blue-50 rounded-lg">
                 <div className="flex items-center justify-between mb-3">
-                  <label className="text-sm font-medium text-stone-700">📍 GPS Koordinatları</label>
+                  <label className="text-sm font-medium text-[#2F2F2F]">📍 GPS Koordinatları</label>
                   <button
                     type="button"
                     onClick={() => {
@@ -1262,45 +1262,45 @@ export default function AyarlarPage() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs text-stone-500 mb-1">Enlem (Lat)</label>
-                    <input type="number" step="any" value={konumFormData.lat || ""} onChange={(e) => setKonumFormData({ ...konumFormData, lat: Number(e.target.value) })} className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" placeholder="41.0082" />
+                    <label className="block text-xs text-[#8A8A8A] mb-1">Enlem (Lat)</label>
+                    <input type="number" step="any" value={konumFormData.lat || ""} onChange={(e) => setKonumFormData({ ...konumFormData, lat: Number(e.target.value) })} className="w-full px-3 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" placeholder="41.0082" />
                   </div>
                   <div>
-                    <label className="block text-xs text-stone-500 mb-1">Boylam (Lng)</label>
-                    <input type="number" step="any" value={konumFormData.lng || ""} onChange={(e) => setKonumFormData({ ...konumFormData, lng: Number(e.target.value) })} className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" placeholder="28.9784" />
+                    <label className="block text-xs text-[#8A8A8A] mb-1">Boylam (Lng)</label>
+                    <input type="number" step="any" value={konumFormData.lng || ""} onChange={(e) => setKonumFormData({ ...konumFormData, lng: Number(e.target.value) })} className="w-full px-3 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" placeholder="28.9784" />
                   </div>
                 </div>
                 {konumFormData.lat && konumFormData.lng && (
-                  <p className="text-xs text-green-600 mt-2">✓ Koordinatlar alındı</p>
+                  <p className="text-xs text-[#8FAF9A] mt-2">✓ Koordinatlar alındı</p>
                 )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-1">Maksimum Okutma Uzaklığı (metre)</label>
-                  <input type="number" value={konumFormData.maksimumOkutmaUzakligi} onChange={(e) => setKonumFormData({ ...konumFormData, maksimumOkutmaUzakligi: Number(e.target.value) })} className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
+                  <label className="block text-sm font-medium text-[#2F2F2F] mb-1">Maksimum Okutma Uzaklığı (metre)</label>
+                  <input type="number" value={konumFormData.maksimumOkutmaUzakligi} onChange={(e) => setKonumFormData({ ...konumFormData, maksimumOkutmaUzakligi: Number(e.target.value) })} className="w-full px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-1">Giriş Saat Limiti</label>
-                  <input type="text" value={konumFormData.girisSaatLimiti} onChange={(e) => setKonumFormData({ ...konumFormData, girisSaatLimiti: e.target.value })} className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" placeholder="Limit yok" />
+                  <label className="block text-sm font-medium text-[#2F2F2F] mb-1">Giriş Saat Limiti</label>
+                  <input type="text" value={konumFormData.girisSaatLimiti} onChange={(e) => setKonumFormData({ ...konumFormData, girisSaatLimiti: e.target.value })} className="w-full px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" placeholder="Limit yok" />
                 </div>
               </div>
 
               <div className="flex items-center gap-4">
                 <label className="flex items-center gap-2">
                   <input type="checkbox" checked={konumFormData.konumDisiOkutabilme} onChange={(e) => setKonumFormData({ ...konumFormData, konumDisiOkutabilme: e.target.checked })} className="w-4 h-4 text-rose-600 rounded" />
-                  <span className="text-sm text-stone-700">Konum Dışı Okutabilme</span>
+                  <span className="text-sm text-[#2F2F2F]">Konum Dışı Okutabilme</span>
                 </label>
                 <label className="flex items-center gap-2">
                   <input type="checkbox" checked={konumFormData.aktif} onChange={(e) => setKonumFormData({ ...konumFormData, aktif: e.target.checked })} className="w-4 h-4 text-rose-600 rounded" />
-                  <span className="text-sm text-stone-700">Aktif</span>
+                  <span className="text-sm text-[#2F2F2F]">Aktif</span>
                 </label>
               </div>
             </div>
 
             <div className="mt-6 flex gap-3">
               <button onClick={handleKonumAddEdit} className="flex-1 px-4 py-3 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition font-medium">💾 Kaydet</button>
-              <button onClick={() => { setShowKonumModal(false); resetKonumForm(); }} className="flex-1 px-4 py-3 bg-stone-500 text-white rounded-lg hover:bg-stone-600 transition font-medium">↩️ İptal</button>
+              <button onClick={() => { setShowKonumModal(false); resetKonumForm(); }} className="flex-1 px-4 py-3 bg-[#2F2F2F] text-white rounded-lg hover:bg-[#2F2F2F] transition font-medium">↩️ İptal</button>
             </div>
           </div>
         </div>
@@ -1311,55 +1311,55 @@ export default function AyarlarPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-stone-800">{editingFirma ? "✏️ Firma Düzenle" : "➕ Yeni Firma"}</h3>
-              <button onClick={() => { setShowFirmaModal(false); resetFirmaForm(); }} className="text-stone-400 hover:text-stone-600 text-2xl">×</button>
+              <h3 className="text-xl font-bold text-[#2F2F2F]">{editingFirma ? "✏️ Firma Düzenle" : "➕ Yeni Firma"}</h3>
+              <button onClick={() => { setShowFirmaModal(false); resetFirmaForm(); }} className="text-[#8A8A8A] hover:text-[#2F2F2F] text-2xl">×</button>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-1">Firma Adı *</label>
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-1">Firma Adı *</label>
                 <input 
                   type="text" 
                   value={firmaFormData.firmaAdi} 
                   onChange={(e) => setFirmaFormData({ ...firmaFormData, firmaAdi: e.target.value })} 
-                  className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" 
+                  className="w-full px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" 
                   placeholder="Gizem Yolcu Studio" 
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-1">Kısaltma *</label>
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-1">Kısaltma *</label>
                 <input 
                   type="text" 
                   value={firmaFormData.kisaltma} 
                   onChange={(e) => setFirmaFormData({ ...firmaFormData, kisaltma: e.target.value.toUpperCase() })} 
-                  className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 uppercase" 
+                  className="w-full px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 uppercase" 
                   placeholder="GYS" 
                   maxLength={10}
                 />
-                <p className="text-xs text-stone-500 mt-1">Maksimum 10 karakter</p>
+                <p className="text-xs text-[#8A8A8A] mt-1">Maksimum 10 karakter</p>
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">Renk *</label>
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Renk *</label>
                 <div className="flex flex-wrap gap-2">
                   {[
-                    { id: 'red', color: 'bg-red-500' },
-                    { id: 'orange', color: 'bg-orange-500' },
-                    { id: 'yellow', color: 'bg-yellow-500' },
-                    { id: 'green', color: 'bg-green-500' },
+                    { id: 'red', color: 'bg-[#D96C6C]' },
+                    { id: 'orange', color: 'bg-[#E6B566]' },
+                    { id: 'yellow', color: 'bg-[#E6B566]' },
+                    { id: 'green', color: 'bg-[#8FAF9A]' },
                     { id: 'teal', color: 'bg-teal-500' },
                     { id: 'blue', color: 'bg-blue-500' },
                     { id: 'indigo', color: 'bg-indigo-500' },
                     { id: 'purple', color: 'bg-purple-500' },
                     { id: 'pink', color: 'bg-rose-500' },
-                    { id: 'gray', color: 'bg-stone-500' },
+                    { id: 'gray', color: 'bg-[#8A8A8A]' },
                   ].map((renk) => (
                     <button
                       key={renk.id}
                       type="button"
                       onClick={() => setFirmaFormData({ ...firmaFormData, renk: renk.id })}
-                      className={`w-8 h-8 rounded-full ${renk.color} ${firmaFormData.renk === renk.id ? 'ring-2 ring-offset-2 ring-stone-800' : 'hover:scale-110'} transition`}
+                      className={`w-8 h-8 rounded-full ${renk.color} ${firmaFormData.renk === renk.id ? 'ring-2 ring-offset-2 ring-[#2F2F2F]' : 'hover:scale-110'} transition`}
                     />
                   ))}
                 </div>
@@ -1372,12 +1372,12 @@ export default function AyarlarPage() {
                   onChange={(e) => setFirmaFormData({ ...firmaFormData, aktif: e.target.checked })} 
                   className="w-4 h-4 text-rose-600 rounded" 
                 />
-                <span className="text-sm text-stone-700">Aktif</span>
+                <span className="text-sm text-[#2F2F2F]">Aktif</span>
               </div>
               
               {/* Önizleme */}
               <div className="pt-2 border-t">
-                <label className="block text-sm font-medium text-stone-700 mb-2">Önizleme</label>
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Önizleme</label>
                 <div className="flex items-center gap-3">
                   <span className={`w-3 h-3 rounded-full bg-${firmaFormData.renk}-500`}></span>
                   <span className="font-medium">{firmaFormData.firmaAdi || "Firma Adı"}</span>
@@ -1390,7 +1390,7 @@ export default function AyarlarPage() {
 
             <div className="mt-6 flex gap-3">
               <button onClick={handleFirmaAddEdit} className="flex-1 px-4 py-3 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition font-medium">💾 Kaydet</button>
-              <button onClick={() => { setShowFirmaModal(false); resetFirmaForm(); }} className="flex-1 px-4 py-3 bg-stone-500 text-white rounded-lg hover:bg-stone-600 transition font-medium">↩️ İptal</button>
+              <button onClick={() => { setShowFirmaModal(false); resetFirmaForm(); }} className="flex-1 px-4 py-3 bg-[#2F2F2F] text-white rounded-lg hover:bg-[#2F2F2F] transition font-medium">↩️ İptal</button>
             </div>
           </div>
         </div>
@@ -1401,36 +1401,36 @@ export default function AyarlarPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-stone-800">{editingGrup ? "✏️ Grup Düzenle" : "➕ Yeni Grup"}</h3>
-              <button onClick={() => { setShowGrupModal(false); resetGrupForm(); }} className="text-stone-400 hover:text-stone-600 text-2xl">×</button>
+              <h3 className="text-xl font-bold text-[#2F2F2F]">{editingGrup ? "✏️ Grup Düzenle" : "➕ Yeni Grup"}</h3>
+              <button onClick={() => { setShowGrupModal(false); resetGrupForm(); }} className="text-[#8A8A8A] hover:text-[#2F2F2F] text-2xl">×</button>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-1">Grup Adı *</label>
-                <input type="text" value={grupFormData.grupAdi} onChange={(e) => setGrupFormData({ ...grupFormData, grupAdi: e.target.value })} className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" placeholder="ekip, GYS, MG..." />
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-1">Grup Adı *</label>
+                <input type="text" value={grupFormData.grupAdi} onChange={(e) => setGrupFormData({ ...grupFormData, grupAdi: e.target.value })} className="w-full px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" placeholder="ekip, GYS, MG..." />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">Renk *</label>
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Renk *</label>
                 <div className="flex flex-wrap gap-2">
                   {[
-                    { id: 'red', color: 'bg-red-500' },
-                    { id: 'orange', color: 'bg-orange-500' },
-                    { id: 'yellow', color: 'bg-yellow-500' },
-                    { id: 'green', color: 'bg-green-500' },
+                    { id: 'red', color: 'bg-[#D96C6C]' },
+                    { id: 'orange', color: 'bg-[#E6B566]' },
+                    { id: 'yellow', color: 'bg-[#E6B566]' },
+                    { id: 'green', color: 'bg-[#8FAF9A]' },
                     { id: 'teal', color: 'bg-teal-500' },
                     { id: 'blue', color: 'bg-blue-500' },
                     { id: 'indigo', color: 'bg-indigo-500' },
                     { id: 'purple', color: 'bg-purple-500' },
                     { id: 'pink', color: 'bg-rose-500' },
-                    { id: 'gray', color: 'bg-stone-500' },
+                    { id: 'gray', color: 'bg-[#8A8A8A]' },
                   ].map((renk) => (
                     <button
                       key={renk.id}
                       type="button"
                       onClick={() => setGrupFormData({ ...grupFormData, renk: renk.id })}
-                      className={`w-8 h-8 rounded-full ${renk.color} ${grupFormData.renk === renk.id ? 'ring-2 ring-offset-2 ring-stone-800' : 'hover:scale-110'} transition`}
+                      className={`w-8 h-8 rounded-full ${renk.color} ${grupFormData.renk === renk.id ? 'ring-2 ring-offset-2 ring-[#2F2F2F]' : 'hover:scale-110'} transition`}
                     />
                   ))}
                 </div>
@@ -1438,7 +1438,7 @@ export default function AyarlarPage() {
               
               {/* Önizleme */}
               <div className="pt-2">
-                <label className="block text-sm font-medium text-stone-700 mb-2">Önizleme</label>
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Önizleme</label>
                 <span className={`inline-block px-3 py-1 rounded-full text-white text-sm font-medium bg-${grupFormData.renk}-500`}>
                   {grupFormData.grupAdi || "Örnek"}
                 </span>
@@ -1447,7 +1447,7 @@ export default function AyarlarPage() {
 
             <div className="mt-6 flex gap-3">
               <button onClick={handleGrupAddEdit} className="flex-1 px-4 py-3 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition font-medium">💾 Kaydet</button>
-              <button onClick={() => { setShowGrupModal(false); resetGrupForm(); }} className="flex-1 px-4 py-3 bg-stone-500 text-white rounded-lg hover:bg-stone-600 transition font-medium">↩️ İptal</button>
+              <button onClick={() => { setShowGrupModal(false); resetGrupForm(); }} className="flex-1 px-4 py-3 bg-[#2F2F2F] text-white rounded-lg hover:bg-[#2F2F2F] transition font-medium">↩️ İptal</button>
             </div>
           </div>
         </div>

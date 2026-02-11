@@ -460,13 +460,13 @@ export default function HaftalikCalismaSureleriPage() {
   // Renk sınıfı
   const getDurumClass = (durum: string): string => {
     switch (durum) {
-      case "calisma": return "bg-green-500 text-white";
-      case "tatil": return "bg-stone-300 text-stone-700";
-      case "resmiTatil": return "bg-yellow-400 text-yellow-900";
+      case "calisma": return "bg-[#8FAF9A] text-white";
+      case "tatil": return "bg-[#8A8A8A] text-[#2F2F2F]";
+      case "resmiTatil": return "bg-[#E6B566] text-yellow-900";
       case "izin": return "bg-blue-400 text-white";
-      case "eksik": return "bg-red-500 text-white";
+      case "eksik": return "bg-[#D96C6C] text-white";
       case "fazla": return "bg-orange-400 text-white";
-      default: return "bg-white text-stone-400";
+      default: return "bg-white text-[#8A8A8A]";
     }
   };
 
@@ -505,10 +505,10 @@ export default function HaftalikCalismaSureleriPage() {
   const weekNum = seciliHafta ? getWeekNumber(new Date(seciliHafta + "T12:00:00")) : 0;
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-white">
       <header className="bg-white border-b px-4 md:px-6 py-4 sticky top-0 z-30">
-        <h1 className="text-xl font-bold text-stone-800">Toplam Çalışma Süreleri (Haftalık)</h1>
-        <p className="text-sm text-stone-500 mt-1">Bu sayfada, belirlediğiniz parametre ve filtrelere göre &quot;Toplam Çalışma Süreleri (Haftalık)&quot; raporunu görüntüleyebilirsiniz.</p>
+        <h1 className="text-xl font-bold text-[#2F2F2F]">Toplam Çalışma Süreleri (Haftalık)</h1>
+        <p className="text-sm text-[#8A8A8A] mt-1">Bu sayfada, belirlediğiniz parametre ve filtrelere göre &quot;Toplam Çalışma Süreleri (Haftalık)&quot; raporunu görüntüleyebilirsiniz.</p>
       </header>
 
       <main className="p-4 md:p-6">
@@ -517,15 +517,15 @@ export default function HaftalikCalismaSureleriPage() {
           {/* Satır 1: Hafta + Parametreler + Buton */}
           <div className="flex flex-col md:flex-row gap-3">
             <div className="flex-[2]">
-              <label className="block text-xs text-stone-500 mb-1">Hafta seçiniz</label>
+              <label className="block text-xs text-[#8A8A8A] mb-1">Hafta seçiniz</label>
               <select
                 value={seciliHafta}
                 onChange={(e) => setSeciliHafta(e.target.value)}
-                className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                className="w-full px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
               >
                 {haftalar.map(h => 
                   h.isYearHeader ? (
-                    <option key={h.value} value={h.value} disabled className="text-stone-400 font-semibold">
+                    <option key={h.value} value={h.value} disabled className="text-[#8A8A8A] font-semibold">
                       {h.label}
                     </option>
                   ) : (
@@ -537,20 +537,20 @@ export default function HaftalikCalismaSureleriPage() {
               </select>
             </div>
             <div className="flex-1">
-              <label className="block text-xs text-stone-500 mb-1">Mola süresi (dk)</label>
+              <label className="block text-xs text-[#8A8A8A] mb-1">Mola süresi (dk)</label>
               <input
                 type="number"
                 value={molaSuresi}
                 onChange={(e) => setMolaSuresi(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                className="w-full px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
               />
             </div>
             <div className="flex-1">
-              <label className="block text-xs text-stone-500 mb-1">Grup Etiketi</label>
+              <label className="block text-xs text-[#8A8A8A] mb-1">Grup Etiketi</label>
               <select
                 value={seciliGrup}
                 onChange={(e) => setSeciliGrup(e.target.value)}
-                className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                className="w-full px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
               >
                 <option value="tumu">Tümü</option>
                 {grupEtiketleri.map(grup => (
@@ -574,8 +574,8 @@ export default function HaftalikCalismaSureleriPage() {
           </div>
 
           {/* Satır 2: Firma + Yöneticiler */}
-          <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-stone-100">
-            <span className="text-xs text-stone-500 mr-1">Firma:</span>
+          <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-[#E5E5E5]">
+            <span className="text-xs text-[#8A8A8A] mr-1">Firma:</span>
             {firmalar.map(firma => {
               const selected = seciliFirmalar.includes(firma.id);
               return (
@@ -585,7 +585,7 @@ export default function HaftalikCalismaSureleriPage() {
                   className={`px-3 py-1 rounded-full text-xs font-medium transition ${
                     selected
                       ? "bg-rose-500 text-white"
-                      : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                      : "bg-[#F7F7F7] text-[#2F2F2F] hover:bg-[#E5E5E5]"
                   }`}
                 >
                   {firma.kisaltma || firma.firmaAdi}
@@ -595,23 +595,23 @@ export default function HaftalikCalismaSureleriPage() {
             {seciliFirmalar.length > 0 && (
               <button
                 onClick={() => setSeciliFirmalar([])}
-                className="px-2 py-1 rounded-full text-xs text-stone-400 hover:text-stone-600 transition"
+                className="px-2 py-1 rounded-full text-xs text-[#8A8A8A] hover:text-[#2F2F2F] transition"
               >
                 ✕
               </button>
             )}
             {firmalar.length === 0 && (
-              <span className="text-xs text-stone-400">Tanımsız</span>
+              <span className="text-xs text-[#8A8A8A]">Tanımsız</span>
             )}
 
-            <span className="mx-2 text-stone-200">|</span>
+            <span className="mx-2 text-[#8A8A8A]">|</span>
 
-            <label className="flex items-center gap-1.5 text-xs text-stone-600 cursor-pointer">
+            <label className="flex items-center gap-1.5 text-xs text-[#2F2F2F] cursor-pointer">
               <input
                 type="checkbox"
                 checked={showYoneticiler}
                 onChange={(e) => setShowYoneticiler(e.target.checked)}
-                className="rounded border-stone-300 w-3.5 h-3.5"
+                className="rounded border-[#E5E5E5] w-3.5 h-3.5"
               />
               Yöneticiler
             </label>
@@ -620,24 +620,24 @@ export default function HaftalikCalismaSureleriPage() {
 
         {/* Renk açıklamaları */}
         <div className="flex flex-wrap gap-3 mb-4 text-xs">
-          <div className="flex items-center gap-1"><span className="w-4 h-4 bg-green-500 rounded"></span> Çalıştığı günler</div>
-          <div className="flex items-center gap-1"><span className="w-4 h-4 bg-stone-300 rounded"></span> Hafta Tatili</div>
-          <div className="flex items-center gap-1"><span className="w-4 h-4 bg-red-500 rounded"></span> Eksik çalışma</div>
+          <div className="flex items-center gap-1"><span className="w-4 h-4 bg-[#8FAF9A] rounded"></span> Çalıştığı günler</div>
+          <div className="flex items-center gap-1"><span className="w-4 h-4 bg-[#8A8A8A] rounded"></span> Hafta Tatili</div>
+          <div className="flex items-center gap-1"><span className="w-4 h-4 bg-[#D96C6C] rounded"></span> Eksik çalışma</div>
           <div className="flex items-center gap-1"><span className="w-4 h-4 bg-orange-400 rounded"></span> Fazla çalışma</div>
           <div className="flex items-center gap-1"><span className="w-4 h-4 bg-blue-400 rounded"></span> İzin ve Raporlar</div>
-          <div className="flex items-center gap-1"><span className="w-4 h-4 bg-yellow-400 rounded"></span> Resmi Tatil</div>
+          <div className="flex items-center gap-1"><span className="w-4 h-4 bg-[#E6B566] rounded"></span> Resmi Tatil</div>
         </div>
 
         {/* Uyarı */}
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-          <p className="text-sm text-amber-800">
+        <div className="bg-[#EAF2ED] border border-[#8FAF9A]/30 rounded-lg p-4 mb-6">
+          <p className="text-sm text-[#2F2F2F]">
             <span className="font-medium">ℹ️ Not:</span> Resmi tatil ve izin günleri toplam çalışma süresine dahil edilmez. Hücrelerdeki süreler mola düşülmüş net çalışma süresidir.
           </p>
         </div>
 
         {/* Başlık */}
         {haftalikData.length > 0 && (
-          <h2 className="text-lg font-bold text-stone-800 mb-4">
+          <h2 className="text-lg font-bold text-[#2F2F2F] mb-4">
             {String(weekNum).padStart(2, '0')}. Hafta - Toplam Çalışma Süreleri (Haftalık)
           </h2>
         )}
@@ -648,39 +648,39 @@ export default function HaftalikCalismaSureleriPage() {
             <div className="bg-white rounded-lg shadow-sm border overflow-hidden mb-6">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-stone-50 border-b">
+                  <thead className="bg-[#F7F7F7] border-b">
                     <tr>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-stone-500 whitespace-nowrap">Sicil No</th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-stone-500 whitespace-nowrap">Ad Soyad</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-[#8A8A8A] whitespace-nowrap">Sicil No</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-[#8A8A8A] whitespace-nowrap">Ad Soyad</th>
                       {gunBasliklari.map((gun, i) => (
-                        <th key={i} className="px-2 py-2 text-center text-xs font-medium text-stone-500 whitespace-nowrap min-w-[110px]">
+                        <th key={i} className="px-2 py-2 text-center text-xs font-medium text-[#8A8A8A] whitespace-nowrap min-w-[110px]">
                           {gun}
                         </th>
                       ))}
-                      <th className="px-3 py-2 text-center text-xs font-medium text-stone-500 whitespace-nowrap">Toplam Saat</th>
-                      <th className="px-3 py-2 text-center text-xs font-medium text-stone-500 whitespace-nowrap">Beklenen</th>
-                      <th className="px-3 py-2 text-center text-xs font-medium text-stone-500 whitespace-nowrap">Geldiği Gün</th>
-                      <th className="px-3 py-2 text-center text-xs font-medium text-stone-500 whitespace-nowrap">Fazla Çalışma</th>
-                      <th className="px-3 py-2 text-center text-xs font-medium text-stone-500 whitespace-nowrap">Eksik Çalışma</th>
+                      <th className="px-3 py-2 text-center text-xs font-medium text-[#8A8A8A] whitespace-nowrap">Toplam Saat</th>
+                      <th className="px-3 py-2 text-center text-xs font-medium text-[#8A8A8A] whitespace-nowrap">Beklenen</th>
+                      <th className="px-3 py-2 text-center text-xs font-medium text-[#8A8A8A] whitespace-nowrap">Geldiği Gün</th>
+                      <th className="px-3 py-2 text-center text-xs font-medium text-[#8A8A8A] whitespace-nowrap">Fazla Çalışma</th>
+                      <th className="px-3 py-2 text-center text-xs font-medium text-[#8A8A8A] whitespace-nowrap">Eksik Çalışma</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-stone-100">
+                  <tbody className="divide-y divide-[#E5E5E5]">
                     {haftalikData.map(h => (
-                      <tr key={h.personelId} className="hover:bg-stone-50">
-                        <td className="px-3 py-2 text-stone-800 whitespace-nowrap">{h.sicilNo || "-"}</td>
-                        <td className="px-3 py-2 font-medium text-stone-800 whitespace-nowrap">{h.personelAd}</td>
+                      <tr key={h.personelId} className="hover:bg-[#F7F7F7]">
+                        <td className="px-3 py-2 text-[#2F2F2F] whitespace-nowrap">{h.sicilNo || "-"}</td>
+                        <td className="px-3 py-2 font-medium text-[#2F2F2F] whitespace-nowrap">{h.personelAd}</td>
                         {h.gunler.map((gun, i) => (
                           <td key={i} className={`px-2 py-2 text-center whitespace-nowrap text-xs font-medium ${getDurumClass(gun.durum)}`}>
                             {gun.girisSaati || "-"}
                           </td>
                         ))}
-                        <td className="px-3 py-2 text-center font-bold text-stone-800">{h.toplamSaat}</td>
-                        <td className="px-3 py-2 text-center text-stone-500">{h.beklenenSaat}</td>
-                        <td className="px-3 py-2 text-center text-stone-600">{h.geldigiGun}</td>
-                        <td className={`px-3 py-2 text-center font-medium ${h.fazlaCalisma !== "00:00" ? "text-orange-600" : "text-stone-400"}`}>
+                        <td className="px-3 py-2 text-center font-bold text-[#2F2F2F]">{h.toplamSaat}</td>
+                        <td className="px-3 py-2 text-center text-[#8A8A8A]">{h.beklenenSaat}</td>
+                        <td className="px-3 py-2 text-center text-[#2F2F2F]">{h.geldigiGun}</td>
+                        <td className={`px-3 py-2 text-center font-medium ${h.fazlaCalisma !== "00:00" ? "text-[#E6B566]" : "text-[#8A8A8A]"}`}>
                           {h.fazlaCalisma}
                         </td>
-                        <td className={`px-3 py-2 text-center font-medium ${h.eksikCalisma !== "00:00" ? "text-red-600" : "text-stone-400"}`}>
+                        <td className={`px-3 py-2 text-center font-medium ${h.eksikCalisma !== "00:00" ? "text-[#D96C6C]" : "text-[#8A8A8A]"}`}>
                           {h.eksikCalisma}
                         </td>
                       </tr>
@@ -692,16 +692,16 @@ export default function HaftalikCalismaSureleriPage() {
 
             {/* Eksik Çıkış Uyarıları */}
             {eksikCikislar.length > 0 && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+              <div className="bg-[#D96C6C]/10 border border-[#D96C6C]/30 rounded-lg p-4 mb-6">
                 <h3 className="text-sm font-bold text-red-800 mb-3">⚠️ Dikkat: Çıkış Kaydı Eksik ({eksikCikislar.length} kayıt)</h3>
-                <p className="text-xs text-red-600 mb-3">Aşağıdaki personellerin giriş kaydı var ancak çıkış kaydı bulunamadı. Bu günlerin çalışma süresi hesaplanamadı.</p>
+                <p className="text-xs text-[#D96C6C] mb-3">Aşağıdaki personellerin giriş kaydı var ancak çıkış kaydı bulunamadı. Bu günlerin çalışma süresi hesaplanamadı.</p>
                 <div className="space-y-1">
                   {eksikCikislar.map((uyari, i) => (
-                    <div key={i} className="flex items-center gap-3 text-xs text-red-700 bg-red-100/50 rounded px-3 py-1.5">
+                    <div key={i} className="flex items-center gap-3 text-xs text-[#D96C6C] bg-[#D96C6C]/20/50 rounded px-3 py-1.5">
                       <span className="font-medium min-w-[150px]">{uyari.personelAd}</span>
-                      <span className="text-red-500">{uyari.tarih}</span>
+                      <span className="text-[#D96C6C]">{uyari.tarih}</span>
                       <span>Giriş: {uyari.girisSaati}</span>
-                      <span className="text-red-400">→ Çıkış yok</span>
+                      <span className="text-[#D96C6C]">→ Çıkış yok</span>
                     </div>
                   ))}
                 </div>
@@ -709,14 +709,14 @@ export default function HaftalikCalismaSureleriPage() {
             )}
 
             {gelmeyenUyarilar.length > 0 && (
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+              <div className="bg-[#E6B566]/10 border border-orange-200 rounded-lg p-4 mb-6">
                 <h3 className="text-sm font-bold text-orange-800 mb-3">⚠️ Notlar: Gelmeyenler ({gelmeyenUyarilar.length} kayıt)</h3>
-                <p className="text-xs text-orange-600 mb-3">Aşağıdaki personeller belirtilen günlerde gelmedi ve haftalık tatil/izin kaydı da bulunamadı.</p>
+                <p className="text-xs text-[#E6B566] mb-3">Aşağıdaki personeller belirtilen günlerde gelmedi ve haftalık tatil/izin kaydı da bulunamadı.</p>
                 <div className="space-y-1">
                   {gelmeyenUyarilar.map((uyari, i) => (
-                    <div key={i} className="flex items-center gap-3 text-xs text-orange-700 bg-orange-100/50 rounded px-3 py-1.5">
+                    <div key={i} className="flex items-center gap-3 text-xs text-orange-700 bg-[#E6B566]/20/50 rounded px-3 py-1.5">
                       <span className="font-medium min-w-[150px]">{uyari.personelAd}</span>
-                      <span className="text-orange-500">{uyari.tarih}</span>
+                      <span className="text-[#E6B566]">{uyari.tarih}</span>
                       <span>{uyari.mesaj}</span>
                     </div>
                   ))}
@@ -725,7 +725,7 @@ export default function HaftalikCalismaSureleriPage() {
             )}
 
             {/* Notlar */}
-            <div className="bg-stone-50 border rounded-lg p-4 mb-6 text-center text-sm text-stone-600">
+            <div className="bg-[#F7F7F7] border rounded-lg p-4 mb-6 text-center text-sm text-[#2F2F2F]">
               <p className="font-medium mb-1">Notlar:</p>
               <p>Sadece gün içindeki <u>İlk Giriş</u> ve <u>Son Çıkış</u> işlemleri hesaba katılmaktadır.</p>
               <p>Beklenen saat, personelin çalışma saatinden hesaplanır (çıkış - giriş - mola). Tatil ve izin günleri sayılmaz.</p>
@@ -736,7 +736,7 @@ export default function HaftalikCalismaSureleriPage() {
             <div className="flex flex-col md:flex-row gap-3 justify-center">
               <button
                 onClick={() => window.print()}
-                className="bg-stone-100 hover:bg-stone-200 text-stone-700 px-6 py-3 rounded-lg font-medium transition flex items-center justify-center gap-2"
+                className="bg-[#F7F7F7] hover:bg-[#E5E5E5] text-[#2F2F2F] px-6 py-3 rounded-lg font-medium transition flex items-center justify-center gap-2"
               >
                 🖨️ Yazdır / PDF
               </button>
@@ -757,7 +757,7 @@ export default function HaftalikCalismaSureleriPage() {
         ) : (
           <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
             <span className="text-5xl">📋</span>
-            <p className="text-stone-500 mt-4">Rapor oluşturmak için hafta seçin ve &quot;Sonuçları Getir&quot; butonuna tıklayın.</p>
+            <p className="text-[#8A8A8A] mt-4">Rapor oluşturmak için hafta seçin ve &quot;Sonuçları Getir&quot; butonuna tıklayın.</p>
           </div>
         )}
       </main>

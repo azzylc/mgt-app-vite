@@ -151,29 +151,29 @@ export default function IzinListesi() {
       case "Yıllık İzin":
         return "bg-blue-100 text-blue-800";
       case "Mazeret ve Diğer Ücretli İzinler":
-        return "bg-amber-100 text-amber-800";
+        return "bg-[#EAF2ED] text-[#2F2F2F]";
       case "Raporlu":
-        return "bg-red-100 text-red-800";
+        return "bg-[#D96C6C]/20 text-red-800";
       case "Ücretsiz İzin":
         return "bg-purple-100 text-purple-800";
       default:
-        return "bg-stone-100 text-stone-800";
+        return "bg-[#F7F7F7] text-[#2F2F2F]";
     }
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-white">
       <main className="flex-1 p-4 lg:p-6 ">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-xl font-bold text-stone-800">İzin Listesi</h1>
-          <p className="text-sm text-stone-500">
+          <h1 className="text-xl font-bold text-[#2F2F2F]">İzin Listesi</h1>
+          <p className="text-sm text-[#8A8A8A]">
             Bu sayfada kullanıcılarınıza izin tanımlayabilir / ekleyebilirsiniz.
           </p>
         </div>
 
         {/* Filters & Actions */}
-        <div className="bg-white rounded-lg shadow-sm border border-stone-100 p-4 mb-4">
+        <div className="bg-white rounded-lg shadow-sm border border-[#E5E5E5] p-4 mb-4">
           <div className="flex flex-wrap items-center gap-3">
             {/* Arama */}
             <div className="flex-1 min-w-[200px]">
@@ -182,7 +182,7 @@ export default function IzinListesi() {
                 placeholder="Ara... (İsim, Sicil No, Açıklama)"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                className="w-full px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
               />
             </div>
 
@@ -190,7 +190,7 @@ export default function IzinListesi() {
             <select
               value={filterTur}
               onChange={(e) => setFilterTur(e.target.value)}
-              className="px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+              className="px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
             >
               <option value="Tümü">Tümünde</option>
               <option value="Yıllık İzin">Yıllık İzin</option>
@@ -215,7 +215,7 @@ export default function IzinListesi() {
               </button>
               <button
                 onClick={() => window.print()}
-                className="px-4 py-2 bg-stone-100 text-stone-700 rounded-lg text-sm font-medium hover:bg-stone-200 transition-colors flex items-center gap-2"
+                className="px-4 py-2 bg-[#F7F7F7] text-[#2F2F2F] rounded-lg text-sm font-medium hover:bg-[#E5E5E5] transition-colors flex items-center gap-2"
               >
                 <span>🖨️</span>
                 <span>Yazdır</span>
@@ -225,27 +225,27 @@ export default function IzinListesi() {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-lg shadow-sm border border-stone-100 overflow-hidden">
+        <div className="bg-white rounded-lg shadow-sm border border-[#E5E5E5] overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-stone-50 border-b border-stone-100">
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-stone-600">#</th>
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-stone-600">Sicil No</th>
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-stone-600">Kullanıcı</th>
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-stone-600">İzin Türü</th>
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-stone-600">Başlangıç (Dahil)</th>
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-stone-600">Bitiş (Dahil)</th>
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-stone-600">Kısa Açıklama</th>
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-stone-600">Oluşturan Yönetici</th>
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-stone-600">Oluşturuldu</th>
-                  <th className="px-3 py-3 text-center text-xs font-semibold text-stone-600">İşlemler</th>
+                <tr className="bg-[#F7F7F7] border-b border-[#E5E5E5]">
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#2F2F2F]">#</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#2F2F2F]">Sicil No</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#2F2F2F]">Kullanıcı</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#2F2F2F]">İzin Türü</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#2F2F2F]">Başlangıç (Dahil)</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#2F2F2F]">Bitiş (Dahil)</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#2F2F2F]">Kısa Açıklama</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#2F2F2F]">Oluşturan Yönetici</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#2F2F2F]">Oluşturuldu</th>
+                  <th className="px-3 py-3 text-center text-xs font-semibold text-[#2F2F2F]">İşlemler</th>
                 </tr>
               </thead>
               <tbody>
                 {paginatedIzinler.length === 0 ? (
                   <tr>
-                    <td colSpan={10} className="px-3 py-8 text-center text-stone-500">
+                    <td colSpan={10} className="px-3 py-8 text-center text-[#8A8A8A]">
                       {izinler.length === 0
                         ? "Henüz izin kaydı bulunmuyor."
                         : "Aramanızla eşleşen izin kaydı bulunamadı."}
@@ -255,15 +255,15 @@ export default function IzinListesi() {
                   paginatedIzinler.map((izin, index) => (
                     <tr
                       key={izin.id}
-                      className="border-b border-stone-50 hover:bg-stone-50/50 transition-colors"
+                      className="border-b border-[#E5E5E5]/50 hover:bg-[#F7F7F7] transition-colors"
                     >
-                      <td className="px-3 py-3 text-sm text-stone-500">
+                      <td className="px-3 py-3 text-sm text-[#8A8A8A]">
                         {startIndex + index + 1}
                       </td>
-                      <td className="px-3 py-3 text-sm text-stone-800 font-medium">
+                      <td className="px-3 py-3 text-sm text-[#2F2F2F] font-medium">
                         {izin.sicilNo || "-"}
                       </td>
-                      <td className="px-3 py-3 text-sm text-stone-800">
+                      <td className="px-3 py-3 text-sm text-[#2F2F2F]">
                         {izin.personelAd} {izin.personelSoyad}
                       </td>
                       <td className="px-3 py-3">
@@ -271,40 +271,40 @@ export default function IzinListesi() {
                           {izin.izinTuru}
                         </span>
                       </td>
-                      <td className="px-3 py-3 text-sm text-stone-600">
+                      <td className="px-3 py-3 text-sm text-[#2F2F2F]">
                         {formatDate(izin.baslangic)}
                       </td>
-                      <td className="px-3 py-3 text-sm text-stone-600">
+                      <td className="px-3 py-3 text-sm text-[#2F2F2F]">
                         {formatDate(izin.bitis)}
                       </td>
-                      <td className="px-3 py-3 text-sm text-stone-600 max-w-[150px] truncate">
+                      <td className="px-3 py-3 text-sm text-[#2F2F2F] max-w-[150px] truncate">
                         {izin.aciklama || "-"}
                       </td>
-                      <td className="px-3 py-3 text-sm text-stone-600">
+                      <td className="px-3 py-3 text-sm text-[#2F2F2F]">
                         {izin.olusturanYonetici || "-"}
                       </td>
-                      <td className="px-3 py-3 text-sm text-stone-500">
+                      <td className="px-3 py-3 text-sm text-[#8A8A8A]">
                         {formatDateTime(izin.olusturulmaTarihi)}
                       </td>
                       <td className="px-3 py-3">
                         <div className="flex items-center justify-center gap-1">
                           <button
                             onClick={() => window.print()}
-                            className="p-1.5 text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded transition-colors"
+                            className="p-1.5 text-[#8A8A8A] hover:text-[#2F2F2F] hover:bg-[#F7F7F7] rounded transition-colors"
                             title="Yazdır"
                           >
                             🖨️
                           </button>
                           <button
                             onClick={() => handleDelete(izin.id)}
-                            className="p-1.5 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                            className="p-1.5 text-[#8A8A8A] hover:text-[#D96C6C] hover:bg-[#D96C6C]/10 rounded transition-colors"
                             title="Sil"
                           >
                             🗑️
                           </button>
                           <button
                             onClick={() => setSelectedIzin(izin)}
-                            className="p-1.5 text-stone-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            className="p-1.5 text-[#8A8A8A] hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
                             title="Görüntüle"
                           >
                             🔍
@@ -313,7 +313,7 @@ export default function IzinListesi() {
                             onClick={() => {
                               navigate(`/izinler/${izin.id}/duzenle`);
                             }}
-                            className="p-1.5 text-stone-400 hover:text-amber-600 hover:bg-amber-50 rounded transition-colors"
+                            className="p-1.5 text-[#8A8A8A] hover:text-[#8FAF9A] hover:bg-[#EAF2ED] rounded transition-colors"
                             title="Düzenle"
                           >
                             ✏️
@@ -329,7 +329,7 @@ export default function IzinListesi() {
 
           {/* Pagination */}
           {filteredIzinler.length > 0 && (
-            <div className="px-4 py-3 border-t border-stone-100 flex items-center justify-between">
+            <div className="px-4 py-3 border-t border-[#E5E5E5] flex items-center justify-between">
               {/* Items per page */}
               <div className="flex items-center gap-2">
                 {[25, 50, 75, 100].map((num) => (
@@ -342,7 +342,7 @@ export default function IzinListesi() {
                     className={`px-3 py-1 text-sm rounded ${
                       itemsPerPage === num
                         ? "bg-primary-500 text-white"
-                        : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                        : "bg-[#F7F7F7] text-[#2F2F2F] hover:bg-[#E5E5E5]"
                     }`}
                   >
                     {num}
@@ -359,7 +359,7 @@ export default function IzinListesi() {
                     className={`px-3 py-1 text-sm rounded ${
                       currentPage === page
                         ? "bg-primary-500 text-white"
-                        : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                        : "bg-[#F7F7F7] text-[#2F2F2F] hover:bg-[#E5E5E5]"
                     }`}
                   >
                     {page}
@@ -367,13 +367,13 @@ export default function IzinListesi() {
                 ))}
                 {totalPages > 5 && (
                   <>
-                    <span className="px-2 text-stone-400">...</span>
+                    <span className="px-2 text-[#8A8A8A]">...</span>
                     <button
                       onClick={() => setCurrentPage(totalPages)}
                       className={`px-3 py-1 text-sm rounded ${
                         currentPage === totalPages
                           ? "bg-primary-500 text-white"
-                          : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                          : "bg-[#F7F7F7] text-[#2F2F2F] hover:bg-[#E5E5E5]"
                       }`}
                     >
                       {totalPages}
@@ -383,7 +383,7 @@ export default function IzinListesi() {
               </div>
 
               {/* Info */}
-              <div className="text-sm text-stone-500">
+              <div className="text-sm text-[#8A8A8A]">
                 Toplam {filteredIzinler.length} kayıt
               </div>
             </div>
@@ -402,11 +402,11 @@ export default function IzinListesi() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-stone-100">
-              <h2 className="text-lg font-bold text-stone-800">İzin Detayı</h2>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[#E5E5E5]">
+              <h2 className="text-lg font-bold text-[#2F2F2F]">İzin Detayı</h2>
               <button
                 onClick={() => setSelectedIzin(null)}
-                className="p-1.5 text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-lg transition-colors"
+                className="p-1.5 text-[#8A8A8A] hover:text-[#2F2F2F] hover:bg-[#F7F7F7] rounded-lg transition-colors"
               >
                 ✕
               </button>
@@ -416,12 +416,12 @@ export default function IzinListesi() {
             <div className="px-5 py-4 space-y-4">
               {/* İzin Türü Badge */}
               <div className="flex items-center gap-3">
-                <span className="text-sm text-stone-500">İzin Türü:</span>
+                <span className="text-sm text-[#8A8A8A]">İzin Türü:</span>
                 <span className={`inline-block px-3 py-1 text-sm font-semibold rounded-full ${getIzinTuruClass(selectedIzin.izinTuru)}`}>
                   {selectedIzin.izinTuru}
                 </span>
                 {selectedIzin.kaynak === "puantaj" && (
-                  <span className="inline-block px-2 py-0.5 text-xs font-medium rounded bg-stone-100 text-stone-500">
+                  <span className="inline-block px-2 py-0.5 text-xs font-medium rounded bg-[#F7F7F7] text-[#8A8A8A]">
                     Puantajdan
                   </span>
                 )}
@@ -429,24 +429,24 @@ export default function IzinListesi() {
 
               {/* Bilgi Satırları */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="bg-stone-50 rounded-lg px-4 py-3">
-                  <span className="text-xs text-stone-400 block mb-1">Personel</span>
-                  <span className="text-sm font-medium text-stone-800">{selectedIzin.personelAd} {selectedIzin.personelSoyad}</span>
+                <div className="bg-[#F7F7F7] rounded-lg px-4 py-3">
+                  <span className="text-xs text-[#8A8A8A] block mb-1">Personel</span>
+                  <span className="text-sm font-medium text-[#2F2F2F]">{selectedIzin.personelAd} {selectedIzin.personelSoyad}</span>
                 </div>
-                <div className="bg-stone-50 rounded-lg px-4 py-3">
-                  <span className="text-xs text-stone-400 block mb-1">Sicil No</span>
-                  <span className="text-sm font-medium text-stone-800">{selectedIzin.sicilNo || "-"}</span>
+                <div className="bg-[#F7F7F7] rounded-lg px-4 py-3">
+                  <span className="text-xs text-[#8A8A8A] block mb-1">Sicil No</span>
+                  <span className="text-sm font-medium text-[#2F2F2F]">{selectedIzin.sicilNo || "-"}</span>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="bg-stone-50 rounded-lg px-4 py-3">
-                  <span className="text-xs text-stone-400 block mb-1">Başlangıç</span>
-                  <span className="text-sm font-medium text-stone-800">{formatDate(selectedIzin.baslangic)}</span>
+                <div className="bg-[#F7F7F7] rounded-lg px-4 py-3">
+                  <span className="text-xs text-[#8A8A8A] block mb-1">Başlangıç</span>
+                  <span className="text-sm font-medium text-[#2F2F2F]">{formatDate(selectedIzin.baslangic)}</span>
                 </div>
-                <div className="bg-stone-50 rounded-lg px-4 py-3">
-                  <span className="text-xs text-stone-400 block mb-1">Bitiş</span>
-                  <span className="text-sm font-medium text-stone-800">{formatDate(selectedIzin.bitis)}</span>
+                <div className="bg-[#F7F7F7] rounded-lg px-4 py-3">
+                  <span className="text-xs text-[#8A8A8A] block mb-1">Bitiş</span>
+                  <span className="text-sm font-medium text-[#2F2F2F]">{formatDate(selectedIzin.bitis)}</span>
                 </div>
               </div>
 
@@ -458,43 +458,43 @@ export default function IzinListesi() {
               )}
 
               {selectedIzin.aciklama && (
-                <div className="bg-stone-50 rounded-lg px-4 py-3">
-                  <span className="text-xs text-stone-400 block mb-1">Açıklama</span>
-                  <span className="text-sm text-stone-800">{selectedIzin.aciklama}</span>
+                <div className="bg-[#F7F7F7] rounded-lg px-4 py-3">
+                  <span className="text-xs text-[#8A8A8A] block mb-1">Açıklama</span>
+                  <span className="text-sm text-[#2F2F2F]">{selectedIzin.aciklama}</span>
                 </div>
               )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="bg-stone-50 rounded-lg px-4 py-3">
-                  <span className="text-xs text-stone-400 block mb-1">Oluşturan Yönetici</span>
-                  <span className="text-sm font-medium text-stone-800">{selectedIzin.olusturanYonetici || "-"}</span>
+                <div className="bg-[#F7F7F7] rounded-lg px-4 py-3">
+                  <span className="text-xs text-[#8A8A8A] block mb-1">Oluşturan Yönetici</span>
+                  <span className="text-sm font-medium text-[#2F2F2F]">{selectedIzin.olusturanYonetici || "-"}</span>
                 </div>
-                <div className="bg-stone-50 rounded-lg px-4 py-3">
-                  <span className="text-xs text-stone-400 block mb-1">Oluşturulma Tarihi</span>
-                  <span className="text-sm font-medium text-stone-800">{formatDateTime(selectedIzin.olusturulmaTarihi)}</span>
+                <div className="bg-[#F7F7F7] rounded-lg px-4 py-3">
+                  <span className="text-xs text-[#8A8A8A] block mb-1">Oluşturulma Tarihi</span>
+                  <span className="text-sm font-medium text-[#2F2F2F]">{formatDateTime(selectedIzin.olusturulmaTarihi)}</span>
                 </div>
               </div>
 
-              <div className="text-xs text-stone-300 text-right">
+              <div className="text-xs text-[#8A8A8A] text-right">
                 Kayıt ID: {selectedIzin.id}
               </div>
             </div>
 
             {/* Modal Footer */}
-            <div className="px-5 py-3 border-t border-stone-100 flex items-center justify-between">
+            <div className="px-5 py-3 border-t border-[#E5E5E5] flex items-center justify-between">
               <button
                 onClick={() => {
                   setSelectedIzin(null);
                   navigate(`/izinler/${selectedIzin.id}/duzenle`);
                 }}
-                className="px-4 py-2 bg-amber-50 text-amber-700 rounded-lg text-sm font-medium hover:bg-amber-100 transition-colors flex items-center gap-2"
+                className="px-4 py-2 bg-[#EAF2ED] text-[#2F2F2F] rounded-lg text-sm font-medium hover:bg-[#EAF2ED] transition-colors flex items-center gap-2"
               >
                 <span>✏️</span>
                 <span>Düzenle</span>
               </button>
               <button
                 onClick={() => setSelectedIzin(null)}
-                className="px-4 py-2 bg-stone-100 text-stone-700 rounded-lg text-sm font-medium hover:bg-stone-200 transition-colors"
+                className="px-4 py-2 bg-[#F7F7F7] text-[#2F2F2F] rounded-lg text-sm font-medium hover:bg-[#E5E5E5] transition-colors"
               >
                 Kapat
               </button>

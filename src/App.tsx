@@ -77,10 +77,10 @@ const TaleplerMerkezi = lazyWithRetry(() => import('./pages/TaleplerMerkezi'))
 // Sayfa yüklenirken gösterilecek loading spinner
 function PageLoader() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="min-h-screen flex items-center justify-center bg-white">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-amber-400 mx-auto"></div>
-        <p className="mt-3 text-stone-500 text-sm">Yükleniyor...</p>
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#8FAF9A] mx-auto"></div>
+        <p className="mt-3 text-[#8A8A8A] text-sm">Yükleniyor...</p>
       </div>
     </div>
   )
@@ -88,7 +88,7 @@ function PageLoader() {
 
 export default function App() {
   return (
-    <Sentry.ErrorBoundary fallback={<div className="min-h-screen flex items-center justify-center bg-white"><div className="text-center"><p className="text-2xl mb-2">😵</p><p className="text-stone-600 font-medium">Bir hata oluştu</p><button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 bg-rose-500 text-white rounded-lg text-sm">Yenile</button></div></div>}>
+    <Sentry.ErrorBoundary fallback={<div className="min-h-screen flex items-center justify-center bg-white"><div className="text-center"><p className="text-2xl mb-2">😵</p><p className="text-[#2F2F2F] font-medium">Bir hata oluştu</p><button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 bg-rose-500 text-white rounded-lg text-sm">Yenile</button></div></div>}>
       <HashRouter>
         <RoleProvider>
           <Suspense fallback={<PageLoader />}>

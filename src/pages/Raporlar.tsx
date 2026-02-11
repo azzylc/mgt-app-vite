@@ -55,18 +55,18 @@ export default function RaporlarPage() {
   }));
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-white">
       <div>
         <header className="bg-white border-b px-6 py-4 sticky top-0 z-30">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold text-stone-800">📊 Raporlar</h1>
-              <p className="text-sm text-stone-500">Aylık istatistikler ve analizler</p>
+              <h1 className="text-xl font-bold text-[#2F2F2F]">📊 Raporlar</h1>
+              <p className="text-sm text-[#8A8A8A]">Aylık istatistikler ve analizler</p>
             </div>
             <select
               value={selectedAy}
               onChange={(e) => setSelectedAy(e.target.value)}
-              className="px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white"
+              className="px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white"
             >
               {aylar.map(ay => <option key={ay.value} value={ay.value}>{ay.label}</option>)}
             </select>
@@ -76,50 +76,50 @@ export default function RaporlarPage() {
         <main className="p-4 md:p-6">
           {/* Özet Kartları */}
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-            <div className="bg-white p-4 rounded-lg shadow-sm border border-stone-100">
-              <p className="text-stone-500 text-xs">Toplam Gelin</p>
+            <div className="bg-white p-4 rounded-lg shadow-sm border border-[#E5E5E5]">
+              <p className="text-[#8A8A8A] text-xs">Toplam Gelin</p>
               <p className="text-3xl font-bold text-rose-600">{ayGelinler.length}</p>
             </div>
-            <div className="bg-white p-4 rounded-lg shadow-sm border border-stone-100">
-              <p className="text-stone-500 text-xs">Toplam Ciro</p>
+            <div className="bg-white p-4 rounded-lg shadow-sm border border-[#E5E5E5]">
+              <p className="text-[#8A8A8A] text-xs">Toplam Ciro</p>
               <p className="text-2xl font-bold text-blue-600">{toplamUcret.toLocaleString('tr-TR')} ₺</p>
             </div>
-            <div className="bg-white p-4 rounded-lg shadow-sm border border-stone-100">
-              <p className="text-stone-500 text-xs">Alınan Kapora</p>
-              <p className="text-2xl font-bold text-green-600">{toplamKapora.toLocaleString('tr-TR')} ₺</p>
+            <div className="bg-white p-4 rounded-lg shadow-sm border border-[#E5E5E5]">
+              <p className="text-[#8A8A8A] text-xs">Alınan Kapora</p>
+              <p className="text-2xl font-bold text-[#8FAF9A]">{toplamKapora.toLocaleString('tr-TR')} ₺</p>
             </div>
-            <div className="bg-white p-4 rounded-lg shadow-sm border border-stone-100">
-              <p className="text-stone-500 text-xs">Kalan Bakiye</p>
-              <p className="text-2xl font-bold text-red-600">{toplamKalan.toLocaleString('tr-TR')} ₺</p>
+            <div className="bg-white p-4 rounded-lg shadow-sm border border-[#E5E5E5]">
+              <p className="text-[#8A8A8A] text-xs">Kalan Bakiye</p>
+              <p className="text-2xl font-bold text-[#D96C6C]">{toplamKalan.toLocaleString('tr-TR')} ₺</p>
             </div>
-            <div className="bg-white p-4 rounded-lg shadow-sm border border-stone-100">
-              <p className="text-stone-500 text-xs">İşlenmemiş</p>
-              <p className="text-3xl font-bold text-stone-400">{islenmemis}</p>
+            <div className="bg-white p-4 rounded-lg shadow-sm border border-[#E5E5E5]">
+              <p className="text-[#8A8A8A] text-xs">İşlenmemiş</p>
+              <p className="text-3xl font-bold text-[#8A8A8A]">{islenmemis}</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Personel Performans */}
-            <div className="bg-white rounded-lg shadow-sm border border-stone-100 overflow-hidden">
-              <div className="px-4 py-3 border-b border-stone-100">
-                <h2 className="font-semibold text-stone-800">👥 Personel Performansı</h2>
+            <div className="bg-white rounded-lg shadow-sm border border-[#E5E5E5] overflow-hidden">
+              <div className="px-4 py-3 border-b border-[#E5E5E5]">
+                <h2 className="font-semibold text-[#2F2F2F]">👥 Personel Performansı</h2>
               </div>
               <div className="p-4">
                 <div className="space-y-3">
                   {personelRapor.map((p, index) => (
                     <div key={p.id} className="flex items-center gap-3">
-                      <span className="text-stone-400 text-sm w-6">{index + 1}.</span>
+                      <span className="text-[#8A8A8A] text-sm w-6">{index + 1}.</span>
                       <span className="text-xl">{p.emoji}</span>
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
-                          <span className="font-medium text-stone-800">{p.isim}</span>
+                          <span className="font-medium text-[#2F2F2F]">{p.isim}</span>
                           <span className="font-bold text-rose-600">{p.toplam}</span>
                         </div>
                         <div className="flex gap-2 mt-1">
                           <span className="text-xs text-rose-500">Makyaj: {p.makyaj}</span>
                           <span className="text-xs text-purple-500">Türban: {p.turban}</span>
                         </div>
-                        <div className="w-full bg-stone-100 rounded-full h-2 mt-1">
+                        <div className="w-full bg-[#F7F7F7] rounded-full h-2 mt-1">
                           <div 
                             className="bg-gradient-to-r from-rose-400 to-purple-400 h-2 rounded-full"
                             style={{ width: `${Math.min((p.toplam / Math.max(...personelRapor.map(x => x.toplam))) * 100, 100)}%` }}
@@ -133,17 +133,17 @@ export default function RaporlarPage() {
             </div>
 
             {/* Gün Dağılımı */}
-            <div className="bg-white rounded-lg shadow-sm border border-stone-100 overflow-hidden">
-              <div className="px-4 py-3 border-b border-stone-100">
-                <h2 className="font-semibold text-stone-800">📅 Haftalık Dağılım</h2>
+            <div className="bg-white rounded-lg shadow-sm border border-[#E5E5E5] overflow-hidden">
+              <div className="px-4 py-3 border-b border-[#E5E5E5]">
+                <h2 className="font-semibold text-[#2F2F2F]">📅 Haftalık Dağılım</h2>
               </div>
               <div className="p-4">
                 <div className="space-y-3">
                   {gunDagilimi.map((gun) => (
                     <div key={gun.gun} className="flex items-center gap-3">
-                      <span className="text-sm text-stone-600 w-24">{gun.gun}</span>
+                      <span className="text-sm text-[#2F2F2F] w-24">{gun.gun}</span>
                       <div className="flex-1">
-                        <div className="w-full bg-stone-100 rounded-full h-6 relative">
+                        <div className="w-full bg-[#F7F7F7] rounded-full h-6 relative">
                           <div 
                             className="bg-gradient-to-r from-blue-400 to-blue-500 h-6 rounded-full flex items-center justify-end pr-2"
                             style={{ width: `${Math.max((gun.sayi / Math.max(...gunDagilimi.map(x => x.sayi))) * 100, 10)}%` }}
@@ -160,32 +160,32 @@ export default function RaporlarPage() {
           </div>
 
           {/* Ortalamalar */}
-          <div className="mt-6 bg-white rounded-lg shadow-sm border border-stone-100 p-6">
-            <h2 className="font-semibold text-stone-800 mb-4">📈 Ortalamalar</h2>
+          <div className="mt-6 bg-white rounded-lg shadow-sm border border-[#E5E5E5] p-6">
+            <h2 className="font-semibold text-[#2F2F2F] mb-4">📈 Ortalamalar</h2>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="text-center">
                 <p className="text-3xl font-bold text-rose-600">
                   {ayGelinler.length > 0 ? (ayGelinler.length / 30).toFixed(1) : 0}
                 </p>
-                <p className="text-stone-500 text-sm">Günlük Ortalama</p>
+                <p className="text-[#8A8A8A] text-sm">Günlük Ortalama</p>
               </div>
               <div className="text-center">
                 <p className="text-3xl font-bold text-blue-600">
                   {ayGelinler.length > 0 ? Math.round(toplamUcret / ayGelinler.length).toLocaleString('tr-TR') : 0} ₺
                 </p>
-                <p className="text-stone-500 text-sm">Ortalama Ücret</p>
+                <p className="text-[#8A8A8A] text-sm">Ortalama Ücret</p>
               </div>
               <div className="text-center">
-                <p className="text-3xl font-bold text-green-600">
+                <p className="text-3xl font-bold text-[#8FAF9A]">
                   {ayGelinler.length > 0 ? Math.round(toplamKapora / ayGelinler.length).toLocaleString('tr-TR') : 0} ₺
                 </p>
-                <p className="text-stone-500 text-sm">Ortalama Kapora</p>
+                <p className="text-[#8A8A8A] text-sm">Ortalama Kapora</p>
               </div>
               <div className="text-center">
                 <p className="text-3xl font-bold text-purple-600">
                   {toplamUcret > 0 ? Math.round((toplamKapora / toplamUcret) * 100) : 0}%
                 </p>
-                <p className="text-stone-500 text-sm">Kapora Oranı</p>
+                <p className="text-[#8A8A8A] text-sm">Kapora Oranı</p>
               </div>
             </div>
           </div>

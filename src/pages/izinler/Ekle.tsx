@@ -361,13 +361,13 @@ export default function IzinEkle() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-white">
       <main className="flex-1 p-4 lg:p-6 ">
         {/* Header */}
         <div className="mb-6 flex items-start justify-between">
           <div>
-            <h1 className="text-xl font-bold text-stone-800">İzin Ekle</h1>
-            <p className="text-sm text-stone-500">
+            <h1 className="text-xl font-bold text-[#2F2F2F]">İzin Ekle</h1>
+            <p className="text-sm text-[#8A8A8A]">
               Bu sayfada kullanıcılarınıza izin tanımlayabilir / ekleyebilirsiniz.
             </p>
           </div>
@@ -401,9 +401,9 @@ export default function IzinEkle() {
         </div>
 
         {/* Form Card */}
-        <div className="bg-white rounded-lg shadow-sm border border-stone-100" onKeyDown={handleKeyDown}>
+        <div className="bg-white rounded-lg shadow-sm border border-[#E5E5E5]" onKeyDown={handleKeyDown}>
           {/* Tab Header */}
-          <div className="border-b border-stone-100 px-6 pt-4">
+          <div className="border-b border-[#E5E5E5] px-6 pt-4">
             <div className="inline-block">
               <span className="text-primary-500 font-medium text-sm pb-3 block border-b-2 border-primary-500">
                 Genel
@@ -415,13 +415,13 @@ export default function IzinEkle() {
           <div className="p-4 md:p-6 space-y-6">
             {/* Kullanıcı */}
             <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
-              <label className="text-sm font-medium text-stone-700">
-                Kullanıcı <span className="text-red-500">(*)</span>
+              <label className="text-sm font-medium text-[#2F2F2F]">
+                Kullanıcı <span className="text-[#D96C6C]">(*)</span>
               </label>
               <select
                 value={selectedPersonel}
                 onChange={(e) => setSelectedPersonel(e.target.value)}
-                className="w-full max-w-md px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                className="w-full max-w-md px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
               >
                 <option value="">- Seçiniz -</option>
                 {personeller.map((personel) => (
@@ -434,8 +434,8 @@ export default function IzinEkle() {
 
             {/* İzin Türü */}
             <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
-              <label className="text-sm font-medium text-stone-700">
-                İzin Türü <span className="text-red-500">(*)</span>
+              <label className="text-sm font-medium text-[#2F2F2F]">
+                İzin Türü <span className="text-[#D96C6C]">(*)</span>
               </label>
               <select
                 value={izinTuru}
@@ -445,7 +445,7 @@ export default function IzinEkle() {
                   setDilekceDosya(null); setDilekceDriveUrl(null); setDilekceDriveFileId(null); setDilekceTeslimKisi('');
                   setRaporDosya(null); setRaporDriveUrl(null); setRaporDriveFileId(null); setRaporTeslimKisi('');
                 }}
-                className="w-full max-w-md px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                className="w-full max-w-md px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
               >
                 <option value="Yıllık İzin">Yıllık İzin</option>
                 <option value="Haftalık İzin">Haftalık İzin</option>
@@ -457,37 +457,37 @@ export default function IzinEkle() {
 
             {/* Başlangıç */}
             <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
-              <label className="text-sm font-medium text-stone-700">
-                Başlangıç (Dahil) <span className="text-red-500">(*)</span>
-                <span className="block text-xs text-stone-400 font-normal">İzin başlangıç günü dahildir</span>
+              <label className="text-sm font-medium text-[#2F2F2F]">
+                Başlangıç (Dahil) <span className="text-[#D96C6C]">(*)</span>
+                <span className="block text-xs text-[#8A8A8A] font-normal">İzin başlangıç günü dahildir</span>
               </label>
               <input
                 type="date" min="2020-01-01" max="2099-12-31"
                 value={baslangic}
                 onChange={(e) => setBaslangic(e.target.value)}
-                className="w-full max-w-md px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                className="w-full max-w-md px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
               />
             </div>
 
             {/* Bitiş */}
             <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
-              <label className="text-sm font-medium text-stone-700">
+              <label className="text-sm font-medium text-[#2F2F2F]">
                 Bitiş (Dahil)
-                <span className="block text-xs text-stone-400 font-normal">İzin bitiş günü dahildir</span>
+                <span className="block text-xs text-[#8A8A8A] font-normal">İzin bitiş günü dahildir</span>
               </label>
               <input
                 type="date" min="2020-01-01" max="2099-12-31"
                 value={bitis}
                 onChange={(e) => setBitis(e.target.value)}
-                className="w-full max-w-md px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                className="w-full max-w-md px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
               />
             </div>
 
             {/* Gün Sayısı Gösterimi */}
             {baslangic && bitis && (
               <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
-                <label className="text-sm font-medium text-stone-700">Toplam Gün</label>
-                <div className="px-3 py-2 bg-stone-50 rounded-lg text-sm font-semibold text-primary-600 w-fit">
+                <label className="text-sm font-medium text-[#2F2F2F]">Toplam Gün</label>
+                <div className="px-3 py-2 bg-[#F7F7F7] rounded-lg text-sm font-semibold text-primary-600 w-fit">
                   {hesaplaGunSayisi()} gün
                 </div>
               </div>
@@ -496,52 +496,52 @@ export default function IzinEkle() {
             {/* Yıllık İzin Ön Koşulları */}
             {izinTuru === "Yıllık İzin" && (
               <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-start gap-4">
-                <label className="text-sm font-medium text-stone-700 pt-1">
-                  Ön Koşullar <span className="text-red-500">(*)</span>
+                <label className="text-sm font-medium text-[#2F2F2F] pt-1">
+                  Ön Koşullar <span className="text-[#D96C6C]">(*)</span>
                 </label>
-                <div className="bg-amber-50/60 border border-amber-200/60 rounded-xl p-4 max-w-lg">
+                <div className="bg-[#EAF2ED]/60 border border-[#8FAF9A]/30/60 rounded-xl p-4 max-w-lg">
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="text-amber-500 text-sm">⚠️</span>
-                    <p className="text-xs font-semibold text-amber-700">Yıllık izin ekleyebilmek için aşağıdaki koşulların sağlanması zorunludur.</p>
+                    <span className="text-[#E6B566] text-sm">⚠️</span>
+                    <p className="text-xs font-semibold text-[#2F2F2F]">Yıllık izin ekleyebilmek için aşağıdaki koşulların sağlanması zorunludur.</p>
                   </div>
                   <div className="space-y-3">
                     {/* 1. WhatsApp onay */}
                     <label className="flex items-start gap-3 cursor-pointer group">
                       <input type="checkbox" checked={whatsappOnay} onChange={(e) => setWhatsappOnay(e.target.checked)}
-                        className="mt-0.5 w-4 h-4 text-primary-500 rounded border-stone-300 focus:ring-primary-500 shrink-0" />
-                      <span className={`text-sm leading-snug transition-colors ${whatsappOnay ? 'text-stone-800' : 'text-stone-500 group-hover:text-stone-700'}`}>
+                        className="mt-0.5 w-4 h-4 text-primary-500 rounded border-[#E5E5E5] focus:ring-primary-500 shrink-0" />
+                      <span className={`text-sm leading-snug transition-colors ${whatsappOnay ? 'text-[#2F2F2F]' : 'text-[#8A8A8A] group-hover:text-[#2F2F2F]'}`}>
                         Personelden <strong>WhatsApp üzerinden</strong> izin için uygunluk onayı alındı.
                       </span>
                     </label>
                     {/* 2. Dilekçe: Fotoğraf yükle VEYA teslim dropdown */}
-                    <div className="bg-white/50 rounded-lg p-3 border border-amber-100/60">
-                      <p className="text-[11px] font-semibold text-stone-700 mb-2">📝 Yıllık izin dilekçesi</p>
+                    <div className="bg-white/50 rounded-lg p-3 border border-[#EAF2ED]/60">
+                      <p className="text-[11px] font-semibold text-[#2F2F2F] mb-2">📝 Yıllık izin dilekçesi</p>
                       {/* Seçenek 1: Fotoğraf yükle */}
-                      <div className="bg-white/70 rounded-lg p-3 border border-amber-100/60 mb-2">
-                        <p className="text-[11px] font-semibold text-stone-700 mb-2">📸 Seçenek 1: Dilekçe fotoğrafını yükle</p>
+                      <div className="bg-white/70 rounded-lg p-3 border border-[#EAF2ED]/60 mb-2">
+                        <p className="text-[11px] font-semibold text-[#2F2F2F] mb-2">📸 Seçenek 1: Dilekçe fotoğrafını yükle</p>
                         <input type="file" accept="image/*,application/pdf" className="hidden" ref={dilekceInputRef}
                           onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; await handleDilekceYukle(file); e.target.value = ""; }} />
                         {!dilekceDosya && !dilekceDriveUrl && (
                           <button type="button" onClick={() => dilekceInputRef.current?.click()} disabled={dilekceYukleniyor}
-                            className="w-full py-2 border-2 border-dashed border-amber-200 rounded-lg text-xs text-amber-600 hover:bg-amber-50 transition disabled:opacity-50">
+                            className="w-full py-2 border-2 border-dashed border-[#8FAF9A]/30 rounded-lg text-xs text-[#8FAF9A] hover:bg-[#EAF2ED] transition disabled:opacity-50">
                             {dilekceYukleniyor ? "⏳ Yükleniyor..." : "📎 Dilekçe fotoğrafı seç"}
                           </button>
                         )}
                         {dilekceDosya && (
                           <div className="relative">
                             {dilekceDosyaMime !== "application/pdf" && (
-                              <img src={dilekceDosya} alt="Dilekçe" className="w-full max-h-40 object-contain rounded-lg border border-stone-200/60" />
+                              <img src={dilekceDosya} alt="Dilekçe" className="w-full max-h-40 object-contain rounded-lg border border-[#E5E5E5]/60" />
                             )}
                             {dilekceDosyaMime === "application/pdf" && (
-                              <div className="flex items-center gap-2 bg-stone-50 rounded-lg p-2 border border-stone-200/60">
-                                <span className="text-lg">📄</span><span className="text-xs text-stone-600">PDF yüklendi</span>
+                              <div className="flex items-center gap-2 bg-[#F7F7F7] rounded-lg p-2 border border-[#E5E5E5]/60">
+                                <span className="text-lg">📄</span><span className="text-xs text-[#2F2F2F]">PDF yüklendi</span>
                               </div>
                             )}
                             <div className="flex items-center justify-between mt-1.5">
                               {dilekceDriveUrl
-                                ? <span className="text-[10px] text-green-600 font-medium">✅ Drive'a yüklendi</span>
-                                : <span className="text-[10px] text-amber-500">⏳ Yükleniyor...</span>}
-                              <button type="button" className="text-[10px] text-red-400 hover:text-red-600"
+                                ? <span className="text-[10px] text-[#8FAF9A] font-medium">✅ Drive'a yüklendi</span>
+                                : <span className="text-[10px] text-[#E6B566]">⏳ Yükleniyor...</span>}
+                              <button type="button" className="text-[10px] text-[#D96C6C] hover:text-[#D96C6C]"
                                 onClick={() => { setDilekceDosya(null); setDilekceDriveUrl(null); setDilekceDriveFileId(null); }}>Kaldır</button>
                             </div>
                           </div>
@@ -549,32 +549,32 @@ export default function IzinEkle() {
                       </div>
                       {/* Ayırıcı */}
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 border-t border-amber-200/60" />
-                        <span className="text-[10px] text-amber-400 font-medium">VEYA</span>
-                        <div className="flex-1 border-t border-amber-200/60" />
+                        <div className="flex-1 border-t border-[#8FAF9A]/30/60" />
+                        <span className="text-[10px] text-[#E6B566] font-medium">VEYA</span>
+                        <div className="flex-1 border-t border-[#8FAF9A]/30/60" />
                       </div>
                       {/* Seçenek 2: Teslim dropdown */}
-                      <div className="bg-white/70 rounded-lg p-3 border border-amber-100/60 mt-2">
-                        <p className="text-[11px] font-semibold text-stone-700 mb-2">📋 Seçenek 2: Fiziksel dilekçe teslimi</p>
+                      <div className="bg-white/70 rounded-lg p-3 border border-[#EAF2ED]/60 mt-2">
+                        <p className="text-[11px] font-semibold text-[#2F2F2F] mb-2">📋 Seçenek 2: Fiziksel dilekçe teslimi</p>
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-sm text-stone-600">Dilekçe</span>
+                          <span className="text-sm text-[#2F2F2F]">Dilekçe</span>
                           <select value={dilekceTeslimKisi} onChange={(e) => setDilekceTeslimKisi(e.target.value)}
-                            className="flex-1 min-w-[140px] px-2.5 py-1.5 border border-stone-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400">
+                            className="flex-1 min-w-[140px] px-2.5 py-1.5 border border-[#E5E5E5] rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#8FAF9A]/40 focus:border-[#8FAF9A]">
                             <option value="">Kişi seçin...</option>
                             {yoneticiler.map(y => (<option key={y.id} value={`${y.ad} ${y.soyad}`}>{y.ad} {y.soyad}</option>))}
                           </select>
-                          <span className="text-sm text-stone-600">masasına teslim edildi.</span>
+                          <span className="text-sm text-[#2F2F2F]">masasına teslim edildi.</span>
                         </div>
                       </div>
                     </div>
                   </div>
                   {(!whatsappOnay || (!dilekceDriveUrl && !dilekceTeslimKisi)) && (
-                    <p className="mt-3 pt-3 border-t border-amber-200/40 text-[11px] text-amber-600/80">
+                    <p className="mt-3 pt-3 border-t border-[#8FAF9A]/30/40 text-[11px] text-[#8FAF9A]/80">
                       🔒 WhatsApp onayı ve dilekçe teslimi/yüklemesi sağlanmadan izin kaydedilemez.
                     </p>
                   )}
                   {whatsappOnay && (!!dilekceDriveUrl || !!dilekceTeslimKisi) && (
-                    <p className="mt-3 pt-3 border-t border-green-200/40 text-[11px] text-green-600">
+                    <p className="mt-3 pt-3 border-t border-green-200/40 text-[11px] text-[#8FAF9A]">
                       ✅ Tüm koşullar sağlandı. İzin kaydedilebilir.
                     </p>
                   )}
@@ -585,31 +585,31 @@ export default function IzinEkle() {
             {/* Raporlu İzin Koşulları */}
             {izinTuru === "Raporlu" && (
               <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-start gap-4">
-                <label className="text-sm font-medium text-stone-700 pt-2">
+                <label className="text-sm font-medium text-[#2F2F2F] pt-2">
                   Rapor Belgesi
                 </label>
-                <div className="bg-amber-50/60 border border-amber-200/60 rounded-xl p-4">
+                <div className="bg-[#EAF2ED]/60 border border-[#8FAF9A]/30/60 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="text-amber-500 text-sm">🏥</span>
-                    <p className="text-xs font-semibold text-amber-700">Raporlu izin için aşağıdakilerden en az birini yapın.</p>
+                    <span className="text-[#E6B566] text-sm">🏥</span>
+                    <p className="text-xs font-semibold text-[#2F2F2F]">Raporlu izin için aşağıdakilerden en az birini yapın.</p>
                   </div>
                   <div className="space-y-3">
-                    <div className="bg-white/70 rounded-lg p-3 border border-amber-100/60">
-                      <p className="text-[11px] font-semibold text-stone-700 mb-2">📸 Seçenek 1: Rapor fotoğrafını yükle</p>
+                    <div className="bg-white/70 rounded-lg p-3 border border-[#EAF2ED]/60">
+                      <p className="text-[11px] font-semibold text-[#2F2F2F] mb-2">📸 Seçenek 1: Rapor fotoğrafını yükle</p>
                       <input ref={raporInputRef} type="file" accept="image/*,application/pdf" className="hidden"
                         onChange={(e) => { const file = e.target.files?.[0]; if (file) handleRaporYukle(file); e.target.value = ""; }} />
                       {!raporDriveUrl && !raporYukleniyor && (
                         <button type="button" onClick={() => raporInputRef.current?.click()}
-                          className="w-full border-2 border-dashed border-amber-300 rounded-lg py-4 text-xs text-amber-600 hover:bg-amber-50 transition flex flex-col items-center gap-1">
+                          className="w-full border-2 border-dashed border-[#8FAF9A] rounded-lg py-4 text-xs text-[#8FAF9A] hover:bg-[#EAF2ED] transition flex flex-col items-center gap-1">
                           <span className="text-lg">📄</span>
                           <span>Fotoğraf veya PDF seç</span>
-                          <span className="text-[10px] text-stone-400">Max 10MB</span>
+                          <span className="text-[10px] text-[#8A8A8A]">Max 10MB</span>
                         </button>
                       )}
                       {raporYukleniyor && (
                         <div className="w-full py-4 text-center">
-                          <div className="inline-block w-5 h-5 border-2 border-amber-400 border-t-transparent rounded-full animate-spin mb-1" />
-                          <p className="text-xs text-amber-600">Drive'a yükleniyor...</p>
+                          <div className="inline-block w-5 h-5 border-2 border-[#8FAF9A] border-t-transparent rounded-full animate-spin mb-1" />
+                          <p className="text-xs text-[#8FAF9A]">Drive'a yükleniyor...</p>
                         </div>
                       )}
                       {raporDriveUrl && (
@@ -618,46 +618,46 @@ export default function IzinEkle() {
                             <img src={raporDosya} alt="Rapor" className="w-full h-32 object-cover rounded-lg" />
                           )}
                           {raporDosya && raporDosyaMime === "application/pdf" && (
-                            <div className="bg-red-50 rounded-lg px-3 py-2 flex items-center gap-2"><span>📋</span><span className="text-xs text-red-700 font-medium">PDF yüklendi</span></div>
+                            <div className="bg-[#D96C6C]/10 rounded-lg px-3 py-2 flex items-center gap-2"><span>📋</span><span className="text-xs text-[#D96C6C] font-medium">PDF yüklendi</span></div>
                           )}
                           <div className="flex items-center justify-between">
-                            <span className="text-[10px] text-emerald-600 font-medium">✅ Drive'a yüklendi</span>
-                            <button type="button" onClick={() => { setRaporDosya(null); setRaporDriveUrl(null); setRaporDriveFileId(null); }} className="text-[10px] text-red-500 hover:text-red-700">Kaldır</button>
+                            <span className="text-[10px] text-[#8FAF9A] font-medium">✅ Drive'a yüklendi</span>
+                            <button type="button" onClick={() => { setRaporDosya(null); setRaporDriveUrl(null); setRaporDriveFileId(null); }} className="text-[10px] text-[#D96C6C] hover:text-[#D96C6C]">Kaldır</button>
                           </div>
                         </div>
                       )}
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="flex-1 border-t border-amber-200/60" />
-                      <span className="text-[10px] text-amber-400 font-medium">VEYA</span>
-                      <div className="flex-1 border-t border-amber-200/60" />
+                      <div className="flex-1 border-t border-[#8FAF9A]/30/60" />
+                      <span className="text-[10px] text-[#E6B566] font-medium">VEYA</span>
+                      <div className="flex-1 border-t border-[#8FAF9A]/30/60" />
                     </div>
-                    <div className="bg-white/70 rounded-lg p-3 border border-amber-100/60">
-                      <p className="text-[11px] font-semibold text-stone-700 mb-2">📋 Seçenek 2: Fiziksel rapor teslimi</p>
+                    <div className="bg-white/70 rounded-lg p-3 border border-[#EAF2ED]/60">
+                      <p className="text-[11px] font-semibold text-[#2F2F2F] mb-2">📋 Seçenek 2: Fiziksel rapor teslimi</p>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm text-stone-600">Rapor</span>
+                        <span className="text-sm text-[#2F2F2F]">Rapor</span>
                         <select
                           value={raporTeslimKisi}
                           onChange={(e) => setRaporTeslimKisi(e.target.value)}
-                          className="flex-1 min-w-[140px] px-2.5 py-1.5 border border-stone-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400"
+                          className="flex-1 min-w-[140px] px-2.5 py-1.5 border border-[#E5E5E5] rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#8FAF9A]/40 focus:border-[#8FAF9A]"
                         >
                           <option value="">Kişi seçin...</option>
                           {yoneticiler.map(y => (
                             <option key={y.id} value={`${y.ad} ${y.soyad}`}>{y.ad} {y.soyad}</option>
                           ))}
                         </select>
-                        <span className="text-sm text-stone-600">masasına teslim edildi.</span>
+                        <span className="text-sm text-[#2F2F2F]">masasına teslim edildi.</span>
                       </div>
-                      <p className="text-[10px] text-stone-400 mt-1.5">Fiziksel rapor teslim alındıysa kişiyi seçin.</p>
+                      <p className="text-[10px] text-[#8A8A8A] mt-1.5">Fiziksel rapor teslim alındıysa kişiyi seçin.</p>
                     </div>
                   </div>
                   {!raporDriveUrl && !raporTeslimKisi && (
-                    <p className="mt-3 pt-3 border-t border-amber-200/40 text-[11px] text-amber-600/80">
+                    <p className="mt-3 pt-3 border-t border-[#8FAF9A]/30/40 text-[11px] text-[#8FAF9A]/80">
                       🔒 Rapor yüklemeden veya teslim almadan izin kaydedilemez.
                     </p>
                   )}
                   {(!!raporDriveUrl || raporTeslimKisi) && (
-                    <p className="mt-3 pt-3 border-t border-green-200/40 text-[11px] text-green-600">
+                    <p className="mt-3 pt-3 border-t border-green-200/40 text-[11px] text-[#8FAF9A]">
                       ✅ Koşul sağlandı. İzin kaydedilebilir.
                     </p>
                   )}
@@ -667,7 +667,7 @@ export default function IzinEkle() {
 
             {/* Kısa Açıklama */}
             <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-start gap-4">
-              <label className="text-sm font-medium text-stone-700 pt-2">
+              <label className="text-sm font-medium text-[#2F2F2F] pt-2">
                 Kısa Açıklama
               </label>
               <textarea
@@ -675,7 +675,7 @@ export default function IzinEkle() {
                 onChange={(e) => setAciklama(e.target.value)}
                 placeholder="Örn: Yıllık izin kullanımı"
                 rows={4}
-                className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 resize-y"
+                className="w-full px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 resize-y"
               />
             </div>
           </div>

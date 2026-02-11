@@ -55,7 +55,7 @@ export default function GorevWidget({ onCount }: { onCount?: (count: number) => 
 
   const oncelikAccent = (oncelik: string) => {
     switch (oncelik) {
-      case "acil": return "border-l-[#D96C6C] bg-[#D96C6C]/10/30";
+      case "acil": return "border-l-[#D96C6C] bg-[#D96C6C]/10";
       case "yuksek": return "border-l-[#E6B566] bg-[#EAF2ED]";
       case "dusuk": return "border-l-sky-300 bg-sky-50/20";
       default: return "border-l-[#E5E5E5] bg-[#F7F7F7]";

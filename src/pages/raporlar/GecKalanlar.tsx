@@ -354,10 +354,10 @@ export default function GecKalanlarPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-white">
       <header className="bg-white border-b px-4 md:px-6 py-4 sticky top-0 z-30">
-        <h1 className="text-xl font-bold text-stone-800">Geç Kalanlar</h1>
-        <p className="text-sm text-stone-500 mt-1">Bu sayfadan, belirlediğiniz parametrelere göre "Geç Kalanlar" raporunu görüntüleyebilirsiniz.</p>
+        <h1 className="text-xl font-bold text-[#2F2F2F]">Geç Kalanlar</h1>
+        <p className="text-sm text-[#8A8A8A] mt-1">Bu sayfadan, belirlediğiniz parametrelere göre "Geç Kalanlar" raporunu görüntüleyebilirsiniz.</p>
       </header>
 
       <main className="p-4 md:p-6">
@@ -365,29 +365,29 @@ export default function GecKalanlarPage() {
         <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
-              <label className="block text-xs text-stone-500 mb-1">Başlangıç tarihi</label>
+              <label className="block text-xs text-[#8A8A8A] mb-1">Başlangıç tarihi</label>
               <input
                 type="date" min="2020-01-01" max="2099-12-31"
                 value={baslangicTarih}
                 onChange={(e) => setBaslangicTarih(e.target.value)}
-                className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                className="w-full px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
               />
             </div>
             <div>
-              <label className="block text-xs text-stone-500 mb-1">Bitiş tarihi</label>
+              <label className="block text-xs text-[#8A8A8A] mb-1">Bitiş tarihi</label>
               <input
                 type="date" min="2020-01-01" max="2099-12-31"
                 value={bitisTarih}
                 onChange={(e) => setBitisTarih(e.target.value)}
-                className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                className="w-full px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
               />
             </div>
             <div>
-              <label className="block text-xs text-stone-500 mb-1">Konum seçiniz</label>
+              <label className="block text-xs text-[#8A8A8A] mb-1">Konum seçiniz</label>
               <select
                 value={seciliKonum}
                 onChange={(e) => setSeciliKonum(e.target.value)}
-                className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                className="w-full px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
               >
                 <option value="Tümü">Tümü</option>
                 {konumlar.map(k => (
@@ -396,12 +396,12 @@ export default function GecKalanlarPage() {
               </select>
             </div>
             <div>
-              <label className="block text-xs text-stone-500 mb-1">Geç kalma toleransı (dk)</label>
+              <label className="block text-xs text-[#8A8A8A] mb-1">Geç kalma toleransı (dk)</label>
               <input
                 type="number"
                 value={gecKalmaToleransi}
                 onChange={(e) => setGecKalmaToleransi(parseInt(e.target.value) || 0)}
-                className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                className="w-full px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
                 min={0}
               />
             </div>
@@ -422,8 +422,8 @@ export default function GecKalanlarPage() {
         </div>
 
         {/* Uyarı Mesajı */}
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-          <p className="text-sm text-amber-800">
+        <div className="bg-[#EAF2ED] border border-[#8FAF9A]/30 rounded-lg p-4 mb-6">
+          <p className="text-sm text-[#2F2F2F]">
             <span className="font-medium">ℹ️ Bilgilendirme:</span> Plan saati öncelikle vardiya planından alınır. Vardiya planı yoksa personelin sabit çalışma saati kullanılır. Tolerans süresi ayarlanabilir.
           </p>
         </div>
@@ -432,45 +432,45 @@ export default function GecKalanlarPage() {
         <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-stone-50 border-b">
+              <thead className="bg-[#F7F7F7] border-b">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">#</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Sicil No</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Kullanıcı</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Tarih</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Konum</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Plan Saati</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">İlk Giriş</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Geç Kalma</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Mazeret</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">#</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Sicil No</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Kullanıcı</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Tarih</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Konum</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Plan Saati</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">İlk Giriş</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Geç Kalma</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Mazeret</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-stone-100">
+              <tbody className="divide-y divide-[#E5E5E5]">
                 {gecKalanlar.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="px-4 py-12 text-center text-stone-500">
+                    <td colSpan={9} className="px-4 py-12 text-center text-[#8A8A8A]">
                       Sonuçları görmek için 'Sonuçları Getir' butonuna tıklayın
                     </td>
                   </tr>
                 ) : (
                   gecKalanlar.map((g, index) => (
-                    <tr key={`${g.personelId}-${g.tarih}`} className="hover:bg-stone-50">
-                      <td className="px-4 py-3 text-sm text-stone-600">{index + 1}</td>
-                      <td className="px-4 py-3 text-sm text-stone-600">{g.sicilNo || "-"}</td>
-                      <td className="px-4 py-3 text-sm font-medium text-stone-800">{g.personelAd}</td>
-                      <td className="px-4 py-3 text-sm text-stone-600">
+                    <tr key={`${g.personelId}-${g.tarih}`} className="hover:bg-[#F7F7F7]">
+                      <td className="px-4 py-3 text-sm text-[#2F2F2F]">{index + 1}</td>
+                      <td className="px-4 py-3 text-sm text-[#2F2F2F]">{g.sicilNo || "-"}</td>
+                      <td className="px-4 py-3 text-sm font-medium text-[#2F2F2F]">{g.personelAd}</td>
+                      <td className="px-4 py-3 text-sm text-[#2F2F2F]">
                         {new Date(g.tarih).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' })}
                       </td>
-                      <td className="px-4 py-3 text-sm text-stone-600">{g.konum}</td>
-                      <td className="px-4 py-3 text-sm text-stone-600">
+                      <td className="px-4 py-3 text-sm text-[#2F2F2F]">{g.konum}</td>
+                      <td className="px-4 py-3 text-sm text-[#2F2F2F]">
                         <span>{g.planSaati}</span>
                         {g.planKaynak === "vardiya" && (
                           <span className="ml-1.5 text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">VP</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-sm text-red-600 font-medium">{g.ilkGiris}</td>
-                      <td className="px-4 py-3 text-sm text-red-600 font-bold">{g.gecKalmaSuresi}</td>
-                      <td className="px-4 py-3 text-sm text-stone-600">{g.mazeretNotu || "-"}</td>
+                      <td className="px-4 py-3 text-sm text-[#D96C6C] font-medium">{g.ilkGiris}</td>
+                      <td className="px-4 py-3 text-sm text-[#D96C6C] font-bold">{g.gecKalmaSuresi}</td>
+                      <td className="px-4 py-3 text-sm text-[#2F2F2F]">{g.mazeretNotu || "-"}</td>
                     </tr>
                   ))
                 )}
@@ -484,7 +484,7 @@ export default function GecKalanlarPage() {
           <div className="flex flex-col md:flex-row gap-3 justify-center mt-6">
             <button
               onClick={() => window.print()}
-              className="bg-stone-100 hover:bg-stone-200 text-stone-700 px-6 py-3 rounded-lg font-medium transition flex items-center justify-center gap-2"
+              className="bg-[#F7F7F7] hover:bg-[#E5E5E5] text-[#2F2F2F] px-6 py-3 rounded-lg font-medium transition flex items-center justify-center gap-2"
             >
               🖨️ Yazdır / PDF
             </button>
@@ -507,12 +507,12 @@ export default function GecKalanlarPage() {
             📋 NOTLAR: Eksik Hafta Tatili
             ============================ */}
         {eksikTatiller.length > 0 && (
-          <div className="mt-6 bg-orange-50 border border-orange-200 rounded-lg overflow-hidden">
-            <div className="px-4 py-3 bg-orange-100 border-b border-orange-200">
+          <div className="mt-6 bg-[#E6B566]/10 border border-orange-200 rounded-lg overflow-hidden">
+            <div className="px-4 py-3 bg-[#E6B566]/20 border-b border-orange-200">
               <h3 className="text-sm font-semibold text-orange-800">
                 ⚠️ Notlar — Haftalık Tatil Ayarlanmamış ({eksikTatiller.length} kayıt)
               </h3>
-              <p className="text-xs text-orange-600 mt-0.5">
+              <p className="text-xs text-[#E6B566] mt-0.5">
                 Aşağıdaki personellerin belirtilen haftalarda haftalık tatili vardiya planında tanımlanmamış.
               </p>
             </div>
@@ -531,7 +531,7 @@ export default function GecKalanlarPage() {
                       <p className="text-xs font-semibold text-orange-700 mb-1.5">📅 {hafta}</p>
                       <div className="flex flex-wrap gap-1.5">
                         {kisiler.map((kisi, i) => (
-                          <span key={i} className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full">
+                          <span key={i} className="text-xs bg-[#E6B566]/20 text-orange-800 px-2 py-1 rounded-full">
                             {kisi}
                           </span>
                         ))}

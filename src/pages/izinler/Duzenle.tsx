@@ -225,13 +225,13 @@ export default function IzinDuzenle() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-white">
       <main className="flex-1 p-4 lg:p-6 ">
         {/* Header */}
         <div className="mb-6 flex items-start justify-between">
           <div>
-            <h1 className="text-xl font-bold text-stone-800">İzin Düzenle</h1>
-            <p className="text-sm text-stone-500">
+            <h1 className="text-xl font-bold text-[#2F2F2F]">İzin Düzenle</h1>
+            <p className="text-sm text-[#8A8A8A]">
               Mevcut izin kaydını düzenleyebilirsiniz.
             </p>
           </div>
@@ -248,7 +248,7 @@ export default function IzinDuzenle() {
             </button>
             <button
               onClick={() => navigate("/izinler")}
-              className="px-4 py-2 bg-stone-200 text-stone-700 rounded-lg text-sm font-medium hover:bg-stone-300 transition-colors flex items-center gap-2"
+              className="px-4 py-2 bg-[#E5E5E5] text-[#2F2F2F] rounded-lg text-sm font-medium hover:bg-[#E5E5E5] transition-colors flex items-center gap-2"
             >
               <span>↩</span>
               <span>İptal</span>
@@ -257,9 +257,9 @@ export default function IzinDuzenle() {
         </div>
 
         {/* Form Card */}
-        <div className="bg-white rounded-lg shadow-sm border border-stone-100" onKeyDown={handleKeyDown}>
+        <div className="bg-white rounded-lg shadow-sm border border-[#E5E5E5]" onKeyDown={handleKeyDown}>
           {/* Tab Header */}
-          <div className="border-b border-stone-100 px-6 pt-4">
+          <div className="border-b border-[#E5E5E5] px-6 pt-4">
             <div className="inline-block">
               <span className="text-primary-500 font-medium text-sm pb-3 block border-b-2 border-primary-500">
                 Genel
@@ -271,13 +271,13 @@ export default function IzinDuzenle() {
           <div className="p-4 md:p-6 space-y-6">
             {/* Kullanıcı */}
             <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
-              <label className="text-sm font-medium text-stone-700">
-                Kullanıcı <span className="text-red-500">(*)</span>
+              <label className="text-sm font-medium text-[#2F2F2F]">
+                Kullanıcı <span className="text-[#D96C6C]">(*)</span>
               </label>
               <select
                 value={selectedPersonel}
                 onChange={(e) => setSelectedPersonel(e.target.value)}
-                className="w-full max-w-md px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                className="w-full max-w-md px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
               >
                 <option value="">- Seçiniz -</option>
                 {personeller.map((personel) => (
@@ -290,13 +290,13 @@ export default function IzinDuzenle() {
 
             {/* İzin Türü */}
             <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
-              <label className="text-sm font-medium text-stone-700">
-                İzin Türü <span className="text-red-500">(*)</span>
+              <label className="text-sm font-medium text-[#2F2F2F]">
+                İzin Türü <span className="text-[#D96C6C]">(*)</span>
               </label>
               <select
                 value={izinTuru}
                 onChange={(e) => setIzinTuru(e.target.value)}
-                className="w-full max-w-md px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                className="w-full max-w-md px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
               >
                 <option value="Yıllık İzin">Yıllık İzin</option>
                 <option value="Mazeret ve Diğer Ücretli İzinler">Mazeret ve Diğer Ücretli İzinler</option>
@@ -307,9 +307,9 @@ export default function IzinDuzenle() {
 
             {/* Başlangıç */}
             <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
-              <label className="text-sm font-medium text-stone-700">
-                Başlangıç (Dahil) <span className="text-red-500">(*)</span>
-                <span className="block text-xs text-stone-400 font-normal">İzin başlangıç günü dahildir</span>
+              <label className="text-sm font-medium text-[#2F2F2F]">
+                Başlangıç (Dahil) <span className="text-[#D96C6C]">(*)</span>
+                <span className="block text-xs text-[#8A8A8A] font-normal">İzin başlangıç günü dahildir</span>
               </label>
               <input
                 type="date"
@@ -317,15 +317,15 @@ export default function IzinDuzenle() {
                 max="2099-12-31"
                 value={baslangic}
                 onChange={(e) => setBaslangic(e.target.value)}
-                className="w-full max-w-md px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                className="w-full max-w-md px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
               />
             </div>
 
             {/* Bitiş */}
             <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
-              <label className="text-sm font-medium text-stone-700">
+              <label className="text-sm font-medium text-[#2F2F2F]">
                 Bitiş (Dahil)
-                <span className="block text-xs text-stone-400 font-normal">İzin bitiş günü dahildir</span>
+                <span className="block text-xs text-[#8A8A8A] font-normal">İzin bitiş günü dahildir</span>
               </label>
               <input
                 type="date"
@@ -333,13 +333,13 @@ export default function IzinDuzenle() {
                 max="2099-12-31"
                 value={bitis}
                 onChange={(e) => setBitis(e.target.value)}
-                className="w-full max-w-md px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                className="w-full max-w-md px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
               />
             </div>
 
             {/* Yarım Gün */}
             <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
-              <label className="text-sm font-medium text-stone-700">
+              <label className="text-sm font-medium text-[#2F2F2F]">
                 Yarım Gün
               </label>
               <div className="flex items-center gap-4">
@@ -348,15 +348,15 @@ export default function IzinDuzenle() {
                     type="checkbox"
                     checked={yarimGun}
                     onChange={(e) => setYarimGun(e.target.checked)}
-                    className="w-4 h-4 rounded border-stone-300 text-primary-500 focus:ring-primary-500/20"
+                    className="w-4 h-4 rounded border-[#E5E5E5] text-primary-500 focus:ring-primary-500/20"
                   />
-                  <span className="text-sm text-stone-600">Yarım gün izin</span>
+                  <span className="text-sm text-[#2F2F2F]">Yarım gün izin</span>
                 </label>
                 {yarimGun && (
                   <select
                     value={yarimGunTipi}
                     onChange={(e) => setYarimGunTipi(e.target.value as "baslangic" | "bitis")}
-                    className="px-3 py-1.5 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                    className="px-3 py-1.5 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
                   >
                     <option value="baslangic">İlk gün yarım</option>
                     <option value="bitis">Son gün yarım</option>
@@ -368,8 +368,8 @@ export default function IzinDuzenle() {
             {/* Gün Sayısı Gösterimi */}
             {baslangic && bitis && (
               <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
-                <label className="text-sm font-medium text-stone-700">Toplam Gün</label>
-                <div className="px-3 py-2 bg-stone-50 rounded-lg text-sm font-semibold text-primary-600 w-fit">
+                <label className="text-sm font-medium text-[#2F2F2F]">Toplam Gün</label>
+                <div className="px-3 py-2 bg-[#F7F7F7] rounded-lg text-sm font-semibold text-primary-600 w-fit">
                   {hesaplaGunSayisi()} gün
                 </div>
               </div>
@@ -377,7 +377,7 @@ export default function IzinDuzenle() {
 
             {/* Kaynak */}
             <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
-              <label className="text-sm font-medium text-stone-700">
+              <label className="text-sm font-medium text-[#2F2F2F]">
                 Kaynak
               </label>
               <div className="flex items-center gap-3">
@@ -390,7 +390,7 @@ export default function IzinDuzenle() {
                     onChange={() => setKaynak("manuel")}
                     className="w-4 h-4 text-primary-500 focus:ring-primary-500/20"
                   />
-                  <span className="text-sm text-stone-600">Manuel</span>
+                  <span className="text-sm text-[#2F2F2F]">Manuel</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -401,14 +401,14 @@ export default function IzinDuzenle() {
                     onChange={() => setKaynak("puantaj")}
                     className="w-4 h-4 text-primary-500 focus:ring-primary-500/20"
                   />
-                  <span className="text-sm text-stone-600">Puantajdan</span>
+                  <span className="text-sm text-[#2F2F2F]">Puantajdan</span>
                 </label>
               </div>
             </div>
 
             {/* Kısa Açıklama */}
             <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-start gap-4">
-              <label className="text-sm font-medium text-stone-700 pt-2">
+              <label className="text-sm font-medium text-[#2F2F2F] pt-2">
                 Kısa Açıklama
               </label>
               <textarea
@@ -419,7 +419,7 @@ export default function IzinDuzenle() {
                 }}
                 placeholder="Örn: Yıllık izin kullanımı"
                 rows={4}
-                className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 resize-y"
+                className="w-full px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 resize-y"
               />
             </div>
           </div>
@@ -437,7 +437,7 @@ export default function IzinDuzenle() {
           </button>
           <button
             onClick={() => navigate("/izinler")}
-            className="px-4 py-2 bg-stone-200 text-stone-700 rounded-lg text-sm font-medium hover:bg-stone-300 transition-colors flex items-center gap-2"
+            className="px-4 py-2 bg-[#E5E5E5] text-[#2F2F2F] rounded-lg text-sm font-medium hover:bg-[#E5E5E5] transition-colors flex items-center gap-2"
           >
             <span>↩</span>
             <span>İptal</span>

@@ -102,7 +102,7 @@ export default function PersonelGorevleri({ personelId }: { personelId: string }
           {siraliGorevler.map((gorev) => {
             const oncelikRenk = {
               acil: "border-[#D96C6C] bg-[#D96C6C]/10",
-              yuksek: "border-orange-300 bg-orange-50",
+              yuksek: "border-[#E6B566] bg-[#E6B566]/10",
               normal: "border-blue-300 bg-blue-50",
               dusuk: "border-[#E5E5E5] bg-[#F7F7F7]"
             }[gorev.oncelik];
@@ -110,7 +110,7 @@ export default function PersonelGorevleri({ personelId }: { personelId: string }
             const durumRenk = {
               bekliyor: "bg-[#E6B566]/20 text-[#E6B566]",
               "devam-ediyor": "bg-blue-100 text-blue-700",
-              tamamlandi: "bg-green-100 text-green-700",
+              tamamlandi: "bg-[#EAF2ED] text-[#8FAF9A]",
               iptal: "bg-[#F7F7F7] text-[#2F2F2F]"
             }[gorev.durum];
 
@@ -124,7 +124,7 @@ export default function PersonelGorevleri({ personelId }: { personelId: string }
                     <div className="flex items-center gap-2 mb-2">
                       <h4 className="font-bold text-[#2F2F2F]">{gorev.baslik}</h4>
                       {gorev.oncelik === "acil" && <span className="text-[#D96C6C]">🔴</span>}
-                      {gorev.oncelik === "yuksek" && <span className="text-orange-500">🟡</span>}
+                      {gorev.oncelik === "yuksek" && <span className="text-[#E6B566]">🟡</span>}
                     </div>
                     {gorev.aciklama && (
                       <p className="text-sm text-[#2F2F2F] mb-2">{gorev.aciklama}</p>
@@ -147,7 +147,7 @@ export default function PersonelGorevleri({ personelId }: { personelId: string }
                     {gorev.durum === "devam-ediyor" && (
                       <button
                         onClick={() => handleDurumDegistir(gorev.id, "tamamlandi")}
-                        className="px-3 py-1.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition text-xs font-medium whitespace-nowrap"
+                        className="px-3 py-1.5 bg-[#8FAF9A] text-white rounded-lg hover:bg-[#7A9E86] transition text-xs font-medium whitespace-nowrap"
                       >
                         ✅ Tamamla
                       </button>

@@ -414,9 +414,9 @@ export default function Taleplerim() {
   };
   const durumBadge = (durum: string) => {
     const d = durum.toLowerCase();
-    if (d === "bekliyor" || d === "beklemede") return "bg-amber-100 text-amber-700";
-    if (d === "onaylandi" || d === "onaylandı") return "bg-emerald-100 text-emerald-700";
-    return "bg-red-100 text-red-700";
+    if (d === "bekliyor" || d === "beklemede") return "bg-[#EAF2ED] text-[#2F2F2F]";
+    if (d === "onaylandi" || d === "onaylandı") return "bg-[#EAF2ED] text-[#8FAF9A]";
+    return "bg-[#D96C6C]/20 text-[#D96C6C]";
   };
   const durumLabel = (durum: string) => {
     const d = durum.toLowerCase();
@@ -440,10 +440,10 @@ export default function Taleplerim() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-white">
       <header className="bg-white border-b px-4 md:px-6 py-4 sticky top-0 z-30">
-        <h1 className="text-lg md:text-xl font-bold text-stone-800">Taleplerim</h1>
-        <p className="text-xs text-stone-500">Taleplerini oluştur ve takip et</p>
+        <h1 className="text-lg md:text-xl font-bold text-[#2F2F2F]">Taleplerim</h1>
+        <p className="text-xs text-[#8A8A8A]">Taleplerini oluştur ve takip et</p>
       </header>
 
       <div className="bg-white border-b px-4 md:px-6">
@@ -451,10 +451,10 @@ export default function Taleplerim() {
           {sekmeler.map(s => (
             <button key={s.id} onClick={() => setAktifSekme(s.id)}
               className={`px-4 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition ${
-                aktifSekme === s.id ? "bg-stone-900 text-white" : "text-stone-500 hover:bg-stone-100"
+                aktifSekme === s.id ? "bg-[#2F2F2F] text-white" : "text-[#8A8A8A] hover:bg-[#F7F7F7]"
               }`}>
               {s.label}
-              {s.sayi > 0 && <span className="ml-1.5 bg-amber-400 text-amber-900 text-[10px] px-1.5 py-0.5 rounded-full">{s.sayi}</span>}
+              {s.sayi > 0 && <span className="ml-1.5 bg-[#8FAF9A] text-[#2F2F2F] text-[10px] px-1.5 py-0.5 rounded-full">{s.sayi}</span>}
             </button>
           ))}
         </div>
@@ -465,55 +465,55 @@ export default function Taleplerim() {
         {/* ====== İZİN TALEBİ ====== */}
         {aktifSekme === "izin" && (
           <>
-            <div className="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-5 space-y-3">
-              <h3 className="text-sm font-semibold text-stone-800">Yeni İzin Talebi</h3>
+            <div className="bg-white rounded-2xl border border-[#E5E5E5]/60 shadow-sm p-5 space-y-3">
+              <h3 className="text-sm font-semibold text-[#2F2F2F]">Yeni İzin Talebi</h3>
               <select value={izinTuru} onChange={(e) => { setIzinTuru(e.target.value); setWhatsappOnay(false); setDilekceDosya(null); setDilekceDriveUrl(null); setDilekceDriveFileId(null); setDilekceTeslimKisi(""); setRaporDosya(null); setRaporDriveUrl(null); setRaporDriveFileId(null); setRaporTeslimKisi(""); }}
-                className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm bg-stone-50/50 focus:outline-none focus:ring-2 focus:ring-amber-400">
+                className="w-full px-3 py-2.5 border border-[#E5E5E5] rounded-xl text-sm bg-[#F7F7F7] focus:outline-none focus:ring-2 focus:ring-[#8FAF9A]">
                 <option value="">İzin türü seçin...</option>
                 {izinTurleri.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-xs text-stone-500 mb-1 block">Başlangıç</label>
+                  <label className="text-xs text-[#8A8A8A] mb-1 block">Başlangıç</label>
                   <input type="date" value={izinBaslangic} onChange={(e) => setIzinBaslangic(e.target.value)}
-                    className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm bg-stone-50/50 focus:outline-none focus:ring-2 focus:ring-amber-400" />
+                    className="w-full px-3 py-2.5 border border-[#E5E5E5] rounded-xl text-sm bg-[#F7F7F7] focus:outline-none focus:ring-2 focus:ring-[#8FAF9A]" />
                 </div>
                 <div>
-                  <label className="text-xs text-stone-500 mb-1 block">Bitiş</label>
+                  <label className="text-xs text-[#8A8A8A] mb-1 block">Bitiş</label>
                   <input type="date" value={izinBitis} onChange={(e) => setIzinBitis(e.target.value)}
                     min={izinBaslangic || undefined}
-                    className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm bg-stone-50/50 focus:outline-none focus:ring-2 focus:ring-amber-400" />
+                    className="w-full px-3 py-2.5 border border-[#E5E5E5] rounded-xl text-sm bg-[#F7F7F7] focus:outline-none focus:ring-2 focus:ring-[#8FAF9A]" />
                 </div>
               </div>
               {izinBaslangic && izinBitis && new Date(izinBitis) >= new Date(izinBaslangic) && (
-                <div className="bg-amber-50 rounded-xl px-3 py-2 text-center">
-                  <span className="text-sm font-bold text-amber-700">{gunFarkiHesapla(izinBaslangic, izinBitis)} gün</span>
+                <div className="bg-[#EAF2ED] rounded-xl px-3 py-2 text-center">
+                  <span className="text-sm font-bold text-[#2F2F2F]">{gunFarkiHesapla(izinBaslangic, izinBitis)} gün</span>
                 </div>
               )}
               <textarea placeholder="Açıklama (opsiyonel)..." value={izinAciklama} onChange={(e) => setIzinAciklama(e.target.value)}
-                rows={2} className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm bg-stone-50/50 focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none" />
+                rows={2} className="w-full px-3 py-2.5 border border-[#E5E5E5] rounded-xl text-sm bg-[#F7F7F7] focus:outline-none focus:ring-2 focus:ring-[#8FAF9A] resize-none" />
               {/* Yıllık İzin Ön Koşulları */}
               {izinTuru === "Yıllık İzin" && (
-                <div className="bg-amber-50/60 border border-amber-200/60 rounded-xl p-4">
+                <div className="bg-[#EAF2ED]/60 border border-[#8FAF9A]/30/60 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="text-amber-500 text-sm">⚠️</span>
-                    <p className="text-xs font-semibold text-amber-700">Yıllık izin talebinde bulunabilmek için aşağıdaki koşulların sağlanması zorunludur.</p>
+                    <span className="text-[#E6B566] text-sm">⚠️</span>
+                    <p className="text-xs font-semibold text-[#2F2F2F]">Yıllık izin talebinde bulunabilmek için aşağıdaki koşulların sağlanması zorunludur.</p>
                   </div>
                   <div className="space-y-3">
                     {/* 1. WhatsApp onay */}
                     <label className="flex items-start gap-3 cursor-pointer group">
                       <input type="checkbox" checked={whatsappOnay} onChange={(e) => setWhatsappOnay(e.target.checked)}
-                        className="mt-0.5 w-4 h-4 text-amber-500 rounded border-stone-300 focus:ring-amber-400 shrink-0" />
-                      <span className={`text-sm leading-snug transition-colors ${whatsappOnay ? 'text-stone-800' : 'text-stone-500 group-hover:text-stone-700'}`}>
+                        className="mt-0.5 w-4 h-4 text-[#E6B566] rounded border-[#E5E5E5] focus:ring-[#8FAF9A] shrink-0" />
+                      <span className={`text-sm leading-snug transition-colors ${whatsappOnay ? 'text-[#2F2F2F]' : 'text-[#8A8A8A] group-hover:text-[#2F2F2F]'}`}>
                         Yöneticimden <strong>WhatsApp üzerinden</strong> izin için uygunluk onayı aldım.
                       </span>
                     </label>
                     {/* 2. Dilekçe: Fotoğraf yükle VEYA teslim dropdown */}
-                    <div className="bg-white/50 rounded-lg p-3 border border-amber-100/60">
-                      <p className="text-[11px] font-semibold text-stone-700 mb-2">📝 Yıllık izin dilekçesi</p>
+                    <div className="bg-white/50 rounded-lg p-3 border border-[#EAF2ED]/60">
+                      <p className="text-[11px] font-semibold text-[#2F2F2F] mb-2">📝 Yıllık izin dilekçesi</p>
                       {/* Seçenek 1: Fotoğraf yükle */}
-                      <div className="bg-white/70 rounded-lg p-3 border border-amber-100/60 mb-2">
-                        <p className="text-[11px] font-semibold text-stone-700 mb-2">📸 Seçenek 1: Dilekçe fotoğrafını yükle</p>
+                      <div className="bg-white/70 rounded-lg p-3 border border-[#EAF2ED]/60 mb-2">
+                        <p className="text-[11px] font-semibold text-[#2F2F2F] mb-2">📸 Seçenek 1: Dilekçe fotoğrafını yükle</p>
                         <input
                           type="file" accept="image/*,application/pdf" className="hidden"
                           ref={dilekceInputRef}
@@ -528,28 +528,28 @@ export default function Taleplerim() {
                           <button type="button"
                             onClick={() => dilekceInputRef.current?.click()}
                             disabled={dilekceYukleniyor}
-                            className="w-full py-2 border-2 border-dashed border-amber-200 rounded-lg text-xs text-amber-600 hover:bg-amber-50 transition disabled:opacity-50">
+                            className="w-full py-2 border-2 border-dashed border-[#8FAF9A]/30 rounded-lg text-xs text-[#8FAF9A] hover:bg-[#EAF2ED] transition disabled:opacity-50">
                             {dilekceYukleniyor ? "⏳ Yükleniyor..." : "📎 Dilekçe fotoğrafı seç"}
                           </button>
                         )}
                         {dilekceDosya && (
                           <div className="relative">
                             {dilekceDosyaMime !== "application/pdf" && (
-                              <img src={dilekceDosya} alt="Dilekçe" className="w-full max-h-40 object-contain rounded-lg border border-stone-200/60" />
+                              <img src={dilekceDosya} alt="Dilekçe" className="w-full max-h-40 object-contain rounded-lg border border-[#E5E5E5]/60" />
                             )}
                             {dilekceDosyaMime === "application/pdf" && (
-                              <div className="flex items-center gap-2 bg-stone-50 rounded-lg p-2 border border-stone-200/60">
+                              <div className="flex items-center gap-2 bg-[#F7F7F7] rounded-lg p-2 border border-[#E5E5E5]/60">
                                 <span className="text-lg">📄</span>
-                                <span className="text-xs text-stone-600">PDF yüklendi</span>
+                                <span className="text-xs text-[#2F2F2F]">PDF yüklendi</span>
                               </div>
                             )}
                             <div className="flex items-center justify-between mt-1.5">
                               {dilekceDriveUrl ? (
-                                <span className="text-[10px] text-green-600 font-medium">✅ Drive'a yüklendi</span>
+                                <span className="text-[10px] text-[#8FAF9A] font-medium">✅ Drive'a yüklendi</span>
                               ) : (
-                                <span className="text-[10px] text-amber-500">⏳ Yükleniyor...</span>
+                                <span className="text-[10px] text-[#E6B566]">⏳ Yükleniyor...</span>
                               )}
-                              <button type="button" className="text-[10px] text-red-400 hover:text-red-600"
+                              <button type="button" className="text-[10px] text-[#D96C6C] hover:text-[#D96C6C]"
                                 onClick={() => { setDilekceDosya(null); setDilekceDriveUrl(null); setDilekceDriveFileId(null); }}
                               >Kaldır</button>
                             </div>
@@ -558,38 +558,38 @@ export default function Taleplerim() {
                       </div>
                       {/* Ayırıcı */}
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 border-t border-amber-200/60" />
-                        <span className="text-[10px] text-amber-400 font-medium">VEYA</span>
-                        <div className="flex-1 border-t border-amber-200/60" />
+                        <div className="flex-1 border-t border-[#8FAF9A]/30/60" />
+                        <span className="text-[10px] text-[#E6B566] font-medium">VEYA</span>
+                        <div className="flex-1 border-t border-[#8FAF9A]/30/60" />
                       </div>
                       {/* Seçenek 2: Teslim dropdown */}
-                      <div className="bg-white/70 rounded-lg p-3 border border-amber-100/60 mt-2">
-                        <p className="text-[11px] font-semibold text-stone-700 mb-2">📋 Seçenek 2: Fiziksel dilekçe teslimi</p>
+                      <div className="bg-white/70 rounded-lg p-3 border border-[#EAF2ED]/60 mt-2">
+                        <p className="text-[11px] font-semibold text-[#2F2F2F] mb-2">📋 Seçenek 2: Fiziksel dilekçe teslimi</p>
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-sm text-stone-600">Dilekçeyi</span>
+                          <span className="text-sm text-[#2F2F2F]">Dilekçeyi</span>
                           <select
                             value={dilekceTeslimKisi}
                             onChange={(e) => setDilekceTeslimKisi(e.target.value)}
-                            className="flex-1 min-w-[140px] px-2.5 py-1.5 border border-stone-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400"
+                            className="flex-1 min-w-[140px] px-2.5 py-1.5 border border-[#E5E5E5] rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#8FAF9A]/40 focus:border-[#8FAF9A]"
                           >
                             <option value="">Kişi seçin...</option>
                             {yoneticiler.map(y => (
                               <option key={y.id} value={`${y.ad} ${y.soyad}`}>{y.ad} {y.soyad}</option>
                             ))}
                           </select>
-                          <span className="text-sm text-stone-600">masasına bıraktım.</span>
+                          <span className="text-sm text-[#2F2F2F]">masasına bıraktım.</span>
                         </div>
-                        <p className="text-[10px] text-stone-400 mt-1.5">Fiziksel dilekçe teslim edildiyse kişiyi seçin.</p>
+                        <p className="text-[10px] text-[#8A8A8A] mt-1.5">Fiziksel dilekçe teslim edildiyse kişiyi seçin.</p>
                       </div>
                     </div>
                   </div>
                   {(!whatsappOnay || (!dilekceDriveUrl && !dilekceTeslimKisi)) && (
-                    <p className="mt-3 pt-3 border-t border-amber-200/40 text-[11px] text-amber-600/80">
+                    <p className="mt-3 pt-3 border-t border-[#8FAF9A]/30/40 text-[11px] text-[#8FAF9A]/80">
                       🔒 WhatsApp onayı ve dilekçe teslimi/yüklemesi sağlanmadan izin talebi gönderilemez.
                     </p>
                   )}
                   {whatsappOnay && (!!dilekceDriveUrl || !!dilekceTeslimKisi) && (
-                    <p className="mt-3 pt-3 border-t border-green-200/40 text-[11px] text-green-600">
+                    <p className="mt-3 pt-3 border-t border-green-200/40 text-[11px] text-[#8FAF9A]">
                       ✅ Tüm koşullar sağlandı. Talep gönderilebilir.
                     </p>
                   )}
@@ -597,15 +597,15 @@ export default function Taleplerim() {
               )}
               {/* Raporlu İzin Koşulları */}
               {izinTuru === "Raporlu" && (
-                <div className="bg-amber-50/60 border border-amber-200/60 rounded-xl p-4">
+                <div className="bg-[#EAF2ED]/60 border border-[#8FAF9A]/30/60 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="text-amber-500 text-sm">🏥</span>
-                    <p className="text-xs font-semibold text-amber-700">Raporlu izin için aşağıdakilerden en az birini yapmanız gerekmektedir.</p>
+                    <span className="text-[#E6B566] text-sm">🏥</span>
+                    <p className="text-xs font-semibold text-[#2F2F2F]">Raporlu izin için aşağıdakilerden en az birini yapmanız gerekmektedir.</p>
                   </div>
                   <div className="space-y-3">
                     {/* Seçenek 1: Rapor fotoğrafı yükle */}
-                    <div className="bg-white/70 rounded-lg p-3 border border-amber-100/60">
-                      <p className="text-[11px] font-semibold text-stone-700 mb-2">📸 Seçenek 1: Rapor fotoğrafını yükle</p>
+                    <div className="bg-white/70 rounded-lg p-3 border border-[#EAF2ED]/60">
+                      <p className="text-[11px] font-semibold text-[#2F2F2F] mb-2">📸 Seçenek 1: Rapor fotoğrafını yükle</p>
                       <input
                         ref={raporInputRef}
                         type="file"
@@ -621,17 +621,17 @@ export default function Taleplerim() {
                         <button
                           type="button"
                           onClick={() => raporInputRef.current?.click()}
-                          className="w-full border-2 border-dashed border-amber-300 rounded-lg py-4 text-xs text-amber-600 hover:bg-amber-50 transition flex flex-col items-center gap-1"
+                          className="w-full border-2 border-dashed border-[#8FAF9A] rounded-lg py-4 text-xs text-[#8FAF9A] hover:bg-[#EAF2ED] transition flex flex-col items-center gap-1"
                         >
                           <span className="text-lg">📄</span>
                           <span>Fotoğraf veya PDF seç</span>
-                          <span className="text-[10px] text-stone-400">Max 10MB</span>
+                          <span className="text-[10px] text-[#8A8A8A]">Max 10MB</span>
                         </button>
                       )}
                       {raporYukleniyor && (
                         <div className="w-full py-4 text-center">
-                          <div className="inline-block w-5 h-5 border-2 border-amber-400 border-t-transparent rounded-full animate-spin mb-1" />
-                          <p className="text-xs text-amber-600">Drive'a yükleniyor...</p>
+                          <div className="inline-block w-5 h-5 border-2 border-[#8FAF9A] border-t-transparent rounded-full animate-spin mb-1" />
+                          <p className="text-xs text-[#8FAF9A]">Drive'a yükleniyor...</p>
                         </div>
                       )}
                       {raporDriveUrl && (
@@ -640,17 +640,17 @@ export default function Taleplerim() {
                             <img src={raporDosya} alt="Rapor" className="w-full h-32 object-cover rounded-lg" />
                           )}
                           {raporDosya && raporDosyaMime === "application/pdf" && (
-                            <div className="bg-red-50 rounded-lg px-3 py-2 flex items-center gap-2">
+                            <div className="bg-[#D96C6C]/10 rounded-lg px-3 py-2 flex items-center gap-2">
                               <span>📋</span>
-                              <span className="text-xs text-red-700 font-medium">PDF yüklendi</span>
+                              <span className="text-xs text-[#D96C6C] font-medium">PDF yüklendi</span>
                             </div>
                           )}
                           <div className="flex items-center justify-between">
-                            <span className="text-[10px] text-emerald-600 font-medium">✅ Drive'a yüklendi</span>
+                            <span className="text-[10px] text-[#8FAF9A] font-medium">✅ Drive'a yüklendi</span>
                             <button
                               type="button"
                               onClick={() => { setRaporDosya(null); setRaporDriveUrl(null); setRaporDriveFileId(null); }}
-                              className="text-[10px] text-red-500 hover:text-red-700"
+                              className="text-[10px] text-[#D96C6C] hover:text-[#D96C6C]"
                             >Kaldır</button>
                           </div>
                         </div>
@@ -658,68 +658,68 @@ export default function Taleplerim() {
                     </div>
                     {/* Ayırıcı */}
                     <div className="flex items-center gap-2">
-                      <div className="flex-1 border-t border-amber-200/60" />
-                      <span className="text-[10px] text-amber-400 font-medium">VEYA</span>
-                      <div className="flex-1 border-t border-amber-200/60" />
+                      <div className="flex-1 border-t border-[#8FAF9A]/30/60" />
+                      <span className="text-[10px] text-[#E6B566] font-medium">VEYA</span>
+                      <div className="flex-1 border-t border-[#8FAF9A]/30/60" />
                     </div>
                     {/* Seçenek 2: Masaya bıraktım */}
-                    <div className="bg-white/70 rounded-lg p-3 border border-amber-100/60">
-                      <p className="text-[11px] font-semibold text-stone-700 mb-2">📋 Seçenek 2: Fiziksel rapor teslimi</p>
+                    <div className="bg-white/70 rounded-lg p-3 border border-[#EAF2ED]/60">
+                      <p className="text-[11px] font-semibold text-[#2F2F2F] mb-2">📋 Seçenek 2: Fiziksel rapor teslimi</p>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm text-stone-600">Raporu</span>
+                        <span className="text-sm text-[#2F2F2F]">Raporu</span>
                         <select
                           value={raporTeslimKisi}
                           onChange={(e) => setRaporTeslimKisi(e.target.value)}
-                          className="flex-1 min-w-[140px] px-2.5 py-1.5 border border-stone-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400"
+                          className="flex-1 min-w-[140px] px-2.5 py-1.5 border border-[#E5E5E5] rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#8FAF9A]/40 focus:border-[#8FAF9A]"
                         >
                           <option value="">Kişi seçin...</option>
                           {yoneticiler.map(y => (
                             <option key={y.id} value={`${y.ad} ${y.soyad}`}>{y.ad} {y.soyad}</option>
                           ))}
                         </select>
-                        <span className="text-sm text-stone-600">masasına bıraktım.</span>
+                        <span className="text-sm text-[#2F2F2F]">masasına bıraktım.</span>
                       </div>
-                      <p className="text-[10px] text-stone-400 mt-1.5">Fiziksel rapor teslim edildiyse kişiyi seçin.</p>
+                      <p className="text-[10px] text-[#8A8A8A] mt-1.5">Fiziksel rapor teslim edildiyse kişiyi seçin.</p>
                     </div>
                   </div>
                   {!raporDriveUrl && !raporTeslimKisi && (
-                    <p className="mt-3 pt-3 border-t border-amber-200/40 text-[11px] text-amber-600/80">
+                    <p className="mt-3 pt-3 border-t border-[#8FAF9A]/30/40 text-[11px] text-[#8FAF9A]/80">
                       🔒 Rapor yüklemeden veya teslim etmeden izin talebi gönderilemez.
                     </p>
                   )}
                   {(!!raporDriveUrl || !!raporTeslimKisi) && (
-                    <p className="mt-3 pt-3 border-t border-green-200/40 text-[11px] text-green-600">
+                    <p className="mt-3 pt-3 border-t border-green-200/40 text-[11px] text-[#8FAF9A]">
                       ✅ Koşul sağlandı. Talep gönderilebilir.
                     </p>
                   )}
                 </div>
               )}
               <button onClick={handleIzinGonder} disabled={gonderiliyor || !yillikIzinKosullariTamam || !raporluKosulTamam || raporYukleniyor || dilekceYukleniyor}
-                className="w-full bg-stone-900 hover:bg-stone-800 text-white py-2.5 rounded-xl text-sm font-medium transition disabled:opacity-50">
+                className="w-full bg-[#2F2F2F] hover:bg-[#2F2F2F] text-white py-2.5 rounded-xl text-sm font-medium transition disabled:opacity-50">
                 {gonderiliyor ? "Gönderiliyor..." : "Gönder"}
               </button>
             </div>
 
             {izinTalepleri.length > 0 && (
-              <div className="bg-white rounded-2xl border border-stone-200/60 shadow-sm overflow-hidden">
-                <div className="px-5 py-3 border-b border-stone-100">
-                  <span className="text-sm font-semibold text-stone-800">Geçmiş Talepler</span>
+              <div className="bg-white rounded-2xl border border-[#E5E5E5]/60 shadow-sm overflow-hidden">
+                <div className="px-5 py-3 border-b border-[#E5E5E5]">
+                  <span className="text-sm font-semibold text-[#2F2F2F]">Geçmiş Talepler</span>
                 </div>
-                <div className="divide-y divide-stone-50">
+                <div className="divide-y divide-[#E5E5E5]/50">
                   {izinTalepleri.slice(0, 10).map(t => (
-                    <div key={t.id} className="px-5 py-3 hover:bg-stone-50/50 transition">
+                    <div key={t.id} className="px-5 py-3 hover:bg-[#F7F7F7] transition">
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">
                           <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${durumBadge(t.durum)}`}>{durumLabel(t.durum)}</span>
-                          <span className="text-xs font-medium text-stone-700">{t.izinTuru}</span>
+                          <span className="text-xs font-medium text-[#2F2F2F]">{t.izinTuru}</span>
                         </div>
-                        <span className="text-[10px] text-stone-400">{formatTimestamp(t.talepTarihi)}</span>
+                        <span className="text-[10px] text-[#8A8A8A]">{formatTimestamp(t.talepTarihi)}</span>
                       </div>
-                      <p className="text-xs text-stone-600">
-                        {formatDate(t.baslangic)} — {formatDate(t.bitis)} <span className="text-stone-400">({t.gunSayisi} gün)</span>
+                      <p className="text-xs text-[#2F2F2F]">
+                        {formatDate(t.baslangic)} — {formatDate(t.bitis)} <span className="text-[#8A8A8A]">({t.gunSayisi} gün)</span>
                       </p>
-                      {t.aciklama && <p className="text-[10px] text-stone-500 mt-0.5">{t.aciklama}</p>}
-                      {t.redSebebi && <p className="text-[10px] text-red-500 mt-0.5">Red sebebi: {t.redSebebi}</p>}
+                      {t.aciklama && <p className="text-[10px] text-[#8A8A8A] mt-0.5">{t.aciklama}</p>}
+                      {t.redSebebi && <p className="text-[10px] text-[#D96C6C] mt-0.5">Red sebebi: {t.redSebebi}</p>}
                     </div>
                   ))}
                 </div>
@@ -731,37 +731,37 @@ export default function Taleplerim() {
         {/* ====== PROFİL DEĞİŞİKLİĞİ ====== */}
         {aktifSekme === "profil" && (
           <>
-            <div className="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-5 space-y-3">
-              <h3 className="text-sm font-semibold text-stone-800">Yeni Talep</h3>
+            <div className="bg-white rounded-2xl border border-[#E5E5E5]/60 shadow-sm p-5 space-y-3">
+              <h3 className="text-sm font-semibold text-[#2F2F2F]">Yeni Talep</h3>
               <select value={profilAlan} onChange={(e) => setProfilAlan(e.target.value)}
-                className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm bg-stone-50/50 focus:outline-none focus:ring-2 focus:ring-amber-400">
+                className="w-full px-3 py-2.5 border border-[#E5E5E5] rounded-xl text-sm bg-[#F7F7F7] focus:outline-none focus:ring-2 focus:ring-[#8FAF9A]">
                 <option value="">Alan seçin...</option>
                 {["Ad", "Soyad", "Telefon", "Doğum Tarihi", "Diğer"].map(a => <option key={a} value={a}>{a}</option>)}
               </select>
               <input type="text" placeholder="Yeni değer..." value={profilYeniDeger}
                 onChange={(e) => setProfilYeniDeger(e.target.value)}
-                className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm bg-stone-50/50 focus:outline-none focus:ring-2 focus:ring-amber-400" />
+                className="w-full px-3 py-2.5 border border-[#E5E5E5] rounded-xl text-sm bg-[#F7F7F7] focus:outline-none focus:ring-2 focus:ring-[#8FAF9A]" />
               <button onClick={handleProfilGonder} disabled={gonderiliyor}
-                className="w-full bg-stone-900 hover:bg-stone-800 text-white py-2.5 rounded-xl text-sm font-medium transition disabled:opacity-50">
+                className="w-full bg-[#2F2F2F] hover:bg-[#2F2F2F] text-white py-2.5 rounded-xl text-sm font-medium transition disabled:opacity-50">
                 {gonderiliyor ? "Gönderiliyor..." : "Gönder"}
               </button>
             </div>
             {profilTalepleri.length > 0 && (
-              <div className="bg-white rounded-2xl border border-stone-200/60 shadow-sm overflow-hidden">
-                <div className="px-5 py-3 border-b border-stone-100"><span className="text-sm font-semibold text-stone-800">Geçmiş Talepler</span></div>
-                <div className="divide-y divide-stone-50">
+              <div className="bg-white rounded-2xl border border-[#E5E5E5]/60 shadow-sm overflow-hidden">
+                <div className="px-5 py-3 border-b border-[#E5E5E5]"><span className="text-sm font-semibold text-[#2F2F2F]">Geçmiş Talepler</span></div>
+                <div className="divide-y divide-[#E5E5E5]/50">
                   {profilTalepleri.slice(0, 10).map(t => (
-                    <div key={t.id} className="px-5 py-3 hover:bg-stone-50/50 transition">
+                    <div key={t.id} className="px-5 py-3 hover:bg-[#F7F7F7] transition">
                       <div className="flex items-center justify-between mb-1">
                         <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${durumBadge(t.durum)}`}>{durumLabel(t.durum)}</span>
-                        <span className="text-[10px] text-stone-400">{formatTimestamp(t.createdAt)}</span>
+                        <span className="text-[10px] text-[#8A8A8A]">{formatTimestamp(t.createdAt)}</span>
                       </div>
                       {t.degisiklikler?.map((d, i) => (
-                        <p key={i} className="text-xs text-stone-600">
-                          <span className="font-medium">{d.alan}:</span> <span className="text-stone-400 line-through">{d.mevcutDeger || "—"}</span> → <span className="font-semibold text-stone-800">{d.yeniDeger}</span>
+                        <p key={i} className="text-xs text-[#2F2F2F]">
+                          <span className="font-medium">{d.alan}:</span> <span className="text-[#8A8A8A] line-through">{d.mevcutDeger || "—"}</span> → <span className="font-semibold text-[#2F2F2F]">{d.yeniDeger}</span>
                         </p>
                       ))}
-                      {t.yanitNotu && <p className="text-[10px] text-stone-500 mt-1">{t.yanitNotu}</p>}
+                      {t.yanitNotu && <p className="text-[10px] text-[#8A8A8A] mt-1">{t.yanitNotu}</p>}
                     </div>
                   ))}
                 </div>
@@ -773,45 +773,45 @@ export default function Taleplerim() {
         {/* ====== ÖNERİ / ŞİKAYET ====== */}
         {aktifSekme === "oneri" && (
           <>
-            <div className="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-5 space-y-3">
-              <h3 className="text-sm font-semibold text-stone-800">Yeni Öneri / Şikayet</h3>
+            <div className="bg-white rounded-2xl border border-[#E5E5E5]/60 shadow-sm p-5 space-y-3">
+              <h3 className="text-sm font-semibold text-[#2F2F2F]">Yeni Öneri / Şikayet</h3>
               <div className="flex gap-2">
                 <button onClick={() => setOneriKategori("oneri")}
-                  className={`flex-1 py-2 rounded-xl text-xs font-medium transition ${oneriKategori === "oneri" ? "bg-emerald-500 text-white" : "bg-stone-100 text-stone-500"}`}>Öneri</button>
+                  className={`flex-1 py-2 rounded-xl text-xs font-medium transition ${oneriKategori === "oneri" ? "bg-[#8FAF9A] text-white" : "bg-[#F7F7F7] text-[#8A8A8A]"}`}>Öneri</button>
                 <button onClick={() => setOneriKategori("sikayet")}
-                  className={`flex-1 py-2 rounded-xl text-xs font-medium transition ${oneriKategori === "sikayet" ? "bg-red-500 text-white" : "bg-stone-100 text-stone-500"}`}>Şikayet</button>
+                  className={`flex-1 py-2 rounded-xl text-xs font-medium transition ${oneriKategori === "sikayet" ? "bg-[#D96C6C] text-white" : "bg-[#F7F7F7] text-[#8A8A8A]"}`}>Şikayet</button>
               </div>
               <textarea placeholder="Mesajınız..." value={oneriMesaj} onChange={(e) => setOneriMesaj(e.target.value)}
-                rows={4} className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm bg-stone-50/50 focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none" />
+                rows={4} className="w-full px-3 py-2.5 border border-[#E5E5E5] rounded-xl text-sm bg-[#F7F7F7] focus:outline-none focus:ring-2 focus:ring-[#8FAF9A] resize-none" />
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={oneriAnonim} onChange={(e) => setOneriAnonim(e.target.checked)}
-                  className="w-4 h-4 rounded border-stone-300 text-amber-500 focus:ring-amber-400" />
-                <span className="text-xs text-stone-600">Anonim olarak gönder</span>
+                  className="w-4 h-4 rounded border-[#E5E5E5] text-[#E6B566] focus:ring-[#8FAF9A]" />
+                <span className="text-xs text-[#2F2F2F]">Anonim olarak gönder</span>
               </label>
-              {oneriAnonim && <p className="text-[10px] text-stone-400">İsminiz kurucu tarafından görülmeyecektir.</p>}
+              {oneriAnonim && <p className="text-[10px] text-[#8A8A8A]">İsminiz kurucu tarafından görülmeyecektir.</p>}
               <button onClick={handleOneriGonder} disabled={gonderiliyor}
-                className="w-full bg-stone-900 hover:bg-stone-800 text-white py-2.5 rounded-xl text-sm font-medium transition disabled:opacity-50">
+                className="w-full bg-[#2F2F2F] hover:bg-[#2F2F2F] text-white py-2.5 rounded-xl text-sm font-medium transition disabled:opacity-50">
                 {gonderiliyor ? "Gönderiliyor..." : "Gönder"}
               </button>
             </div>
             {oneriTalepleri.length > 0 && (
-              <div className="bg-white rounded-2xl border border-stone-200/60 shadow-sm overflow-hidden">
-                <div className="px-5 py-3 border-b border-stone-100"><span className="text-sm font-semibold text-stone-800">Gönderdiklerim</span></div>
-                <div className="divide-y divide-stone-50">
+              <div className="bg-white rounded-2xl border border-[#E5E5E5]/60 shadow-sm overflow-hidden">
+                <div className="px-5 py-3 border-b border-[#E5E5E5]"><span className="text-sm font-semibold text-[#2F2F2F]">Gönderdiklerim</span></div>
+                <div className="divide-y divide-[#E5E5E5]/50">
                   {oneriTalepleri.slice(0, 10).map(t => (
-                    <div key={t.id} className="px-5 py-3 hover:bg-stone-50/50 transition">
+                    <div key={t.id} className="px-5 py-3 hover:bg-[#F7F7F7] transition">
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">
-                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${t.kategori === "oneri" ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
+                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${t.kategori === "oneri" ? "bg-[#EAF2ED] text-[#8FAF9A]" : "bg-[#D96C6C]/20 text-[#D96C6C]"}`}>
                             {t.kategori === "oneri" ? "Öneri" : "Şikayet"}
                           </span>
                           <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${durumBadge(t.durum)}`}>{durumLabel(t.durum)}</span>
-                          {t.anonim && <span className="text-[10px] text-stone-400">Anonim</span>}
+                          {t.anonim && <span className="text-[10px] text-[#8A8A8A]">Anonim</span>}
                         </div>
-                        <span className="text-[10px] text-stone-400">{formatTimestamp(t.createdAt)}</span>
+                        <span className="text-[10px] text-[#8A8A8A]">{formatTimestamp(t.createdAt)}</span>
                       </div>
-                      <p className="text-xs text-stone-700">{t.mesaj}</p>
-                      {t.yanitNotu && <p className="text-[10px] text-stone-500 mt-1 pt-1 border-t border-stone-100">Yanıt: {t.yanitNotu}</p>}
+                      <p className="text-xs text-[#2F2F2F]">{t.mesaj}</p>
+                      {t.yanitNotu && <p className="text-[10px] text-[#8A8A8A] mt-1 pt-1 border-t border-[#E5E5E5]">Yanıt: {t.yanitNotu}</p>}
                     </div>
                   ))}
                 </div>
@@ -823,42 +823,42 @@ export default function Taleplerim() {
         {/* ====== AVANS TALEBİ ====== */}
         {aktifSekme === "avans" && (
           <>
-            <div className="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-5 space-y-3">
-              <h3 className="text-sm font-semibold text-stone-800">Yeni Avans Talebi</h3>
+            <div className="bg-white rounded-2xl border border-[#E5E5E5]/60 shadow-sm p-5 space-y-3">
+              <h3 className="text-sm font-semibold text-[#2F2F2F]">Yeni Avans Talebi</h3>
               <div className="relative">
                 <input type="number" placeholder="Tutar" value={avansTutar}
                   onChange={(e) => setAvansTutar(e.target.value)}
-                  className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm bg-stone-50/50 focus:outline-none focus:ring-2 focus:ring-amber-400 pr-10" />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-stone-400 font-medium">₺</span>
+                  className="w-full px-3 py-2.5 border border-[#E5E5E5] rounded-xl text-sm bg-[#F7F7F7] focus:outline-none focus:ring-2 focus:ring-[#8FAF9A] pr-10" />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[#8A8A8A] font-medium">₺</span>
               </div>
               <div>
-                <label className="text-xs text-stone-500 mb-1 block">İstenilen Tarih</label>
+                <label className="text-xs text-[#8A8A8A] mb-1 block">İstenilen Tarih</label>
                 <input type="date" value={avansTarih} onChange={(e) => setAvansTarih(e.target.value)}
                   min={new Date().toISOString().split('T')[0]}
-                  className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm bg-stone-50/50 focus:outline-none focus:ring-2 focus:ring-amber-400" />
+                  className="w-full px-3 py-2.5 border border-[#E5E5E5] rounded-xl text-sm bg-[#F7F7F7] focus:outline-none focus:ring-2 focus:ring-[#8FAF9A]" />
               </div>
               <button onClick={handleAvansGonder} disabled={gonderiliyor}
-                className="w-full bg-stone-900 hover:bg-stone-800 text-white py-2.5 rounded-xl text-sm font-medium transition disabled:opacity-50">
+                className="w-full bg-[#2F2F2F] hover:bg-[#2F2F2F] text-white py-2.5 rounded-xl text-sm font-medium transition disabled:opacity-50">
                 {gonderiliyor ? "Gönderiliyor..." : "Gönder"}
               </button>
             </div>
             {avansTalepleri.length > 0 && (
-              <div className="bg-white rounded-2xl border border-stone-200/60 shadow-sm overflow-hidden">
-                <div className="px-5 py-3 border-b border-stone-100"><span className="text-sm font-semibold text-stone-800">Geçmiş Talepler</span></div>
-                <div className="divide-y divide-stone-50">
+              <div className="bg-white rounded-2xl border border-[#E5E5E5]/60 shadow-sm overflow-hidden">
+                <div className="px-5 py-3 border-b border-[#E5E5E5]"><span className="text-sm font-semibold text-[#2F2F2F]">Geçmiş Talepler</span></div>
+                <div className="divide-y divide-[#E5E5E5]/50">
                   {avansTalepleri.slice(0, 10).map(t => (
-                    <div key={t.id} className="px-5 py-3 hover:bg-stone-50/50 transition">
+                    <div key={t.id} className="px-5 py-3 hover:bg-[#F7F7F7] transition">
                       <div className="flex items-center justify-between">
                         <div>
-                          <span className="text-sm font-bold text-stone-800">{t.tutar?.toLocaleString('tr-TR')} ₺</span>
-                          <span className="text-[10px] text-stone-400 ml-2">{t.istenilenTarih}</span>
+                          <span className="text-sm font-bold text-[#2F2F2F]">{t.tutar?.toLocaleString('tr-TR')} ₺</span>
+                          <span className="text-[10px] text-[#8A8A8A] ml-2">{t.istenilenTarih}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${durumBadge(t.durum)}`}>{durumLabel(t.durum)}</span>
-                          <span className="text-[10px] text-stone-400">{formatTimestamp(t.createdAt)}</span>
+                          <span className="text-[10px] text-[#8A8A8A]">{formatTimestamp(t.createdAt)}</span>
                         </div>
                       </div>
-                      {t.yanitNotu && <p className="text-[10px] text-stone-500 mt-1">Yanıt: {t.yanitNotu}</p>}
+                      {t.yanitNotu && <p className="text-[10px] text-[#8A8A8A] mt-1">Yanıt: {t.yanitNotu}</p>}
                     </div>
                   ))}
                 </div>

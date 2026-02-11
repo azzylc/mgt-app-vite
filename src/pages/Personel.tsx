@@ -71,7 +71,7 @@ interface Firma {
 export default function PersonelPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500"></div>
       </div>
     }>
@@ -554,15 +554,15 @@ function PersonelPageContent() {
   }), [personeller, grupFilter, ayrilanlarFilter]);
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-white">
       <div>
         <header className="bg-white border-b px-6 py-4 sticky top-0 z-30">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold text-stone-800">
+              <h1 className="text-xl font-bold text-[#2F2F2F]">
                 👥 Personel Yönetimi
                 {ayrilanlarFilter && (
-                  <span className="ml-3 text-base font-normal text-red-600">
+                  <span className="ml-3 text-base font-normal text-[#D96C6C]">
                     → Ayrılanlar
                   </span>
                 )}
@@ -572,7 +572,7 @@ function PersonelPageContent() {
                   </span>
                 )}
               </h1>
-              <p className="text-sm text-stone-500">
+              <p className="text-sm text-[#8A8A8A]">
                 {ayrilanlarFilter 
                   ? "İşten ayrılan personel listesi (Pasif)" 
                   : grupFilter 
@@ -592,30 +592,30 @@ function PersonelPageContent() {
 
         <main className="p-6">
           {filteredPersoneller.length === 0 ? (
-            <div className="bg-white rounded-lg p-12 text-center text-stone-500 border border-stone-100">
+            <div className="bg-white rounded-lg p-12 text-center text-[#8A8A8A] border border-[#E5E5E5]">
               <span className="text-5xl mb-4 block">👥</span>
               <p className="text-lg font-medium">Personel bulunamadı</p>
             </div>
           ) : (
-            <div className="bg-white rounded-lg shadow-sm border border-stone-100 overflow-hidden">
+            <div className="bg-white rounded-lg shadow-sm border border-[#E5E5E5] overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-stone-50">
+                  <thead className="bg-[#F7F7F7]">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase">Foto</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase">Ad Soyad</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase">Kısaltma</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase">Firma(lar)</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase">Sicil No</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase">Telefon</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase">Grup</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase">Durum</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase">İşlemler</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Foto</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Ad Soyad</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Kısaltma</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Firma(lar)</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Sicil No</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Telefon</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Grup</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Durum</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">İşlemler</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-stone-200">
+                  <tbody className="divide-y divide-[#E5E5E5]">
                     {filteredPersoneller.map(personel => (
-                      <tr key={personel.id} className={`transition ${personel.aktif ? 'hover:bg-stone-50' : 'bg-red-50 hover:bg-red-100'}`}>
+                      <tr key={personel.id} className={`transition ${personel.aktif ? 'hover:bg-[#F7F7F7]' : 'bg-[#D96C6C]/10 hover:bg-[#D96C6C]/20'}`}>
                         <td className="px-6 py-4">
                           <div className="w-10 h-10 bg-rose-100 rounded-full flex items-center justify-center">
                             {personel.foto ? (
@@ -628,8 +628,8 @@ function PersonelPageContent() {
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="text-sm font-medium text-stone-900">{personel.ad} {personel.soyad}</div>
-                          {personel.email && <div className="text-xs text-stone-500">{personel.email}</div>}
+                          <div className="text-sm font-medium text-[#2F2F2F]">{personel.ad} {personel.soyad}</div>
+                          {personel.email && <div className="text-xs text-[#8A8A8A]">{personel.email}</div>}
                         </td>
                         <td className="px-6 py-4">
                           {personel.kisaltma ? (
@@ -637,7 +637,7 @@ function PersonelPageContent() {
                               {personel.kisaltma}
                             </span>
                           ) : (
-                            <span className="text-xs text-stone-400">-</span>
+                            <span className="text-xs text-[#8A8A8A]">-</span>
                           )}
                         </td>
                         <td className="px-6 py-4">
@@ -656,11 +656,11 @@ function PersonelPageContent() {
                               })}
                             </div>
                           ) : (
-                            <span className="text-xs text-stone-400">-</span>
+                            <span className="text-xs text-[#8A8A8A]">-</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 text-sm text-stone-900">{personel.sicilNo}</td>
-                        <td className="px-6 py-4 text-sm text-stone-600">{personel.telefon}</td>
+                        <td className="px-6 py-4 text-sm text-[#2F2F2F]">{personel.sicilNo}</td>
+                        <td className="px-6 py-4 text-sm text-[#2F2F2F]">{personel.telefon}</td>
                         <td className="px-6 py-4">
                           <div className="flex flex-wrap gap-1">
                             {personel.grupEtiketleri && personel.grupEtiketleri.length > 0 ? (
@@ -672,12 +672,12 @@ function PersonelPageContent() {
                                 );
                               })
                             ) : (
-                              <span className="text-xs text-stone-400">-</span>
+                              <span className="text-xs text-[#8A8A8A]">-</span>
                             )}
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`px-2 py-1 text-xs rounded-full ${personel.aktif ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                          <span className={`px-2 py-1 text-xs rounded-full ${personel.aktif ? 'bg-[#EAF2ED] text-[#8FAF9A]' : 'bg-[#D96C6C]/20 text-[#D96C6C]'}`}>
                             {personel.aktif ? 'Aktif' : 'Pasif'}
                           </span>
                         </td>
@@ -685,21 +685,21 @@ function PersonelPageContent() {
                           <div className="flex gap-2">
                             <button 
                               onClick={() => handleKoparTelefon(personel.id)} 
-                              className="w-8 h-8 hover:bg-red-50 text-red-600 rounded flex items-center justify-center text-lg transition"
+                              className="w-8 h-8 hover:bg-[#D96C6C]/10 text-[#D96C6C] rounded flex items-center justify-center text-lg transition"
                               title="Telefon Bağını Kopar"
                             >
                               🔗
                             </button>
                             <button 
                               onClick={() => handleYeniSifre(personel)} 
-                              className="w-8 h-8 hover:bg-green-50 text-green-600 rounded flex items-center justify-center text-lg transition"
+                              className="w-8 h-8 hover:bg-[#EAF2ED] text-[#8FAF9A] rounded flex items-center justify-center text-lg transition"
                               title="Yeni Şifre Gönder"
                             >
                               ✉️
                             </button>
                             <button 
                               onClick={() => handleDevreDisi(personel)} 
-                              className="w-8 h-8 hover:bg-red-50 text-red-600 rounded flex items-center justify-center text-lg transition"
+                              className="w-8 h-8 hover:bg-[#D96C6C]/10 text-[#D96C6C] rounded flex items-center justify-center text-lg transition"
                               title="Devre Dışı Bırak"
                             >
                               🚫
@@ -713,7 +713,7 @@ function PersonelPageContent() {
                             </button>
                             <button 
                               onClick={() => openEditModal(personel)} 
-                              className="w-8 h-8 hover:bg-yellow-50 text-yellow-600 rounded flex items-center justify-center text-lg transition"
+                              className="w-8 h-8 hover:bg-[#E6B566]/10 text-[#E6B566] rounded flex items-center justify-center text-lg transition"
                               title="Düzenle"
                             >
                               ✏️
@@ -735,8 +735,8 @@ function PersonelPageContent() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full my-8 max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white px-6 py-4 border-b flex items-center justify-between z-10">
-              <h3 className="text-xl font-bold text-stone-800">{editingPersonel ? "✏️ Personel Düzenle" : "➕ Yeni Personel"}</h3>
-              <button onClick={() => { setShowModal(false); resetForm(); }} className="text-stone-400 hover:text-stone-600 text-2xl">×</button>
+              <h3 className="text-xl font-bold text-[#2F2F2F]">{editingPersonel ? "✏️ Personel Düzenle" : "➕ Yeni Personel"}</h3>
+              <button onClick={() => { setShowModal(false); resetForm(); }} className="text-[#8A8A8A] hover:text-[#2F2F2F] text-2xl">×</button>
             </div>
 
             <div className="border-b">
@@ -748,7 +748,7 @@ function PersonelPageContent() {
                     className={`px-6 py-3 text-sm font-medium whitespace-nowrap transition ${
                       activeTab === tab.id
                         ? 'text-rose-600 border-b-2 border-rose-600'
-                        : 'text-stone-500 hover:text-stone-700'
+                        : 'text-[#8A8A8A] hover:text-[#2F2F2F]'
                     }`}
                   >
                     {tab.label}
@@ -762,22 +762,22 @@ function PersonelPageContent() {
                 <div className="space-y-6">
                   <div className="flex items-center gap-6">
                     <div className="flex-shrink-0">
-                      <div className="w-32 h-32 bg-stone-100 rounded-lg flex items-center justify-center overflow-hidden border-2 border-dashed border-stone-300">
+                      <div className="w-32 h-32 bg-[#F7F7F7] rounded-lg flex items-center justify-center overflow-hidden border-2 border-dashed border-[#E5E5E5]">
                         {fotoPreview ? (
                           <img src={fotoPreview} alt="Preview" className="w-full h-full object-cover" />
                         ) : (
-                          <span className="text-stone-400 text-4xl">📷</span>
+                          <span className="text-[#8A8A8A] text-4xl">📷</span>
                         )}
                       </div>
                     </div>
                     <div className="flex-1">
                       <div className="flex gap-2 mb-3">
-                        <label className="cursor-pointer px-4 py-2 border border-stone-300 rounded-lg text-stone-700 hover:bg-stone-50 transition">
+                        <label className="cursor-pointer px-4 py-2 border border-[#E5E5E5] rounded-lg text-[#2F2F2F] hover:bg-[#F7F7F7] transition">
                           📸 Görsel ekle
                           <input type="file" accept="image/*" onChange={handleFotoChange} className="hidden" />
                         </label>
                         {fotoPreview && (
-                          <button onClick={handleFotoDelete} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
+                          <button onClick={handleFotoDelete} className="px-4 py-2 bg-[#D96C6C] text-white rounded-lg hover:bg-[#C25A5A] transition">
                             🗑️ Sil
                           </button>
                         )}
@@ -796,7 +796,7 @@ function PersonelPageContent() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-stone-700 mb-1">Sicil No * (11 karakter)</label>
+                      <label className="block text-sm font-medium text-[#2F2F2F] mb-1">Sicil No * (11 karakter)</label>
                       <input 
                         type="text" 
                         value={formData.sicilNo} 
@@ -805,13 +805,13 @@ function PersonelPageContent() {
                           setFormData({ ...formData, sicilNo: value });
                         }} 
                         maxLength={11}
-                        className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" 
+                        className="w-full px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" 
                         placeholder="12345678901" 
                       />
-                      <p className="text-xs text-stone-500 mt-1">{formData.sicilNo.length}/11 karakter</p>
+                      <p className="text-xs text-[#8A8A8A] mt-1">{formData.sicilNo.length}/11 karakter</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-stone-700 mb-1">Telefon * (10 karakter)</label>
+                      <label className="block text-sm font-medium text-[#2F2F2F] mb-1">Telefon * (10 karakter)</label>
                       <input 
                         type="text" 
                         value={formData.telefon} 
@@ -820,41 +820,41 @@ function PersonelPageContent() {
                           setFormData({ ...formData, telefon: value });
                         }} 
                         maxLength={10}
-                        className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" 
+                        className="w-full px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" 
                         placeholder="5551234567" 
                       />
-                      <p className="text-xs text-stone-500 mt-1">{formData.telefon.length}/10 karakter</p>
+                      <p className="text-xs text-[#8A8A8A] mt-1">{formData.telefon.length}/10 karakter</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-stone-700 mb-1">Ad *</label>
-                      <input type="text" value={formData.ad} onChange={(e) => setFormData({ ...formData, ad: e.target.value })} className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" placeholder="Betül" />
+                      <label className="block text-sm font-medium text-[#2F2F2F] mb-1">Ad *</label>
+                      <input type="text" value={formData.ad} onChange={(e) => setFormData({ ...formData, ad: e.target.value })} className="w-full px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" placeholder="Betül" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-stone-700 mb-1">Soyad *</label>
-                      <input type="text" value={formData.soyad} onChange={(e) => setFormData({ ...formData, soyad: e.target.value })} className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" placeholder="Aktaş" />
+                      <label className="block text-sm font-medium text-[#2F2F2F] mb-1">Soyad *</label>
+                      <input type="text" value={formData.soyad} onChange={(e) => setFormData({ ...formData, soyad: e.target.value })} className="w-full px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" placeholder="Aktaş" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-stone-700 mb-1">Kısaltma (Makyaj/Türban için)</label>
+                      <label className="block text-sm font-medium text-[#2F2F2F] mb-1">Kısaltma (Makyaj/Türban için)</label>
                       <input 
                         type="text" 
                         value={formData.kisaltma || ""} 
                         onChange={(e) => setFormData({ ...formData, kisaltma: e.target.value })} 
                         maxLength={10}
-                        className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" 
+                        className="w-full px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" 
                         placeholder="Sa, Kü, Rü..." 
                       />
-                      <p className="text-xs text-stone-500 mt-1">Örnek: Sa, Kübra, Rümeysa</p>
+                      <p className="text-xs text-[#8A8A8A] mt-1">Örnek: Sa, Kübra, Rümeysa</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-stone-700 mb-1">
-                        Email {!isKurucu && "(Sadece Kurucular Değiştirebilir)"} {!editingPersonel && <span className="text-red-500">*</span>}
+                      <label className="block text-sm font-medium text-[#2F2F2F] mb-1">
+                        Email {!isKurucu && "(Sadece Kurucular Değiştirebilir)"} {!editingPersonel && <span className="text-[#D96C6C]">*</span>}
                       </label>
                       <input 
                         type="email" 
                         value={formData.email} 
                         onChange={(e) => isKurucu && setFormData({ ...formData, email: e.target.value })} 
                         disabled={!isKurucu}
-                        className={`w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 ${!isKurucu ? 'bg-stone-100 cursor-not-allowed' : ''}`} 
+                        className={`w-full px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 ${!isKurucu ? 'bg-[#F7F7F7] cursor-not-allowed' : ''}`} 
                         placeholder="email@example.com" 
                       />
                     </div>
@@ -862,10 +862,10 @@ function PersonelPageContent() {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="md:col-span-3">
-                      <label className="block text-sm font-medium text-stone-700 mb-2">Firma(lar) *</label>
-                      <p className="text-xs text-stone-500 mb-3">Personelin çalıştığı firma(ları) seçin</p>
+                      <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Firma(lar) *</label>
+                      <p className="text-xs text-[#8A8A8A] mb-3">Personelin çalıştığı firma(ları) seçin</p>
                       {firmalar.filter(f => f.aktif).length === 0 ? (
-                        <p className="text-sm text-stone-500">
+                        <p className="text-sm text-[#8A8A8A]">
                           Henüz firma eklenmemiş. 
                           <a href="/ayarlar" className="text-rose-600 underline ml-1">Ayarlar → Firmalar</a>
                         </p>
@@ -888,7 +888,7 @@ function PersonelPageContent() {
                                 className={`px-4 py-2 rounded-lg border-2 transition font-medium text-sm flex items-center gap-2 ${
                                   isSelected 
                                     ? `bg-${firma.renk}-100 border-${firma.renk}-500 text-${firma.renk}-700` 
-                                    : 'bg-stone-50 border-stone-200 text-stone-600 hover:border-stone-300'
+                                    : 'bg-[#F7F7F7] border-[#E5E5E5] text-[#2F2F2F] hover:border-[#E5E5E5]'
                                 }`}
                               >
                                 {isSelected && <span>✓</span>}
@@ -903,22 +903,22 @@ function PersonelPageContent() {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-stone-700 mb-1">Çalışma Saati *</label>
-                      <select value={formData.calismaSaati} onChange={(e) => setFormData({ ...formData, calismaSaati: e.target.value })} className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white">
+                      <label className="block text-sm font-medium text-[#2F2F2F] mb-1">Çalışma Saati *</label>
+                      <select value={formData.calismaSaati} onChange={(e) => setFormData({ ...formData, calismaSaati: e.target.value })} className="w-full px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white">
                         {calismaSaatleri.map(cs => <option key={cs} value={cs}>{cs}</option>)}
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-stone-700 mb-1">İşe Başlama</label>
-                      <input type="date" min="2020-01-01" max="2099-12-31" value={formData.iseBaslama} onChange={(e) => setFormData({ ...formData, iseBaslama: e.target.value })} className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
+                      <label className="block text-sm font-medium text-[#2F2F2F] mb-1">İşe Başlama</label>
+                      <input type="date" min="2020-01-01" max="2099-12-31" value={formData.iseBaslama} onChange={(e) => setFormData({ ...formData, iseBaslama: e.target.value })} className="w-full px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-stone-700 mb-1">İşten Ayrılma</label>
-                      <input type="date" min="2020-01-01" max="2099-12-31" value={formData.istenAyrilma} onChange={(e) => setFormData({ ...formData, istenAyrilma: e.target.value })} className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
+                      <label className="block text-sm font-medium text-[#2F2F2F] mb-1">İşten Ayrılma</label>
+                      <input type="date" min="2020-01-01" max="2099-12-31" value={formData.istenAyrilma} onChange={(e) => setFormData({ ...formData, istenAyrilma: e.target.value })} className="w-full px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-stone-700 mb-1">🎂 Doğum Günü</label>
-                      <input type="date" min="1950-01-01" max="2099-12-31" value={formData.dogumGunu || ""} onChange={(e) => setFormData({ ...formData, dogumGunu: e.target.value })} className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
+                      <label className="block text-sm font-medium text-[#2F2F2F] mb-1">🎂 Doğum Günü</label>
+                      <input type="date" min="1950-01-01" max="2099-12-31" value={formData.dogumGunu || ""} onChange={(e) => setFormData({ ...formData, dogumGunu: e.target.value })} className="w-full px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
                     </div>
                   </div>
 
@@ -929,7 +929,7 @@ function PersonelPageContent() {
                       onChange={(e) => setFormData({ ...formData, aktif: e.target.checked })} 
                       className="w-4 h-4 text-rose-600 rounded focus:ring-rose-500" 
                     />
-                    <label className="text-sm text-stone-700">↓ Aktif</label>
+                    <label className="text-sm text-[#2F2F2F]">↓ Aktif</label>
                   </div>
                 </div>
               )}
@@ -937,7 +937,7 @@ function PersonelPageContent() {
               {activeTab === 1 && (
                 <div className="space-y-4">
                   {Object.entries(ayarlarLabels).map(([key, label]) => (
-                    <div key={key} className="flex items-center gap-3 p-3 hover:bg-stone-50 rounded-lg">
+                    <div key={key} className="flex items-center gap-3 p-3 hover:bg-[#F7F7F7] rounded-lg">
                       <input
                         type="checkbox"
                         checked={formData.ayarlar[key as keyof typeof formData.ayarlar]}
@@ -945,9 +945,9 @@ function PersonelPageContent() {
                           ...formData,
                           ayarlar: { ...formData.ayarlar, [key]: e.target.checked }
                         })}
-                        className="w-5 h-5 text-orange-500 rounded focus:ring-orange-500"
+                        className="w-5 h-5 text-[#E6B566] rounded focus:ring-orange-500"
                       />
-                      <label className="text-sm text-stone-700 flex-1">{label}</label>
+                      <label className="text-sm text-[#2F2F2F] flex-1">{label}</label>
                     </div>
                   ))}
                 </div>
@@ -955,9 +955,9 @@ function PersonelPageContent() {
 
               {activeTab === 2 && (
                 <div>
-                  <p className="text-sm text-stone-600 mb-4">Dahil Olduğu Grup Etiketleri:</p>
+                  <p className="text-sm text-[#2F2F2F] mb-4">Dahil Olduğu Grup Etiketleri:</p>
                   {grupLoading ? (
-                    <div className="flex items-center gap-2 text-stone-500">
+                    <div className="flex items-center gap-2 text-[#8A8A8A]">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-rose-500"></div>
                       <span className="text-sm">Yükleniyor...</span>
                     </div>
@@ -974,7 +974,7 @@ function PersonelPageContent() {
                             className={`px-4 py-2 rounded-lg border-2 transition flex items-center gap-2 ${
                               isSelected
                                 ? `${stiller.bg} text-white border-transparent font-semibold`
-                                : 'border-stone-200 hover:border-stone-300 text-stone-700'
+                                : 'border-[#E5E5E5] hover:border-[#E5E5E5] text-[#2F2F2F]'
                             }`}
                           >
                             <span className={`w-2 h-2 rounded-full ${isSelected ? 'bg-white' : stiller.bg}`}></span>
@@ -990,27 +990,27 @@ function PersonelPageContent() {
               {activeTab === 3 && (
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-sm font-medium text-stone-700 mb-2">Kullanıcı Türü *</label>
+                    <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Kullanıcı Türü *</label>
                     <select 
                       value={formData.kullaniciTuru} 
                       onChange={(e) => setFormData({ ...formData, kullaniciTuru: e.target.value })} 
-                      className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white"
+                      className="w-full px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white"
                     >
                       {kullaniciTurleri.map(kt => <option key={kt} value={kt}>{kt}</option>)}
                     </select>
-                    <p className="text-xs text-stone-500 mt-1">Personelin sistem içindeki rolü (Personel, Yönetici, Kurucu)</p>
+                    <p className="text-xs text-[#8A8A8A] mt-1">Personelin sistem içindeki rolü (Personel, Yönetici, Kurucu)</p>
                   </div>
 
                   {/* Yönetici için: Hangi Firmaların Yöneticisi */}
                   {formData.kullaniciTuru === "Yönetici" && (
                     <div>
-                      <label className="block text-sm font-medium text-stone-700 mb-3">
+                      <label className="block text-sm font-medium text-[#2F2F2F] mb-3">
                         Hangi Firma(lar)ın Yöneticisi?
                       </label>
-                      <p className="text-xs text-stone-500 mb-3">Bu yöneticinin sorumlu olduğu firmaları seçin</p>
-                      <div className="border border-stone-200 rounded-lg p-3 bg-stone-50">
+                      <p className="text-xs text-[#8A8A8A] mb-3">Bu yöneticinin sorumlu olduğu firmaları seçin</p>
+                      <div className="border border-[#E5E5E5] rounded-lg p-3 bg-[#F7F7F7]">
                         {firmalar.filter(f => f.aktif).length === 0 ? (
-                          <p className="text-sm text-stone-500 text-center py-4">
+                          <p className="text-sm text-[#8A8A8A] text-center py-4">
                             Henüz firma eklenmemiş. 
                             <br />
                             <span className="text-rose-500">Ayarlar → Firmalar</span> bölümünden firma ekleyin.
@@ -1032,11 +1032,11 @@ function PersonelPageContent() {
                                       setYonettigiFirmalar(yonettigiFirmalar.filter(id => id !== firma.id));
                                     }
                                   }}
-                                  className="w-4 h-4 text-rose-500 border-stone-300 rounded focus:ring-rose-500"
+                                  className="w-4 h-4 text-rose-500 border-[#E5E5E5] rounded focus:ring-rose-500"
                                 />
                                 <span className={`w-3 h-3 rounded-full bg-${firma.renk}-500`}></span>
-                                <span className="text-sm text-stone-700">
-                                  {firma.firmaAdi} <span className="text-stone-400">({firma.kisaltma})</span>
+                                <span className="text-sm text-[#2F2F2F]">
+                                  {firma.firmaAdi} <span className="text-[#8A8A8A]">({firma.kisaltma})</span>
                                 </span>
                               </label>
                             ))}
@@ -1069,7 +1069,7 @@ function PersonelPageContent() {
               <button 
                 onClick={() => { setShowModal(false); resetForm(); }} 
                 disabled={apiLoading}
-                className={`flex-1 px-4 py-3 bg-stone-500 text-white rounded-lg hover:bg-stone-600 transition font-medium ${apiLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`flex-1 px-4 py-3 bg-[#2F2F2F] text-white rounded-lg hover:bg-[#2F2F2F] transition font-medium ${apiLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 ↩️ Geri dön
               </button>
@@ -1083,12 +1083,12 @@ function PersonelPageContent() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold text-stone-800">👤 Personel Detayları</h3>
-              <button onClick={() => setShowDetailModal(false)} className="text-stone-400 hover:text-stone-600 text-3xl">×</button>
+              <h3 className="text-2xl font-bold text-[#2F2F2F]">👤 Personel Detayları</h3>
+              <button onClick={() => setShowDetailModal(false)} className="text-[#8A8A8A] hover:text-[#2F2F2F] text-3xl">×</button>
             </div>
 
             <div className="space-y-4">
-              <div className="flex items-center gap-4 p-4 bg-stone-50 rounded-lg">
+              <div className="flex items-center gap-4 p-4 bg-[#F7F7F7] rounded-lg">
                 <div className="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center">
                   {selectedPersonel.foto ? (
                     <img src={selectedPersonel.foto} alt={selectedPersonel.ad} className="w-20 h-20 rounded-full object-cover" />
@@ -1099,8 +1099,8 @@ function PersonelPageContent() {
                   )}
                 </div>
                 <div className="flex-1">
-                  <h4 className="text-xl font-bold text-stone-800">{selectedPersonel.ad} {selectedPersonel.soyad}</h4>
-                  <p className="text-sm text-stone-500">{selectedPersonel.kullaniciTuru}</p>
+                  <h4 className="text-xl font-bold text-[#2F2F2F]">{selectedPersonel.ad} {selectedPersonel.soyad}</h4>
+                  <p className="text-sm text-[#8A8A8A]">{selectedPersonel.kullaniciTuru}</p>
                   <div className="flex gap-2 mt-2">
                     {selectedPersonel.grupEtiketleri && selectedPersonel.grupEtiketleri.length > 0 ? (
                       selectedPersonel.grupEtiketleri.map(g => {
@@ -1111,11 +1111,11 @@ function PersonelPageContent() {
                       );
                     })
                     ) : (
-                      <span className="text-xs text-stone-400">Grup etiketi yok</span>
+                      <span className="text-xs text-[#8A8A8A]">Grup etiketi yok</span>
                     )}
                   </div>
                 </div>
-                <span className={`px-4 py-2 rounded-lg text-sm font-medium ${selectedPersonel.aktif ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                <span className={`px-4 py-2 rounded-lg text-sm font-medium ${selectedPersonel.aktif ? 'bg-[#EAF2ED] text-[#8FAF9A]' : 'bg-[#D96C6C]/20 text-[#D96C6C]'}`}>
                   {selectedPersonel.aktif ? '✅ Aktif' : '❌ Pasif'}
                 </span>
               </div>
@@ -1123,11 +1123,11 @@ function PersonelPageContent() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="p-4 bg-blue-50 rounded-lg">
                   <p className="text-sm text-blue-600 mb-1">📱 Telefon</p>
-                  <p className="font-semibold text-stone-800">{selectedPersonel.telefon}</p>
+                  <p className="font-semibold text-[#2F2F2F]">{selectedPersonel.telefon}</p>
                 </div>
                 <div className="p-4 bg-purple-50 rounded-lg">
                   <p className="text-sm text-purple-600 mb-1">📧 Email</p>
-                  <p className="font-semibold text-stone-800 text-sm">{selectedPersonel.email || 'Belirtilmemiş'}</p>
+                  <p className="font-semibold text-[#2F2F2F] text-sm">{selectedPersonel.email || 'Belirtilmemiş'}</p>
                 </div>
               </div>
 
@@ -1135,7 +1135,7 @@ function PersonelPageContent() {
               {selectedPersonel.yoneticiId && (
                 <div className="p-4 bg-rose-50 rounded-lg border border-rose-200">
                   <p className="text-sm text-rose-600 mb-2">👔 Yöneticisi</p>
-                  <p className="font-semibold text-stone-800">
+                  <p className="font-semibold text-[#2F2F2F]">
                     {(() => {
                       const yonetici = personeller.find(p => p.id === selectedPersonel.yoneticiId);
                       return yonetici ? `${yonetici.ad} ${yonetici.soyad}` : 'Yönetici bulunamadı';
@@ -1145,50 +1145,50 @@ function PersonelPageContent() {
               )}
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="p-4 bg-yellow-50 rounded-lg">
-                  <p className="text-sm text-yellow-600 mb-1">🆔 Sicil No</p>
-                  <p className="font-semibold text-stone-800">{selectedPersonel.sicilNo}</p>
+                <div className="p-4 bg-[#E6B566]/10 rounded-lg">
+                  <p className="text-sm text-[#E6B566] mb-1">🆔 Sicil No</p>
+                  <p className="font-semibold text-[#2F2F2F]">{selectedPersonel.sicilNo}</p>
                 </div>
                 <div className="p-4 bg-purple-50 rounded-lg">
                   <p className="text-sm text-purple-600 mb-1">✂️ Kısaltma</p>
-                  <p className="font-semibold text-stone-800">{selectedPersonel.kisaltma || '-'}</p>
+                  <p className="font-semibold text-[#2F2F2F]">{selectedPersonel.kisaltma || '-'}</p>
                 </div>
-                <div className="p-4 bg-green-50 rounded-lg">
-                  <p className="text-sm text-green-600 mb-1">⏰ Çalışma</p>
-                  <p className="font-semibold text-stone-800 text-sm">{selectedPersonel.calismaSaati}</p>
+                <div className="p-4 bg-[#EAF2ED] rounded-lg">
+                  <p className="text-sm text-[#8FAF9A] mb-1">⏰ Çalışma</p>
+                  <p className="font-semibold text-[#2F2F2F] text-sm">{selectedPersonel.calismaSaati}</p>
                 </div>
               </div>
 
-              <div className="p-4 bg-orange-50 rounded-lg">
-                <p className="text-sm text-orange-600 mb-1">📅 İşe Başlama</p>
-                <p className="font-semibold text-stone-800">{selectedPersonel.iseBaslama || 'Belirtilmemiş'}</p>
+              <div className="p-4 bg-[#E6B566]/10 rounded-lg">
+                <p className="text-sm text-[#E6B566] mb-1">📅 İşe Başlama</p>
+                <p className="font-semibold text-[#2F2F2F]">{selectedPersonel.iseBaslama || 'Belirtilmemiş'}</p>
               </div>
 
               {selectedPersonel.dogumGunu && (
                 <div className="p-4 bg-rose-50 rounded-lg">
                   <p className="text-sm text-rose-600 mb-1">🎂 Doğum Günü</p>
-                  <p className="font-semibold text-stone-800">{new Date(selectedPersonel.dogumGunu).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })}</p>
+                  <p className="font-semibold text-[#2F2F2F]">{new Date(selectedPersonel.dogumGunu).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })}</p>
                 </div>
               )}
 
               {selectedPersonel.istenAyrilma && (
-                <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-                  <p className="text-sm text-red-600 mb-1">📅 İşten Ayrılma</p>
-                  <p className="font-semibold text-stone-800">{selectedPersonel.istenAyrilma}</p>
+                <div className="p-4 bg-[#D96C6C]/10 rounded-lg border border-[#D96C6C]/30">
+                  <p className="text-sm text-[#D96C6C] mb-1">📅 İşten Ayrılma</p>
+                  <p className="font-semibold text-[#2F2F2F]">{selectedPersonel.istenAyrilma}</p>
                 </div>
               )}
 
               {/* Bağlı Cihaz */}
-              <div className={`p-4 rounded-lg border ${selectedPersonel.boundDeviceId ? 'bg-indigo-50 border-indigo-200' : 'bg-stone-50 border-stone-200'}`}>
+              <div className={`p-4 rounded-lg border ${selectedPersonel.boundDeviceId ? 'bg-indigo-50 border-indigo-200' : 'bg-[#F7F7F7] border-[#E5E5E5]'}`}>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className={`text-sm mb-1 ${selectedPersonel.boundDeviceId ? 'text-indigo-600' : 'text-stone-500'}`}>📱 Bağlı Cihaz</p>
+                    <p className={`text-sm mb-1 ${selectedPersonel.boundDeviceId ? 'text-indigo-600' : 'text-[#8A8A8A]'}`}>📱 Bağlı Cihaz</p>
                     {selectedPersonel.boundDeviceId ? (
                       <>
-                        <p className="font-semibold text-stone-800">
+                        <p className="font-semibold text-[#2F2F2F]">
                           {selectedPersonel.boundDeviceInfo?.model || 'Cihaz bağlı'}
                         </p>
-                        <p className="text-xs text-stone-500 mt-1">
+                        <p className="text-xs text-[#8A8A8A] mt-1">
                           {selectedPersonel.boundDeviceInfo?.platform}
                           {selectedPersonel.boundDeviceInfo?.boundAt &&
                             ` • Bağlanma: ${new Date(selectedPersonel.boundDeviceInfo.boundAt).toLocaleDateString('tr-TR')}`
@@ -1196,13 +1196,13 @@ function PersonelPageContent() {
                         </p>
                       </>
                     ) : (
-                      <p className="font-semibold text-stone-500">Henüz cihaz bağlanmamış</p>
+                      <p className="font-semibold text-[#8A8A8A]">Henüz cihaz bağlanmamış</p>
                     )}
                   </div>
                   {selectedPersonel.boundDeviceId && (
                     <button
                       onClick={() => handleKoparTelefon(selectedPersonel.id)}
-                      className="px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-xs font-medium hover:bg-red-200 transition"
+                      className="px-3 py-1.5 bg-[#D96C6C]/20 text-[#D96C6C] rounded-lg text-xs font-medium hover:bg-red-200 transition"
                     >
                       🔗 Bağı Kopar
                     </button>
@@ -1211,10 +1211,10 @@ function PersonelPageContent() {
               </div>
 
               <div>
-                <p className="text-sm font-medium text-stone-700 mb-3">⚙️ Uygulama Ayarları:</p>
+                <p className="text-sm font-medium text-[#2F2F2F] mb-3">⚙️ Uygulama Ayarları:</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {Object.entries(ayarlarLabels).map(([key, label]) => (
-                    <div key={key} className={`px-3 py-2 rounded-lg text-sm ${selectedPersonel.ayarlar[key as keyof typeof selectedPersonel.ayarlar] ? 'bg-green-100 text-green-700' : 'bg-stone-100 text-stone-500'}`}>
+                    <div key={key} className={`px-3 py-2 rounded-lg text-sm ${selectedPersonel.ayarlar[key as keyof typeof selectedPersonel.ayarlar] ? 'bg-[#EAF2ED] text-[#8FAF9A]' : 'bg-[#F7F7F7] text-[#8A8A8A]'}`}>
                       {selectedPersonel.ayarlar[key as keyof typeof selectedPersonel.ayarlar] ? '✅' : '⬜'} {label}
                     </div>
                   ))}
@@ -1223,7 +1223,7 @@ function PersonelPageContent() {
             </div>
 
             <div className="mt-6">
-              <button onClick={() => setShowDetailModal(false)} className="w-full px-6 py-3 bg-stone-100 text-stone-700 rounded-lg hover:bg-stone-200 transition font-medium">Kapat</button>
+              <button onClick={() => setShowDetailModal(false)} className="w-full px-6 py-3 bg-[#F7F7F7] text-[#2F2F2F] rounded-lg hover:bg-[#E5E5E5] transition font-medium">Kapat</button>
             </div>
           </div>
         </div>
@@ -1234,17 +1234,17 @@ function PersonelPageContent() {
         <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl">
             <div className="px-6 py-4 border-b flex items-center justify-between">
-              <h3 className="text-xl font-bold text-stone-800">✂️ Fotoğraf Kırp</h3>
+              <h3 className="text-xl font-bold text-[#2F2F2F]">✂️ Fotoğraf Kırp</h3>
               <button 
                 onClick={() => { setShowCropModal(false); setCropImageSrc(""); }} 
-                className="text-stone-400 hover:text-stone-600 text-2xl"
+                className="text-[#8A8A8A] hover:text-[#2F2F2F] text-2xl"
               >
                 ×
               </button>
             </div>
 
             <div className="p-6">
-              <div className="relative bg-stone-900 rounded-lg overflow-hidden" style={{ height: '500px' }}>
+              <div className="relative bg-[#2F2F2F] rounded-lg overflow-hidden" style={{ height: '500px' }}>
                 <Cropper
                   image={cropImageSrc}
                   crop={crop}
@@ -1265,7 +1265,7 @@ function PersonelPageContent() {
 
               <div className="mt-4 space-y-3">
                 <div>
-                  <label className="text-sm font-medium text-stone-700 mb-2 block">🔍 Zoom: {zoom.toFixed(1)}x</label>
+                  <label className="text-sm font-medium text-[#2F2F2F] mb-2 block">🔍 Zoom: {zoom.toFixed(1)}x</label>
                   <input
                     type="range"
                     min={1}
@@ -1288,7 +1288,7 @@ function PersonelPageContent() {
             <div className="px-6 py-4 border-t flex gap-3">
               <button 
                 onClick={() => { setShowCropModal(false); setCropImageSrc(""); }} 
-                className="flex-1 px-6 py-3 border border-stone-300 rounded-lg text-stone-700 hover:bg-stone-50 transition font-medium"
+                className="flex-1 px-6 py-3 border border-[#E5E5E5] rounded-lg text-[#2F2F2F] hover:bg-[#F7F7F7] transition font-medium"
               >
                 İptal
               </button>

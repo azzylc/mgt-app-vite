@@ -155,12 +155,12 @@ function IzinHakkiEkleContent() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-white">
       <main className="flex-1 p-4 lg:p-6 ">
         <div className="mb-6 flex items-start justify-between">
           <div>
-            <h1 className="text-xl font-bold text-stone-800">İzin Hakkı Ekle</h1>
-            <p className="text-sm text-stone-500">
+            <h1 className="text-xl font-bold text-[#2F2F2F]">İzin Hakkı Ekle</h1>
+            <p className="text-sm text-[#8A8A8A]">
               Bu sayfada kullanıcılarınıza izin hakkı tanımlayabilirsiniz.
             </p>
           </div>
@@ -192,8 +192,8 @@ function IzinHakkiEkleContent() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-stone-100" onKeyDown={handleKeyDown}>
-          <div className="border-b border-stone-100 px-6 pt-4">
+        <div className="bg-white rounded-lg shadow-sm border border-[#E5E5E5]" onKeyDown={handleKeyDown}>
+          <div className="border-b border-[#E5E5E5] px-6 pt-4">
             <div className="inline-block">
               <span className="text-primary-500 font-medium text-sm pb-3 block border-b-2 border-primary-500">
                 Genel
@@ -203,13 +203,13 @@ function IzinHakkiEkleContent() {
 
           <div className="p-4 md:p-6 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
-              <label className="text-sm font-medium text-stone-700">
-                Kullanıcı <span className="text-red-500">(*)</span>
+              <label className="text-sm font-medium text-[#2F2F2F]">
+                Kullanıcı <span className="text-[#D96C6C]">(*)</span>
               </label>
               <select
                 value={selectedPersonel}
                 onChange={(e) => setSelectedPersonel(e.target.value)}
-                className="w-full max-w-md px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                className="w-full max-w-md px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
               >
                 <option value="">- Seçiniz -</option>
                 {personeller.map((personel) => (
@@ -222,23 +222,23 @@ function IzinHakkiEkleContent() {
 
             {seciliPersonel && (
               <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-start gap-4">
-                <label className="text-sm font-medium text-stone-700">Personel Bilgisi</label>
-                <div className="bg-stone-50 rounded-lg p-4 max-w-md">
+                <label className="text-sm font-medium text-[#2F2F2F]">Personel Bilgisi</label>
+                <div className="bg-[#F7F7F7] rounded-lg p-4 max-w-md">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                     <div>
-                      <span className="text-stone-500">İşe Giriş Tarihi:</span>
-                      <span className="ml-2 font-medium text-stone-800">
+                      <span className="text-[#8A8A8A]">İşe Giriş Tarihi:</span>
+                      <span className="ml-2 font-medium text-[#2F2F2F]">
                         {seciliPersonel.iseBaslama ? formatDate(seciliPersonel.iseBaslama) : "Tanımlı değil"}
                       </span>
                     </div>
                     <div>
-                      <span className="text-stone-500">Çalışma Süresi:</span>
-                      <span className="ml-2 font-medium text-stone-800">
+                      <span className="text-[#8A8A8A]">Çalışma Süresi:</span>
+                      <span className="ml-2 font-medium text-[#2F2F2F]">
                         {seciliPersonel.iseBaslama ? `${hesaplaCalismaYili(seciliPersonel.iseBaslama)} yıl` : "-"}
                       </span>
                     </div>
                     <div>
-                      <span className="text-stone-500">Toplam Hak:</span>
+                      <span className="text-[#8A8A8A]">Toplam Hak:</span>
                       <span className="ml-2 font-semibold text-primary-600">
                         {seciliPersonel.iseBaslama ? `${hesaplaIzinHakki(hesaplaCalismaYili(seciliPersonel.iseBaslama))} gün` : "-"}
                       </span>
@@ -253,7 +253,7 @@ function IzinHakkiEkleContent() {
                       </button>
                     </div>
                   </div>
-                  <div className="mt-3 pt-3 border-t border-stone-200 text-xs text-stone-500">
+                  <div className="mt-3 pt-3 border-t border-[#E5E5E5] text-xs text-[#8A8A8A]">
                     📋 Her yıl eklenen: 1-5. yıl → 14 gün | 6-15. yıl → 20 gün | 16+. yıl → 26 gün
                   </div>
                 </div>
@@ -261,8 +261,8 @@ function IzinHakkiEkleContent() {
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
-              <label className="text-sm font-medium text-stone-700">
-                Hak kazandığı gün <span className="text-red-500">(*)</span>
+              <label className="text-sm font-medium text-[#2F2F2F]">
+                Hak kazandığı gün <span className="text-[#D96C6C]">(*)</span>
               </label>
               <input
                 type="number"
@@ -270,20 +270,20 @@ function IzinHakkiEkleContent() {
                 value={hakGunu}
                 onChange={(e) => setHakGunu(e.target.value)}
                 placeholder="Örn: 14"
-                className="w-full max-w-md px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                className="w-full max-w-md px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-start gap-4">
-              <label className="text-sm font-medium text-stone-700 pt-2">
-                Kısa Açıklama <span className="text-red-500">(*)</span>
+              <label className="text-sm font-medium text-[#2F2F2F] pt-2">
+                Kısa Açıklama <span className="text-[#D96C6C]">(*)</span>
               </label>
               <textarea
                 value={aciklama}
                 onChange={(e) => setAciklama(e.target.value)}
                 placeholder="Örn: 2025 yılı yıllık izin hakkı"
                 rows={5}
-                className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 resize-y"
+                className="w-full px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 resize-y"
               />
             </div>
           </div>
@@ -322,7 +322,7 @@ function IzinHakkiEkleContent() {
 export default function IzinHakkiEkle() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
       </div>
     }>

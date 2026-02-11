@@ -19,7 +19,7 @@ interface AyarSatirProps {
 
 function AyarSatir({ emoji, baslik, aciklama, aktif, tarih, onTarihDegistir }: AyarSatirProps) {
   return (
-    <div className={`p-3 rounded-lg border ${aktif ? "border-green-400 bg-green-50" : "border-[#E5E5E5] bg-[#F7F7F7]"}`}>
+    <div className={`p-3 rounded-lg border ${aktif ? "border-[#8FAF9A] bg-[#EAF2ED]" : "border-[#E5E5E5] bg-[#F7F7F7]"}`}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <span className="text-lg">{emoji}</span>
@@ -36,7 +36,7 @@ function AyarSatir({ emoji, baslik, aciklama, aktif, tarih, onTarihDegistir }: A
             className="px-2 py-1 border border-[#E5E5E5] rounded text-sm w-36"
           />
           {aktif && (
-            <span className="px-2 py-0.5 bg-green-500 text-white text-xs rounded-full">✓</span>
+            <span className="px-2 py-0.5 bg-[#8FAF9A] text-white text-xs rounded-full">✓</span>
           )}
         </div>
       </div>

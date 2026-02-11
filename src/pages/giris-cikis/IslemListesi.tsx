@@ -201,13 +201,13 @@ export default function IslemListesiPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-white">
       <div>
         <header className="bg-white border-b px-4 md:px-6 py-4 sticky top-0 z-30">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-xl font-bold text-stone-800">İşlem Listesi</h1>
-              <p className="text-sm text-stone-500 mt-1">Bu sayfada, şirketinize ait tüm giriş - çıkış kayıtlarını görebilirsiniz.</p>
+              <h1 className="text-xl font-bold text-[#2F2F2F]">İşlem Listesi</h1>
+              <p className="text-sm text-[#8A8A8A] mt-1">Bu sayfada, şirketinize ait tüm giriş - çıkış kayıtlarını görebilirsiniz.</p>
             </div>
             <button
               onClick={() => window.print()}
@@ -227,18 +227,18 @@ export default function IslemListesiPage() {
                 placeholder="İsim veya sicil no ara..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
+                className="flex-1 px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
               />
               <select
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
-                className="px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
+                className="px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
               >
                 <option value="Tümünde">Tümünde</option>
                 <option value="Giriş">Giriş</option>
                 <option value="Çıkış">Çıkış</option>
               </select>
-              <button className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-medium transition">
+              <button className="bg-[#8FAF9A] hover:bg-[#7A9E86] text-white px-6 py-2 rounded-lg font-medium transition">
                 Ara
               </button>
             </div>
@@ -248,26 +248,26 @@ export default function IslemListesiPage() {
           <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-stone-50 border-b">
+                <thead className="bg-[#F7F7F7] border-b">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">#</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Kullanıcı Adı</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Konum</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Çalışma Saati</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">↓ Tarih</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Kayıt Türü</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Sicil No</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Kayıt Ortamı</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Manual Kayıt</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Mazeret</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Konum Dışı</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">İşlemler</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">#</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Kullanıcı Adı</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Konum</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Çalışma Saati</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">↓ Tarih</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Kayıt Türü</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Sicil No</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Kayıt Ortamı</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Manual Kayıt</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Mazeret</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Konum Dışı</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">İşlemler</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-stone-100">
+                <tbody className="divide-y divide-[#E5E5E5]">
                   {filteredRecords.length === 0 ? (
                     <tr>
-                      <td colSpan={12} className="px-4 py-12 text-center text-stone-500">
+                      <td colSpan={12} className="px-4 py-12 text-center text-[#8A8A8A]">
                         Kayıt bulunamadı
                       </td>
                     </tr>
@@ -278,42 +278,42 @@ export default function IslemListesiPage() {
                       const konumDisi = record.mesafe && record.mesafe > 100;
                       
                       return (
-                        <tr key={record.id} className="hover:bg-stone-50">
-                          <td className="px-4 py-3 text-sm text-stone-600">{index + 1}</td>
-                          <td className="px-4 py-3 text-sm font-medium text-stone-800">{record.personelAd}</td>
-                          <td className="px-4 py-3 text-sm text-stone-600">{record.konumAdi}</td>
-                          <td className="px-4 py-3 text-sm text-stone-600">{personel?.calismaSaati || "her gün 9:00-18:00"}</td>
-                          <td className="px-4 py-3 text-sm text-stone-600">
+                        <tr key={record.id} className="hover:bg-[#F7F7F7]">
+                          <td className="px-4 py-3 text-sm text-[#2F2F2F]">{index + 1}</td>
+                          <td className="px-4 py-3 text-sm font-medium text-[#2F2F2F]">{record.personelAd}</td>
+                          <td className="px-4 py-3 text-sm text-[#2F2F2F]">{record.konumAdi}</td>
+                          <td className="px-4 py-3 text-sm text-[#2F2F2F]">{personel?.calismaSaati || "her gün 9:00-18:00"}</td>
+                          <td className="px-4 py-3 text-sm text-[#2F2F2F]">
                             {tarih.toLocaleDateString('tr-TR')} {tarih.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                           </td>
                           <td className="px-4 py-3">
                             <span className={`inline-flex px-2 py-1 rounded text-xs font-medium ${
                               record.tip === "giris" 
-                                ? "bg-green-100 text-green-700" 
-                                : "bg-red-100 text-red-700"
+                                ? "bg-[#EAF2ED] text-[#8FAF9A]" 
+                                : "bg-[#D96C6C]/20 text-[#D96C6C]"
                             }`}>
                               {record.tip === "giris" ? "Giriş" : "Çıkış"}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-sm text-stone-600">{personel?.sicilNo || record.sicilNo || "-"}</td>
-                          <td className="px-4 py-3 text-sm text-stone-600">{record.kayitOrtami}</td>
-                          <td className="px-4 py-3 text-sm text-stone-600">{record.manuelKayit ? "Evet" : "Hayır"}</td>
-                          <td className="px-4 py-3 text-sm text-stone-600">{record.mazeretNotu || "-"}</td>
+                          <td className="px-4 py-3 text-sm text-[#2F2F2F]">{personel?.sicilNo || record.sicilNo || "-"}</td>
+                          <td className="px-4 py-3 text-sm text-[#2F2F2F]">{record.kayitOrtami}</td>
+                          <td className="px-4 py-3 text-sm text-[#2F2F2F]">{record.manuelKayit ? "Evet" : "Hayır"}</td>
+                          <td className="px-4 py-3 text-sm text-[#2F2F2F]">{record.mazeretNotu || "-"}</td>
                           <td className="px-4 py-3 text-sm">
-                            {konumDisi && <span className="text-red-500">Evet</span>}
+                            {konumDisi && <span className="text-[#D96C6C]">Evet</span>}
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-2">
                               <button
                                 onClick={() => setEditModal(record)}
-                                className="text-stone-400 hover:text-blue-500 transition"
+                                className="text-[#8A8A8A] hover:text-blue-500 transition"
                                 title="Düzenle"
                               >
                                 ✏️
                               </button>
                               <button
                                 onClick={() => setDeleteModal(record)}
-                                className="text-stone-400 hover:text-red-500 transition"
+                                className="text-[#8A8A8A] hover:text-[#D96C6C] transition"
                                 title="Sil"
                               >
                                 🗑️
@@ -335,25 +335,25 @@ export default function IslemListesiPage() {
       {editModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-md w-full p-6">
-            <h3 className="text-lg font-bold text-stone-800 mb-4">Kaydı Düzenle</h3>
+            <h3 className="text-lg font-bold text-[#2F2F2F] mb-4">Kaydı Düzenle</h3>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-1">Kullanıcı</label>
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-1">Kullanıcı</label>
                 <input
                   type="text"
                   value={editModal.personelAd}
                   disabled
-                  className="w-full px-3 py-2 border border-stone-200 rounded-lg bg-stone-50"
+                  className="w-full px-3 py-2 border border-[#E5E5E5] rounded-lg bg-[#F7F7F7]"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-1">Kayıt Türü</label>
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-1">Kayıt Türü</label>
                 <select
                   value={editModal.tip}
                   onChange={(e) => setEditModal({...editModal, tip: e.target.value as "giris" | "cikis"})}
-                  className="w-full px-3 py-2 border border-stone-200 rounded-lg focus:ring-2 focus:ring-rose-500"
+                  className="w-full px-3 py-2 border border-[#E5E5E5] rounded-lg focus:ring-2 focus:ring-rose-500"
                 >
                   <option value="giris">Giriş</option>
                   <option value="cikis">Çıkış</option>
@@ -361,12 +361,12 @@ export default function IslemListesiPage() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-1">Mazeret Notu</label>
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-1">Mazeret Notu</label>
                 <input
                   type="text"
                   value={editModal.mazeretNotu || ""}
                   onChange={(e) => setEditModal({...editModal, mazeretNotu: e.target.value})}
-                  className="w-full px-3 py-2 border border-stone-200 rounded-lg focus:ring-2 focus:ring-rose-500"
+                  className="w-full px-3 py-2 border border-[#E5E5E5] rounded-lg focus:ring-2 focus:ring-rose-500"
                   placeholder="Mazeret notu girin..."
                 />
               </div>
@@ -375,7 +375,7 @@ export default function IslemListesiPage() {
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setEditModal(null)}
-                className="flex-1 px-4 py-2 border border-stone-200 rounded-lg text-stone-600 hover:bg-stone-50 transition"
+                className="flex-1 px-4 py-2 border border-[#E5E5E5] rounded-lg text-[#2F2F2F] hover:bg-[#F7F7F7] transition"
               >
                 İptal
               </button>
@@ -394,8 +394,8 @@ export default function IslemListesiPage() {
       {deleteModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-md w-full p-6">
-            <h3 className="text-lg font-bold text-stone-800 mb-4">Kaydı Sil</h3>
-            <p className="text-stone-600 mb-6">
+            <h3 className="text-lg font-bold text-[#2F2F2F] mb-4">Kaydı Sil</h3>
+            <p className="text-[#2F2F2F] mb-6">
               <strong>{deleteModal.personelAd}</strong> adlı personelin{" "}
               <strong>{deleteModal.tarih?.toDate?.()?.toLocaleString('tr-TR')}</strong> tarihli{" "}
               <strong>{deleteModal.tip === "giris" ? "giriş" : "çıkış"}</strong> kaydını silmek istediğinize emin misiniz?
@@ -404,13 +404,13 @@ export default function IslemListesiPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => setDeleteModal(null)}
-                className="flex-1 px-4 py-2 border border-stone-200 rounded-lg text-stone-600 hover:bg-stone-50 transition"
+                className="flex-1 px-4 py-2 border border-[#E5E5E5] rounded-lg text-[#2F2F2F] hover:bg-[#F7F7F7] transition"
               >
                 İptal
               </button>
               <button
                 onClick={handleDelete}
-                className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                className="flex-1 px-4 py-2 bg-[#D96C6C] text-white rounded-lg hover:bg-[#C25A5A] transition"
               >
                 Sil
               </button>

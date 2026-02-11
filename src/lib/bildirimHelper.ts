@@ -48,11 +48,11 @@ export interface BildirimYazParams {
 // ─── Bildirim Tip Ayarları ──────────────────────────────────────
 export const BILDIRIM_AYARLARI: Record<BildirimTip, { ikon: string; renk: string }> = {
   gorev_atama:  { ikon: "📋", renk: "bg-blue-50 text-blue-600" },
-  gorev_tamam:  { ikon: "✅", renk: "bg-green-50 text-green-600" },
+  gorev_tamam:  { ikon: "✅", renk: "bg-[#EAF2ED] text-[#8FAF9A]" },
   gorev_yorum:  { ikon: "💬", renk: "bg-purple-50 text-purple-600" },
-  duyuru:       { ikon: "📢", renk: "bg-amber-50 text-amber-600" },
+  duyuru:       { ikon: "📢", renk: "bg-[#EAF2ED] text-[#8FAF9A]" },
   izin:         { ikon: "🏖️", renk: "bg-teal-50 text-teal-600" },
-  sistem:       { ikon: "⚙️", renk: "bg-gray-50 text-gray-600" },
+  sistem:       { ikon: "⚙️", renk: "bg-[#F7F7F7] text-[#2F2F2F]" },
 };
 
 // ─── Bildirim Yaz ───────────────────────────────────────────────

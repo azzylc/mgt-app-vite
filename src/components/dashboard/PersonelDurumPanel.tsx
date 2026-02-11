@@ -62,7 +62,7 @@ export default function PersonelDurumPanel({
                     <span className="text-xs">{personel?.emoji || "👤"}</span>
                     <span className="text-xs text-[#2F2F2F] font-medium">{p.personelAd}</span>
                   </div>
-                  <span className="text-[10px] text-[#8FAF9A] font-semibold bg-[#EAF2ED]/50 px-1.5 py-0.5 rounded">{p.girisSaati}</span>
+                  <span className="text-[10px] text-[#8FAF9A] font-semibold bg-[#EAF2ED] px-1.5 py-0.5 rounded">{p.girisSaati}</span>
                 </div>
               );
             })}
@@ -107,7 +107,7 @@ export default function PersonelDurumPanel({
             {izinliler.map((izin) => (
               <div key={izin.id} className="flex items-center justify-between py-1 px-2.5 rounded-lg bg-[#EAF2ED]">
                 <span className="text-xs text-[#2F2F2F]">{izin.personelAd} {izin.personelSoyad}</span>
-                <span className="text-[10px] text-[#E6B566] bg-[#EAF2ED]/50 px-1.5 py-0.5 rounded font-medium">{izin.izinTuru}</span>
+                <span className="text-[10px] text-[#E6B566] bg-[#EAF2ED] px-1.5 py-0.5 rounded font-medium">{izin.izinTuru}</span>
               </div>
             ))}
           </div>

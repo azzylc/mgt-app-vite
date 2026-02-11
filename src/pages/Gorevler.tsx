@@ -702,21 +702,21 @@ export default function GorevlerPage() {
   // RENDER
   // ============================================
   return (
-    <div className="min-h-screen bg-stone-50/50">
+    <div className="min-h-screen bg-[#F7F7F7]">
       <div className="flex-1">
-        <header className="bg-white/80 backdrop-blur-sm sticky top-0 z-10 border-b border-stone-100">
+        <header className="bg-white/80 backdrop-blur-sm sticky top-0 z-10 border-b border-[#E5E5E5]">
           <div className="px-3 md:px-5 py-2 flex items-center justify-between">
-            <h1 className="text-sm md:text-base font-bold text-stone-800">✅ Görevler</h1>
+            <h1 className="text-sm md:text-base font-bold text-[#2F2F2F]">✅ Görevler</h1>
             <div className="flex items-center gap-2">
               {gorevAtayabilir && (
-                <button onClick={() => setShowGorevEkle(true)} className="px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-500 text-white hover:bg-amber-600 transition">
+                <button onClick={() => setShowGorevEkle(true)} className="px-2.5 py-1 rounded-lg text-xs font-medium bg-[#8FAF9A] text-white hover:bg-[#7A9E86] transition">
                   ➕ Görev Ata
                 </button>
               )}
               {userRole === "Kurucu" && (
                 <button
                   onClick={() => setShowAyarlar(!showAyarlar)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${showAyarlar ? "bg-stone-800 text-white" : "bg-stone-100 text-stone-600 hover:bg-stone-200"}`}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${showAyarlar ? "bg-[#2F2F2F] text-white" : "bg-[#F7F7F7] text-[#2F2F2F] hover:bg-[#E5E5E5]"}`}
                 >
                   ⚙️ <span className="hidden md:inline">Görev </span>Ayarları
                 </button>
@@ -725,15 +725,15 @@ export default function GorevlerPage() {
           </div>
           
           {/* Sekmeler */}
-          <div className="px-2 md:px-5 flex gap-0 border-t border-stone-100 overflow-x-auto">
+          <div className="px-2 md:px-5 flex gap-0 border-t border-[#E5E5E5] overflow-x-auto">
             <button
               onClick={() => { setAktifSekme("gorevlerim"); setFiltre("aktif"); }}
               className={`px-2.5 md:px-4 py-2 md:py-2.5 font-medium text-xs md:text-sm transition border-b-2 whitespace-nowrap ${
-                aktifSekme === "gorevlerim" ? "border-amber-500 text-amber-600 bg-amber-50/50" : "border-transparent text-stone-500 hover:text-stone-700"
+                aktifSekme === "gorevlerim" ? "border-[#8FAF9A] text-[#8FAF9A] bg-[#EAF2ED]" : "border-transparent text-[#8A8A8A] hover:text-[#2F2F2F]"
               }`}
             >
               📋 Görevlerim
-              <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs ${aktifSekme === "gorevlerim" ? "bg-amber-100 text-amber-700" : "bg-stone-100 text-stone-500"}`}>
+              <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs ${aktifSekme === "gorevlerim" ? "bg-[#EAF2ED] text-[#2F2F2F]" : "bg-[#F7F7F7] text-[#8A8A8A]"}`}>
                 {birlesikGorevler.filter(g => !g.otomatikMi).length}
               </span>
             </button>
@@ -742,11 +742,11 @@ export default function GorevlerPage() {
               <button
                 onClick={() => { setAktifSekme("verdigim"); setFiltre("aktif"); }}
                 className={`px-2.5 md:px-4 py-2 md:py-2.5 font-medium text-xs md:text-sm transition border-b-2 whitespace-nowrap ${
-                  aktifSekme === "verdigim" ? "border-sky-500 text-sky-600 bg-sky-50/50" : "border-transparent text-stone-500 hover:text-stone-700"
+                  aktifSekme === "verdigim" ? "border-sky-500 text-sky-600 bg-sky-50/50" : "border-transparent text-[#8A8A8A] hover:text-[#2F2F2F]"
                 }`}
               >
                 📤 <span className="hidden md:inline">Verdiğim </span>Görevler
-                <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs ${aktifSekme === "verdigim" ? "bg-sky-100 text-sky-700" : "bg-stone-100 text-stone-500"}`}>
+                <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs ${aktifSekme === "verdigim" ? "bg-sky-100 text-sky-700" : "bg-[#F7F7F7] text-[#8A8A8A]"}`}>
                   {tumGorevler.filter(g => g.atayan === user?.email && !g.otomatikMi).length}
                 </span>
               </button>
@@ -755,12 +755,12 @@ export default function GorevlerPage() {
             <button
               onClick={() => { setAktifSekme("otomatik"); setFiltre("aktif"); }}
               className={`px-2.5 md:px-4 py-2 md:py-2.5 font-medium text-xs md:text-sm transition border-b-2 whitespace-nowrap ${
-                aktifSekme === "otomatik" ? "border-purple-500 text-purple-600 bg-purple-50/50" : "border-transparent text-stone-500 hover:text-stone-700"
+                aktifSekme === "otomatik" ? "border-purple-500 text-purple-600 bg-purple-50/50" : "border-transparent text-[#8A8A8A] hover:text-[#2F2F2F]"
               }`}
             >
               <span className="hidden md:inline">🤖 </span>Otomatik
               <span className="hidden md:inline"> Görevler</span>
-              <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs ${aktifSekme === "otomatik" ? "bg-purple-100 text-purple-700" : "bg-stone-100 text-stone-500"}`}>
+              <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs ${aktifSekme === "otomatik" ? "bg-purple-100 text-purple-700" : "bg-[#F7F7F7] text-[#8A8A8A]"}`}>
                 {birlesikGorevler.filter(g => g.otomatikMi === true).length}
               </span>
             </button>
@@ -769,11 +769,11 @@ export default function GorevlerPage() {
               <button
                 onClick={() => { setAktifSekme("tumgorevler"); setFiltre("aktif"); setSeciliPersoneller([]); }}
                 className={`px-2.5 md:px-4 py-2 md:py-2.5 font-medium text-xs md:text-sm transition border-b-2 whitespace-nowrap ${
-                  aktifSekme === "tumgorevler" ? "border-emerald-500 text-emerald-600 bg-emerald-50/50" : "border-transparent text-stone-500 hover:text-stone-700"
+                  aktifSekme === "tumgorevler" ? "border-[#8FAF9A] text-[#8FAF9A] bg-[#EAF2ED]" : "border-transparent text-[#8A8A8A] hover:text-[#2F2F2F]"
                 }`}
               >
                 {userRole === "Kurucu" ? "👑" : "👥"} <span className="hidden md:inline">Ekip </span>Görevleri
-                <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs ${aktifSekme === "tumgorevler" ? "bg-emerald-100 text-emerald-700" : "bg-stone-100 text-stone-500"}`}>
+                <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs ${aktifSekme === "tumgorevler" ? "bg-[#EAF2ED] text-[#8FAF9A]" : "bg-[#F7F7F7] text-[#8A8A8A]"}`}>
                   {tumGorevler.length}
                 </span>
               </button>
@@ -798,10 +798,10 @@ export default function GorevlerPage() {
             <div className="mb-3">
               <div className="flex flex-wrap items-center gap-1 mb-2">
                 {([
-                  { key: "hepsi", label: "Hepsi", renk: "stone-700", count: gorevler.filter(g => g.otomatikMi).length },
+                  { key: "hepsi", label: "Hepsi", renk: "[#2F2F2F]", count: gorevler.filter(g => g.otomatikMi).length },
                   { key: "yorumIstesinMi", label: "📝 Yorum İstensin", renk: "purple-500", count: gorevler.filter(g => g.otomatikMi && g.gorevTuru === "yorumIstesinMi").length },
                   { key: "paylasimIzni", label: "📸 Paylaşım", renk: "blue-500", count: gorevler.filter(g => g.otomatikMi && g.gorevTuru === "paylasimIzni").length },
-                  { key: "yorumIstendiMi", label: "💬 Yorum İstendi", renk: "amber-500", count: gorevler.filter(g => g.otomatikMi && g.gorevTuru === "yorumIstendiMi").length },
+                  { key: "yorumIstendiMi", label: "💬 Yorum İstendi", renk: "[#E6B566]", count: gorevler.filter(g => g.otomatikMi && g.gorevTuru === "yorumIstendiMi").length },
                   { key: "odemeTakip", label: "💰 Ödeme", renk: "red-500", count: gorevler.filter(g => g.otomatikMi && g.gorevTuru === "odemeTakip").length },
                 ] as const).map(tab => (
                   <button
@@ -810,11 +810,11 @@ export default function GorevlerPage() {
                     className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition ${
                       otomatikAltSekme === tab.key
                         ? `bg-${tab.renk} text-white`
-                        : "bg-white text-stone-500 border border-stone-200 hover:bg-stone-50"
+                        : "bg-white text-[#8A8A8A] border border-[#E5E5E5] hover:bg-[#F7F7F7]"
                     }`}
                   >
                     {tab.label}
-                    <span className={`ml-1 px-1 rounded-full text-[10px] ${otomatikAltSekme === tab.key ? "bg-white/20" : "bg-stone-100"}`}>
+                    <span className={`ml-1 px-1 rounded-full text-[10px] ${otomatikAltSekme === tab.key ? "bg-white/20" : "bg-[#F7F7F7]"}`}>
                       {tab.count}
                     </span>
                   </button>
@@ -822,7 +822,7 @@ export default function GorevlerPage() {
                 
                 <button
                   onClick={() => setSiralama(siralama === "yenidenEskiye" ? "eskidenYeniye" : "yenidenEskiye")}
-                  className="ml-auto px-2 py-0.5 rounded-md text-[11px] font-medium bg-stone-50 text-stone-400 hover:bg-stone-100 transition"
+                  className="ml-auto px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#F7F7F7] text-[#8A8A8A] hover:bg-[#F7F7F7] transition"
                 >
                   {siralama === "yenidenEskiye" ? "Yeni → Eski" : "Eski → Yeni"}
                 </button>
@@ -832,8 +832,8 @@ export default function GorevlerPage() {
               <p className={`text-[10px] px-2 py-1 rounded-md ${
                 otomatikAltSekme === "yorumIstesinMi" ? "bg-purple-50/50 text-purple-500" :
                 otomatikAltSekme === "paylasimIzni" ? "bg-blue-50/50 text-blue-500" :
-                otomatikAltSekme === "odemeTakip" ? "bg-red-50/50 text-red-500" :
-                "bg-amber-50/50 text-amber-500"
+                otomatikAltSekme === "odemeTakip" ? "bg-[#D96C6C]/10/50 text-[#D96C6C]" :
+                "bg-[#EAF2ED] text-[#E6B566]"
               }`}>
                 {otomatikAltSekme === "odemeTakip" 
                   ? "Ödeme alınmamış → Yöneticilere atanır. \"Yaptım\" ile kontrol edin."
@@ -846,17 +846,17 @@ export default function GorevlerPage() {
           {/* Ekip Görevleri personel filtresi */}
           {aktifSekme === "tumgorevler" && (
             <div className="mb-3 space-y-2">
-              <div className="bg-emerald-50/50 border border-emerald-100 rounded-xl p-2.5">
-                <p className="text-xs text-emerald-700">
+              <div className="bg-[#EAF2ED] border border-[#EAF2ED] rounded-xl p-2.5">
+                <p className="text-xs text-[#8FAF9A]">
                   <span className="font-medium">{userRole === "Kurucu" ? "👑" : "👥"} {userRole === "Kurucu" ? "Tüm personelin" : "Ekibinizin"} görevleri</span>
-                  <span className="text-emerald-500 ml-1">• Personel seçerek filtreleyin</span>
+                  <span className="text-[#8FAF9A] ml-1">• Personel seçerek filtreleyin</span>
                 </p>
               </div>
-              <div className="bg-white rounded-xl border border-stone-100 p-2.5">
+              <div className="bg-white rounded-xl border border-[#E5E5E5] p-2.5">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs font-medium text-stone-600">👤 Personel Filtresi</p>
+                  <p className="text-xs font-medium text-[#2F2F2F]">👤 Personel Filtresi</p>
                   {seciliPersoneller.length > 0 && (
-                    <button onClick={() => setSeciliPersoneller([])} className="text-xs text-emerald-600 hover:text-emerald-800">Temizle</button>
+                    <button onClick={() => setSeciliPersoneller([])} className="text-xs text-[#8FAF9A] hover:text-[#8FAF9A]">Temizle</button>
                   )}
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -865,8 +865,8 @@ export default function GorevlerPage() {
                       key={p.id}
                       className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer transition text-sm ${
                         seciliPersoneller.includes(p.email)
-                          ? "bg-emerald-100 border-2 border-emerald-400 text-emerald-800"
-                          : "bg-stone-50 border border-stone-200 text-stone-700 hover:bg-stone-100"
+                          ? "bg-[#EAF2ED] border-2 border-[#8FAF9A] text-[#8FAF9A]"
+                          : "bg-[#F7F7F7] border border-[#E5E5E5] text-[#2F2F2F] hover:bg-[#F7F7F7]"
                       }`}
                     >
                       <input
@@ -880,13 +880,13 @@ export default function GorevlerPage() {
                       />
                       <span className="font-medium">{p.ad} {p.soyad}</span>
                       <span className={`px-1.5 py-0.5 rounded-full text-xs ${
-                        seciliPersoneller.includes(p.email) ? "bg-emerald-200 text-emerald-800" : "bg-stone-200 text-stone-600"
+                        seciliPersoneller.includes(p.email) ? "bg-[#EAF2ED] text-[#8FAF9A]" : "bg-[#E5E5E5] text-[#2F2F2F]"
                       }`}>{p.gorevSayisi}</span>
                     </label>
                   ))}
                 </div>
                 {seciliPersoneller.length > 0 && (
-                  <p className="text-xs text-stone-500 mt-2">{seciliPersoneller.length} personel seçili • {filtreliGorevler.length} görev gösteriliyor</p>
+                  <p className="text-xs text-[#8A8A8A] mt-2">{seciliPersoneller.length} personel seçili • {filtreliGorevler.length} görev gösteriliyor</p>
                 )}
               </div>
             </div>
@@ -901,8 +901,8 @@ export default function GorevlerPage() {
                 onClick={() => setFiltre(f)}
                 className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
                   filtre === f
-                    ? aktifSekme === "tumgorevler" ? "bg-emerald-500 text-white" : "bg-amber-500 text-white"
-                    : "bg-white text-stone-600 hover:bg-stone-50 border border-stone-200"
+                    ? aktifSekme === "tumgorevler" ? "bg-[#8FAF9A] text-white" : "bg-[#8FAF9A] text-white"
+                    : "bg-white text-[#2F2F2F] hover:bg-[#F7F7F7] border border-[#E5E5E5]"
                 }`}
               >
                 {f === "aktif" ? `Aktif` : "✅ Tamamlandı"}
@@ -910,7 +910,7 @@ export default function GorevlerPage() {
             ))}
             <button
               onClick={() => setSiralama(siralama === "yenidenEskiye" ? "eskidenYeniye" : "yenidenEskiye")}
-              className="ml-auto px-2.5 py-1 rounded-lg text-xs font-medium bg-stone-100 text-stone-600 hover:bg-stone-200 border border-stone-200 transition flex items-center gap-1"
+              className="ml-auto px-2.5 py-1 rounded-lg text-xs font-medium bg-[#F7F7F7] text-[#2F2F2F] hover:bg-[#E5E5E5] border border-[#E5E5E5] transition flex items-center gap-1"
             >
               {siralama === "yenidenEskiye" ? "📅 Yeni → Eski" : "📅 Eski → Yeni"}
             </button>
@@ -920,9 +920,9 @@ export default function GorevlerPage() {
           {/* Görev Listesi */}
           <div className="space-y-2">
             {filtreliGorevler.length === 0 ? (
-              <div className="text-center py-10 bg-white rounded-xl border border-stone-100">
+              <div className="text-center py-10 bg-white rounded-xl border border-[#E5E5E5]">
                 <span className="text-3xl">📋</span>
-                <p className="text-stone-400 mt-2 text-sm">Henüz görev yok</p>
+                <p className="text-[#8A8A8A] mt-2 text-sm">Henüz görev yok</p>
               </div>
             ) : (
               filtreliGorevler.map((gorev) => (
@@ -957,7 +957,7 @@ export default function GorevlerPage() {
       {selectedGelinId && gelinLoading && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white p-4 rounded-xl shadow-lg">
-            <p className="text-stone-500 text-sm">⏳ Gelin bilgisi yükleniyor...</p>
+            <p className="text-[#8A8A8A] text-sm">⏳ Gelin bilgisi yükleniyor...</p>
           </div>
         </div>
       )}

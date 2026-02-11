@@ -715,24 +715,24 @@ export default function PuantajPage() {
 
   // Hücre rengi
   const getHucreClass = (kayit: GunKayit, tip: "giris" | "cikis"): string => {
-    const base = "px-2 py-3 text-xs text-center border-r border-stone-100 transition cursor-pointer hover:bg-rose-50 relative group min-w-[50px]";
+    const base = "px-2 py-3 text-xs text-center border-r border-[#E5E5E5] transition cursor-pointer hover:bg-rose-50 relative group min-w-[50px]";
     
     if (kayit.durum === "haftaTatili") return base + " bg-orange-300 text-orange-900 font-medium";
     if (kayit.durum === "izin" && kayit.izinTuru === "Haftalık İzin") return base + " bg-orange-300 text-orange-900 font-medium cursor-not-allowed";
     if (kayit.durum === "izin") return base + " bg-yellow-300 text-yellow-900 font-medium cursor-not-allowed";
-    if (kayit.durum === "mazeret") return base + " bg-yellow-200 text-yellow-800";
+    if (kayit.durum === "mazeret") return base + " bg-yellow-200 text-[#E6B566]";
     
     // Resmi tatil - ama giriş/çıkış kaydı varsa farklı renk
     if (kayit.durum === "resmiTatil") {
       if (tip === "giris" && kayit.giris) return base + " bg-green-200 text-green-800 font-medium";
-      if (tip === "cikis" && kayit.cikis) return base + " bg-green-200 text-red-700 font-medium";
+      if (tip === "cikis" && kayit.cikis) return base + " bg-green-200 text-[#D96C6C] font-medium";
       return base + " bg-green-300 text-green-900 font-medium";
     }
     
-    if (tip === "giris" && kayit.giris) return base + " bg-green-50 text-green-800 font-medium";
-    if (tip === "cikis" && kayit.cikis) return base + " bg-red-50 text-red-800 font-medium";
+    if (tip === "giris" && kayit.giris) return base + " bg-[#EAF2ED] text-green-800 font-medium";
+    if (tip === "cikis" && kayit.cikis) return base + " bg-[#D96C6C]/10 text-red-800 font-medium";
     
-    return base + " bg-white text-stone-400 hover:text-rose-500";
+    return base + " bg-white text-[#8A8A8A] hover:text-rose-500";
   };
 
   // Hücre içeriği
@@ -822,13 +822,13 @@ export default function PuantajPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-white">
       <div>
         <header className="bg-white border-b px-4 md:px-6 py-4 sticky top-0 z-30">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-xl font-bold text-stone-800">{aylar[seciliAy]} {seciliYil} - İşlem Ekle (Puantaj)</h1>
-              <p className="text-sm text-stone-500 mt-1">Hücrelere tıklayarak giriş/çıkış saati veya hafta tatili ekleyebilirsiniz.</p>
+              <h1 className="text-xl font-bold text-[#2F2F2F]">{aylar[seciliAy]} {seciliYil} - İşlem Ekle (Puantaj)</h1>
+              <p className="text-sm text-[#8A8A8A] mt-1">Hücrelere tıklayarak giriş/çıkış saati veya hafta tatili ekleyebilirsiniz.</p>
             </div>
             <div className="flex items-center gap-3 text-xs">
               <div className="flex items-center gap-1"><span className="w-3 h-3 bg-orange-300 rounded"></span> Hafta Tatili</div>
@@ -843,11 +843,11 @@ export default function PuantajPage() {
           <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
             <div className="flex flex-wrap items-center gap-4">
               <div>
-                <label className="block text-xs text-stone-500 mb-1">Ay</label>
+                <label className="block text-xs text-[#8A8A8A] mb-1">Ay</label>
                 <select
                   value={seciliAy}
                   onChange={(e) => setSeciliAy(Number(e.target.value))}
-                  className="px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
+                  className="px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
                 >
                   {aylar.map((ay, i) => (
                     <option key={i} value={i}>{ay}</option>
@@ -855,11 +855,11 @@ export default function PuantajPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-stone-500 mb-1">Yıl</label>
+                <label className="block text-xs text-[#8A8A8A] mb-1">Yıl</label>
                 <select
                   value={seciliYil}
                   onChange={(e) => setSeciliYil(Number(e.target.value))}
-                  className="px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
+                  className="px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
                 >
                   {[2024, 2025, 2026, 2027].map(yil => (
                     <option key={yil} value={yil}>{yil}</option>
@@ -867,15 +867,15 @@ export default function PuantajPage() {
                 </select>
               </div>
               
-              <div className="h-8 w-px bg-stone-200 hidden sm:block"></div>
+              <div className="h-8 w-px bg-[#E5E5E5] hidden sm:block"></div>
               
               {/* Grup Filtresi */}
               <div>
-                <label className="block text-xs text-stone-500 mb-1">Grup</label>
+                <label className="block text-xs text-[#8A8A8A] mb-1">Grup</label>
                 <select
                   value={seciliGrup}
                   onChange={(e) => setSeciliGrup(e.target.value)}
-                  className="px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
+                  className="px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
                 >
                   <option value="tumu">Tüm Gruplar</option>
                   {grupEtiketleri.map(grup => (
@@ -886,13 +886,13 @@ export default function PuantajPage() {
               
               {/* Kurucu Filtresi */}
               <div>
-                <label className="block text-xs text-stone-500 mb-1">Kurucular</label>
+                <label className="block text-xs text-[#8A8A8A] mb-1">Kurucular</label>
                 <button
                   onClick={() => setYoneticileriGoster(!yoneticileriGoster)}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
                     yoneticileriGoster 
                       ? "bg-rose-500 text-white" 
-                      : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                      : "bg-[#F7F7F7] text-[#2F2F2F] hover:bg-[#E5E5E5]"
                   }`}
                 >
                   {yoneticileriGoster ? "Göster ✓" : "Gizli"}
@@ -905,37 +905,37 @@ export default function PuantajPage() {
           {dataLoading ? (
             <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500 mx-auto"></div>
-              <p className="text-stone-500 mt-4">Veriler yükleniyor...</p>
+              <p className="text-[#8A8A8A] mt-4">Veriler yükleniyor...</p>
             </div>
           ) : (
             <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-stone-50">
+                  <thead className="bg-[#F7F7F7]">
                     <tr>
-                      <th rowSpan={2} className="px-3 py-3 text-left font-medium text-stone-600 border-b border-r sticky left-0 bg-stone-50 z-10 min-w-[100px]">Sicil No</th>
-                      <th rowSpan={2} className="px-3 py-3 text-left font-medium text-stone-600 border-b border-r sticky left-[100px] bg-stone-50 z-10 min-w-[140px]">Ad Soyad</th>
+                      <th rowSpan={2} className="px-3 py-3 text-left font-medium text-[#2F2F2F] border-b border-r sticky left-0 bg-[#F7F7F7] z-10 min-w-[100px]">Sicil No</th>
+                      <th rowSpan={2} className="px-3 py-3 text-left font-medium text-[#2F2F2F] border-b border-r sticky left-[100px] bg-[#F7F7F7] z-10 min-w-[140px]">Ad Soyad</th>
                       {Array.from({ length: gunSayisi }, (_, i) => i + 1).map(gun => {
                         const tarih = new Date(seciliYil, seciliAy, gun);
                         const gunIsmi = gunIsimleri[tarih.getDay()];
                         return (
                           <th key={gun} colSpan={2} className="px-2 py-2 text-center font-medium border-b border-r min-w-[100px]">
-                            <div className="text-xs text-stone-600">{gun} {aylar[seciliAy].substring(0, 3)}</div>
-                            <div className="text-xs text-stone-400">{gunIsmi}</div>
+                            <div className="text-xs text-[#2F2F2F]">{gun} {aylar[seciliAy].substring(0, 3)}</div>
+                            <div className="text-xs text-[#8A8A8A]">{gunIsmi}</div>
                           </th>
                         );
                       })}
                     </tr>
-                    <tr className="bg-stone-100">
+                    <tr className="bg-[#F7F7F7]">
                       {Array.from({ length: gunSayisi }, (_, i) => i + 1).map(gun => (
                         <React.Fragment key={gun}>
-                          <th className="px-2 py-2 text-center text-xs text-green-600 border-b border-r font-medium">Giriş</th>
-                          <th className="px-2 py-2 text-center text-xs text-red-600 border-b border-r font-medium">Çıkış</th>
+                          <th className="px-2 py-2 text-center text-xs text-[#8FAF9A] border-b border-r font-medium">Giriş</th>
+                          <th className="px-2 py-2 text-center text-xs text-[#D96C6C] border-b border-r font-medium">Çıkış</th>
                         </React.Fragment>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-stone-100">
+                  <tbody className="divide-y divide-[#E5E5E5]">
                     {puantajData
                       .filter(personel => {
                         const p = personeller.find(per => per.id === personel.personelId);
@@ -947,9 +947,9 @@ export default function PuantajPage() {
                         return true;
                       })
                       .map(personel => (
-                      <tr key={personel.personelId} className="hover:bg-stone-50">
-                        <td className="px-3 py-3 text-stone-600 sticky left-0 bg-white z-10 border-r text-sm">{personel.sicilNo}</td>
-                        <td className="px-3 py-3 font-medium text-stone-800 sticky left-[100px] bg-white z-10 border-r whitespace-nowrap">{personel.personelAd}</td>
+                      <tr key={personel.personelId} className="hover:bg-[#F7F7F7]">
+                        <td className="px-3 py-3 text-[#2F2F2F] sticky left-0 bg-white z-10 border-r text-sm">{personel.sicilNo}</td>
+                        <td className="px-3 py-3 font-medium text-[#2F2F2F] sticky left-[100px] bg-white z-10 border-r whitespace-nowrap">{personel.personelAd}</td>
                         {Array.from({ length: gunSayisi }, (_, i) => i + 1).map(gun => {
                           const kayit = personel.gunler[gun] || { durum: "normal" };
                           const girisIcerik = getHucreIcerik(kayit, "giris");
@@ -974,7 +974,7 @@ export default function PuantajPage() {
                                       e.stopPropagation();
                                       handleDelete(kayit.giris!.id, personel.personelAd, "Giriş");
                                     }}
-                                    className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600 shadow"
+                                    className="absolute -top-1 -right-1 w-5 h-5 bg-[#D96C6C] text-white rounded-full text-xs flex items-center justify-center hover:bg-[#C25A5A] shadow"
                                   >
                                     ×
                                   </button>
@@ -986,7 +986,7 @@ export default function PuantajPage() {
                                       e.stopPropagation();
                                       handleDelete(kayit.haftaTatili!.id, personel.personelAd, "Hafta Tatili", kayit.haftaTatili!.kaynak);
                                     }}
-                                    className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600 shadow"
+                                    className="absolute -top-1 -right-1 w-5 h-5 bg-[#D96C6C] text-white rounded-full text-xs flex items-center justify-center hover:bg-[#C25A5A] shadow"
                                   >
                                     ×
                                   </button>
@@ -998,7 +998,7 @@ export default function PuantajPage() {
                                       e.stopPropagation();
                                       handleResmiTatilToggle(personel.personelId, personel.personelAd, gun);
                                     }}
-                                    className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600 shadow"
+                                    className="absolute -top-1 -right-1 w-5 h-5 bg-[#D96C6C] text-white rounded-full text-xs flex items-center justify-center hover:bg-[#C25A5A] shadow"
                                     title="Resmi tatili kaldır"
                                   >
                                     ×
@@ -1021,7 +1021,7 @@ export default function PuantajPage() {
                                       e.stopPropagation();
                                       handleDelete(kayit.cikis!.id, personel.personelAd, "Çıkış");
                                     }}
-                                    className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600 shadow"
+                                    className="absolute -top-1 -right-1 w-5 h-5 bg-[#D96C6C] text-white rounded-full text-xs flex items-center justify-center hover:bg-[#C25A5A] shadow"
                                   >
                                     ×
                                   </button>
@@ -1033,7 +1033,7 @@ export default function PuantajPage() {
                                       e.stopPropagation();
                                       handleDelete(kayit.haftaTatili!.id, personel.personelAd, "Hafta Tatili", kayit.haftaTatili!.kaynak);
                                     }}
-                                    className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600 shadow"
+                                    className="absolute -top-1 -right-1 w-5 h-5 bg-[#D96C6C] text-white rounded-full text-xs flex items-center justify-center hover:bg-[#C25A5A] shadow"
                                   >
                                     ×
                                   </button>
@@ -1045,7 +1045,7 @@ export default function PuantajPage() {
                                       e.stopPropagation();
                                       handleResmiTatilToggle(personel.personelId, personel.personelAd, gun);
                                     }}
-                                    className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600 shadow"
+                                    className="absolute -top-1 -right-1 w-5 h-5 bg-[#D96C6C] text-white rounded-full text-xs flex items-center justify-center hover:bg-[#C25A5A] shadow"
                                     title="Resmi tatili kaldır"
                                   >
                                     ×
@@ -1065,7 +1065,7 @@ export default function PuantajPage() {
 
           {/* Eksik Çıkış Uyarısı */}
           {eksikCikislar.length > 0 ? (
-            <div className="mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="mt-6 bg-[#D96C6C]/10 border border-[#D96C6C]/30 rounded-lg p-4">
               <h3 className="text-red-800 font-semibold mb-3 flex items-center gap-2">
                 ⚠️ Çıkış Kaydı Eksik ({eksikCikislar.length} kayıt)
               </h3>
@@ -1084,10 +1084,10 @@ export default function PuantajPage() {
                   const secilenSaat = eksikCikisSaatleri[key] || varsayilanCikisSaatStr;
                   
                   return (
-                    <div key={i} className="flex items-center justify-between bg-white p-2 rounded-lg border border-red-100 gap-2">
+                    <div key={i} className="flex items-center justify-between bg-white p-2 rounded-lg border border-[#D96C6C]/20 gap-2">
                       <div className="text-sm flex-1">
-                        <span className="font-medium text-stone-800">{eksik.personelAd}</span>
-                        <span className="text-stone-500 ml-2">
+                        <span className="font-medium text-[#2F2F2F]">{eksik.personelAd}</span>
+                        <span className="text-[#8A8A8A] ml-2">
                           {eksik.gun} {aylar[seciliAy]} - Giriş: {eksik.girisSaat}
                         </span>
                       </div>
@@ -1095,7 +1095,7 @@ export default function PuantajPage() {
                         type="time"
                         value={secilenSaat}
                         onChange={(e) => setEksikCikisSaatleri(prev => ({ ...prev, [key]: e.target.value }))}
-                        className="px-2 py-1 border border-stone-200 rounded text-sm w-24"
+                        className="px-2 py-1 border border-[#E5E5E5] rounded text-sm w-24"
                       />
                       <button
                         onClick={async () => {
@@ -1147,7 +1147,7 @@ export default function PuantajPage() {
               </div>
             </div>
           ) : (
-            <div className="mt-6 bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="mt-6 bg-[#EAF2ED] border border-green-200 rounded-lg p-4">
               <h3 className="text-green-800 font-semibold flex items-center gap-2">
                 ✅ Tüm çıkış kayıtları tamam
               </h3>
@@ -1163,7 +1163,7 @@ export default function PuantajPage() {
           <div className="flex flex-col md:flex-row gap-3 justify-center mt-6">
             <button
               onClick={() => window.print()}
-              className="bg-stone-100 hover:bg-stone-200 text-stone-700 px-6 py-3 rounded-lg font-medium transition flex items-center justify-center gap-2"
+              className="bg-[#F7F7F7] hover:bg-[#E5E5E5] text-[#2F2F2F] px-6 py-3 rounded-lg font-medium transition flex items-center justify-center gap-2"
             >
               🖨️ Yazdır / PDF
             </button>
@@ -1181,7 +1181,7 @@ export default function PuantajPage() {
       {islemModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-sm w-full p-6">
-            <h3 className="text-lg font-bold text-stone-800 mb-4">
+            <h3 className="text-lg font-bold text-[#2F2F2F] mb-4">
               {(() => {
                 const mk = puantajData.find(p => p.personelId === islemModal.personelId)?.gunler[islemModal.gun];
                 const mevcutVar = (islemTipi === "giris" && mk?.giris) || (islemTipi === "cikis" && mk?.cikis) || (islemTipi === "giriscikis" && (mk?.giris || mk?.cikis));
@@ -1189,9 +1189,9 @@ export default function PuantajPage() {
               })()}
             </h3>
             
-            <div className="mb-4 p-3 bg-stone-50 rounded-lg">
-              <p className="text-sm text-stone-600"><strong>Personel:</strong> {islemModal.personelAd}</p>
-              <p className="text-sm text-stone-600"><strong>Tarih:</strong> {islemModal.gun} {aylar[seciliAy]} {seciliYil}</p>
+            <div className="mb-4 p-3 bg-[#F7F7F7] rounded-lg">
+              <p className="text-sm text-[#2F2F2F]"><strong>Personel:</strong> {islemModal.personelAd}</p>
+              <p className="text-sm text-[#2F2F2F]"><strong>Tarih:</strong> {islemModal.gun} {aylar[seciliAy]} {seciliYil}</p>
             </div>
 
             {/* İşlem Tipi Seçimi */}
@@ -1201,8 +1201,8 @@ export default function PuantajPage() {
                   onClick={() => setIslemTipi("giris")}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
                     islemTipi === "giris" 
-                      ? "bg-green-500 text-white" 
-                      : "bg-stone-100 text-stone-700 hover:bg-stone-200"
+                      ? "bg-[#8FAF9A] text-white" 
+                      : "bg-[#F7F7F7] text-[#2F2F2F] hover:bg-[#E5E5E5]"
                   }`}
                 >
                   🟢 Giriş
@@ -1211,8 +1211,8 @@ export default function PuantajPage() {
                   onClick={() => setIslemTipi("cikis")}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
                     islemTipi === "cikis" 
-                      ? "bg-red-500 text-white" 
-                      : "bg-stone-100 text-stone-700 hover:bg-stone-200"
+                      ? "bg-[#D96C6C] text-white" 
+                      : "bg-[#F7F7F7] text-[#2F2F2F] hover:bg-[#E5E5E5]"
                   }`}
                 >
                   🔴 Çıkış
@@ -1222,7 +1222,7 @@ export default function PuantajPage() {
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
                     islemTipi === "giriscikis" 
                       ? "bg-rose-500 text-white" 
-                      : "bg-stone-100 text-stone-700 hover:bg-stone-200"
+                      : "bg-[#F7F7F7] text-[#2F2F2F] hover:bg-[#E5E5E5]"
                   }`}
                 >
                   🟢🔴 İkisi
@@ -1231,8 +1231,8 @@ export default function PuantajPage() {
                   onClick={() => setIslemTipi("haftaTatili")}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
                     islemTipi === "haftaTatili" 
-                      ? "bg-orange-500 text-white" 
-                      : "bg-stone-100 text-stone-700 hover:bg-stone-200"
+                      ? "bg-[#E6B566] text-white" 
+                      : "bg-[#F7F7F7] text-[#2F2F2F] hover:bg-[#E5E5E5]"
                   }`}
                 >
                   🟠 H.Tatil
@@ -1251,7 +1251,7 @@ export default function PuantajPage() {
                     );
                     setIslemModal(null);
                   }}
-                  className="w-full mt-3 px-3 py-2 rounded-lg text-sm font-medium transition bg-green-100 text-green-700 hover:bg-green-200 border border-green-300"
+                  className="w-full mt-3 px-3 py-2 rounded-lg text-sm font-medium transition bg-[#EAF2ED] text-[#8FAF9A] hover:bg-green-200 border border-green-300"
                 >
                   🟢 Resmi Tatil Ekle ({islemModal.resmiTatilAdi})
                 </button>
@@ -1263,11 +1263,11 @@ export default function PuantajPage() {
               <div className="mb-6 space-y-4">
                 {/* Konum Seçimi */}
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-2">📍 Konum</label>
+                  <label className="block text-sm font-medium text-[#2F2F2F] mb-2">📍 Konum</label>
                   <select
                     value={seciliKonum}
                     onChange={(e) => setSeciliKonum(e.target.value)}
-                    className="w-full px-4 py-3 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm"
+                    className="w-full px-4 py-3 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm"
                   >
                     <option value="">Konum Seçiniz</option>
                     {konumlar.map(k => (
@@ -1277,13 +1277,13 @@ export default function PuantajPage() {
                 </div>
                 {(islemTipi === "giris" || islemTipi === "giriscikis") && (
                 <div>
-                  <label className="block text-sm font-medium text-green-700 mb-2">🟢 Giriş Saati</label>
+                  <label className="block text-sm font-medium text-[#8FAF9A] mb-2">🟢 Giriş Saati</label>
                   <div className="flex gap-2">
                     <input
                       type="time"
                       value={girisSaati}
                       onChange={(e) => handleGirisSaatiChange(e.target.value)}
-                      className="flex-1 px-4 py-3 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-lg bg-green-50"
+                      className="flex-1 px-4 py-3 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-lg bg-[#EAF2ED]"
                     />
                     {girisOnerisi && (
                       <button
@@ -1292,7 +1292,7 @@ export default function PuantajPage() {
                           setGirisOnerisi(null);
                           setCikisOnerisi(null);
                         }}
-                        className="px-3 py-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg text-sm font-medium border border-green-300 transition whitespace-nowrap"
+                        className="px-3 py-2 bg-[#EAF2ED] hover:bg-green-200 text-[#8FAF9A] rounded-lg text-sm font-medium border border-green-300 transition whitespace-nowrap"
                       >
                         {girisOnerisi} ?
                       </button>
@@ -1302,13 +1302,13 @@ export default function PuantajPage() {
                 )}
                 {(islemTipi === "cikis" || islemTipi === "giriscikis") && (
                 <div>
-                  <label className="block text-sm font-medium text-red-700 mb-2">🔴 Çıkış Saati</label>
+                  <label className="block text-sm font-medium text-[#D96C6C] mb-2">🔴 Çıkış Saati</label>
                   <div className="flex gap-2">
                     <input
                       type="time"
                       value={cikisSaati}
                       onChange={(e) => handleCikisSaatiChange(e.target.value)}
-                      className="flex-1 px-4 py-3 border border-red-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-lg bg-red-50"
+                      className="flex-1 px-4 py-3 border border-[#D96C6C]/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-lg bg-[#D96C6C]/10"
                     />
                     {cikisOnerisi && (
                       <button
@@ -1317,7 +1317,7 @@ export default function PuantajPage() {
                           setCikisOnerisi(null);
                           setGirisOnerisi(null);
                         }}
-                        className="px-3 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-sm font-medium border border-red-300 transition whitespace-nowrap"
+                        className="px-3 py-2 bg-[#D96C6C]/20 hover:bg-red-200 text-[#D96C6C] rounded-lg text-sm font-medium border border-[#D96C6C] transition whitespace-nowrap"
                       >
                         {cikisOnerisi} ?
                       </button>
@@ -1325,12 +1325,12 @@ export default function PuantajPage() {
                   </div>
                 </div>
                 )}
-                <p className="text-xs text-stone-500 text-center">💡 Mevcut kayıt varsa üstüne yazar, yoksa yeni ekler</p>
+                <p className="text-xs text-[#8A8A8A] text-center">💡 Mevcut kayıt varsa üstüne yazar, yoksa yeni ekler</p>
               </div>
             )}
 
             {islemTipi === "haftaTatili" && (
-              <div className="mb-6 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+              <div className="mb-6 p-3 bg-[#E6B566]/10 border border-orange-200 rounded-lg">
                 <p className="text-sm text-orange-700">Bu gün <strong>Hafta Tatili</strong> olarak işaretlenecek.</p>
               </div>
             )}
@@ -1338,7 +1338,7 @@ export default function PuantajPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => setIslemModal(null)}
-                className="flex-1 px-4 py-2 border border-stone-200 rounded-lg text-stone-600 hover:bg-stone-50 transition"
+                className="flex-1 px-4 py-2 border border-[#E5E5E5] rounded-lg text-[#2F2F2F] hover:bg-[#F7F7F7] transition"
               >
                 İptal
               </button>

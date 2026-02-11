@@ -212,11 +212,11 @@ export default function TopluIslemEklePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-white">
       <div>
         <header className="bg-white border-b px-4 md:px-6 py-4 sticky top-0 z-30">
-          <h1 className="text-xl font-bold text-stone-800">Toplu İşlem Ekle</h1>
-          <p className="text-sm text-stone-500 mt-1">Bu sayfada, seçtiğiniz kullanıcılar için topluca Giriş veya Çıkış kaydı ekleyebilirsiniz.</p>
+          <h1 className="text-xl font-bold text-[#2F2F2F]">Toplu İşlem Ekle</h1>
+          <p className="text-sm text-[#8A8A8A] mt-1">Bu sayfada, seçtiğiniz kullanıcılar için topluca Giriş veya Çıkış kaydı ekleyebilirsiniz.</p>
         </header>
 
         <main className="p-4 md:p-6">
@@ -224,11 +224,11 @@ export default function TopluIslemEklePage() {
           <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
             <div className="flex flex-wrap items-center gap-4">
               <div>
-                <label className="block text-xs text-stone-500 mb-1">Grup Etiketi</label>
+                <label className="block text-xs text-[#8A8A8A] mb-1">Grup Etiketi</label>
                 <select
                   value={grupFiltre}
                   onChange={(e) => setGrupFiltre(e.target.value)}
-                  className="px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
+                  className="px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
                 >
                   <option value="">Tüm Gruplar</option>
                   {gruplar.map(g => (
@@ -240,14 +240,14 @@ export default function TopluIslemEklePage() {
               {grupFiltre && (
                 <button
                   onClick={() => setGrupFiltre("")}
-                  className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg font-medium transition"
+                  className="px-4 py-2 bg-[#F7F7F7] hover:bg-[#E5E5E5] text-[#2F2F2F] rounded-lg font-medium transition"
                 >
                   Filtreyi Temizle
                 </button>
               )}
 
               <div className="ml-auto flex items-center gap-2">
-                <span className="text-sm text-stone-500">
+                <span className="text-sm text-[#8A8A8A]">
                   {filtrelenmisPersoneller.length} kişi gösteriliyor
                 </span>
                 <button
@@ -265,13 +265,13 @@ export default function TopluIslemEklePage() {
           {/* Personel Listesi */}
           {Object.entries(grupluPersoneller).map(([calismaSaati, personelList]) => (
             <div key={calismaSaati} className="mb-6">
-              <h3 className="text-lg font-semibold text-stone-700 mb-3">
+              <h3 className="text-lg font-semibold text-[#2F2F2F] mb-3">
                 {calismaSaati} 
-                <span className="text-sm font-normal text-stone-500 ml-2">({personelList.length} kişi)</span>
+                <span className="text-sm font-normal text-[#8A8A8A] ml-2">({personelList.length} kişi)</span>
               </h3>
               <div className="bg-white rounded-lg shadow-sm border overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-stone-50 border-b">
+                  <thead className="bg-[#F7F7F7] border-b">
                     <tr>
                       <th className="px-4 py-3 text-left">
                         <input
@@ -280,21 +280,21 @@ export default function TopluIslemEklePage() {
                           onChange={() => toggleAllInCategory(calismaSaati)}
                           className="w-4 h-4 text-rose-500 rounded focus:ring-rose-500"
                         />
-                        <span className="ml-2 text-xs font-medium text-stone-500">Tümü</span>
+                        <span className="ml-2 text-xs font-medium text-[#8A8A8A]">Tümü</span>
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Kullanıcı Türü</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Ad Soyad</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Grup Etiketleri</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Sicil No</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Telefon</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-stone-500 uppercase">Eposta</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Kullanıcı Türü</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Ad Soyad</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Grup Etiketleri</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Sicil No</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Telefon</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-[#8A8A8A] uppercase">Eposta</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-stone-100">
+                  <tbody className="divide-y divide-[#E5E5E5]">
                     {personelList.map(p => (
                       <tr 
                         key={p.id} 
-                        className={`hover:bg-stone-50 cursor-pointer ${seciliPersoneller.has(p.id) ? 'bg-rose-50' : ''}`}
+                        className={`hover:bg-[#F7F7F7] cursor-pointer ${seciliPersoneller.has(p.id) ? 'bg-rose-50' : ''}`}
                         onClick={() => togglePersonel(p.id)}
                       >
                         <td className="px-4 py-3">
@@ -305,13 +305,13 @@ export default function TopluIslemEklePage() {
                             className="w-4 h-4 text-rose-500 rounded focus:ring-rose-500"
                           />
                         </td>
-                        <td className="px-4 py-3 text-sm text-stone-600">{p.kullaniciTuru}</td>
+                        <td className="px-4 py-3 text-sm text-[#2F2F2F]">{p.kullaniciTuru}</td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 bg-rose-100 rounded-full flex items-center justify-center text-rose-600 font-medium text-sm">
                               {p.ad.charAt(0)}{p.soyad.charAt(0)}
                             </div>
-                            <span className="font-medium text-stone-800">{p.ad} {p.soyad}</span>
+                            <span className="font-medium text-[#2F2F2F]">{p.ad} {p.soyad}</span>
                           </div>
                         </td>
                         <td className="px-4 py-3">
@@ -322,7 +322,7 @@ export default function TopluIslemEklePage() {
                                 className={`px-2 py-0.5 rounded text-xs font-medium ${
                                   g === grupFiltre 
                                     ? 'bg-rose-100 text-rose-700' 
-                                    : 'bg-green-100 text-green-700'
+                                    : 'bg-[#EAF2ED] text-[#8FAF9A]'
                                 }`}
                               >
                                 {g}
@@ -330,9 +330,9 @@ export default function TopluIslemEklePage() {
                             ))}
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-sm text-stone-600">{p.sicilNo}</td>
-                        <td className="px-4 py-3 text-sm text-stone-600">{p.telefon}</td>
-                        <td className="px-4 py-3 text-sm text-stone-600">{p.email}</td>
+                        <td className="px-4 py-3 text-sm text-[#2F2F2F]">{p.sicilNo}</td>
+                        <td className="px-4 py-3 text-sm text-[#2F2F2F]">{p.telefon}</td>
+                        <td className="px-4 py-3 text-sm text-[#2F2F2F]">{p.email}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -343,7 +343,7 @@ export default function TopluIslemEklePage() {
 
           {filtrelenmisPersoneller.length === 0 && (
             <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
-              <p className="text-stone-500">Bu filtreye uygun personel bulunamadı.</p>
+              <p className="text-[#8A8A8A]">Bu filtreye uygun personel bulunamadı.</p>
             </div>
           )}
 
@@ -351,20 +351,20 @@ export default function TopluIslemEklePage() {
           <div className="bg-white rounded-lg shadow-sm border p-4 sticky bottom-0 mt-6">
             <div className="flex flex-col md:flex-row items-center gap-4">
               <div className="flex-1">
-                <label className="block text-xs text-stone-500 mb-1">Tarih / Saat:</label>
+                <label className="block text-xs text-[#8A8A8A] mb-1">Tarih / Saat:</label>
                 <input
                   type="datetime-local" min="2020-01-01T00:00" max="2099-12-31T23:59"
                   value={tarih}
                   onChange={(e) => setTarih(e.target.value)}
-                  className="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
+                  className="w-full px-3 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
                 />
               </div>
               <div className="flex-1">
-                <label className="block text-xs text-stone-500 mb-1">Konum seçiniz:</label>
+                <label className="block text-xs text-[#8A8A8A] mb-1">Konum seçiniz:</label>
                 <select
                   value={seciliKonum}
                   onChange={(e) => setSeciliKonum(e.target.value)}
-                  className="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
+                  className="w-full px-3 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
                 >
                   <option value="">Seçiniz</option>
                   {konumlar.map(k => (
@@ -373,11 +373,11 @@ export default function TopluIslemEklePage() {
                 </select>
               </div>
               <div className="flex-1">
-                <label className="block text-xs text-stone-500 mb-1">İşlem tipi:</label>
+                <label className="block text-xs text-[#8A8A8A] mb-1">İşlem tipi:</label>
                 <select
                   value={islemTipi}
                   onChange={(e) => setIslemTipi(e.target.value)}
-                  className="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
+                  className="w-full px-3 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
                 >
                   <option value="">Seçiniz</option>
                   <option value="giris">Giriş</option>
@@ -385,7 +385,7 @@ export default function TopluIslemEklePage() {
                 </select>
               </div>
               <div className="flex-1">
-                <label className="block text-xs text-stone-500 mb-1">&nbsp;</label>
+                <label className="block text-xs text-[#8A8A8A] mb-1">&nbsp;</label>
                 <button
                   onClick={handleSave}
                   disabled={saving || seciliPersoneller.size === 0}

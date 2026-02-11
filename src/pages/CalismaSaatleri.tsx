@@ -38,7 +38,7 @@ export default function CalismaSaatleriPage() {
   });
   const turler = {
     sabit: { label: "Sabit Mesai", icon: "🕐", color: "bg-blue-100 text-blue-700", desc: "Belirli saatlerde çalışma" },
-    esnek: { label: "Esnek Mesai", icon: "⏰", color: "bg-green-100 text-green-700", desc: "Esnek çalışma saatleri" },
+    esnek: { label: "Esnek Mesai", icon: "⏰", color: "bg-[#EAF2ED] text-[#8FAF9A]", desc: "Esnek çalışma saatleri" },
     parttime: { label: "Part-Time", icon: "⏱️", color: "bg-purple-100 text-purple-700", desc: "Yarım gün çalışma" }
   };
 
@@ -146,13 +146,13 @@ export default function CalismaSaatleriPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-white">
       <div>
         <header className="bg-white border-b px-6 py-4 sticky top-0 z-30">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold text-stone-800">⏰ Çalışma Saatleri</h1>
-              <p className="text-sm text-stone-500">Mesai saati tanımlamaları</p>
+              <h1 className="text-xl font-bold text-[#2F2F2F]">⏰ Çalışma Saatleri</h1>
+              <p className="text-sm text-[#8A8A8A]">Mesai saati tanımlamaları</p>
             </div>
             <button onClick={() => setShowModal(true)} className="bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm">
               ➕ Saat Tanımla
@@ -171,16 +171,16 @@ export default function CalismaSaatleriPage() {
               <p className="text-green-100 text-sm mb-1">Aktif</p>
               <p className="text-3xl font-bold">{aktifSchedules.length}</p>
             </div>
-            <div className="bg-gradient-to-br from-stone-500 to-stone-600 p-5 rounded-lg shadow-md text-white">
-              <p className="text-stone-100 text-sm mb-1">Pasif</p>
+            <div className="bg-gradient-to-br from-[#8A8A8A] to-[#4A4A4A] p-5 rounded-lg shadow-md text-white">
+              <p className="text-white/80 text-sm mb-1">Pasif</p>
               <p className="text-3xl font-bold">{pasifSchedules.length}</p>
             </div>
           </div>
 
           {/* Filtre */}
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-stone-100 mb-6">
-            <label className="text-sm font-medium text-stone-700 mb-2 block">🏷️ Mesai Türü:</label>
-            <select value={filterTur} onChange={e => setFilterTur(e.target.value)} className="w-full md:w-64 px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white">
+          <div className="bg-white p-4 rounded-lg shadow-sm border border-[#E5E5E5] mb-6">
+            <label className="text-sm font-medium text-[#2F2F2F] mb-2 block">🏷️ Mesai Türü:</label>
+            <select value={filterTur} onChange={e => setFilterTur(e.target.value)} className="w-full md:w-64 px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white">
               <option value="hepsi">Tüm Türler</option>
               {Object.entries(turler).map(([key, value]) => <option key={key} value={key}>{value.icon} {value.label}</option>)}
             </select>
@@ -189,7 +189,7 @@ export default function CalismaSaatleriPage() {
           {/* Liste */}
           <div className="space-y-3">
             {filteredSchedules.length === 0 ? (
-              <div className="bg-white rounded-lg p-12 text-center text-stone-500 border border-stone-100">
+              <div className="bg-white rounded-lg p-12 text-center text-[#8A8A8A] border border-[#E5E5E5]">
                 <span className="text-5xl mb-4 block">⏰</span>
                 <p className="text-lg font-medium">Çalışma saati tanımı bulunamadı</p>
               </div>
@@ -202,15 +202,15 @@ export default function CalismaSaatleriPage() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-semibold text-stone-800 text-lg">{schedule.isim}</h3>
+                          <h3 className="font-semibold text-[#2F2F2F] text-lg">{schedule.isim}</h3>
                           <span className={`text-xs px-3 py-1 rounded-full ${tur.color} font-medium`}>
                             {tur.icon} {tur.label}
                           </span>
-                          <span className={`text-xs px-3 py-1 rounded-full ${schedule.aktif ? 'bg-green-100 text-green-700' : 'bg-stone-100 text-stone-700'} font-medium`}>
+                          <span className={`text-xs px-3 py-1 rounded-full ${schedule.aktif ? 'bg-[#EAF2ED] text-[#8FAF9A]' : 'bg-[#F7F7F7] text-[#2F2F2F]'} font-medium`}>
                             {schedule.aktif ? '✅ Aktif' : '⏸️ Pasif'}
                           </span>
                         </div>
-                        <div className="text-sm text-stone-600 space-y-1">
+                        <div className="text-sm text-[#2F2F2F] space-y-1">
                           <p className="flex items-center gap-2">
                             <span className="font-medium">🕐 Saat:</span>
                             <span>{schedule.baslangic} - {schedule.bitis}</span>
@@ -221,7 +221,7 @@ export default function CalismaSaatleriPage() {
                           </p>
                           <p className="flex items-center gap-2">
                             <span className="font-medium">⏱️ Haftalık:</span>
-                            <span className="font-semibold text-stone-800">{schedule.haftalikSaat} saat</span>
+                            <span className="font-semibold text-[#2F2F2F]">{schedule.haftalikSaat} saat</span>
                           </p>
                           {schedule.molaSuresi > 0 && (
                             <p className="flex items-center gap-2">
@@ -232,11 +232,11 @@ export default function CalismaSaatleriPage() {
                         </div>
                       </div>
                       <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                        <button onClick={() => handleToggleAktif(schedule)} className={`px-3 py-1 rounded-lg text-sm ${schedule.aktif ? 'bg-stone-200 text-stone-700' : 'bg-green-500 text-white'}`}>
+                        <button onClick={() => handleToggleAktif(schedule)} className={`px-3 py-1 rounded-lg text-sm ${schedule.aktif ? 'bg-[#E5E5E5] text-[#2F2F2F]' : 'bg-[#8FAF9A] text-white'}`}>
                           {schedule.aktif ? '⏸️' : '▶️'}
                         </button>
-                        <button onClick={() => openEditModal(schedule)} className="p-2 hover:bg-stone-100 rounded-lg transition">✏️</button>
-                        <button onClick={() => handleDelete(schedule.id)} className="p-2 hover:bg-red-100 rounded-lg transition">🗑️</button>
+                        <button onClick={() => openEditModal(schedule)} className="p-2 hover:bg-[#F7F7F7] rounded-lg transition">✏️</button>
+                        <button onClick={() => handleDelete(schedule.id)} className="p-2 hover:bg-[#D96C6C]/20 rounded-lg transition">🗑️</button>
                       </div>
                     </div>
                   </div>
@@ -252,41 +252,41 @@ export default function CalismaSaatleriPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowModal(false)}>
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold text-stone-800">⏰ Çalışma Saati Tanımla</h3>
-              <button onClick={() => setShowModal(false)} className="text-stone-400 hover:text-stone-600 text-3xl">×</button>
+              <h3 className="text-2xl font-bold text-[#2F2F2F]">⏰ Çalışma Saati Tanımla</h3>
+              <button onClick={() => setShowModal(false)} className="text-[#8A8A8A] hover:text-[#2F2F2F] text-3xl">×</button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">İsim * (örn: Normal Mesai)</label>
-                <input type="text" value={formData.isim} onChange={e => setFormData({...formData, isim: e.target.value})} className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" placeholder="Normal Mesai, Yarım Gün..." />
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-2">İsim * (örn: Normal Mesai)</label>
+                <input type="text" value={formData.isim} onChange={e => setFormData({...formData, isim: e.target.value})} className="w-full px-4 py-3 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" placeholder="Normal Mesai, Yarım Gün..." />
               </div>
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">Mesai Türü *</label>
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Mesai Türü *</label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {Object.entries(turler).map(([key, value]) => (
-                    <button key={key} type="button" onClick={() => setFormData({...formData, tur: key as any})} className={`p-4 rounded-lg border-2 transition text-left ${formData.tur === key ? 'border-rose-500 bg-rose-50' : 'border-stone-200 hover:border-stone-300'}`}>
+                    <button key={key} type="button" onClick={() => setFormData({...formData, tur: key as any})} className={`p-4 rounded-lg border-2 transition text-left ${formData.tur === key ? 'border-rose-500 bg-rose-50' : 'border-[#E5E5E5] hover:border-[#E5E5E5]'}`}>
                       <div className="text-2xl mb-1">{value.icon}</div>
                       <div className="font-medium text-sm">{value.label}</div>
-                      <div className="text-xs text-stone-500 mt-1">{value.desc}</div>
+                      <div className="text-xs text-[#8A8A8A] mt-1">{value.desc}</div>
                     </button>
                   ))}
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-2">Başlangıç Saati</label>
-                  <input type="time" value={formData.baslangic} onChange={e => setFormData({...formData, baslangic: e.target.value})} className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
+                  <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Başlangıç Saati</label>
+                  <input type="time" value={formData.baslangic} onChange={e => setFormData({...formData, baslangic: e.target.value})} className="w-full px-4 py-3 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-2">Bitiş Saati</label>
-                  <input type="time" value={formData.bitis} onChange={e => setFormData({...formData, bitis: e.target.value})} className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
+                  <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Bitiş Saati</label>
+                  <input type="time" value={formData.bitis} onChange={e => setFormData({...formData, bitis: e.target.value})} className="w-full px-4 py-3 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">Çalışma Günleri * ({formData.gunler.length} gün seçili)</label>
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Çalışma Günleri * ({formData.gunler.length} gün seçili)</label>
                 <div className="flex flex-wrap gap-2">
                   {gunler.map(gun => (
-                    <button key={gun} type="button" onClick={() => toggleGun(gun)} className={`px-4 py-2 rounded-lg text-sm font-medium transition ${formData.gunler.includes(gun) ? 'bg-rose-500 text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'}`}>
+                    <button key={gun} type="button" onClick={() => toggleGun(gun)} className={`px-4 py-2 rounded-lg text-sm font-medium transition ${formData.gunler.includes(gun) ? 'bg-rose-500 text-white' : 'bg-[#F7F7F7] text-[#2F2F2F] hover:bg-[#E5E5E5]'}`}>
                       {gun}
                     </button>
                   ))}
@@ -298,15 +298,15 @@ export default function CalismaSaatleriPage() {
                 </div>
               )}
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">Mola Süresi (dakika)</label>
-                <input type="number" value={formData.molaSuresi} onChange={e => setFormData({...formData, molaSuresi: parseInt(e.target.value) || 0})} className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" placeholder="60" />
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Mola Süresi (dakika)</label>
+                <input type="number" value={formData.molaSuresi} onChange={e => setFormData({...formData, molaSuresi: parseInt(e.target.value) || 0})} className="w-full px-4 py-3 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" placeholder="60" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">Açıklama</label>
-                <textarea value={formData.aciklama} onChange={e => setFormData({...formData, aciklama: e.target.value})} rows={3} className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" placeholder="Ek notlar (opsiyonel)" />
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Açıklama</label>
+                <textarea value={formData.aciklama} onChange={e => setFormData({...formData, aciklama: e.target.value})} rows={3} className="w-full px-4 py-3 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" placeholder="Ek notlar (opsiyonel)" />
               </div>
               <div className="flex gap-3 pt-4">
-                <button onClick={() => setShowModal(false)} className="flex-1 px-6 py-3 border border-stone-300 rounded-lg text-stone-700 hover:bg-stone-50 transition font-medium">İptal</button>
+                <button onClick={() => setShowModal(false)} className="flex-1 px-6 py-3 border border-[#E5E5E5] rounded-lg text-[#2F2F2F] hover:bg-[#F7F7F7] transition font-medium">İptal</button>
                 <button onClick={handleAdd} className="flex-1 px-6 py-3 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition font-medium shadow-sm">Kaydet</button>
               </div>
             </div>
@@ -319,19 +319,19 @@ export default function CalismaSaatleriPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowEditModal(false)}>
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold text-stone-800">✏️ Çalışma Saatini Düzenle</h3>
-              <button onClick={() => setShowEditModal(false)} className="text-stone-400 hover:text-stone-600 text-3xl">×</button>
+              <h3 className="text-2xl font-bold text-[#2F2F2F]">✏️ Çalışma Saatini Düzenle</h3>
+              <button onClick={() => setShowEditModal(false)} className="text-[#8A8A8A] hover:text-[#2F2F2F] text-3xl">×</button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">İsim *</label>
-                <input type="text" value={formData.isim} onChange={e => setFormData({...formData, isim: e.target.value})} className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-2">İsim *</label>
+                <input type="text" value={formData.isim} onChange={e => setFormData({...formData, isim: e.target.value})} className="w-full px-4 py-3 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">Mesai Türü *</label>
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Mesai Türü *</label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {Object.entries(turler).map(([key, value]) => (
-                    <button key={key} type="button" onClick={() => setFormData({...formData, tur: key as any})} className={`p-4 rounded-lg border-2 transition text-left ${formData.tur === key ? 'border-rose-500 bg-rose-50' : 'border-stone-200'}`}>
+                    <button key={key} type="button" onClick={() => setFormData({...formData, tur: key as any})} className={`p-4 rounded-lg border-2 transition text-left ${formData.tur === key ? 'border-rose-500 bg-rose-50' : 'border-[#E5E5E5]'}`}>
                       <div className="text-2xl mb-1">{value.icon}</div>
                       <div className="font-medium text-sm">{value.label}</div>
                     </button>
@@ -340,34 +340,34 @@ export default function CalismaSaatleriPage() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-2">Başlangıç</label>
-                  <input type="time" value={formData.baslangic} onChange={e => setFormData({...formData, baslangic: e.target.value})} className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
+                  <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Başlangıç</label>
+                  <input type="time" value={formData.baslangic} onChange={e => setFormData({...formData, baslangic: e.target.value})} className="w-full px-4 py-3 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-2">Bitiş</label>
-                  <input type="time" value={formData.bitis} onChange={e => setFormData({...formData, bitis: e.target.value})} className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
+                  <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Bitiş</label>
+                  <input type="time" value={formData.bitis} onChange={e => setFormData({...formData, bitis: e.target.value})} className="w-full px-4 py-3 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">Çalışma Günleri *</label>
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Çalışma Günleri *</label>
                 <div className="flex flex-wrap gap-2">
                   {gunler.map(gun => (
-                    <button key={gun} type="button" onClick={() => toggleGun(gun)} className={`px-4 py-2 rounded-lg text-sm font-medium transition ${formData.gunler.includes(gun) ? 'bg-rose-500 text-white' : 'bg-stone-100 text-stone-700'}`}>
+                    <button key={gun} type="button" onClick={() => toggleGun(gun)} className={`px-4 py-2 rounded-lg text-sm font-medium transition ${formData.gunler.includes(gun) ? 'bg-rose-500 text-white' : 'bg-[#F7F7F7] text-[#2F2F2F]'}`}>
                       {gun}
                     </button>
                   ))}
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">Mola Süresi (dk)</label>
-                <input type="number" value={formData.molaSuresi} onChange={e => setFormData({...formData, molaSuresi: parseInt(e.target.value) || 0})} className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Mola Süresi (dk)</label>
+                <input type="number" value={formData.molaSuresi} onChange={e => setFormData({...formData, molaSuresi: parseInt(e.target.value) || 0})} className="w-full px-4 py-3 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">Açıklama</label>
-                <textarea value={formData.aciklama} onChange={e => setFormData({...formData, aciklama: e.target.value})} rows={3} className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
+                <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Açıklama</label>
+                <textarea value={formData.aciklama} onChange={e => setFormData({...formData, aciklama: e.target.value})} rows={3} className="w-full px-4 py-3 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
               </div>
               <div className="flex gap-3 pt-4">
-                <button onClick={() => setShowEditModal(false)} className="flex-1 px-6 py-3 border border-stone-300 rounded-lg text-stone-700 hover:bg-stone-50 transition font-medium">İptal</button>
+                <button onClick={() => setShowEditModal(false)} className="flex-1 px-6 py-3 border border-[#E5E5E5] rounded-lg text-[#2F2F2F] hover:bg-[#F7F7F7] transition font-medium">İptal</button>
                 <button onClick={handleEdit} className="flex-1 px-6 py-3 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition font-medium shadow-sm">Güncelle</button>
               </div>
             </div>
@@ -380,30 +380,30 @@ export default function CalismaSaatleriPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowDetailModal(false)}>
           <div className="bg-white rounded-lg shadow-xl max-w-lg w-full p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold text-stone-800">⏰ Çalışma Saati Detayları</h3>
-              <button onClick={() => setShowDetailModal(false)} className="text-stone-400 hover:text-stone-600 text-3xl">×</button>
+              <h3 className="text-2xl font-bold text-[#2F2F2F]">⏰ Çalışma Saati Detayları</h3>
+              <button onClick={() => setShowDetailModal(false)} className="text-[#8A8A8A] hover:text-[#2F2F2F] text-3xl">×</button>
             </div>
             <div className="space-y-4">
-              <div className="p-4 bg-stone-50 rounded-lg">
-                <p className="text-sm text-stone-500 mb-1">İsim</p>
-                <p className="font-semibold text-stone-800 text-lg">{selectedSchedule.isim}</p>
+              <div className="p-4 bg-[#F7F7F7] rounded-lg">
+                <p className="text-sm text-[#8A8A8A] mb-1">İsim</p>
+                <p className="font-semibold text-[#2F2F2F] text-lg">{selectedSchedule.isim}</p>
               </div>
               <div className="flex gap-2">
                 <span className={`px-4 py-2 rounded-lg ${turler[selectedSchedule.tur].color} font-medium flex-1 text-center`}>
                   {turler[selectedSchedule.tur].icon} {turler[selectedSchedule.tur].label}
                 </span>
-                <span className={`px-4 py-2 rounded-lg ${selectedSchedule.aktif ? 'bg-green-100 text-green-700' : 'bg-stone-100 text-stone-700'} font-medium`}>
+                <span className={`px-4 py-2 rounded-lg ${selectedSchedule.aktif ? 'bg-[#EAF2ED] text-[#8FAF9A]' : 'bg-[#F7F7F7] text-[#2F2F2F]'} font-medium`}>
                   {selectedSchedule.aktif ? '✅ Aktif' : '⏸️ Pasif'}
                 </span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="p-4 bg-green-50 rounded-lg">
-                  <p className="text-sm text-green-600 mb-1">🕐 Başlangıç</p>
-                  <p className="font-bold text-stone-800 text-xl">{selectedSchedule.baslangic}</p>
+                <div className="p-4 bg-[#EAF2ED] rounded-lg">
+                  <p className="text-sm text-[#8FAF9A] mb-1">🕐 Başlangıç</p>
+                  <p className="font-bold text-[#2F2F2F] text-xl">{selectedSchedule.baslangic}</p>
                 </div>
-                <div className="p-4 bg-red-50 rounded-lg">
-                  <p className="text-sm text-red-600 mb-1">🕐 Bitiş</p>
-                  <p className="font-bold text-stone-800 text-xl">{selectedSchedule.bitis}</p>
+                <div className="p-4 bg-[#D96C6C]/10 rounded-lg">
+                  <p className="text-sm text-[#D96C6C] mb-1">🕐 Bitiş</p>
+                  <p className="font-bold text-[#2F2F2F] text-xl">{selectedSchedule.bitis}</p>
                 </div>
               </div>
               <div className="p-4 bg-blue-50 rounded-lg">
@@ -416,23 +416,23 @@ export default function CalismaSaatleriPage() {
               </div>
               <div className="p-4 bg-purple-50 rounded-lg">
                 <p className="text-sm text-purple-600 mb-1">⏱️ Haftalık Toplam</p>
-                <p className="font-bold text-stone-800 text-2xl">{selectedSchedule.haftalikSaat} saat</p>
+                <p className="font-bold text-[#2F2F2F] text-2xl">{selectedSchedule.haftalikSaat} saat</p>
               </div>
               {selectedSchedule.molaSuresi > 0 && (
-                <div className="p-4 bg-orange-50 rounded-lg">
-                  <p className="text-sm text-orange-600 mb-1">☕ Mola Süresi</p>
-                  <p className="font-semibold text-stone-800">{selectedSchedule.molaSuresi} dakika</p>
+                <div className="p-4 bg-[#E6B566]/10 rounded-lg">
+                  <p className="text-sm text-[#E6B566] mb-1">☕ Mola Süresi</p>
+                  <p className="font-semibold text-[#2F2F2F]">{selectedSchedule.molaSuresi} dakika</p>
                 </div>
               )}
               {selectedSchedule.aciklama && (
-                <div className="p-4 bg-stone-50 rounded-lg">
-                  <p className="text-sm text-stone-500 mb-2">📝 Açıklama:</p>
-                  <p className="text-stone-700">{selectedSchedule.aciklama}</p>
+                <div className="p-4 bg-[#F7F7F7] rounded-lg">
+                  <p className="text-sm text-[#8A8A8A] mb-2">📝 Açıklama:</p>
+                  <p className="text-[#2F2F2F]">{selectedSchedule.aciklama}</p>
                 </div>
               )}
             </div>
             <div className="mt-6">
-              <button onClick={() => setShowDetailModal(false)} className="w-full px-6 py-3 bg-stone-100 text-stone-700 rounded-lg hover:bg-stone-200 transition font-medium">Kapat</button>
+              <button onClick={() => setShowDetailModal(false)} className="w-full px-6 py-3 bg-[#F7F7F7] text-[#2F2F2F] rounded-lg hover:bg-[#E5E5E5] transition font-medium">Kapat</button>
             </div>
           </div>
         </div>

@@ -72,13 +72,13 @@ export default function IzinTalepleri() {
   const getDurumClass = (durum: string) => {
     switch (durum) {
       case "Beklemede":
-        return "bg-amber-100 text-amber-800";
+        return "bg-[#EAF2ED] text-[#2F2F2F]";
       case "Onaylandı":
-        return "bg-green-100 text-green-800";
+        return "bg-[#EAF2ED] text-green-800";
       case "Reddedildi":
-        return "bg-red-100 text-red-800";
+        return "bg-[#D96C6C]/20 text-red-800";
       default:
-        return "bg-stone-100 text-stone-800";
+        return "bg-[#F7F7F7] text-[#2F2F2F]";
     }
   };
 
@@ -160,31 +160,31 @@ export default function IzinTalepleri() {
   const bekleyenSayisi = talepler.filter(t => t.durum === "Beklemede").length;
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-white">
       <main className="flex-1 p-4 lg:p-6 ">
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center gap-3">
-            <h1 className="text-xl font-bold text-stone-800">İzin Talepleri</h1>
+            <h1 className="text-xl font-bold text-[#2F2F2F]">İzin Talepleri</h1>
             {bekleyenSayisi > 0 && (
-              <span className="px-2 py-1 bg-amber-100 text-amber-800 text-xs font-semibold rounded-full">
+              <span className="px-2 py-1 bg-[#EAF2ED] text-[#2F2F2F] text-xs font-semibold rounded-full">
                 {bekleyenSayisi} Bekleyen
               </span>
             )}
           </div>
-          <p className="text-sm text-stone-500">
+          <p className="text-sm text-[#8A8A8A]">
             Personellerin izin taleplerini görüntüleyebilir, onaylayabilir veya reddedebilirsiniz.
           </p>
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow-sm border border-stone-100 p-4 mb-4">
+        <div className="bg-white rounded-lg shadow-sm border border-[#E5E5E5] p-4 mb-4">
           <div className="flex flex-wrap items-center gap-3">
             {/* Durum Filtresi */}
             <select
               value={filterDurum}
               onChange={(e) => setFilterDurum(e.target.value)}
-              className="px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+              className="px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
             >
               <option value="Tümü">Tüm Talepler</option>
               <option value="Beklemede">Beklemede</option>
@@ -195,15 +195,15 @@ export default function IzinTalepleri() {
             {/* Özet Bilgiler */}
             <div className="ml-auto flex items-center gap-4 text-sm">
               <span className="flex items-center gap-1">
-                <span className="w-2 h-2 bg-amber-400 rounded-full"></span>
+                <span className="w-2 h-2 bg-[#8FAF9A] rounded-full"></span>
                 Beklemede: {talepler.filter(t => t.durum === "Beklemede").length}
               </span>
               <span className="flex items-center gap-1">
-                <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                <span className="w-2 h-2 bg-[#8FAF9A] rounded-full"></span>
                 Onaylanan: {talepler.filter(t => t.durum === "Onaylandı").length}
               </span>
               <span className="flex items-center gap-1">
-                <span className="w-2 h-2 bg-red-400 rounded-full"></span>
+                <span className="w-2 h-2 bg-[#D96C6C] rounded-full"></span>
                 Reddedilen: {talepler.filter(t => t.durum === "Reddedildi").length}
               </span>
             </div>
@@ -211,27 +211,27 @@ export default function IzinTalepleri() {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-lg shadow-sm border border-stone-100 overflow-hidden">
+        <div className="bg-white rounded-lg shadow-sm border border-[#E5E5E5] overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-stone-50 border-b border-stone-100">
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-stone-600">#</th>
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-stone-600">Personel</th>
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-stone-600">İzin Türü</th>
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-stone-600">Başlangıç</th>
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-stone-600">Bitiş</th>
-                  <th className="px-3 py-3 text-center text-xs font-semibold text-stone-600">Gün</th>
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-stone-600">Açıklama</th>
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-stone-600">Talep Tarihi</th>
-                  <th className="px-3 py-3 text-center text-xs font-semibold text-stone-600">Durum</th>
-                  <th className="px-3 py-3 text-center text-xs font-semibold text-stone-600">İşlemler</th>
+                <tr className="bg-[#F7F7F7] border-b border-[#E5E5E5]">
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#2F2F2F]">#</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#2F2F2F]">Personel</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#2F2F2F]">İzin Türü</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#2F2F2F]">Başlangıç</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#2F2F2F]">Bitiş</th>
+                  <th className="px-3 py-3 text-center text-xs font-semibold text-[#2F2F2F]">Gün</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#2F2F2F]">Açıklama</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#2F2F2F]">Talep Tarihi</th>
+                  <th className="px-3 py-3 text-center text-xs font-semibold text-[#2F2F2F]">Durum</th>
+                  <th className="px-3 py-3 text-center text-xs font-semibold text-[#2F2F2F]">İşlemler</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredTalepler.length === 0 ? (
                   <tr>
-                    <td colSpan={10} className="px-3 py-8 text-center text-stone-500">
+                    <td colSpan={10} className="px-3 py-8 text-center text-[#8A8A8A]">
                       {talepler.length === 0
                         ? "Henüz izin talebi bulunmuyor."
                         : "Filtreyle eşleşen talep bulunamadı."}
@@ -241,32 +241,32 @@ export default function IzinTalepleri() {
                   filteredTalepler.map((talep, index) => (
                     <tr
                       key={talep.id}
-                      className={`border-b border-stone-50 transition-colors ${
-                        talep.durum === "Beklemede" ? "bg-amber-50/30" : ""
-                      } hover:bg-stone-50/50`}
+                      className={`border-b border-[#E5E5E5]/50 transition-colors ${
+                        talep.durum === "Beklemede" ? "bg-[#EAF2ED]" : ""
+                      } hover:bg-[#F7F7F7]`}
                     >
-                      <td className="px-3 py-3 text-sm text-stone-500">
+                      <td className="px-3 py-3 text-sm text-[#8A8A8A]">
                         {index + 1}
                       </td>
-                      <td className="px-3 py-3 text-sm font-medium text-stone-800">
+                      <td className="px-3 py-3 text-sm font-medium text-[#2F2F2F]">
                         {talep.personelAd} {talep.personelSoyad}
                       </td>
-                      <td className="px-3 py-3 text-sm text-stone-600">
+                      <td className="px-3 py-3 text-sm text-[#2F2F2F]">
                         {talep.izinTuru}
                       </td>
-                      <td className="px-3 py-3 text-sm text-stone-600">
+                      <td className="px-3 py-3 text-sm text-[#2F2F2F]">
                         {formatDate(talep.baslangic)}
                       </td>
-                      <td className="px-3 py-3 text-sm text-stone-600">
+                      <td className="px-3 py-3 text-sm text-[#2F2F2F]">
                         {formatDate(talep.bitis)}
                       </td>
-                      <td className="px-3 py-3 text-sm text-center font-semibold text-stone-800">
+                      <td className="px-3 py-3 text-sm text-center font-semibold text-[#2F2F2F]">
                         {talep.gunSayisi}
                       </td>
-                      <td className="px-3 py-3 text-sm text-stone-600 max-w-[150px] truncate">
+                      <td className="px-3 py-3 text-sm text-[#2F2F2F] max-w-[150px] truncate">
                         {talep.aciklama || "-"}
                       </td>
-                      <td className="px-3 py-3 text-sm text-stone-500">
+                      <td className="px-3 py-3 text-sm text-[#8A8A8A]">
                         {formatDateTime(talep.talepTarihi)}
                       </td>
                       <td className="px-3 py-3 text-center">
@@ -279,14 +279,14 @@ export default function IzinTalepleri() {
                           <div className="flex items-center justify-center gap-1">
                             <button
                               onClick={() => handleOnayla(talep)}
-                              className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
+                              className="px-2 py-1 bg-[#8FAF9A] text-white text-xs rounded hover:bg-[#7A9E86] transition-colors"
                               title="Onayla"
                             >
                               ✓ Onayla
                             </button>
                             <button
                               onClick={() => handleReddet(talep)}
-                              className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors"
+                              className="px-2 py-1 bg-[#D96C6C] text-white text-xs rounded hover:bg-[#C25A5A] transition-colors"
                               title="Reddet"
                             >
                               ✗ Reddet
@@ -296,7 +296,7 @@ export default function IzinTalepleri() {
                           <div className="flex items-center justify-center">
                             <button
                               onClick={() => {/* Detay göster */}}
-                              className="p-1.5 text-stone-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                              className="p-1.5 text-[#8A8A8A] hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
                               title="Detay"
                             >
                               🔍
