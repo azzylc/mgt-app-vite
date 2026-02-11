@@ -169,9 +169,7 @@ export default function GelinModal({ gelin: initialGelin, onClose }: { gelin: Ge
             <div className="flex items-start justify-between">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  {firma !== 'GYS' && (
-                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${c.badge}`}>{firma}</span>
-                  )}
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${c.badge}`}>{firma}</span>
                   {gelin.etkinlikTuru && (
                     <span className="text-[10px] text-[#8A8A8A]">{gelin.etkinlikTuru}</span>
                   )}
