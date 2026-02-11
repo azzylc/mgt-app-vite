@@ -68,13 +68,11 @@ export default function Login() {
           <div className="px-8 pt-10 pb-8">
             {/* Logo */}
             <div className="flex justify-center mb-6">
-              <div className="w-24 h-24 rounded-2xl flex items-center justify-center overflow-hidden"
-                style={{ background: 'linear-gradient(135deg, #2a2a2a, #333)' }}>
+              <div className="w-24 h-24 rounded-2xl flex items-center justify-center overflow-hidden bg-white shadow-lg">
                 <img 
                   src="/mgt-app-logo.png" 
                   alt="MGT App" 
                   className="w-20 h-20 object-contain"
-                  style={{ filter: 'brightness(1.8) contrast(1.1)' }}
                 />
               </div>
             </div>
