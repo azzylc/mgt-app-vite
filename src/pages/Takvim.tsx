@@ -13,6 +13,9 @@ interface Personel {
   kisaltma?: string;
   dogumGunu?: string;
   aktif: boolean;
+  email?: string;
+  kullaniciTuru?: string;
+  firmalar?: string[];
 }
 
 interface Gelin {
@@ -79,7 +82,10 @@ export default function TakvimPage() {
         soyad: doc.data().soyad || "",
         kisaltma: doc.data().kisaltma || "",
         dogumGunu: doc.data().dogumGunu || "",
-        aktif: doc.data().aktif !== false
+        aktif: doc.data().aktif !== false,
+        email: doc.data().email || "",
+        kullaniciTuru: doc.data().kullaniciTuru || "",
+        firmalar: doc.data().firmalar || [],
       } as Personel));
       setPersoneller(data.filter(p => p.aktif));
     });
@@ -156,11 +162,11 @@ export default function TakvimPage() {
   useEffect(() => {
     if (!user?.email || !personeller.length || !tumFirmalar.length) return;
     const currentPersonel = personeller.find(p => 
-      (p as any).email === user.email
+      p.email === user.email
     );
     if (!currentPersonel) return;
-    const isKurucu = (currentPersonel as any).kullaniciTuru === 'Kurucu';
-    const kullaniciFirmalariIds = (currentPersonel as any).firmalar || [];
+    const isKurucu = currentPersonel.kullaniciTuru === 'Kurucu';
+    const kullaniciFirmalariIds = currentPersonel.firmalar || [];
     const firmaKodlari = isKurucu
       ? tumFirmalar.map(f => f.kisaltma)
       : tumFirmalar.filter(f => kullaniciFirmalariIds.includes(f.id)).map(f => f.kisaltma);
@@ -183,11 +189,11 @@ export default function TakvimPage() {
   // ✅ Kullanıcının erişebildiği firmalar
   const kullaniciFirmalari = useMemo(() => {
     if (!user?.email || !personeller.length) return tumFirmalar;
-    const currentPersonel = personeller.find(p => (p as any).email === user.email);
+    const currentPersonel = personeller.find(p => p.email === user.email);
     if (!currentPersonel) return [];
-    const isKurucu = (currentPersonel as any).kullaniciTuru === 'Kurucu';
+    const isKurucu = currentPersonel.kullaniciTuru === 'Kurucu';
     if (isKurucu) return tumFirmalar;
-    const firmaIds = (currentPersonel as any).firmalar || [];
+    const firmaIds = currentPersonel.firmalar || [];
     return tumFirmalar.filter(f => firmaIds.includes(f.id));
   }, [user, personeller, tumFirmalar]);
 
