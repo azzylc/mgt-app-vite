@@ -55,6 +55,9 @@ export default function GorevlerPage() {
   const [senkronizeLoading, setSenkronizeLoading] = useState<string | null>(null);
   const [gorevAtamaYetkisi, setGorevAtamaYetkisi] = useState<string>("herkes");
 
+  // Firma state
+  const [tumFirmalar, setTumFirmalar] = useState<{ id: string; kisaltma: string }[]>([]);
+
   // Modal state
   const [showGorevEkle, setShowGorevEkle] = useState(false);
   const [yeniGorev, setYeniGorev] = useState({
@@ -130,6 +133,30 @@ export default function GorevlerPage() {
     };
     fetchGenelAyar();
   }, [user]);
+
+  // Firmaları çek (firma kısaltma kodları için)
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db, "companies"), where("aktif", "==", true));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setTumFirmalar(snapshot.docs.map(d => ({ id: d.id, kisaltma: d.data().kisaltma || "" })));
+    });
+    return () => unsubscribe();
+  }, [user]);
+
+  // Kullanıcının firma kısaltma kodları (filtreleme için)
+  const kullaniciFirmaKodlari = useMemo(() => {
+    if (userRole === "Kurucu") return null; // null = hepsini gör
+    const firmaIds = personelData?.firmalar || [];
+    if (firmaIds.length === 0) return null; // firma atanmamış → hepsini gör
+    return tumFirmalar.filter(f => firmaIds.includes(f.id)).map(f => f.kisaltma);
+  }, [userRole, personelData?.firmalar, tumFirmalar]);
+
+  // Firma filtreli otomatik görevler (badge sayaçları ve liste için)
+  const firmaFiltreliBirlesikOtomatik = useMemo(() => 
+    birlesikGorevler.filter(g => g.otomatikMi && (!kullaniciFirmaKodlari || (g.firma && kullaniciFirmaKodlari.includes(g.firma)))),
+    [birlesikGorevler, kullaniciFirmaKodlari]
+  );
 
   // Personelleri dinle
   useEffect(() => {
@@ -305,6 +332,10 @@ export default function GorevlerPage() {
       sonuc = verdigimGorevler.filter(g => !g.otomatikMi);
     } else if (aktifSekme === "otomatik") {
       sonuc = birlesikGorevler.filter(g => g.otomatikMi === true && (otomatikAltSekme === "hepsi" || g.gorevTuru === otomatikAltSekme));
+      // Firma filtresi: Kurucu hariç, sadece kendi firmasının otomatik görevlerini görsün
+      if (kullaniciFirmaKodlari) {
+        sonuc = sonuc.filter(g => g.firma && kullaniciFirmaKodlari.includes(g.firma));
+      }
     } else {
       sonuc = birlesikGorevler.filter(g => !g.otomatikMi);
     }
@@ -324,7 +355,7 @@ export default function GorevlerPage() {
     });
     
     setFiltreliGorevler(sonuc);
-  }, [birlesikGorevler, verdigimGorevler, tumGorevler, filtre, aktifSekme, seciliPersoneller, otomatikAltSekme, siralama, user?.email]);
+  }, [birlesikGorevler, verdigimGorevler, tumGorevler, filtre, aktifSekme, seciliPersoneller, otomatikAltSekme, siralama, user?.email, kullaniciFirmaKodlari]);
 
   // ============================================
   // HANDLERS
@@ -654,7 +685,19 @@ export default function GorevlerPage() {
           };
 
           if (gorevTuru === "odemeTakip") {
-            const yoneticiler = personeller.filter(p => p.kullaniciTuru === "Kurucu" || p.kullaniciTuru === "Yönetici");
+            // Sadece gelinin firmasıyla ilgili yöneticilere ata
+            const tumYoneticiler = personeller.filter(p => p.kullaniciTuru === "Kurucu" || p.kullaniciTuru === "Yönetici");
+            const yoneticiler = gelin.firma 
+              ? tumYoneticiler.filter(p => 
+                  p.kullaniciTuru === "Kurucu" || // Kurucu hepsini görür
+                  (p.yonettigiFirmalar || []).some(f => {
+                    const firmaObj = personeller.length > 0 ? undefined : undefined; // placeholder
+                    return f === gelin.firma;
+                  }) ||
+                  (p.firmalar || []).length === 0 // firma atanmamış yönetici → hepsini görsün
+                )
+              : tumYoneticiler; // firma yoksa herkese
+
             for (const yonetici of yoneticiler) {
               const cId = compositeGorevId(gelin.id, gorevTuru, yonetici.email);
               await setDoc(doc(db, "gorevler", cId), {
@@ -665,6 +708,7 @@ export default function GorevlerPage() {
                 durum: "bekliyor", oncelik: "acil",
                 olusturulmaTarihi: serverTimestamp(),
                 gelinId: gelin.id, otomatikMi: true, gorevTuru: "odemeTakip",
+                firma: gelin.firma || "",
                 gelinBilgi: { isim: gelin.isim, tarih: gelin.tarih, saat: gelin.saat, bitisSaati: gelin.bitisSaati || "" }
               });
               toplamOlusturulan++;
@@ -693,6 +737,7 @@ export default function GorevlerPage() {
                 durum: "bekliyor", oncelik: "yuksek",
                 olusturulmaTarihi: serverTimestamp(),
                 gelinId: gelin.id, otomatikMi: true, gorevTuru: gorevTuru,
+                firma: gelin.firma || "",
                 gelinBilgi: { isim: gelin.isim, tarih: gelin.tarih, saat: gelin.saat, bitisSaati: gelin.bitisSaati || "" }
               });
               toplamOlusturulan++;
@@ -776,7 +821,7 @@ export default function GorevlerPage() {
               <span className="hidden md:inline">🤖 </span>Otomatik
               <span className="hidden md:inline"> Görevler</span>
               <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs ${aktifSekme === "otomatik" ? "bg-purple-100 text-purple-700" : "bg-[#F7F7F7] text-[#8A8A8A]"}`}>
-                {birlesikGorevler.filter(g => g.otomatikMi === true).length}
+                {firmaFiltreliBirlesikOtomatik.length}
               </span>
             </button>
             
@@ -813,11 +858,11 @@ export default function GorevlerPage() {
             <div className="mb-3">
               <div className="flex flex-wrap items-center gap-1 mb-2">
                 {([
-                  { key: "hepsi", label: "Hepsi", renk: "[#2F2F2F]", count: gorevler.filter(g => g.otomatikMi).length },
-                  { key: "yorumIstesinMi", label: "📝 Yorum İstensin", renk: "purple-500", count: gorevler.filter(g => g.otomatikMi && g.gorevTuru === "yorumIstesinMi").length },
-                  { key: "paylasimIzni", label: "📸 Paylaşım", renk: "blue-500", count: gorevler.filter(g => g.otomatikMi && g.gorevTuru === "paylasimIzni").length },
-                  { key: "yorumIstendiMi", label: "💬 Yorum İstendi", renk: "[#E6B566]", count: gorevler.filter(g => g.otomatikMi && g.gorevTuru === "yorumIstendiMi").length },
-                  { key: "odemeTakip", label: "💰 Ödeme", renk: "red-500", count: gorevler.filter(g => g.otomatikMi && g.gorevTuru === "odemeTakip").length },
+                  { key: "hepsi", label: "Hepsi", renk: "[#2F2F2F]", count: firmaFiltreliBirlesikOtomatik.length },
+                  { key: "yorumIstesinMi", label: "📝 Yorum İstensin", renk: "purple-500", count: firmaFiltreliBirlesikOtomatik.filter(g => g.gorevTuru === "yorumIstesinMi").length },
+                  { key: "paylasimIzni", label: "📸 Paylaşım", renk: "blue-500", count: firmaFiltreliBirlesikOtomatik.filter(g => g.gorevTuru === "paylasimIzni").length },
+                  { key: "yorumIstendiMi", label: "💬 Yorum İstendi", renk: "[#E6B566]", count: firmaFiltreliBirlesikOtomatik.filter(g => g.gorevTuru === "yorumIstendiMi").length },
+                  { key: "odemeTakip", label: "💰 Ödeme", renk: "red-500", count: firmaFiltreliBirlesikOtomatik.filter(g => g.gorevTuru === "odemeTakip").length },
                 ] as const).map(tab => (
                   <button
                     key={tab.key}
