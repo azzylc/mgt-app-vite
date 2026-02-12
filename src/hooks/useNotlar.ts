@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { db } from "../lib/firebase";
 import {
-  collection, addDoc, updateDoc, deleteDoc, doc, getDoc, getDocs, onSnapshot,
+  collection, addDoc, updateDoc, deleteDoc, doc, getDoc, onSnapshot,
   query, orderBy, where, serverTimestamp, Timestamp
 } from "firebase/firestore";
 import * as Sentry from "@sentry/react";
@@ -106,60 +106,68 @@ export function useNotlar() {
     };
   }, [flushSave]);
 
-  // ─── Notları yükle (tek seferlik okuma) ────────────────
-  const notlariYukle = useCallback(async () => {
+  // ─── Notlar (onSnapshot — gerçek zamanlı) ────────────────
+  useEffect(() => {
     if (!user) return;
     setYukleniyor(true);
-    try {
-      const kisiselQ = query(
-        collection(db, "notlar"),
-        where("olusturan", "==", userEmail)
-      );
-      const paylasimliQ = query(
-        collection(db, "notlar"),
-        where("paylasimli", "==", true)
-      );
 
-      const [kisiselSnap, paylasimliSnap] = await Promise.all([
-        getDocs(kisiselQ),
-        getDocs(paylasimliQ),
-      ]);
+    const kisiselQ = query(
+      collection(db, "notlar"),
+      where("olusturan", "==", userEmail)
+    );
+    const paylasimliQ = query(
+      collection(db, "notlar"),
+      where("paylasimli", "==", true)
+    );
 
-      const notMap = new Map<string, Not>();
-      kisiselSnap.docs.forEach(d => {
-        const data = d.data();
-        notMap.set(d.id, {
+    let kisiselDocs = new Map<string, Not>();
+    let paylasimliDocs = new Map<string, Not>();
+    let ilkYukleme = 2; // İki listener'ın da ilk snapshot'ını bekle
+
+    const mergeAndSet = () => {
+      const merged = new Map<string, Not>([...kisiselDocs, ...paylasimliDocs]);
+      setNotlar(Array.from(merged.values()));
+      if (ilkYukleme > 0) {
+        ilkYukleme--;
+        if (ilkYukleme === 0) setYukleniyor(false);
+      }
+    };
+
+    const snapToMap = (snap: any) => {
+      const map = new Map<string, Not>();
+      snap.docs.forEach((d: any) => {
+        map.set(d.id, {
           id: d.id,
           silindi: false,
           silinmeTarihi: null,
           firmaId: "",
-          ...data,
+          ...d.data(),
         } as Not);
       });
-      paylasimliSnap.docs.forEach(d => {
-        const data = d.data();
-        notMap.set(d.id, {
-          id: d.id,
-          silindi: false,
-          silinmeTarihi: null,
-          firmaId: "",
-          ...data,
-        } as Not);
-      });
+      return map;
+    };
 
-      // Client-side sıralama (sonDuzenleme desc)
-      const sorted = Array.from(notMap.values()).sort((a, b) => {
-        const tA = a.sonDuzenleme instanceof Timestamp ? a.sonDuzenleme.toMillis() : 0;
-        const tB = b.sonDuzenleme instanceof Timestamp ? b.sonDuzenleme.toMillis() : 0;
-        return tB - tA;
-      });
-      setNotlar(sorted);
-    } catch (err) {
-      console.error("Notlar yüklenirken hata:", err);
+    const unsub1 = onSnapshot(kisiselQ, (snap) => {
+      kisiselDocs = snapToMap(snap);
+      mergeAndSet();
+    }, (err) => {
+      console.error("Kişisel notlar listener hatası:", err);
       Sentry.captureException(err);
-    } finally {
+      ilkYukleme = 0;
       setYukleniyor(false);
-    }
+    });
+
+    const unsub2 = onSnapshot(paylasimliQ, (snap) => {
+      paylasimliDocs = snapToMap(snap);
+      mergeAndSet();
+    }, (err) => {
+      console.error("Paylaşımlı notlar listener hatası:", err);
+      Sentry.captureException(err);
+      ilkYukleme = 0;
+      setYukleniyor(false);
+    });
+
+    return () => { unsub1(); unsub2(); };
   }, [user, userEmail]);
 
   // ─── Klasörler (onSnapshot — az değişir) ───────────────
@@ -196,10 +204,6 @@ export function useNotlar() {
     setSeciliNot(null);
   }, [seciliFirma]);
 
-  // ─── İlk yükleme ──────────────────────────────────────
-  useEffect(() => {
-    notlariYukle();
-  }, [notlariYukle]);
 
   // ─── Filtrelenmiş notlar ───────────────────────────────
   const filtrelenmisNotlar = useCallback(() => {
@@ -546,7 +550,7 @@ export function useNotlar() {
     // Setters
     setSeciliKlasor, setSeciliNot, setAramaMetni, setNotlar,
     // Actions
-    notlariYukle, handleYeniNot, kaydetNot, handleNotSil, handleNotGeriAl,
+    handleYeniNot, kaydetNot, handleNotSil, handleNotGeriAl,
     handleCopuBosalt, handleSabitle, handleKlasorDegistir,
     handleKlasorKaydet, handleKlasorSil, openKlasorModal, closeKlasorModal,
     flushSave,

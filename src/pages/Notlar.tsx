@@ -76,14 +76,6 @@ export default function NotlarPage() {
           >
             📁
           </button>
-          <button
-            onClick={n.notlariYukle}
-            disabled={n.yukleniyor}
-            className={`w-9 h-9 rounded-lg bg-[#F7F7F7] hover:bg-[#E5E5E5] flex items-center justify-center text-sm transition ${n.yukleniyor ? "animate-spin" : ""}`}
-            title="Notları Yenile"
-          >
-            🔄
-          </button>
           {!isCop && (
             <button
               onClick={async () => {
