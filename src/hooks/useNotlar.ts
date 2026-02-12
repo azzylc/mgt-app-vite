@@ -2,7 +2,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { db } from "../lib/firebase";
 import {
   collection, addDoc, updateDoc, deleteDoc, doc, getDoc, onSnapshot,
-  query, orderBy, where, serverTimestamp, Timestamp
+  query, orderBy, where, serverTimestamp, Timestamp,
+  QuerySnapshot, DocumentData
 } from "firebase/firestore";
 import * as Sentry from "@sentry/react";
 import { useRole } from "../context/RoleProvider";
@@ -57,7 +58,7 @@ export function useNotlar() {
   // Refs
   const editorRef = useRef<HTMLDivElement>(null);
   const baslikRef = useRef<HTMLInputElement>(null);
-  const saveTimeoutRef = useRef<any>(null);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Pending save data — flush on exit için
   const pendingSaveRef = useRef<{ notId: string; baslik?: string; icerik?: string } | null>(null);
 
@@ -71,7 +72,7 @@ export function useNotlar() {
       saveTimeoutRef.current = null;
     }
     try {
-      const updates: any = { sonDuzenleme: serverTimestamp() };
+      const updates: Record<string, unknown> = { sonDuzenleme: serverTimestamp() };
       if (baslik !== undefined) updates.baslik = baslik;
       if (icerik !== undefined) updates.icerik = sanitizeHtml(icerik);
       await updateDoc(doc(db, "notlar", notId), updates);
@@ -133,9 +134,9 @@ export function useNotlar() {
       }
     };
 
-    const snapToMap = (snap: any) => {
+    const snapToMap = (snap: QuerySnapshot<DocumentData>) => {
       const map = new Map<string, Not>();
-      snap.docs.forEach((d: any) => {
+      snap.docs.forEach((d) => {
         map.set(d.id, {
           id: d.id,
           silindi: false,
@@ -189,7 +190,7 @@ export function useNotlar() {
         const snaps = await Promise.all(promises);
         const list = snaps
           .filter(s => s.exists())
-          .map(s => ({ id: s.id, firmaAdi: (s.data() as any).firmaAdi || s.id }));
+          .map(s => ({ id: s.id, firmaAdi: (s.data()?.firmaAdi as string) || s.id }));
         setFirmalar(list);
       } catch (err) {
         Sentry.captureException(err);
@@ -307,10 +308,10 @@ export function useNotlar() {
       setSeciliNot(not);
       setTimeout(() => baslikRef.current?.focus(), 100);
       return not;
-    } catch (err: any) {
+    } catch (err) {
       console.error("Not oluşturma hatası:", err);
       Sentry.captureException(err);
-      alert("Not oluşturulamadı! " + (err?.message || ""));
+      alert("Not oluşturulamadı! " + (err instanceof Error ? err.message : ""));
       return null;
     }
   };
@@ -338,7 +339,7 @@ export function useNotlar() {
       const { notId, baslik: b, icerik: i } = pendingSaveRef.current;
       pendingSaveRef.current = null;
       try {
-        const updates: any = { sonDuzenleme: serverTimestamp() };
+        const updates: Record<string, unknown> = { sonDuzenleme: serverTimestamp() };
         if (b !== undefined) updates.baslik = b;
         if (i !== undefined) updates.icerik = sanitizeHtml(i);
         await updateDoc(doc(db, "notlar", notId), updates);

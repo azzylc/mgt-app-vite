@@ -11,7 +11,7 @@ export interface NotKlasor {
   sira: number;
   ustKlasorId: string; // "" = kök klasör
   firmaId: string; // "" = kişisel (firmadan bağımsız)
-  olusturulmaTarihi: any;
+  olusturulmaTarihi: Timestamp | Date;
 }
 
 export interface Not {
@@ -24,10 +24,10 @@ export interface Not {
   olusturanAd: string;
   paylasimli: boolean;
   silindi: boolean;
-  silinmeTarihi: any | null;
+  silinmeTarihi: Timestamp | Date | null;
   firmaId: string; // "" = kişisel (firmadan bağımsız)
-  olusturulmaTarihi: any;
-  sonDuzenleme: any;
+  olusturulmaTarihi: Timestamp | Date;
+  sonDuzenleme: Timestamp | Date;
 }
 
 export interface KlasorFormState {
@@ -63,7 +63,7 @@ export function htmlToPreview(html: string, maxLen = 80): string {
 }
 
 // ─── Tarih formatı ──────────────────────────────────────────
-export function formatTarih(ts: any): string {
+export function formatTarih(ts: Timestamp | Date | null | undefined): string {
   if (!ts) return "";
   const d = ts instanceof Timestamp ? ts.toDate() : new Date(ts);
   const now = new Date();
