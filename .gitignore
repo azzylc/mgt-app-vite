@@ -39,3 +39,5 @@ Thumbs.db
 # Build
 .vercel
 *.tsbuildinfo
+functions/serviceAccountKey.json
+serviceAccountKey.json
