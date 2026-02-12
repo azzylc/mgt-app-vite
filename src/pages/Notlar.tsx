@@ -150,6 +150,16 @@ export default function NotlarPage() {
     return sonuc;
   }, [notlar, seciliKlasor, aramaMetni]);
 
+  // ─── Klasör değişince seçili notu temizle ────────────
+  useEffect(() => {
+    if (!seciliNot) return;
+    const liste = filtrelenmisNotlar();
+    if (!liste.find(n => n.id === seciliNot.id)) {
+      setSeciliNot(null);
+      if (editorRef.current) editorRef.current.innerHTML = "";
+    }
+  }, [seciliKlasor, aramaMetni]);
+
   // ─── Not oluştur ────────────────────────────────────────
   const handleYeniNot = async () => {
     try {
