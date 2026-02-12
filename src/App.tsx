@@ -33,6 +33,7 @@ const Personel = lazyWithRetry(() => import('./pages/Personel'))
 const Gorevler = lazyWithRetry(() => import('./pages/Gorevler'))
 const Ayarlar = lazyWithRetry(() => import('./pages/Ayarlar'))
 const Duyurular = lazyWithRetry(() => import('./pages/Duyurular'))
+const Notlar = lazyWithRetry(() => import('./pages/Notlar'))
 const Vardiya = lazyWithRetry(() => import('./pages/Vardiya'))
 const QRGiris = lazyWithRetry(() => import('./pages/QRGiris'))
 const CalismaSaatleri = lazyWithRetry(() => import('./pages/CalismaSaatleri'))
@@ -109,6 +110,7 @@ export default function App() {
                 <Route path="/gorevler" element={<RouteGuard requiredPermission="gorevler"><Gorevler /></RouteGuard>} />
                 <Route path="/ayarlar" element={<RouteGuard requiredPermission="ayarlar"><Ayarlar /></RouteGuard>} />
                 <Route path="/duyurular" element={<RouteGuard requiredPermission="duyurular"><Duyurular /></RouteGuard>} />
+                <Route path="/notlar" element={<RouteGuard requiredPermission="notlar"><Notlar /></RouteGuard>} />
                 <Route path="/vardiya" element={<RouteGuard requiredPermission="personel"><Vardiya /></RouteGuard>} />
                 <Route path="/qr-giris" element={<RouteGuard requiredPermission="qr-giris"><QRGiris /></RouteGuard>} />
                 <Route path="/calisma-saatleri" element={<RouteGuard requiredPermission="personel"><CalismaSaatleri /></RouteGuard>} />

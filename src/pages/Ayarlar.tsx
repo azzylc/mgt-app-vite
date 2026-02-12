@@ -80,6 +80,7 @@ const menuListesi = [
   { id: "giris-cikis-islemleri", label: "🔄 Giriş-Çıkış/Vardiya" },
   { id: "duyurular", label: "📢 Duyurular" },
   { id: "gorevler", label: "✅ Görevler" },
+  { id: "notlar", label: "📝 Notlar" },
   { id: "takvim", label: "📅 Takvim" },
   { id: "personel", label: "👤 Personel" },
   { id: "izinler", label: "🏖️ İzinler" },

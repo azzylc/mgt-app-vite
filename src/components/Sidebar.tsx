@@ -49,9 +49,9 @@ function SidebarContent({ user }: SidebarProps) {
   const isPersonel = personelData?.kullaniciTuru === "Personel" || (!isKurucu && !isYonetici);
 
   const DEFAULT_MENU: Record<string, string[]> = {
-    Kurucu: ["genel-bakis", "qr-giris", "giris-cikis-islemleri", "personel", "duyurular", "gorevler", "takvim", "izinler", "raporlar", "ayarlar", "yonetim-paneli", "talepler-merkezi", "taleplerim"],
-    Yönetici: ["genel-bakis", "giris-cikis-islemleri", "duyurular", "gorevler", "takvim", "izinler", "raporlar", "qr-giris", "taleplerim"],
-    Personel: ["genel-bakis", "qr-giris", "duyurular", "gorevler", "takvim", "izinler", "taleplerim"],
+    Kurucu: ["genel-bakis", "qr-giris", "giris-cikis-islemleri", "personel", "duyurular", "gorevler", "notlar", "takvim", "izinler", "raporlar", "ayarlar", "yonetim-paneli", "talepler-merkezi", "taleplerim"],
+    Yönetici: ["genel-bakis", "giris-cikis-islemleri", "duyurular", "gorevler", "notlar", "takvim", "izinler", "raporlar", "qr-giris", "taleplerim"],
+    Personel: ["genel-bakis", "qr-giris", "duyurular", "gorevler", "notlar", "takvim", "izinler", "taleplerim"],
   };
 
   const getFilteredMenuItems = () => {
@@ -92,6 +92,7 @@ function SidebarContent({ user }: SidebarProps) {
       },
       { id: "duyurular", label: "Duyurular", icon: "📢", path: "/duyurular" },
       { id: "gorevler", label: "Görevler", icon: "✅", path: "/gorevler" },
+      { id: "notlar", label: "Notlar", icon: "📝", path: "/notlar" },
       { id: "takvim", label: "Takvim", icon: "📅", path: "/takvim" },
       {
         id: "personel", label: "Personel", icon: "👤",
