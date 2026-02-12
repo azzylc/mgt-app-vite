@@ -1225,6 +1225,56 @@ export const onGorevUpdated = onDocumentUpdated({
 });
 
 // ============================================
+// 9c. Yeni duyuru oluşturulunca → gruptaki herkese push bildirim
+// Client zaten bildirimYazCoklu ile in-app bildirim yazıyor,
+// bu trigger push notification ekler
+// ============================================
+export const onDuyuruCreated = onDocumentCreated({
+  document: 'announcements/{docId}',
+  region: 'europe-west1'
+}, async (event) => {
+  const data = event.data?.data();
+  if (!data) return;
+
+  const { title, author, important, group } = data;
+
+  console.log(`[DUYURU-PUSH] Yeni duyuru: "${title}" by ${author} (grup: ${group || 'genel'})`);
+
+  const pushTitle = important ? '🔴 Önemli Duyuru' : '📢 Yeni Duyuru';
+  const pushBody = `${author || 'Yönetici'}: ${title}`;
+
+  try {
+    // Gruptaki aktif personelleri bul
+    let personelQuery;
+    if (group) {
+      personelQuery = adminDb.collection('personnel')
+        .where('grupEtiketleri', 'array-contains', group)
+        .where('aktif', '==', true);
+    } else {
+      // Grup belirtilmemişse herkese
+      personelQuery = adminDb.collection('personnel')
+        .where('aktif', '==', true);
+    }
+
+    const personelSnap = await personelQuery.get();
+    let gonderilen = 0;
+
+    for (const personelDoc of personelSnap.docs) {
+      const email = personelDoc.data().email;
+      if (!email) continue;
+
+      // Push gönder (in-app bildirim zaten client tarafında yazılıyor)
+      const sent = await sendPushToUser(email, pushTitle, pushBody, { route: '/duyurular' });
+      if (sent) gonderilen++;
+    }
+
+    console.log(`[DUYURU-PUSH] ✅ ${gonderilen}/${personelSnap.size} kişiye push gönderildi`);
+  } catch (error) {
+    console.error('[DUYURU-PUSH] Hata:', error);
+  }
+});
+
+// ============================================
 // 10. SCHEDULED: Günlük görev hatırlatma (09:00)
 // ============================================
 export const dailyGorevHatirlatma = onSchedule({
