@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Gorev, oncelikRenk, durumBadge, durumEmojiyon, durumLabel } from "./types";
+import { Timestamp } from "firebase/firestore";
+import { Gorev, oncelikRenk, durumBadge, durumEmojiyon, durumLabel, toDateSafe } from "./types";
 
 interface GorevKartProps {
   gorev: Gorev;
@@ -100,7 +101,7 @@ export default function GorevKart({
             </div>
             <div className="flex items-center gap-1">
               <span>📅</span>
-              <span>{gorev.olusturulmaTarihi?.toDate?.().toLocaleDateString('tr-TR')}</span>
+              <span>{toDateSafe(gorev.olusturulmaTarihi)?.toLocaleDateString('tr-TR')}</span>
             </div>
             {gorev.sonTarih && (
               <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${

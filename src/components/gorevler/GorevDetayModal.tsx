@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Gorev, durumEmojiyon, durumLabel } from "./types";
+import { Gorev, durumEmojiyon, durumLabel, toDateSafe } from "./types";
 
 interface GorevDetayModalProps {
   gorev: Gorev;
@@ -196,7 +196,7 @@ export default function GorevDetayModal({
               </div>
               <div className="p-3 bg-[#F7F7F7] rounded-lg">
                 <p className="text-xs font-medium text-[#8A8A8A] mb-1">📅 Oluşturulma</p>
-                <p className="text-[#2F2F2F]">{gorev.olusturulmaTarihi?.toDate?.().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                <p className="text-[#2F2F2F]">{toDateSafe(gorev.olusturulmaTarihi)?.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
               </div>
               {gorev.sonTarih && (
                 <div className={`p-3 rounded-lg ${
@@ -321,7 +321,7 @@ export default function GorevDetayModal({
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs font-semibold text-[#2F2F2F]">👤 {yorum.yazanAd}</span>
                       <span className="text-[10px] text-[#8A8A8A]">
-                        {new Date(yorum.tarih).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })} {new Date(yorum.tarih).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                        {(() => { const d = typeof yorum.tarih === 'string' ? new Date(yorum.tarih) : toDateSafe(yorum.tarih) || new Date(); return `${d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })} ${d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}`; })()}
                       </span>
                     </div>
                     <p className="text-sm text-[#2F2F2F] whitespace-pre-wrap">{yorum.yorum}</p>

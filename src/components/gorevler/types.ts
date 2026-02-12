@@ -4,12 +4,18 @@
 
 import { Timestamp } from "firebase/firestore";
 
+// Firestore Timestamp veya Date → Date'e çevir
+export function toDateSafe(ts: Timestamp | Date | null | undefined): Date | null {
+  if (!ts) return null;
+  return ts instanceof Timestamp ? ts.toDate() : ts;
+}
+
 export interface GorevYorum {
   id: string;
   yazan: string;
   yazanAd: string;
   yorum: string;
-  tarih: Timestamp | Date;
+  tarih: Timestamp | Date | string;
 }
 
 export interface Gorev {

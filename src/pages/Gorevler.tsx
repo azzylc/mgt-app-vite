@@ -7,7 +7,7 @@ import GorevDetayModal from "../components/gorevler/GorevDetayModal";
 import GorevAyarlarPanel from "../components/gorevler/GorevAyarlarPanel";
 import {
   Gorev, Gelin, Personel, GorevAyarlari,
-  compositeGorevId
+  compositeGorevId, toDateSafe
 } from "../components/gorevler/types";
 import {
   collection,
@@ -353,9 +353,9 @@ export default function GorevlerPage() {
 
     sonuc.sort((a, b) => {
       const tarihA = a.gelinBilgi?.tarih ? new Date(a.gelinBilgi.tarih).getTime() : 
-                     (a.olusturulmaTarihi?.toDate?.()?.getTime() || 0);
+                     (toDateSafe(a.olusturulmaTarihi)?.getTime() || 0);
       const tarihB = b.gelinBilgi?.tarih ? new Date(b.gelinBilgi.tarih).getTime() : 
-                     (b.olusturulmaTarihi?.toDate?.()?.getTime() || 0);
+                     (toDateSafe(b.olusturulmaTarihi)?.getTime() || 0);
       return siralama === "yenidenEskiye" ? tarihB - tarihA : tarihA - tarihB;
     });
     

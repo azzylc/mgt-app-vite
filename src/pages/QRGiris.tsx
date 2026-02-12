@@ -172,7 +172,7 @@ export default function QRGirisPage() {
 
       snapshot.docs.forEach(d => {
         const data = d.data();
-        const tarih = data.tarih?.toDate ? data.tarih.toDate() : new Date(data.tarih);
+        const tarih = data.tarih instanceof Timestamp ? data.tarih.toDate() : new Date(data.tarih);
         const saat = tarih.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
         
         if (data.tip === "giris") {
@@ -212,7 +212,7 @@ export default function QRGirisPage() {
 
     // 1. Cooldown kontrolü
     if (sonIslem?.tarih) {
-      const sonTarih = sonIslem.tarih?.toDate ? sonIslem.tarih.toDate() : new Date(sonIslem.tarih);
+      const sonTarih = sonIslem.tarih instanceof Timestamp ? sonIslem.tarih.toDate() : new Date(sonIslem.tarih as Date);
       const fark = Date.now() - sonTarih.getTime();
       
       if (fark >= 0 && fark < COOLDOWN_SURE_MS) {
@@ -244,7 +244,7 @@ export default function QRGirisPage() {
 
     // 3. Dünkü eksik çıkış uyarısı
     if (tip === "giris" && sonIslem?.tip === "giris") {
-      const sonTarih = sonIslem.tarih?.toDate ? sonIslem.tarih.toDate() : new Date(sonIslem.tarih);
+      const sonTarih = sonIslem.tarih instanceof Timestamp ? sonIslem.tarih.toDate() : new Date(sonIslem.tarih as Date);
       const bugun = new Date();
       if (toDateStr(sonTarih) !== toDateStr(bugun)) {
         // Farklı gün + son işlem giriş = dünkü çıkış eksik
@@ -457,7 +457,7 @@ export default function QRGirisPage() {
     const eksikCikislar: string[] = [];
 
     kayitlar.forEach(r => {
-      const tarih = r.tarih?.toDate ? r.tarih.toDate() : new Date(r.tarih);
+      const tarih = r.tarih instanceof Timestamp ? r.tarih.toDate() : new Date(r.tarih as Date);
       const gunKey = toDateStr(tarih);
       
       if (!gunler[gunKey]) {

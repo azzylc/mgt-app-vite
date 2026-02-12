@@ -33,6 +33,9 @@ interface CallableResponse {
   error?: string;
   uid?: string;
   message?: string;
+  email?: string;
+  newPassword?: string;
+  emailSent?: boolean;
 }
 
 interface Personel {
