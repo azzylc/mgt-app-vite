@@ -389,18 +389,25 @@ export function useNotlar() {
   const handleKlasorKaydet = async () => {
     if (!klasorForm.ad.trim()) return;
     try {
+      // Alt klasör ise üst klasörün paylaşım durumunu miras al
+      let paylasimli = klasorForm.paylasimli;
+      if (klasorForm.ustKlasorId) {
+        const ustKlasor = klasorler.find(k => k.id === klasorForm.ustKlasorId);
+        if (ustKlasor) paylasimli = ustKlasor.paylasimli;
+      }
+
       if (editingKlasor) {
         await updateDoc(doc(db, "notKlasorleri", editingKlasor.id), {
           ad: klasorForm.ad.trim(),
           renk: klasorForm.renk,
-          paylasimli: klasorForm.paylasimli,
+          paylasimli,
           ustKlasorId: klasorForm.ustKlasorId,
         });
       } else {
         await addDoc(collection(db, "notKlasorleri"), {
           ad: klasorForm.ad.trim(),
           renk: klasorForm.renk,
-          paylasimli: klasorForm.paylasimli,
+          paylasimli,
           ustKlasorId: klasorForm.ustKlasorId,
           olusturan: userEmail,
           olusturanAd: userName,

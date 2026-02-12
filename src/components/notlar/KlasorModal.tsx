@@ -56,22 +56,34 @@ export default function KlasorModal({
             </div>
           </div>
 
-          <label className="flex items-center gap-3 cursor-pointer">
-            <div className="relative">
-              <input
-                type="checkbox"
-                checked={form.paylasimli}
-                onChange={(e) => onFormChange({ ...form, paylasimli: e.target.checked })}
-                className="sr-only peer"
-              />
-              <div className="w-10 h-5 bg-[#E5E5E5] rounded-full peer-checked:bg-[#8FAF9A] transition-colors" />
-              <div className="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow peer-checked:translate-x-5 transition-transform" />
+          {/* Paylaşım: Üst klasör varsa miras al, yoksa toggle göster */}
+          {form.ustKlasorId ? (
+            <div className="flex items-center gap-2 text-sm text-[#8A8A8A] bg-[#F7F7F7] rounded-lg px-4 py-2.5">
+              <span>📂</span>
+              <span>
+                Üst klasör: <strong className="text-[#2F2F2F]">{klasorler.find(k => k.id === form.ustKlasorId)?.ad}</strong>
+                {klasorler.find(k => k.id === form.ustKlasorId)?.paylasimli
+                  ? " (👥 paylaşımlı)" : " (🔒 kişisel)"}
+              </span>
             </div>
-            <div>
-              <p className="text-sm font-medium text-[#2F2F2F]">Paylaşımlı Klasör</p>
-              <p className="text-xs text-[#8A8A8A]">Herkes bu klasördeki notları görebilir</p>
-            </div>
-          </label>
+          ) : (
+            <label className="flex items-center gap-3 cursor-pointer">
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  checked={form.paylasimli}
+                  onChange={(e) => onFormChange({ ...form, paylasimli: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div className="w-10 h-5 bg-[#E5E5E5] rounded-full peer-checked:bg-[#8FAF9A] transition-colors" />
+                <div className="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow peer-checked:translate-x-5 transition-transform" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-[#2F2F2F]">Paylaşımlı Klasör</p>
+                <p className="text-xs text-[#8A8A8A]">Herkes bu klasördeki notları görebilir</p>
+              </div>
+            </label>
+          )}
 
           {/* Üst Klasör seçimi */}
           <div>

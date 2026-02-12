@@ -51,8 +51,7 @@ export default function FolderPanel({
   };
 
   // ─── Kök klasörler (ustKlasorId boş veya yok) ─────────
-  const kokKlasorlerKisisel = klasorler.filter(k => !k.paylasimli && (!k.ustKlasorId || k.ustKlasorId === ""));
-  const kokKlasorlerPaylasimli = klasorler.filter(k => k.paylasimli && (!k.ustKlasorId || k.ustKlasorId === ""));
+  const kokKlasorler = klasorler.filter(k => !k.ustKlasorId || k.ustKlasorId === "");
 
   // ─── Recursive klasör item ────────────────────────────
   const KlasorItem = ({ klasor, depth }: { klasor: NotKlasor; depth: number }) => {
@@ -141,22 +140,12 @@ export default function FolderPanel({
         ))}
       </div>
 
-      {/* Kişisel Klasörler */}
+      {/* Klasörler — tek liste */}
       <div className="px-3 mt-3">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-[10px] font-semibold text-[#8A8A8A] uppercase tracking-wider">Kişisel Klasörler</span>
+          <span className="text-[10px] font-semibold text-[#8A8A8A] uppercase tracking-wider">Klasörler</span>
         </div>
-        {kokKlasorlerKisisel.map(k => (
-          <KlasorItem key={k.id} klasor={k} depth={0} />
-        ))}
-      </div>
-
-      {/* Paylaşımlı Klasörler */}
-      <div className="px-3 mt-3">
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-[10px] font-semibold text-[#8A8A8A] uppercase tracking-wider">Paylaşımlı Klasörler</span>
-        </div>
-        {kokKlasorlerPaylasimli.map(k => (
+        {kokKlasorler.map(k => (
           <KlasorItem key={k.id} klasor={k} depth={0} />
         ))}
       </div>
