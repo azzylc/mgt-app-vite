@@ -11,6 +11,7 @@ import {
   query, 
   orderBy,
   serverTimestamp,
+  Timestamp,
   where,
   getDocs,
   arrayRemove,
@@ -39,8 +40,8 @@ interface GrupEtiketi {
   grupAdi: string;
   renk: string;
   sira: number;
-  olusturulmaTarihi: any;
-  sonDuzenleme: any;
+  olusturulmaTarihi: Timestamp | Date;
+  sonDuzenleme: Timestamp | Date;
 }
 
 interface Firma {
@@ -49,8 +50,8 @@ interface Firma {
   kisaltma: string;
   renk: string;
   aktif: boolean;
-  olusturulmaTarihi: any;
-  sonDuzenleme: any;
+  olusturulmaTarihi: Timestamp | Date;
+  sonDuzenleme: Timestamp | Date;
 }
 
 interface GenelAyarlar {
@@ -273,7 +274,7 @@ export default function AyarlarPage() {
           // 1. Eksik sira/renk field'larını düzelt
           snapshot.docs.forEach((docSnap, index) => {
             const docData = docSnap.data();
-            const updates: any = {};
+            const updates: Record<string, unknown> = {};
             
             if (docData.sira === undefined || docData.sira === null) {
               updates.sira = index;
