@@ -14,7 +14,8 @@ import {
   doc,
   getDocs,
   writeBatch,
-  serverTimestamp
+  serverTimestamp,
+  Timestamp
 } from "firebase/firestore";
 import * as Sentry from '@sentry/react';
 
@@ -23,8 +24,8 @@ export interface GrupEtiketi {
   grupAdi: string;
   renk: string;
   sira: number;
-  olusturulmaTarihi?: any;
-  sonDuzenleme?: any;
+  olusturulmaTarihi?: Timestamp | Date;
+  sonDuzenleme?: Timestamp | Date;
 }
 
 export function useGrupEtiketleri() {
@@ -97,7 +98,7 @@ export function useGrupEtiketleri() {
   // Etiket güncelle
   const etiketGuncelle = async (id: string, data: Partial<GrupEtiketi>) => {
     try {
-      const { id: _, ...updateData } = data as any;
+      const { id: _, ...updateData } = data as Partial<GrupEtiketi> & { id?: string };
       await updateDoc(doc(db, "groupTags", id), {
         ...updateData,
         sonDuzenleme: serverTimestamp()

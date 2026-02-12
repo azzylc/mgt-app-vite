@@ -318,7 +318,7 @@ export default function VardiyaPage() {
                 <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Vardiya Türü *</label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {Object.entries(vardiyaTipleri).map(([key, value]) => (
-                    <button key={key} type="button" onClick={() => setFormData({...formData, vardiya: key as any, baslangic: value.defaultBaslangic, bitis: value.defaultBitis})} className={`px-4 py-3 rounded-lg border-2 transition ${formData.vardiya === key ? 'border-rose-500 bg-rose-50' : 'border-[#E5E5E5] hover:border-[#E5E5E5]'}`}>
+                    <button key={key} type="button" onClick={() => setFormData({...formData, vardiya: key as typeof formData.vardiya, baslangic: value.defaultBaslangic, bitis: value.defaultBitis})} className={`px-4 py-3 rounded-lg border-2 transition ${formData.vardiya === key ? 'border-rose-500 bg-rose-50' : 'border-[#E5E5E5] hover:border-[#E5E5E5]'}`}>
                       <div className="text-2xl mb-1">{value.icon}</div>
                       <div className="text-xs font-medium">{value.label.split(' ')[0]}</div>
                     </button>
@@ -373,7 +373,7 @@ export default function VardiyaPage() {
                 <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Vardiya Türü *</label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {Object.entries(vardiyaTipleri).map(([key, value]) => (
-                    <button key={key} type="button" onClick={() => setFormData({...formData, vardiya: key as any})} className={`px-4 py-3 rounded-lg border-2 transition ${formData.vardiya === key ? 'border-rose-500 bg-rose-50' : 'border-[#E5E5E5] hover:border-[#E5E5E5]'}`}>
+                    <button key={key} type="button" onClick={() => setFormData({...formData, vardiya: key as typeof formData.vardiya})} className={`px-4 py-3 rounded-lg border-2 transition ${formData.vardiya === key ? 'border-rose-500 bg-rose-50' : 'border-[#E5E5E5] hover:border-[#E5E5E5]'}`}>
                       <div className="text-2xl mb-1">{value.icon}</div>
                       <div className="text-xs font-medium">{value.label.split(' ')[0]}</div>
                     </button>

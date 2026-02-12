@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { db } from "../lib/firebase";
-import { collection, doc, getDocs, updateDoc, addDoc, serverTimestamp, query, where, onSnapshot, orderBy } from "firebase/firestore";
+import { collection, doc, getDocs, updateDoc, addDoc, serverTimestamp, query, where, onSnapshot, orderBy, Timestamp } from "firebase/firestore";
 import * as Sentry from '@sentry/react';
 import { useAuth, usePersonelData } from "../context/RoleProvider";
 import { bildirimYazCoklu } from "../lib/bildirimHelper";
@@ -27,7 +27,7 @@ interface DegisiklikTalebi {
   personelAd: string;
   degisiklikler: { alan: string; mevcutDeger: string; yeniDeger: string }[];
   durum: "bekliyor" | "onaylandi" | "reddedildi";
-  createdAt: any;
+  createdAt: Timestamp | Date;
   yanitNotu?: string;
 }
 
@@ -167,9 +167,9 @@ export default function Profilim() {
     return new Date(tarihStr + "T00:00:00").toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
   };
 
-  const formatTimestamp = (ts: any) => {
+  const formatTimestamp = (ts: Timestamp | Date | null | undefined) => {
     if (!ts) return "";
-    const d = ts.toDate ? ts.toDate() : new Date(ts);
+    const d = ts instanceof Timestamp ? ts.toDate() : new Date(ts as Date);
     return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
 

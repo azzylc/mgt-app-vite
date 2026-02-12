@@ -55,6 +55,13 @@ interface GelmeyenUyari {
   mesaj: string;
 }
 
+interface DevamKayit {
+  tip: "giris" | "cikis";
+  tarihDate: Date;
+  personelId?: string;
+  [key: string]: unknown;
+}
+
 /** Local timezone'da YYYY-MM-DD */
 function toLocalDateStr(date: Date): string {
   const y = date.getFullYear();
@@ -217,7 +224,7 @@ export default function HaftalikCalismaSureleriPage() {
 
       const attendanceSnap = await getDocs(attendanceQuery);
       
-      const kayitlar = new Map<string, any[]>();
+      const kayitlar = new Map<string, DevamKayit[]>();
       attendanceSnap.forEach(docSnap => {
         const d = docSnap.data();
         const tarih = d.tarih?.toDate?.();
@@ -227,7 +234,7 @@ export default function HaftalikCalismaSureleriPage() {
         const key = `${d.personelId}-${gunStr}`;
         
         if (!kayitlar.has(key)) kayitlar.set(key, []);
-        kayitlar.get(key)!.push({ ...d, tarihDate: tarih });
+        kayitlar.get(key)!.push({ ...d, tarihDate: tarih } as DevamKayit);
       });
 
       // VardiyaPlan verilerini çek
@@ -343,8 +350,8 @@ export default function HaftalikCalismaSureleriPage() {
             // Beklenen süreyi haftalık toplama ekle
             beklenenToplamDakika += gunlukBeklenenDakika;
 
-            const girisler = gunKayitlari.filter((k: any) => k.tip === "giris").sort((a: any, b: any) => a.tarihDate - b.tarihDate);
-            const cikislar = gunKayitlari.filter((k: any) => k.tip === "cikis").sort((a: any, b: any) => a.tarihDate - b.tarihDate);
+            const girisler = gunKayitlari.filter((k) => k.tip === "giris").sort((a, b) => a.tarihDate.getTime() - b.tarihDate.getTime());
+            const cikislar = gunKayitlari.filter((k) => k.tip === "cikis").sort((a, b) => a.tarihDate.getTime() - b.tarihDate.getTime());
 
             if (girisler.length > 0) {
               const ilkGiris = girisler[0].tarihDate;

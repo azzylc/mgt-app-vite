@@ -85,7 +85,7 @@ export default function YonetimPage() {
     if (!currentPersonel) return;
 
     const isKurucu = currentPersonel.kullaniciTuru === 'Kurucu';
-    const kullaniciFirmalariIds = (currentPersonel as any).firmalar || [];
+    const kullaniciFirmalariIds = (currentPersonel as typeof currentPersonel & { firmalar?: string[] }).firmalar || [];
 
     const firmaKodlari = isKurucu
       ? tumFirmalar.map(f => f.kisaltma)
@@ -114,7 +114,7 @@ export default function YonetimPage() {
     if (!currentPersonel) return [];
     const isKurucu = currentPersonel.kullaniciTuru === 'Kurucu';
     if (isKurucu) return tumFirmalar;
-    const firmaIds = (currentPersonel as any).firmalar || [];
+    const firmaIds = (currentPersonel as typeof currentPersonel & { firmalar?: string[] }).firmalar || [];
     return tumFirmalar.filter(f => firmaIds.includes(f.id));
   }, [user, personeller, tumFirmalar]);
 

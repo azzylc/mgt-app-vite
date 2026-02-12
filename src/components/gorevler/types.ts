@@ -2,12 +2,14 @@
 // Görevler Modülü — Ortak Tipler & Yardımcılar
 // ============================================
 
+import { Timestamp } from "firebase/firestore";
+
 export interface GorevYorum {
   id: string;
   yazan: string;
   yazanAd: string;
   yorum: string;
-  tarih: any;
+  tarih: Timestamp | Date;
 }
 
 export interface Gorev {
@@ -20,8 +22,8 @@ export interface Gorev {
   atananAd: string;
   durum: "bekliyor" | "devam-ediyor" | "tamamlandi" | "iptal";
   oncelik: "dusuk" | "normal" | "yuksek" | "acil";
-  olusturulmaTarihi: any;
-  tamamlanmaTarihi?: any;
+  olusturulmaTarihi: Timestamp | Date;
+  tamamlanmaTarihi?: Timestamp | Date;
   sonTarih?: string;
   gelinId?: string;
   otomatikMi?: boolean;
