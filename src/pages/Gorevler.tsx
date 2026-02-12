@@ -269,9 +269,11 @@ export default function GorevlerPage() {
     return true;
   }, [gorevAtamaYetkisi, userRole]);
 
-  // Kurucu/Yönetici: tüm görevler (sadece gorevGorunurluk === "yoneticiler" ise)
+  // Kurucu/Yönetici: tüm görevler (görünürlük ayarına göre)
   const isAdmin = userRole === "Kurucu" || userRole === "Yönetici";
-  const tumGorevleriGorebilir = isAdmin && gorevGorunurluk === "yoneticiler";
+  const tumGorevleriGorebilir = 
+    (gorevGorunurluk === "yoneticiler" && isAdmin) ||
+    (gorevGorunurluk === "sadece_kurucular" && userRole === "Kurucu");
   
   useEffect(() => {
     if (!user || !tumGorevleriGorebilir) { setTumGorevler([]); return; }
