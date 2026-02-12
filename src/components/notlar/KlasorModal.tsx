@@ -5,6 +5,7 @@ interface KlasorModalProps {
   show: boolean;
   editing: NotKlasor | null;
   form: KlasorFormState;
+  klasorler: NotKlasor[];
   onFormChange: (form: KlasorFormState) => void;
   onSave: () => void;
   onDelete: (klasor: NotKlasor) => void;
@@ -12,7 +13,7 @@ interface KlasorModalProps {
 }
 
 export default function KlasorModal({
-  show, editing, form, onFormChange, onSave, onDelete, onClose,
+  show, editing, form, klasorler, onFormChange, onSave, onDelete, onClose,
 }: KlasorModalProps) {
   if (!show) return null;
 
@@ -71,6 +72,25 @@ export default function KlasorModal({
               <p className="text-xs text-[#8A8A8A]">Herkes bu klasördeki notları görebilir</p>
             </div>
           </label>
+
+          {/* Üst Klasör seçimi */}
+          <div>
+            <label className="block text-sm font-medium text-[#2F2F2F] mb-1">Üst Klasör</label>
+            <select
+              value={form.ustKlasorId}
+              onChange={(e) => onFormChange({ ...form, ustKlasorId: e.target.value })}
+              className="w-full px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8FAF9A] text-sm"
+            >
+              <option value="">Kök Klasör (üst klasör yok)</option>
+              {klasorler
+                .filter(k => k.id !== editing?.id) // kendisini listeye koyma
+                .map(k => (
+                  <option key={k.id} value={k.id}>
+                    {k.paylasimli ? "👥 " : ""}{k.ad}
+                  </option>
+                ))}
+            </select>
+          </div>
         </div>
 
         <div className="mt-6 flex gap-3">

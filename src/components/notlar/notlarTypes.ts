@@ -9,6 +9,7 @@ export interface NotKlasor {
   olusturan: string;
   olusturanAd: string;
   sira: number;
+  ustKlasorId: string; // "" = kök klasör
   olusturulmaTarihi: any;
 }
 
@@ -31,6 +32,7 @@ export interface KlasorFormState {
   ad: string;
   renk: string;
   paylasimli: boolean;
+  ustKlasorId: string;
 }
 
 export type MobilPanelType = "klasor" | "liste" | "editor";

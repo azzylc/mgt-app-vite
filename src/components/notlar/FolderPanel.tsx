@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { Not, NotKlasor, KlasorFilter } from "./notlarTypes";
 import { getRenk } from "./notlarTypes";
 
@@ -7,8 +8,25 @@ interface FolderPanelProps {
   seciliKlasor: KlasorFilter;
   copSayisi: number;
   onSelectKlasor: (id: KlasorFilter) => void;
-  onOpenKlasorModal: (klasor?: NotKlasor) => void;
-  onMobilPanelChange: () => void; // liste'ye geç
+  onOpenKlasorModal: (klasor?: NotKlasor, ustKlasorId?: string) => void;
+  onMobilPanelChange: () => void;
+}
+
+// ─── Alt klasör ID'lerini recursive topla ────────────────
+function getAltKlasorIds(klasorId: string, klasorler: NotKlasor[]): string[] {
+  const direkt = klasorler.filter(k => k.ustKlasorId === klasorId);
+  let ids: string[] = [];
+  for (const k of direkt) {
+    ids.push(k.id);
+    ids = ids.concat(getAltKlasorIds(k.id, klasorler));
+  }
+  return ids;
+}
+
+// ─── Not sayısı (klasör + tüm alt klasörler dahil) ──────
+function notSayisi(klasorId: string, notlar: Not[], klasorler: NotKlasor[]): number {
+  const altIds = [klasorId, ...getAltKlasorIds(klasorId, klasorler)];
+  return notlar.filter(n => !n.silindi && altIds.includes(n.klasorId)).length;
 }
 
 export default function FolderPanel({
@@ -16,14 +34,87 @@ export default function FolderPanel({
   onSelectKlasor, onOpenKlasorModal, onMobilPanelChange,
 }: FolderPanelProps) {
   const aktifNotlar = notlar.filter(n => !n.silindi);
-  const kisiselKlasorler = klasorler.filter(k => !k.paylasimli);
-  const paylasimliKlasorler = klasorler.filter(k => k.paylasimli);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+
+  const toggleExpand = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpanded(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
 
   const handleSelect = (id: KlasorFilter) => {
     onSelectKlasor(id);
     onMobilPanelChange();
   };
 
+  // ─── Kök klasörler (ustKlasorId boş veya yok) ─────────
+  const kokKlasorlerKisisel = klasorler.filter(k => !k.paylasimli && (!k.ustKlasorId || k.ustKlasorId === ""));
+  const kokKlasorlerPaylasimli = klasorler.filter(k => k.paylasimli && (!k.ustKlasorId || k.ustKlasorId === ""));
+
+  // ─── Recursive klasör item ────────────────────────────
+  const KlasorItem = ({ klasor, depth }: { klasor: NotKlasor; depth: number }) => {
+    const renk = getRenk(klasor.renk);
+    const count = notSayisi(klasor.id, notlar, klasorler);
+    const children = klasorler.filter(k => k.ustKlasorId === klasor.id);
+    const hasChildren = children.length > 0;
+    const isExpanded = expanded.has(klasor.id);
+    const isSelected = seciliKlasor === klasor.id;
+
+    return (
+      <>
+        <div
+          className={`w-full text-left rounded-lg text-sm flex items-center justify-between transition cursor-pointer group ${
+            isSelected ? "bg-[#8FAF9A]/15 text-[#2F2F2F] font-medium" : "text-[#8A8A8A] hover:bg-white"
+          }`}
+          style={{ paddingLeft: `${12 + depth * 16}px`, paddingRight: "12px", paddingTop: "5px", paddingBottom: "5px" }}
+          onClick={() => handleSelect(klasor.id)}
+          onContextMenu={(e) => { e.preventDefault(); onOpenKlasorModal(klasor); }}
+        >
+          <span className="flex items-center gap-1.5 min-w-0 flex-1">
+            {/* Expand/collapse toggle */}
+            {hasChildren ? (
+              <button
+                onClick={(e) => toggleExpand(klasor.id, e)}
+                className="w-4 h-4 flex items-center justify-center text-[10px] text-[#8A8A8A] hover:text-[#2F2F2F] flex-shrink-0"
+              >
+                {isExpanded ? "▼" : "▶"}
+              </button>
+            ) : (
+              <span className="w-4 flex-shrink-0" />
+            )}
+            <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${renk.bg}`} />
+            <span className="truncate">{klasor.ad}</span>
+            {klasor.paylasimli && <span className="text-[9px] flex-shrink-0">👥</span>}
+          </span>
+          <div className="flex items-center gap-1">
+            {/* Alt klasör ekle butonu (hover'da görünür) */}
+            <button
+              onClick={(e) => { e.stopPropagation(); onOpenKlasorModal(undefined, klasor.id); }}
+              className="w-5 h-5 rounded text-[10px] text-[#C5C5C5] hover:text-[#8FAF9A] hover:bg-[#EAF2ED] opacity-0 group-hover:opacity-100 transition flex items-center justify-center flex-shrink-0"
+              title="Alt klasör ekle"
+            >
+              +
+            </button>
+            <span className="text-[10px] flex-shrink-0 min-w-[16px] text-right">{count}</span>
+          </div>
+        </div>
+
+        {/* Alt klasörler (recursive) */}
+        {hasChildren && isExpanded && (
+          <div>
+            {children.map(child => (
+              <KlasorItem key={child.id} klasor={child} depth={depth + 1} />
+            ))}
+          </div>
+        )}
+      </>
+    );
+  };
+
+  // ─── Sabit filtre buton stili ──────────────────────────
   const btnClass = (id: string) =>
     `w-full text-left px-3 py-2 rounded-lg text-sm flex items-center justify-between transition ${
       seciliKlasor === id
@@ -52,53 +143,22 @@ export default function FolderPanel({
 
       {/* Kişisel Klasörler */}
       <div className="px-3 mt-3">
-        <span className="text-[10px] font-semibold text-[#8A8A8A] uppercase tracking-wider">Kişisel Klasörler</span>
-        {kisiselKlasorler.map(k => {
-          const renk = getRenk(k.renk);
-          const count = aktifNotlar.filter(n => n.klasorId === k.id).length;
-          return (
-            <button
-              key={k.id}
-              onClick={() => handleSelect(k.id)}
-              onContextMenu={(e) => { e.preventDefault(); onOpenKlasorModal(k); }}
-              className={`w-full text-left px-3 py-1.5 rounded-lg text-sm flex items-center justify-between transition mt-0.5 ${
-                seciliKlasor === k.id ? "bg-[#8FAF9A]/15 text-[#2F2F2F] font-medium" : "text-[#8A8A8A] hover:bg-white"
-              }`}
-            >
-              <span className="flex items-center gap-2">
-                <span className={`w-2.5 h-2.5 rounded-full ${renk.bg}`} />
-                <span className="truncate">{k.ad}</span>
-              </span>
-              <span className="text-[10px]">{count}</span>
-            </button>
-          );
-        })}
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-[10px] font-semibold text-[#8A8A8A] uppercase tracking-wider">Kişisel Klasörler</span>
+        </div>
+        {kokKlasorlerKisisel.map(k => (
+          <KlasorItem key={k.id} klasor={k} depth={0} />
+        ))}
       </div>
 
       {/* Paylaşımlı Klasörler */}
       <div className="px-3 mt-3">
-        <span className="text-[10px] font-semibold text-[#8A8A8A] uppercase tracking-wider">Paylaşımlı Klasörler</span>
-        {paylasimliKlasorler.map(k => {
-          const renk = getRenk(k.renk);
-          const count = aktifNotlar.filter(n => n.klasorId === k.id).length;
-          return (
-            <button
-              key={k.id}
-              onClick={() => handleSelect(k.id)}
-              onContextMenu={(e) => { e.preventDefault(); onOpenKlasorModal(k); }}
-              className={`w-full text-left px-3 py-1.5 rounded-lg text-sm flex items-center justify-between transition mt-0.5 ${
-                seciliKlasor === k.id ? "bg-[#8FAF9A]/15 text-[#2F2F2F] font-medium" : "text-[#8A8A8A] hover:bg-white"
-              }`}
-            >
-              <span className="flex items-center gap-2">
-                <span className={`w-2.5 h-2.5 rounded-full ${renk.bg}`} />
-                <span className="truncate">{k.ad}</span>
-                <span className="text-[9px]">👥</span>
-              </span>
-              <span className="text-[10px]">{count}</span>
-            </button>
-          );
-        })}
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-[10px] font-semibold text-[#8A8A8A] uppercase tracking-wider">Paylaşımlı Klasörler</span>
+        </div>
+        {kokKlasorlerPaylasimli.map(k => (
+          <KlasorItem key={k.id} klasor={k} depth={0} />
+        ))}
       </div>
 
       {/* Yeni Klasör */}
@@ -111,7 +171,7 @@ export default function FolderPanel({
         </button>
       </div>
 
-      {/* Çöp Kutusu — en altta */}
+      {/* Çöp Kutusu */}
       <div className="mt-auto px-3 pb-3 pt-2 border-t">
         <button onClick={() => handleSelect("cop")} className={btnClass("cop")}>
           <span className="flex items-center gap-2">

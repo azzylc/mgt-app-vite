@@ -149,6 +149,7 @@ export default function NotlarPage() {
         show={n.showKlasorModal}
         editing={n.editingKlasor}
         form={n.klasorForm}
+        klasorler={n.klasorler}
         onFormChange={n.setKlasorForm}
         onSave={n.handleKlasorKaydet}
         onDelete={n.handleKlasorSil}

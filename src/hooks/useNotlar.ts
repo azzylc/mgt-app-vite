@@ -9,6 +9,17 @@ import { useRole } from "../context/RoleProvider";
 import type { Not, NotKlasor, KlasorFormState, KlasorFilter } from "../components/notlar/notlarTypes";
 import { sanitizeHtml, icerikBoyutuAsildiMi } from "../components/notlar/notlarTypes";
 
+// ─── Alt klasör ID'lerini recursive topla ────────────────
+function getAltKlasorIds(klasorId: string, klasorler: NotKlasor[]): string[] {
+  const direkt = klasorler.filter(k => k.ustKlasorId === klasorId);
+  let ids: string[] = [];
+  for (const k of direkt) {
+    ids.push(k.id);
+    ids = ids.concat(getAltKlasorIds(k.id, klasorler));
+  }
+  return ids;
+}
+
 export function useNotlar() {
   const { user, personelData } = useRole();
   const userEmail = user?.email || "";
@@ -30,7 +41,7 @@ export function useNotlar() {
   // Klasör modal state
   const [showKlasorModal, setShowKlasorModal] = useState(false);
   const [editingKlasor, setEditingKlasor] = useState<NotKlasor | null>(null);
-  const [klasorForm, setKlasorForm] = useState<KlasorFormState>({ ad: "", renk: "gray", paylasimli: false });
+  const [klasorForm, setKlasorForm] = useState<KlasorFormState>({ ad: "", renk: "gray", paylasimli: false, ustKlasorId: "" });
 
   // Refs
   const editorRef = useRef<HTMLDivElement>(null);
@@ -139,7 +150,7 @@ export function useNotlar() {
     if (!user) return;
     const klasorQ = query(collection(db, "notKlasorleri"), orderBy("sira", "asc"));
     const unsub = onSnapshot(klasorQ, (snap) => {
-      setKlasorler(snap.docs.map(d => ({ id: d.id, ...d.data() } as NotKlasor)));
+      setKlasorler(snap.docs.map(d => ({ id: d.id, ustKlasorId: "", ...d.data() } as NotKlasor)));
     });
     return () => unsub();
   }, [user]);
@@ -173,7 +184,10 @@ export function useNotlar() {
     } else if (seciliKlasor === "paylasimli") {
       sonuc = sonuc.filter(n => n.paylasimli);
     } else if (seciliKlasor !== "tumu") {
-      sonuc = sonuc.filter(n => n.klasorId === seciliKlasor);
+      // Alt klasörlerin notlarını da göster
+      const altIds = getAltKlasorIds(seciliKlasor, klasorler);
+      const tumIds = new Set([seciliKlasor, ...altIds]);
+      sonuc = sonuc.filter(n => tumIds.has(n.klasorId));
     }
 
     // Arama
@@ -195,7 +209,7 @@ export function useNotlar() {
     });
 
     return sonuc;
-  }, [notlar, seciliKlasor, aramaMetni]);
+  }, [notlar, seciliKlasor, aramaMetni, klasorler]);
 
   // ─── Klasör değişince seçili notu temizle ──────────────
   useEffect(() => {
@@ -380,12 +394,14 @@ export function useNotlar() {
           ad: klasorForm.ad.trim(),
           renk: klasorForm.renk,
           paylasimli: klasorForm.paylasimli,
+          ustKlasorId: klasorForm.ustKlasorId,
         });
       } else {
         await addDoc(collection(db, "notKlasorleri"), {
           ad: klasorForm.ad.trim(),
           renk: klasorForm.renk,
           paylasimli: klasorForm.paylasimli,
+          ustKlasorId: klasorForm.ustKlasorId,
           olusturan: userEmail,
           olusturanAd: userName,
           sira: klasorler.length,
@@ -394,7 +410,7 @@ export function useNotlar() {
       }
       setShowKlasorModal(false);
       setEditingKlasor(null);
-      setKlasorForm({ ad: "", renk: "gray", paylasimli: false });
+      setKlasorForm({ ad: "", renk: "gray", paylasimli: false, ustKlasorId: "" });
     } catch (err) {
       Sentry.captureException(err);
       alert("Klasör kaydedilemedi!");
@@ -402,6 +418,11 @@ export function useNotlar() {
   };
 
   const handleKlasorSil = async (klasor: NotKlasor) => {
+    const altKlasorler = klasorler.filter(k => k.ustKlasorId === klasor.id);
+    if (altKlasorler.length > 0) {
+      alert(`"${klasor.ad}" klasörünün ${altKlasorler.length} alt klasörü var. Önce alt klasörleri silin veya taşıyın.`);
+      return;
+    }
     const klasorNotlari = notlar.filter(n => n.klasorId === klasor.id && !n.silindi);
     if (klasorNotlari.length > 0) {
       alert(`"${klasor.ad}" klasöründe ${klasorNotlari.length} not var. Önce notları taşıyın veya silin.`);
@@ -417,13 +438,13 @@ export function useNotlar() {
     }
   };
 
-  const openKlasorModal = (klasor?: NotKlasor) => {
+  const openKlasorModal = (klasor?: NotKlasor, ustKlasorId?: string) => {
     if (klasor) {
       setEditingKlasor(klasor);
-      setKlasorForm({ ad: klasor.ad, renk: klasor.renk, paylasimli: klasor.paylasimli });
+      setKlasorForm({ ad: klasor.ad, renk: klasor.renk, paylasimli: klasor.paylasimli, ustKlasorId: klasor.ustKlasorId || "" });
     } else {
       setEditingKlasor(null);
-      setKlasorForm({ ad: "", renk: "gray", paylasimli: false });
+      setKlasorForm({ ad: "", renk: "gray", paylasimli: false, ustKlasorId: ustKlasorId || "" });
     }
     setShowKlasorModal(true);
   };
