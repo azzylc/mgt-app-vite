@@ -1142,7 +1142,7 @@ export default function AyarlarPage() {
                             </span>
                           </td>
                           <td className="px-6 py-4 text-sm text-[#2F2F2F]">
-                            {grup.olusturulmaTarihi ? new Date(grup.olusturulmaTarihi.seconds * 1000).toLocaleDateString('tr-TR') : '-'}
+                            {grup.olusturulmaTarihi ? (grup.olusturulmaTarihi instanceof Timestamp ? grup.olusturulmaTarihi.toDate() : new Date(grup.olusturulmaTarihi)).toLocaleDateString('tr-TR') : '-'}
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex gap-2">
