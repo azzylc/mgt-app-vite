@@ -507,8 +507,12 @@ export function useNotlar() {
   };
 
   // ─── Derived data ─────────────────────────────────────
-  const aktifNotlar = notlar.filter(n => !n.silindi);
-  const copSayisi = notlar.filter(n => n.silindi && (seciliFirma === "kisisel" ? (!n.firmaId || n.firmaId === "") : n.firmaId === seciliFirma)).length;
+  // Notları firma'ya göre filtrele
+  const firmaNotlari = notlar.filter(n =>
+    seciliFirma === "kisisel" ? (!n.firmaId || n.firmaId === "") : n.firmaId === seciliFirma
+  );
+  const aktifNotlar = firmaNotlari.filter(n => !n.silindi);
+  const copSayisi = firmaNotlari.filter(n => n.silindi).length;
   // Klasörleri firma'ya göre filtrele
   const firmaKlasorleri = klasorler.filter(k =>
     seciliFirma === "kisisel" ? (!k.firmaId || k.firmaId === "") : k.firmaId === seciliFirma
@@ -516,7 +520,7 @@ export function useNotlar() {
 
   return {
     // State
-    klasorler: firmaKlasorleri, notlar, seciliKlasor, seciliNot, aramaMetni,
+    klasorler: firmaKlasorleri, notlar: firmaNotlari, seciliKlasor, seciliNot, aramaMetni,
     yukleniyor, sonKayit, kaydediliyor, isAdmin, userEmail,
     // Firma
     firmalar, seciliFirma, setSeciliFirma, kullaniciFirmalari,
