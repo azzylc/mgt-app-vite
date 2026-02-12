@@ -429,10 +429,13 @@ export function useNotlar() {
     if (!klasorForm.ad.trim()) return;
     try {
       // Alt klasör ise üst klasörün paylaşım durumunu miras al
+      // Firma modunda kök klasörler otomatik paylaşımlı
       let paylasimli = klasorForm.paylasimli;
       if (klasorForm.ustKlasorId) {
         const ustKlasor = klasorler.find(k => k.id === klasorForm.ustKlasorId);
         if (ustKlasor) paylasimli = ustKlasor.paylasimli;
+      } else if (seciliFirma !== "kisisel") {
+        paylasimli = true;
       }
 
       const firmaId = seciliFirma === "kisisel" ? "" : seciliFirma;
@@ -490,13 +493,13 @@ export function useNotlar() {
     }
   };
 
-  const openKlasorModal = (klasor?: NotKlasor, ustKlasorId?: string) => {
+  const openKlasorModal = (klasor?: NotKlasor, ustKlasorId?: string, paylasimli?: boolean) => {
     if (klasor) {
       setEditingKlasor(klasor);
       setKlasorForm({ ad: klasor.ad, renk: klasor.renk, paylasimli: klasor.paylasimli, ustKlasorId: klasor.ustKlasorId || "" });
     } else {
       setEditingKlasor(null);
-      setKlasorForm({ ad: "", renk: "gray", paylasimli: false, ustKlasorId: ustKlasorId || "" });
+      setKlasorForm({ ad: "", renk: "gray", paylasimli: paylasimli ?? false, ustKlasorId: ustKlasorId || "" });
     }
     setShowKlasorModal(true);
   };

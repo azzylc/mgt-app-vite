@@ -135,6 +135,7 @@ export default function NotlarPage() {
             notlar={n.notlar}
             seciliKlasor={n.seciliKlasor}
             copSayisi={n.copSayisi}
+            seciliFirma={n.seciliFirma}
             onSelectKlasor={n.setSeciliKlasor}
             onOpenKlasorModal={n.openKlasorModal}
             onMobilPanelChange={() => setMobilPanel("liste")}
@@ -183,6 +184,7 @@ export default function NotlarPage() {
         editing={n.editingKlasor}
         form={n.klasorForm}
         klasorler={n.klasorler}
+        seciliFirma={n.seciliFirma}
         onFormChange={n.setKlasorForm}
         onSave={n.handleKlasorKaydet}
         onDelete={n.handleKlasorSil}

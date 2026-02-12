@@ -6,6 +6,7 @@ interface KlasorModalProps {
   editing: NotKlasor | null;
   form: KlasorFormState;
   klasorler: NotKlasor[];
+  seciliFirma: string;
   onFormChange: (form: KlasorFormState) => void;
   onSave: () => void;
   onDelete: (klasor: NotKlasor) => void;
@@ -13,7 +14,7 @@ interface KlasorModalProps {
 }
 
 export default function KlasorModal({
-  show, editing, form, klasorler, onFormChange, onSave, onDelete, onClose,
+  show, editing, form, klasorler, seciliFirma, onFormChange, onSave, onDelete, onClose,
 }: KlasorModalProps) {
   if (!show) return null;
 
@@ -56,7 +57,7 @@ export default function KlasorModal({
             </div>
           </div>
 
-          {/* Paylaşım: Üst klasör varsa miras al, yoksa toggle göster */}
+          {/* Paylaşım: Üst klasör varsa miras al, firma modunda gizle, yoksa toggle göster */}
           {form.ustKlasorId ? (
             <div className="flex items-center gap-2 text-sm text-[#8A8A8A] bg-[#F7F7F7] rounded-lg px-4 py-2.5">
               <span>📂</span>
@@ -66,6 +67,8 @@ export default function KlasorModal({
                   ? " (👥 paylaşımlı)" : " (🔒 kişisel)"}
               </span>
             </div>
+          ) : seciliFirma !== "kisisel" ? (
+            null /* Firma modunda toggle gizli — otomatik paylaşımlı */
           ) : (
             <label className="flex items-center gap-3 cursor-pointer">
               <div className="relative">
