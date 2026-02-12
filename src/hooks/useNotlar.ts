@@ -483,6 +483,8 @@ export function useNotlar() {
       await deleteDoc(doc(db, "notKlasorleri", klasor.id));
       setKlasorler(prev => prev.filter(k => k.id !== klasor.id));
       if (seciliKlasor === klasor.id) setSeciliKlasor("tumu");
+      setShowKlasorModal(false);
+      setEditingKlasor(null);
     } catch (err) {
       Sentry.captureException(err);
     }
