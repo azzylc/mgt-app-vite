@@ -199,9 +199,9 @@ export default function TaleplerMerkezi() {
     finally { setIslemYapilan(null); }
   };
 
-  const formatTimestamp = (ts: Timestamp | Date | null | undefined) => {
+  const formatTimestamp = (ts: Timestamp | Date | string | null | undefined) => {
     if (!ts) return "";
-    const d = ts instanceof Timestamp ? ts.toDate() : new Date(ts as Date);
+    const d = ts instanceof Timestamp ? ts.toDate() : new Date(ts);
     return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
   };
   const formatDate = (dateStr: string) => {

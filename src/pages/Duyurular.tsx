@@ -185,7 +185,7 @@ export default function DuyurularPage() {
     // Doğum günleri
     getYaklasanDogumGunleri(personeller.map(p => ({
       id: p.id, ad: p.ad, soyad: p.soyad, 
-      dogumTarihi: (p as Record<string, string>).dogumTarihi || '',
+      dogumTarihi: ((p as unknown) as Record<string, string>).dogumTarihi || '',
       aktif: true
     }))).forEach(d => {
       items.push({

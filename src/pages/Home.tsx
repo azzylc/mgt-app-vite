@@ -40,7 +40,7 @@ interface Gelin {
   telefon?: string;
   ucretYazildi?: boolean;
   firma?: string;
-  [key: string]: unknown;
+  bitisSaati?: string;
 }
 
 interface FirmaInfo {
@@ -399,7 +399,7 @@ export default function Home() {
       });
 
       setPersonelDurumlar(Array.from(personelMap.values()));
-      setHaftaTatiliIzinliler(Array.from(haftaTatiliSet.values()) as IzinKaydi[]);
+      setHaftaTatiliIzinliler(Array.from(haftaTatiliSet.values()) as unknown as IzinKaydi[]);
     }, (error) => {
       console.error("[Home/attendance] Firestore hatası:", error);
       Sentry.captureException(error, { tags: { module: "Home", collection: "attendance" } });
