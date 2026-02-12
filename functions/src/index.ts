@@ -48,6 +48,54 @@ async function logSystemError(type: string, error: unknown) {
 // ============================================
 type BildirimTip = 'gorev_atama' | 'gorev_tamam' | 'gorev_yorum' | 'duyuru' | 'izin' | 'sistem';
 
+// Bildirim ayarlarını Firestore'dan oku (execution başına 1 kez)
+let _bildirimAyarlariCache: any = null;
+let _bildirimAyarlariCacheTime = 0;
+
+async function getBildirimAyarlari() {
+  // 60 saniye cache — aynı execution içinde tekrar sorgulamaz
+  if (_bildirimAyarlariCache && Date.now() - _bildirimAyarlariCacheTime < 60000) {
+    return _bildirimAyarlariCache;
+  }
+  try {
+    const snap = await adminDb.doc('settings/bildirimAyarlari').get();
+    _bildirimAyarlariCache = snap.exists ? snap.data() : null;
+    _bildirimAyarlariCacheTime = Date.now();
+    return _bildirimAyarlariCache;
+  } catch {
+    return null;
+  }
+}
+
+// Bildirim tipi Firestore key'e map
+function tipToAyarKey(tip: BildirimTip): string | null {
+  const map: Record<string, string> = {
+    gorev_atama: 'gorev_atama',
+    gorev_tamam: 'gorev_tamam',
+    gorev_yorum: 'gorev_yorum',
+    duyuru: 'duyuru',
+  };
+  return map[tip] || null;
+}
+
+// Sessiz saatlerde miyiz?
+function isSessizSaat(ayarlar: any): boolean {
+  if (!ayarlar?.sessizSaatler?.aktif) return false;
+  const now = new Date();
+  const trNow = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Istanbul' }));
+  const saat = trNow.getHours();
+
+  const baslangic = parseInt(ayarlar.sessizSaatler.baslangic || '22');
+  const bitis = parseInt(ayarlar.sessizSaatler.bitis || '08');
+
+  // Gece yarısını geçen aralık: 22-08
+  if (baslangic > bitis) {
+    return saat >= baslangic || saat < bitis;
+  }
+  // Normal aralık: 08-22 gibi
+  return saat >= baslangic && saat < bitis;
+}
+
 async function sendNotification(params: {
   alici: string;
   title: string;
@@ -59,10 +107,21 @@ async function sendNotification(params: {
 }): Promise<void> {
   const { alici, title, body, tip, route, gonderen, gonderenAd } = params;
 
-  // Push bildirim
-  await sendPushToUser(alici, title, body, route ? { route } : undefined);
+  // Bildirim ayarlarını kontrol et
+  const ayarlar = await getBildirimAyarlari();
+  const ayarKey = tipToAyarKey(tip);
 
-  // Firestore bildirim kaydı
+  // Tip kapalıysa hiç gönderme (push + in-app)
+  if (ayarlar?.tipler && ayarKey && ayarlar.tipler[ayarKey] === false) {
+    return;
+  }
+
+  // Push bildirim (sessiz saatlerde gönderme, ama in-app yaz)
+  if (!isSessizSaat(ayarlar)) {
+    await sendPushToUser(alici, title, body, route ? { route } : undefined);
+  }
+
+  // Firestore bildirim kaydı (her zaman yaz — sessiz saatte de)
   await adminDb.collection('bildirimler').add({
     alici,
     baslik: title,
@@ -516,6 +575,16 @@ export const hourlyGorevReconcile = onSchedule({
 // ============================================
 async function checkOtomatikGorevThreshold() {
   try {
+    // Ayarlardan eşik değerini oku
+    const ayarlar = await getBildirimAyarlari();
+    const esik = ayarlar?.otomatikGorevEsik ?? 10;
+
+    // Tip kapalıysa çık
+    if (ayarlar?.tipler?.otomatik_birikti === false) {
+      console.log('[THRESHOLD] otomatik_birikti bildirimi kapalı, atlanıyor');
+      return;
+    }
+
     const otomatikSnap = await adminDb.collection('gorevler')
       .where('otomatikMi', '==', true)
       .where('durum', 'in', ['bekliyor', 'devam-ediyor'])
@@ -540,8 +609,8 @@ async function checkOtomatikGorevThreshold() {
     for (const [email, count] of Object.entries(perPerson)) {
       const key = sanitizeEmailForId(email);
 
-      if (count >= 10 && !bildirimLog[key]) {
-        console.log(`[THRESHOLD] ${email}: ${count} otomatik görev birikti → bildirim gönderiliyor`);
+      if (count >= esik && !bildirimLog[key]) {
+        console.log(`[THRESHOLD] ${email}: ${count} otomatik görev birikti (eşik: ${esik}) → bildirim gönderiliyor`);
 
         await sendNotification({
           alici: email,
@@ -553,7 +622,7 @@ async function checkOtomatikGorevThreshold() {
 
         bildirimLog[key] = new Date().toISOString();
         degisti = true;
-      } else if (count < 10 && bildirimLog[key]) {
+      } else if (count < esik && bildirimLog[key]) {
         delete bildirimLog[key];
         degisti = true;
       }
@@ -584,12 +653,32 @@ async function checkOtomatikGorevThreshold() {
 // ============================================
 export const dailyOtomatikHatirlatma = onSchedule({
   region: 'europe-west1',
-  schedule: 'every day 10:00',
+  schedule: 'every 1 hours',
   timeZone: 'Europe/Istanbul',
 }, async () => {
-  console.log('[OTOMATİK-HATIRLATMA] Günlük otomatik görev hatırlatma başladı (10:00)...');
-
   try {
+    // Ayarları oku
+    const ayarlar = await getBildirimAyarlari();
+
+    // Tip kapalıysa çık
+    if (ayarlar?.tipler?.otomatik_hatirlatma === false) {
+      console.log('[OTOMATİK-HATIRLATMA] Bildirim kapalı, atlanıyor');
+      return;
+    }
+
+    // Şu anki saat ayarlardaki saatle uyuşuyor mu?
+    const hedefSaat = ayarlar?.hatirlatmaSaatleri?.otomatikGorev || '10:00';
+    const now = new Date();
+    const trNow = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Istanbul' }));
+    const suankiSaat = String(trNow.getHours()).padStart(2, '0') + ':00';
+
+    if (suankiSaat !== hedefSaat) {
+      return; // Doğru saat değil, atla
+    }
+
+    const esik = ayarlar?.otomatikGorevEsik ?? 10;
+    console.log(`[OTOMATİK-HATIRLATMA] Başladı (saat: ${hedefSaat}, eşik: ${esik})...`);
+
     const otomatikSnap = await adminDb.collection('gorevler')
       .where('otomatikMi', '==', true)
       .where('durum', 'in', ['bekliyor', 'devam-ediyor'])
@@ -606,7 +695,7 @@ export const dailyOtomatikHatirlatma = onSchedule({
     let gonderilen = 0;
 
     for (const [email, count] of Object.entries(perPerson)) {
-      if (count >= 10) {
+      if (count >= esik) {
         console.log(`[OTOMATİK-HATIRLATMA] ${email}: ${count} görev → hatırlatma gönderiliyor`);
 
         await sendNotification({
@@ -627,7 +716,7 @@ export const dailyOtomatikHatirlatma = onSchedule({
       lastRun: new Date().toISOString(),
       gonderilen,
       detay: Object.entries(perPerson)
-        .filter(([, c]) => c >= 10)
+        .filter(([, c]) => c >= esik)
         .map(([e, c]) => ({ email: e, count: c }))
     });
   } catch (error) {
@@ -1236,6 +1325,19 @@ export const onDuyuruCreated = onDocumentCreated({
   const data = event.data?.data();
   if (!data) return;
 
+  // Ayarları kontrol et
+  const ayarlar = await getBildirimAyarlari();
+  if (ayarlar?.tipler?.duyuru === false) {
+    console.log('[DUYURU-PUSH] Duyuru bildirimi kapalı, atlanıyor');
+    return;
+  }
+
+  // Sessiz saatlerde push gönderme
+  if (isSessizSaat(ayarlar)) {
+    console.log('[DUYURU-PUSH] Sessiz saat, push atlanıyor');
+    return;
+  }
+
   const { title, author, important, group } = data;
 
   console.log(`[DUYURU-PUSH] Yeni duyuru: "${title}" by ${author} (grup: ${group || 'genel'})`);
@@ -1279,15 +1381,32 @@ export const onDuyuruCreated = onDocumentCreated({
 // ============================================
 export const dailyGorevHatirlatma = onSchedule({
   region: 'europe-west1',
-  schedule: 'every day 09:00',
+  schedule: 'every 1 hours',
   timeZone: 'Europe/Istanbul'
-}, async (event) => {
-  console.log('[HATIRLATMA] Günlük görev hatırlatma başladı...');
-
+}, async () => {
   try {
-    // Yarınki tarih (YYYY-MM-DD) - Türkiye saati
+    // Ayarları oku
+    const ayarlar = await getBildirimAyarlari();
+
+    // Tip kapalıysa çık
+    if (ayarlar?.tipler?.gunluk_hatirlatma === false) {
+      console.log('[HATIRLATMA] Bildirim kapalı, atlanıyor');
+      return;
+    }
+
+    // Şu anki saat ayarlardaki saatle uyuşuyor mu?
+    const hedefSaat = ayarlar?.hatirlatmaSaatleri?.gunlukGorev || '09:00';
     const now = new Date();
     const trNow = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Istanbul' }));
+    const suankiSaat = String(trNow.getHours()).padStart(2, '0') + ':00';
+
+    if (suankiSaat !== hedefSaat) {
+      return; // Doğru saat değil, atla
+    }
+
+    console.log(`[HATIRLATMA] Günlük görev hatırlatma başladı (saat: ${hedefSaat})...`);
+
+    // Yarınki tarih (YYYY-MM-DD) - Türkiye saati
     const yarin = new Date(trNow);
     yarin.setDate(yarin.getDate() + 1);
     const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;

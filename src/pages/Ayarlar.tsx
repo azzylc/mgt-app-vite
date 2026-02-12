@@ -20,6 +20,7 @@ import {
 } from "firebase/firestore";
 import * as Sentry from '@sentry/react';
 import { useAuth } from "../context/RoleProvider";
+import BildirimAyarlari from "../components/ayarlar/BildirimAyarlari";
 
 interface Konum {
   id: string;
@@ -171,7 +172,8 @@ export default function AyarlarPage() {
     { id: 1, label: "🔐 Rol Yetkileri", icon: "🔐" },
     { id: 2, label: "🏢 Firmalar", icon: "🏢" },
     { id: 3, label: "📍 Konumlar", icon: "📍" },
-    { id: 4, label: "🏷️ Grup Etiketleri", icon: "🏷️" }
+    { id: 4, label: "🏷️ Grup Etiketleri", icon: "🏷️" },
+    { id: 5, label: "🔔 Bildirim Ayarları", icon: "🔔" }
   ];
 
   // Auth
@@ -1206,6 +1208,9 @@ export default function AyarlarPage() {
               )}
             </div>
           )}
+
+          {/* TAB 5: Bildirim Ayarları */}
+          {activeTab === 5 && <BildirimAyarlari />}
         </main>
       </div>
 
