@@ -7,12 +7,24 @@ import { useAuth } from "../../context/RoleProvider";
 
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyr_9fBVzkVXf-Fx4s-DUjFTPhHlxm54oBGrrG3UGfNengHOp8rQbXKdX8pOk4reH8/exec";
 
+interface GelinKayit {
+  id?: string;
+  isim: string;
+  tarih: string;
+  saat?: string;
+}
+
+interface EslesenKayit {
+  firestore: GelinKayit;
+  excel: GelinKayit;
+}
+
 interface KarsilastirmaSonuc {
   firestoreCount: number;
   excelCount: number;
-  eslesenler: any[];
-  sadeceFistore: any[];
-  sadeceExcel: any[];
+  eslesenler: EslesenKayit[];
+  sadeceFistore: GelinKayit[];
+  sadeceExcel: GelinKayit[];
 }
 
 export default function ComparePage() {
@@ -47,7 +59,7 @@ export default function ComparePage() {
       );
       const snapshot = await getDocs(q);
       
-      const firestoreGelinler: any[] = [];
+      const firestoreGelinler: GelinKayit[] = [];
       snapshot.forEach(doc => {
         const data = doc.data();
         firestoreGelinler.push({
@@ -66,18 +78,18 @@ export default function ComparePage() {
       
       // 2025+ filtrele - data direkt array olarak geliyor
       const excelGelinler = (Array.isArray(excelData) ? excelData : excelData.data || [])
-        .filter((g: any) => g.tarih >= '2025-01-01');
+        .filter((g: GelinKayit) => g.tarih >= '2025-01-01');
       
       
       // 3. KARŞILAŞTIR
       
-      const eslesenler: any[] = [];
-      const sadeceFistore: any[] = [];
-      const sadeceExcel: any[] = [];
+      const eslesenler: EslesenKayit[] = [];
+      const sadeceFistore: GelinKayit[] = [];
+      const sadeceExcel: GelinKayit[] = [];
       
       // Firestore gelinlerini kontrol et
       firestoreGelinler.forEach(fg => {
-        const eslesen = excelGelinler.find((eg: any) => 
+        const eslesen = excelGelinler.find((eg: GelinKayit) => 
           normalizeIsim(eg.isim) === normalizeIsim(fg.isim) && 
           eg.tarih === fg.tarih
         );
@@ -90,7 +102,7 @@ export default function ComparePage() {
       });
       
       // Excel'de olup Firestore'da olmayan
-      excelGelinler.forEach((eg: any) => {
+      excelGelinler.forEach((eg: GelinKayit) => {
         const eslesen = firestoreGelinler.find(fg => 
           normalizeIsim(fg.isim) === normalizeIsim(eg.isim) && 
           fg.tarih === eg.tarih
@@ -110,9 +122,9 @@ export default function ComparePage() {
         sadeceExcel
       });
       
-    } catch (err: any) {
+    } catch (err) {
       Sentry.captureException(err);
-      setError(err.message || 'Bir hata oluştu');
+      setError(err instanceof Error ? err.message : 'Bir hata oluştu');
     } finally {
       setComparing(false);
     }

@@ -29,7 +29,7 @@ interface Personel {
 
 interface SonIslem {
   tip: "giris" | "cikis";
-  tarih: any;
+  tarih: Timestamp | Date;
   konumAdi: string;
 }
 
@@ -46,7 +46,7 @@ interface Konum {
 interface AttendanceRecord {
   id: string;
   tip: "giris" | "cikis";
-  tarih: any;
+  tarih: Timestamp | Date;
   konumAdi: string;
   mesafe?: number;
 }
@@ -317,15 +317,15 @@ export default function QRGirisPage() {
     try {
       const location = await getLocation();
       setUserLocation(location);
-    } catch (error: any) {
+    } catch (error) {
       // Konum alınamazsa kamerayı kapat
       setScanning(false);
-      setLocationError(error.message);
+      setLocationError(error instanceof Error ? error.message : "Konum hatası");
       setIslemSecimi(null);
     }
   };
 
-  const handleScan = async (result: any) => {
+  const handleScan = async (result: Array<{ rawValue: string }>) => {
     if (!result || !result[0]?.rawValue || processing || !islemSecimi) return;
     
     const decodedText = result[0].rawValue;
@@ -401,7 +401,7 @@ export default function QRGirisPage() {
       // Bugün özetini güncelle
       fetchBugunOzet(personel.id);
 
-    } catch (error: any) {
+    } catch (error) {
       setDurum("hata");
       setMesaj("Bir hata oluştu");
     } finally {
@@ -504,15 +504,15 @@ export default function QRGirisPage() {
   // ============================================
   // 🛠️ Yardımcı fonksiyonlar
   // ============================================
-  const formatSaat = (tarih: any) => {
+  const formatSaat = (tarih: Timestamp | Date | null | undefined) => {
     if (!tarih) return "";
-    const date = tarih.toDate ? tarih.toDate() : new Date(tarih);
+    const date = tarih instanceof Timestamp ? tarih.toDate() : new Date(tarih as Date);
     return date.toLocaleString("tr-TR", { hour: "2-digit", minute: "2-digit" });
   };
 
-  const formatGun = (tarih: any) => {
+  const formatGun = (tarih: Timestamp | Date | null | undefined) => {
     if (!tarih) return "";
-    const date = tarih.toDate ? tarih.toDate() : new Date(tarih);
+    const date = tarih instanceof Timestamp ? tarih.toDate() : new Date(tarih as Date);
     return date.toLocaleDateString("tr-TR", { weekday: "short", day: "numeric", month: "short" });
   };
 

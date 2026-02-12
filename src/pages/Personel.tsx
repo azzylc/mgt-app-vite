@@ -21,6 +21,20 @@ import {
 import * as Sentry from '@sentry/react';
 import { useAuth } from "../context/RoleProvider";
 
+interface CropArea {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+interface CallableResponse {
+  success: boolean;
+  error?: string;
+  uid?: string;
+  message?: string;
+}
+
 interface Personel {
   id: string;
   sicilNo: string;
@@ -90,7 +104,7 @@ function PersonelPageContent() {
   const [cropImageSrc, setCropImageSrc] = useState("");
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<CropArea | null>(null);
   const [editingPersonel, setEditingPersonel] = useState<Personel | null>(null);
   const [selectedPersonel, setSelectedPersonel] = useState<Personel | null>(null);
   const [activeTab, setActiveTab] = useState(0);
@@ -254,7 +268,7 @@ function PersonelPageContent() {
           ...dataToUpdate
         });
         
-        const data = result.data as any;
+        const data = result.data as CallableResponse;
         if (!data.success) {
           throw new Error(data.error || 'Güncelleme başarısız');
         }
@@ -263,7 +277,7 @@ function PersonelPageContent() {
         const { id, ...dataToAdd } = dataToSave;
         
         const result = await httpsCallable(functions, 'personelCreate')(dataToAdd);
-        const data = result.data as any;
+        const data = result.data as CallableResponse;
         
         if (!data.success) {
           throw new Error(data.error || 'Personel oluşturulamadı');
@@ -280,9 +294,9 @@ function PersonelPageContent() {
         resetForm();
         setActiveTab(0);
       }
-    } catch (error: any) {
+    } catch (error) {
       Sentry.captureException(error);
-      alert(`İşlem başarısız: ${error.message}`);
+      alert(`İşlem başarısız: ${error instanceof Error ? error.message : "Bilinmeyen hata"}`);
     } finally {
       setApiLoading(false);
     }
@@ -297,7 +311,7 @@ function PersonelPageContent() {
         const result = await httpsCallable(functions, 'personelActions')({
           action: 'unbind-device', personelId: id
         });
-        const data = result.data as any;
+        const data = result.data as CallableResponse;
         
         if (data.success) {
           alert('✅ ' + data.message);
@@ -322,7 +336,7 @@ function PersonelPageContent() {
         const result = await httpsCallable(functions, 'personelActions')({
           action: 'reset-password', personelId: personel.id
         });
-        const data = result.data as any;
+        const data = result.data as CallableResponse;
         
         if (data.success) {
           if (data.emailSent) {
@@ -350,7 +364,7 @@ function PersonelPageContent() {
         const result = await httpsCallable(functions, 'personelActions')({
           action: 'toggle-status', personelId: personel.id
         });
-        const data = result.data as any;
+        const data = result.data as CallableResponse;
         
         if (data.success) {
           alert('✅ ' + data.message);
@@ -374,8 +388,9 @@ function PersonelPageContent() {
     
     // Eski personellerde firma (tekil) varsa firmalar'a çevir
     const updatedPersonel = { ...personel };
-    if (!updatedPersonel.firmalar && (personel as any).firma) {
-      updatedPersonel.firmalar = [(personel as any).firma];
+    const legacyData = personel as Personel & { firma?: string };
+    if (!updatedPersonel.firmalar && legacyData.firma) {
+      updatedPersonel.firmalar = [legacyData.firma];
     }
     
     setFormData(updatedPersonel);
@@ -462,7 +477,7 @@ function PersonelPageContent() {
     e.target.value = '';
   };
 
-  const onCropComplete = useCallback((croppedArea: any, croppedAreaPixels: any) => {
+  const onCropComplete = useCallback((_croppedArea: CropArea, croppedAreaPixels: CropArea) => {
     setCroppedAreaPixels(croppedAreaPixels);
   }, []);
 
@@ -474,7 +489,7 @@ function PersonelPageContent() {
       image.src = url;
     });
 
-  const getCroppedImg = async (imageSrc: string, pixelCrop: any): Promise<string> => {
+  const getCroppedImg = async (imageSrc: string, pixelCrop: CropArea): Promise<string> => {
     const image = await createImage(imageSrc);
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
