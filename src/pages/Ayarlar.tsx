@@ -66,6 +66,7 @@ interface GenelAyarlar {
   kisiselQr: boolean;
   girisCikisErisim: boolean;
   gorevAtamaYetkisi: string;
+  gorevGorunurluk: string;
   yonetimPinHash?: string;
 }
 
@@ -150,7 +151,8 @@ export default function AyarlarPage() {
     konumKontrol: true,
     kisiselQr: true,
     girisCikisErisim: true,
-    gorevAtamaYetkisi: "herkes"
+    gorevAtamaYetkisi: "herkes",
+    gorevGorunurluk: "sadece_ilgililer"
   });
   const [genelAyarlarLoading, setGenelAyarlarLoading] = useState(false);
 
@@ -215,7 +217,7 @@ export default function AyarlarPage() {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const data = docSnap.data() as GenelAyarlar;
-          setGenelAyarlar(data);
+          setGenelAyarlar({ ...data, gorevGorunurluk: data.gorevGorunurluk || "sadece_ilgililer" });
           setPinMevcut(!!data.yonetimPinHash);
         }
       } catch (error) {
@@ -854,6 +856,42 @@ export default function AyarlarPage() {
                       <div>
                         <p className="text-sm font-medium text-[#2F2F2F]">🏢 Firma bazlı</p>
                         <p className="text-xs text-[#8A8A8A]">Kurucu herkese, Yönetici kendi firmasına atayabilir. Personel atayamaz.</p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Görev Görünürlük */}
+                <div className="mt-6 pt-6 border-t border-[#E5E5E5]">
+                  <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Görev görünürlüğü</label>
+                  <p className="text-xs text-[#8A8A8A] mb-3">Görevleri kimler görebilsin?</p>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-[#F7F7F7]" style={{ borderColor: genelAyarlar.gorevGorunurluk === "sadece_ilgililer" ? "#f43f5e" : "#e7e5e4" }}>
+                      <input 
+                        type="radio" 
+                        name="gorevGorunurluk"
+                        value="sadece_ilgililer"
+                        checked={genelAyarlar.gorevGorunurluk === "sadece_ilgililer"}
+                        onChange={(e) => setGenelAyarlar({...genelAyarlar, gorevGorunurluk: e.target.value})}
+                        className="w-4 h-4 text-rose-600" 
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-[#2F2F2F]">🔒 Sadece ilgililer</p>
+                        <p className="text-xs text-[#8A8A8A]">Görevi sadece veren ve alan kişiler görebilir</p>
+                      </div>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-[#F7F7F7]" style={{ borderColor: genelAyarlar.gorevGorunurluk === "yoneticiler" ? "#f43f5e" : "#e7e5e4" }}>
+                      <input 
+                        type="radio" 
+                        name="gorevGorunurluk"
+                        value="yoneticiler"
+                        checked={genelAyarlar.gorevGorunurluk === "yoneticiler"}
+                        onChange={(e) => setGenelAyarlar({...genelAyarlar, gorevGorunurluk: e.target.value})}
+                        className="w-4 h-4 text-rose-600" 
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-[#2F2F2F]">👔 Kurucu & Yöneticiler de görsün</p>
+                        <p className="text-xs text-[#8A8A8A]">İlgililer + Kurucu ve Yöneticiler tüm görevleri görebilir</p>
                       </div>
                     </label>
                   </div>

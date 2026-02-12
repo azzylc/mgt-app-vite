@@ -54,6 +54,7 @@ export default function GorevlerPage() {
   const [showAyarlar, setShowAyarlar] = useState(false);
   const [senkronizeLoading, setSenkronizeLoading] = useState<string | null>(null);
   const [gorevAtamaYetkisi, setGorevAtamaYetkisi] = useState<string>("herkes");
+  const [gorevGorunurluk, setGorevGorunurluk] = useState<string>("sadece_ilgililer");
 
   // Firma state
   const [tumFirmalar, setTumFirmalar] = useState<{ id: string; kisaltma: string }[]>([]);
@@ -126,6 +127,7 @@ export default function GorevlerPage() {
         const genelDoc = await getDoc(doc(db, "settings", "general"));
         if (genelDoc.exists()) {
           setGorevAtamaYetkisi(genelDoc.data().gorevAtamaYetkisi || "herkes");
+          setGorevGorunurluk(genelDoc.data().gorevGorunurluk || "sadece_ilgililer");
         }
       } catch (error) {
         Sentry.captureException(error);
@@ -267,11 +269,12 @@ export default function GorevlerPage() {
     return true;
   }, [gorevAtamaYetkisi, userRole]);
 
-  // Kurucu/Yönetici: tüm görevler (sadece admin roller)
+  // Kurucu/Yönetici: tüm görevler (sadece gorevGorunurluk === "yoneticiler" ise)
   const isAdmin = userRole === "Kurucu" || userRole === "Yönetici";
+  const tumGorevleriGorebilir = isAdmin && gorevGorunurluk === "yoneticiler";
   
   useEffect(() => {
-    if (!user || !isAdmin) { setTumGorevler([]); return; }
+    if (!user || !tumGorevleriGorebilir) { setTumGorevler([]); return; }
     const q = query(collection(db, "gorevler"), orderBy("olusturulmaTarihi", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setTumGorevler(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Gorev)));
@@ -280,7 +283,7 @@ export default function GorevlerPage() {
       Sentry.captureException(error, { tags: { module: "Gorevler", collection: "gorevler-all" } });
     });
     return () => unsubscribe();
-  }, [user, isAdmin]);
+  }, [user, tumGorevleriGorebilir]);
 
   // ============================================
   // COMPUTED VALUES
@@ -825,7 +828,7 @@ export default function GorevlerPage() {
               </span>
             </button>
             
-            {isAdmin && (
+            {tumGorevleriGorebilir && (
               <button
                 onClick={() => { setAktifSekme("tumgorevler"); setFiltre("aktif"); setSeciliPersoneller([]); }}
                 className={`px-2.5 md:px-4 py-2 md:py-2.5 font-medium text-xs md:text-sm transition border-b-2 whitespace-nowrap ${
