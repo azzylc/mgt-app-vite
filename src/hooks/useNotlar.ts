@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { db } from "../lib/firebase";
 import {
-  collection, addDoc, updateDoc, deleteDoc, doc, getDocs, onSnapshot,
+  collection, addDoc, updateDoc, deleteDoc, doc, getDoc, getDocs, onSnapshot,
   query, orderBy, where, serverTimestamp, Timestamp
 } from "firebase/firestore";
 import * as Sentry from "@sentry/react";
@@ -27,6 +27,7 @@ export function useNotlar() {
     ? `${personelData.ad} ${personelData.soyad}`
     : user?.displayName || userEmail;
   const isAdmin = personelData?.kullaniciTuru === "Kurucu" || personelData?.kullaniciTuru === "Yönetici";
+  const kullaniciFirmalari = personelData?.firmalar || [];
 
   // ─── State ──────────────────────────────────────────────
   const [klasorler, setKlasorler] = useState<NotKlasor[]>([]);
@@ -37,6 +38,10 @@ export function useNotlar() {
   const [yukleniyor, setYukleniyor] = useState(false);
   const [sonKayit, setSonKayit] = useState<Date | null>(null);
   const [kaydediliyor, setKaydediliyor] = useState(false);
+
+  // Firma state
+  const [firmalar, setFirmalar] = useState<{ id: string; firmaAdi: string }[]>([]);
+  const [seciliFirma, setSeciliFirma] = useState<string>("kisisel"); // "kisisel" | firmaId
 
   // Klasör modal state
   const [showKlasorModal, setShowKlasorModal] = useState(false);
@@ -123,6 +128,7 @@ export function useNotlar() {
           id: d.id,
           silindi: false,
           silinmeTarihi: null,
+          firmaId: "",
           ...data,
         } as Not);
       });
@@ -132,6 +138,7 @@ export function useNotlar() {
           id: d.id,
           silindi: false,
           silinmeTarihi: null,
+          firmaId: "",
           ...data,
         } as Not);
       });
@@ -150,10 +157,34 @@ export function useNotlar() {
     if (!user) return;
     const klasorQ = query(collection(db, "notKlasorleri"), orderBy("sira", "asc"));
     const unsub = onSnapshot(klasorQ, (snap) => {
-      setKlasorler(snap.docs.map(d => ({ id: d.id, ustKlasorId: "", ...d.data() } as NotKlasor)));
+      setKlasorler(snap.docs.map(d => ({ id: d.id, ustKlasorId: "", firmaId: "", ...d.data() } as NotKlasor)));
     });
     return () => unsub();
   }, [user]);
+
+  // ─── Firmaları yükle ──────────────────────────────────
+  useEffect(() => {
+    if (!user || kullaniciFirmalari.length === 0) return;
+    const fetchFirmalar = async () => {
+      try {
+        const promises = kullaniciFirmalari.map(fId => getDoc(doc(db, "companies", fId)));
+        const snaps = await Promise.all(promises);
+        const list = snaps
+          .filter(s => s.exists())
+          .map(s => ({ id: s.id, firmaAdi: (s.data() as any).firmaAdi || s.id }));
+        setFirmalar(list);
+      } catch (err) {
+        Sentry.captureException(err);
+      }
+    };
+    fetchFirmalar();
+  }, [user, kullaniciFirmalari.length]);
+
+  // ─── Firma değişince seçili klasör/not sıfırla ────────
+  useEffect(() => {
+    setSeciliKlasor("tumu");
+    setSeciliNot(null);
+  }, [seciliFirma]);
 
   // ─── İlk yükleme ──────────────────────────────────────
   useEffect(() => {
@@ -163,6 +194,13 @@ export function useNotlar() {
   // ─── Filtrelenmiş notlar ───────────────────────────────
   const filtrelenmisNotlar = useCallback(() => {
     let sonuc = [...notlar];
+
+    // Firma filtresi
+    if (seciliFirma === "kisisel") {
+      sonuc = sonuc.filter(n => !n.firmaId || n.firmaId === "");
+    } else {
+      sonuc = sonuc.filter(n => n.firmaId === seciliFirma);
+    }
 
     // Çöp kutusu filtresi
     if (seciliKlasor === "cop") {
@@ -209,7 +247,7 @@ export function useNotlar() {
     });
 
     return sonuc;
-  }, [notlar, seciliKlasor, aramaMetni, klasorler]);
+  }, [notlar, seciliKlasor, aramaMetni, klasorler, seciliFirma]);
 
   // ─── Klasör değişince seçili notu temizle ──────────────
   useEffect(() => {
@@ -240,6 +278,7 @@ export function useNotlar() {
         paylasimli,
         silindi: false,
         silinmeTarihi: null,
+        firmaId: seciliFirma === "kisisel" ? "" : seciliFirma,
         olusturulmaTarihi: serverTimestamp(),
         sonDuzenleme: serverTimestamp(),
       };
@@ -396,12 +435,15 @@ export function useNotlar() {
         if (ustKlasor) paylasimli = ustKlasor.paylasimli;
       }
 
+      const firmaId = seciliFirma === "kisisel" ? "" : seciliFirma;
+
       if (editingKlasor) {
         await updateDoc(doc(db, "notKlasorleri", editingKlasor.id), {
           ad: klasorForm.ad.trim(),
           renk: klasorForm.renk,
           paylasimli,
           ustKlasorId: klasorForm.ustKlasorId,
+          firmaId,
         });
       } else {
         await addDoc(collection(db, "notKlasorleri"), {
@@ -409,6 +451,7 @@ export function useNotlar() {
           renk: klasorForm.renk,
           paylasimli,
           ustKlasorId: klasorForm.ustKlasorId,
+          firmaId,
           olusturan: userEmail,
           olusturanAd: userName,
           sira: klasorler.length,
@@ -463,12 +506,18 @@ export function useNotlar() {
 
   // ─── Derived data ─────────────────────────────────────
   const aktifNotlar = notlar.filter(n => !n.silindi);
-  const copSayisi = notlar.filter(n => n.silindi).length;
+  const copSayisi = notlar.filter(n => n.silindi && (seciliFirma === "kisisel" ? (!n.firmaId || n.firmaId === "") : n.firmaId === seciliFirma)).length;
+  // Klasörleri firma'ya göre filtrele
+  const firmaKlasorleri = klasorler.filter(k =>
+    seciliFirma === "kisisel" ? (!k.firmaId || k.firmaId === "") : k.firmaId === seciliFirma
+  );
 
   return {
     // State
-    klasorler, notlar, seciliKlasor, seciliNot, aramaMetni,
+    klasorler: firmaKlasorleri, notlar, seciliKlasor, seciliNot, aramaMetni,
     yukleniyor, sonKayit, kaydediliyor, isAdmin, userEmail,
+    // Firma
+    firmalar, seciliFirma, setSeciliFirma, kullaniciFirmalari,
     // Klasör modal
     showKlasorModal, editingKlasor, klasorForm, setKlasorForm,
     // Setters

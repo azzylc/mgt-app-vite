@@ -10,6 +10,7 @@ export interface NotKlasor {
   olusturanAd: string;
   sira: number;
   ustKlasorId: string; // "" = kök klasör
+  firmaId: string; // "" = kişisel (firmadan bağımsız)
   olusturulmaTarihi: any;
 }
 
@@ -24,6 +25,7 @@ export interface Not {
   paylasimli: boolean;
   silindi: boolean;
   silinmeTarihi: any | null;
+  firmaId: string; // "" = kişisel (firmadan bağımsız)
   olusturulmaTarihi: any;
   sonDuzenleme: any;
 }

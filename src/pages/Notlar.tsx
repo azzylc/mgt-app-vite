@@ -20,6 +20,10 @@ export default function NotlarPage() {
       ? n.klasorler.find(k => k.id === n.seciliKlasor)
       : null;
 
+  const firmaLabel = n.seciliFirma === "kisisel"
+    ? "Kişisel"
+    : n.firmalar.find(f => f.id === n.seciliFirma)?.firmaAdi || "";
+
   const headerLabel =
     n.seciliKlasor === "tumu" ? "Tüm Notlar" :
     n.seciliKlasor === "kisisel" ? "Kişisel Notlar" :
@@ -59,7 +63,7 @@ export default function NotlarPage() {
           <div>
             <h1 className="text-xl font-bold text-[#2F2F2F]">📝 Notlar</h1>
             <p className="text-xs text-[#8A8A8A]">
-              {headerLabel} · {liste.length} not
+              {firmaLabel && n.firmalar.length > 0 ? `${firmaLabel} · ` : ""}{headerLabel} · {liste.length} not
             </p>
           </div>
         </div>
@@ -91,6 +95,35 @@ export default function NotlarPage() {
           )}
         </div>
       </header>
+
+      {/* ── Firma Tab'ları ─────────────────────────────── */}
+      {n.firmalar.length > 0 && (
+        <div className="bg-white border-b px-4 md:px-6 py-2 flex items-center gap-2 overflow-x-auto sticky top-[57px] z-20">
+          <button
+            onClick={() => n.setSeciliFirma("kisisel")}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition ${
+              n.seciliFirma === "kisisel"
+                ? "bg-[#8FAF9A] text-white"
+                : "bg-[#F7F7F7] text-[#8A8A8A] hover:bg-[#E5E5E5]"
+            }`}
+          >
+            🔒 Kişisel
+          </button>
+          {n.firmalar.map(f => (
+            <button
+              key={f.id}
+              onClick={() => n.setSeciliFirma(f.id)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition ${
+                n.seciliFirma === f.id
+                  ? "bg-[#8FAF9A] text-white"
+                  : "bg-[#F7F7F7] text-[#8A8A8A] hover:bg-[#E5E5E5]"
+              }`}
+            >
+              🏢 {f.firmaAdi}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* ── 3 Panel Layout ─────────────────────────────── */}
       <div className="flex-1 flex overflow-hidden">
