@@ -22,7 +22,8 @@ import {
   getDocs,
   orderBy,
   limit,
-  serverTimestamp
+  serverTimestamp,
+  Timestamp
 } from "firebase/firestore";
 import * as Sentry from '@sentry/react';
 import { useAuth } from "../context/RoleProvider";
@@ -35,7 +36,7 @@ interface Announcement {
   important: boolean;
   group: string;
   author: string;
-  createdAt: any;
+  createdAt: Timestamp | Date;
 }
 
 interface OzelTarih {
@@ -46,7 +47,7 @@ interface OzelTarih {
   emoji: string;
   renk: string;        // amber, rose, purple, blue, emerald
   ekleyen: string;
-  createdAt: any;
+  createdAt: Timestamp | Date;
 }
 
 type AktifSekme = "duyurular" | "tarihler";
@@ -184,7 +185,7 @@ export default function DuyurularPage() {
     // Doğum günleri
     getYaklasanDogumGunleri(personeller.map(p => ({
       id: p.id, ad: p.ad, soyad: p.soyad, 
-      dogumTarihi: (p as any).dogumTarihi || '',
+      dogumTarihi: (p as Record<string, string>).dogumTarihi || '',
       aktif: true
     }))).forEach(d => {
       items.push({
@@ -323,9 +324,9 @@ export default function DuyurularPage() {
     }
   };
 
-  const formatTarih = (timestamp: any) => {
+  const formatTarih = (timestamp: Timestamp | Date | null | undefined) => {
     if (!timestamp) return '';
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    const date = timestamp instanceof Timestamp ? timestamp.toDate() : new Date(timestamp as Date);
     return date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
   };
 

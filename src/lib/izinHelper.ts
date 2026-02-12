@@ -62,7 +62,7 @@ export async function tumIzinleriGetir(
 
     const izinSnap = await getDocs(izinQuery);
     izinSnap.forEach(doc => {
-      const d = doc.data() as any;
+      const d = doc.data();
       const durum = (d.durum || "").toLowerCase();
       if (durum === "onaylandı" || durum === "onaylandi") {
         const baslangic = d.baslangic || "";
@@ -114,7 +114,7 @@ export async function tumIzinleriGetir(
 
     const haftaSnap = await getDocs(haftaQuery);
     haftaSnap.forEach(doc => {
-      const d = doc.data() as any;
+      const d = doc.data();
       const tarih = d.tarih?.toDate ? d.tarih.toDate() : new Date(d.tarih);
       const tarihStr = toLocalDateStr(tarih);
       const dedupKey = `${d.personelId}_${tarihStr}`;
@@ -161,7 +161,7 @@ export async function tumIzinleriGetir(
 
     const vardiyaSnap = await getDocs(vardiyaQuery);
     vardiyaSnap.forEach(doc => {
-      const d = doc.data() as any;
+      const d = doc.data();
       const tarihStr = d.tarih || "";
       const dedupKey = `${d.personelId}_${tarihStr}`;
       

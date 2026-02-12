@@ -40,7 +40,7 @@ interface Gelin {
   telefon?: string;
   ucretYazildi?: boolean;
   firma?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface FirmaInfo {
@@ -58,7 +58,7 @@ interface Duyuru {
   important: boolean;  // İngilizce field!
   group: string;
   author: string;
-  createdAt: any;      // İngilizce field!
+  createdAt: Timestamp | Date;      // İngilizce field!
 }
 
 interface PersonelGunlukDurum {
@@ -67,6 +67,16 @@ interface PersonelGunlukDurum {
   girisSaati: string | null;
   cikisSaati: string | null;
   aktifMi: boolean;
+}
+
+interface HomeAttendanceRecord {
+  id: string;
+  tip?: string;
+  tarih?: Timestamp | Date;
+  personelId?: string;
+  personelAd?: string;
+  konumAdi?: string;
+  [key: string]: unknown;
 }
 
 interface EksikIzin {
@@ -129,7 +139,7 @@ export default function Home() {
   const [aylikHedef, setAylikHedef] = useState<number>(0);
   const [eksikIzinler, setEksikIzinler] = useState<EksikIzin[]>([]);
   const [izinEkleniyor, setIzinEkleniyor] = useState<string | null>(null);
-  const [bugunAttendance, setBugunAttendance] = useState<any[]>([]);
+  const [bugunAttendance, setBugunAttendance] = useState<HomeAttendanceRecord[]>([]);
   const [personelDurumlar, setPersonelDurumlar] = useState<PersonelGunlukDurum[]>([]);
   const [bugunIzinliler, setBugunIzinliler] = useState<IzinKaydi[]>([]);
   const [haftaTatiliIzinliler, setHaftaTatiliIzinliler] = useState<IzinKaydi[]>([]);
@@ -326,7 +336,7 @@ export default function Home() {
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const records = snapshot.docs.map((doc) => ({
+      const records: HomeAttendanceRecord[] = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
@@ -334,19 +344,19 @@ export default function Home() {
       setBugunAttendance(records);
 
       // Tarihe göre sırala (eskiden yeniye)
-      const sortedRecords = [...records].sort((a: any, b: any) => {
-        const ta = a.tarih?.toDate ? a.tarih.toDate().getTime() : new Date(a.tarih).getTime();
-        const tb = b.tarih?.toDate ? b.tarih.toDate().getTime() : new Date(b.tarih).getTime();
+      const sortedRecords = [...records].sort((a, b) => {
+        const ta = a.tarih instanceof Timestamp ? a.tarih.toDate().getTime() : new Date(a.tarih as Date).getTime();
+        const tb = b.tarih instanceof Timestamp ? b.tarih.toDate().getTime() : new Date(b.tarih as Date).getTime();
         return ta - tb;
       });
 
       const personelMap = new Map<string, PersonelGunlukDurum>();
-      const haftaTatiliSet = new Map<string, any>(); // haftaTatili kayıtları
+      const haftaTatiliSet = new Map<string, Record<string, unknown>>();
 
-      sortedRecords.forEach((r: any) => {
+      sortedRecords.forEach((r) => {
         // Hafta tatili kayıtlarını ayrı tut — "Bugün Geldi"ye ekleme
         if (r.tip === "haftaTatili") {
-          if (!haftaTatiliSet.has(r.personelId)) {
+          if (r.personelId && !haftaTatiliSet.has(r.personelId)) {
             haftaTatiliSet.set(r.personelId, {
               id: r.id,
               personelAd: r.personelAd?.split(" ")[0] || r.personelAd || "",
@@ -362,10 +372,11 @@ export default function Home() {
           return; // personelMap'e ekleme
         }
 
+        if (!r.personelId) return;
         if (!personelMap.has(r.personelId)) {
           personelMap.set(r.personelId, {
             personelId: r.personelId,
-            personelAd: r.personelAd,
+            personelAd: r.personelAd || "",
             girisSaati: null,
             cikisSaati: null,
             aktifMi: false,
@@ -373,7 +384,7 @@ export default function Home() {
         }
 
         const durum = personelMap.get(r.personelId)!;
-        const tarihObj = r.tarih?.toDate ? r.tarih.toDate() : new Date(r.tarih);
+        const tarihObj = r.tarih instanceof Timestamp ? r.tarih.toDate() : new Date(r.tarih as Date);
         const saat = tarihObj instanceof Date && !isNaN(tarihObj.getTime()) 
           ? tarihObj.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })
           : "-";

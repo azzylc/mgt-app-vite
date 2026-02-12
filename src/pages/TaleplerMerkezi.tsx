@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { db } from "../lib/firebase";
-import { collection, query, onSnapshot, orderBy, doc, updateDoc, addDoc, increment } from "firebase/firestore";
+import { collection, query, onSnapshot, orderBy, doc, updateDoc, addDoc, increment, Timestamp } from "firebase/firestore";
 import * as Sentry from '@sentry/react';
 import { useAuth, useRole } from "../context/RoleProvider";
 import { bildirimYazCoklu } from "../lib/bildirimHelper";
@@ -13,7 +13,7 @@ interface ProfilTalebi {
   personelAd: string;
   degisiklikler: { alan: string; mevcutDeger: string; yeniDeger: string }[];
   durum: string;
-  createdAt: any;
+  createdAt: Timestamp | Date;
   yanitNotu?: string;
 }
 
@@ -25,7 +25,7 @@ interface OneriTalebi {
   mesaj: string;
   anonim: boolean;
   durum: string;
-  createdAt: any;
+  createdAt: Timestamp | Date;
   yanitNotu?: string;
 }
 
@@ -36,7 +36,7 @@ interface AvansTalebi {
   tutar: number;
   istenilenTarih: string;
   durum: string;
-  createdAt: any;
+  createdAt: Timestamp | Date;
   yanitNotu?: string;
 }
 
@@ -199,9 +199,9 @@ export default function TaleplerMerkezi() {
     finally { setIslemYapilan(null); }
   };
 
-  const formatTimestamp = (ts: any) => {
+  const formatTimestamp = (ts: Timestamp | Date | null | undefined) => {
     if (!ts) return "";
-    const d = ts.toDate ? ts.toDate() : new Date(ts);
+    const d = ts instanceof Timestamp ? ts.toDate() : new Date(ts as Date);
     return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
   };
   const formatDate = (dateStr: string) => {
