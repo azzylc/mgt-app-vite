@@ -10,7 +10,7 @@ interface Attendance {
   personelAd: string;
   konumAdi: string;
   tip: "giris" | "cikis";
-  tarih: any;
+  tarih: Timestamp | Date;
   lat?: number;
   lng?: number;
   mesafe?: number;
@@ -93,7 +93,7 @@ export default function GirisCikisPage() {
 
   // Personel bazında grupla (giriş-çıkış eşleştirme)
   const personelGunlukOzet = () => {
-    const ozet: Record<string, { ad: string, giris?: any, cikis?: any, kayitlar: Attendance[] }> = {};
+    const ozet: Record<string, { ad: string, giris?: Attendance, cikis?: Attendance, kayitlar: Attendance[] }> = {};
     
     filteredRecords.forEach(r => {
       if (!ozet[r.personelId]) {
@@ -112,22 +112,22 @@ export default function GirisCikisPage() {
     return ozet;
   };
 
-  const formatSaat = (tarih: any) => {
+  const formatSaat = (tarih: Timestamp | Date | null | undefined) => {
     if (!tarih) return "-";
-    const date = tarih.toDate ? tarih.toDate() : new Date(tarih);
+    const date = tarih instanceof Timestamp ? tarih.toDate() : new Date(tarih as Date);
     return date.toLocaleString("tr-TR", { hour: "2-digit", minute: "2-digit" });
   };
 
-  const formatTarihUzun = (tarih: any) => {
+  const formatTarihUzun = (tarih: Timestamp | Date | null | undefined) => {
     if (!tarih) return "-";
-    const date = tarih.toDate ? tarih.toDate() : new Date(tarih);
+    const date = tarih instanceof Timestamp ? tarih.toDate() : new Date(tarih as Date);
     return date.toLocaleString("tr-TR", { day: "2-digit", month: "long", year: "numeric" });
   };
 
-  const hesaplaCalisma = (giris: any, cikis: any) => {
+  const hesaplaCalisma = (giris: Timestamp | Date | null | undefined, cikis: Timestamp | Date | null | undefined) => {
     if (!giris || !cikis) return "-";
-    const girisDate = giris.toDate ? giris.toDate() : new Date(giris);
-    const cikisDate = cikis.toDate ? cikis.toDate() : new Date(cikis);
+    const girisDate = giris instanceof Timestamp ? giris.toDate() : new Date(giris as Date);
+    const cikisDate = cikis instanceof Timestamp ? cikis.toDate() : new Date(cikis as Date);
     const diff = (cikisDate.getTime() - girisDate.getTime()) / (1000 * 60 * 60);
     return diff.toFixed(1) + " saat";
   };

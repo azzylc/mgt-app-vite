@@ -16,8 +16,18 @@ const SidebarContext = createContext<{
 
 export const useSidebar = () => useContext(SidebarContext);
 
+interface MenuItem {
+  id: string;
+  label: string;
+  icon: string;
+  path?: string;
+  submenu?: { label: string; path: string }[];
+  mobileOnly?: boolean;
+  excludeKurucu?: boolean;
+}
+
 interface SidebarProps {
-  user: any;
+  user: { email?: string | null } | null;
 }
 
 function SidebarContent({ user }: SidebarProps) {
@@ -66,7 +76,7 @@ function SidebarContent({ user }: SidebarProps) {
     if (firestoreIds) {
       // Firestore'da kayıtlı olan menü ID'lerinin tamamı (tüm roller)
       const allFirestoreIds = new Set<string>();
-      Object.values(rolYetkileri || {}).forEach((ids: any) => {
+      Object.values(rolYetkileri || {}).forEach((ids: unknown) => {
         if (Array.isArray(ids)) ids.forEach((id: string) => allFirestoreIds.add(id));
       });
       // DEFAULT'ta olup Firestore'da hiçbir rolde tanımlı olmayan = yeni eklenen menü
@@ -76,7 +86,7 @@ function SidebarContent({ user }: SidebarProps) {
       allowedIds = defaultIds;
     }
 
-    let items = [
+    let items: MenuItem[] = [
       { id: "genel-bakis", label: "Genel Bakış", icon: "📊", path: "/" },
       { id: "qr-giris", label: "Giriş-Çıkış", icon: "📱", path: "/qr-giris", mobileOnly: true },
       {
@@ -139,8 +149,8 @@ function SidebarContent({ user }: SidebarProps) {
     const isMobile = window.innerWidth < 768;
 
     return items.filter(item => {
-      if (isKurucu && (item as any).excludeKurucu) return false;
-      if ((item as any).mobileOnly && !isMobile) return false;
+      if (isKurucu && item.excludeKurucu) return false;
+      if (item.mobileOnly && !isMobile) return false;
       return allowedIds.includes(item.id);
     });
   };
@@ -178,7 +188,7 @@ function SidebarContent({ user }: SidebarProps) {
     return searchParams.toString() === queryString;
   };
 
-  const isParentActive = (submenu: any[]) => 
+  const isParentActive = (submenu: { label: string; path: string }[]) => 
     submenu.some(sub => sub.path && isActive(sub.path));
 
   const MenuContent = () => (
@@ -223,7 +233,7 @@ function SidebarContent({ user }: SidebarProps) {
                 </button>
                 <div className={`overflow-hidden transition-all duration-200 ${expandedMenu === item.id ? "max-h-[500px]" : "max-h-0"}`}>
                   <div className="ml-7 space-y-0.5 py-1">
-                    {item.submenu.map((subItem: any, idx: number) => (
+                    {item.submenu.map((subItem, idx) => (
                       subItem.type === "header" ? (
                         <div key={idx} className="px-3 py-1.5 text-[10px] font-semibold text-[#8A8A8A] uppercase tracking-wider mt-2 first:mt-0">
                           {subItem.label}

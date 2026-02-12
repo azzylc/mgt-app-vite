@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { db } from "../lib/firebase";
-import { collection, addDoc, getDocs, serverTimestamp, query, where, onSnapshot, orderBy } from "firebase/firestore";
+import { collection, addDoc, getDocs, serverTimestamp, query, where, onSnapshot, orderBy, Timestamp } from "firebase/firestore";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import * as Sentry from '@sentry/react';
 import { useAuth } from "../context/RoleProvider";
@@ -15,7 +15,7 @@ interface ProfilTalebi {
   id: string;
   degisiklikler: { alan: string; mevcutDeger: string; yeniDeger: string }[];
   durum: string;
-  createdAt: any;
+  createdAt: Timestamp | Date;
   yanitNotu?: string;
 }
 
@@ -25,7 +25,7 @@ interface OneriTalebi {
   mesaj: string;
   anonim: boolean;
   durum: string;
-  createdAt: any;
+  createdAt: Timestamp | Date;
   yanitNotu?: string;
 }
 
@@ -34,7 +34,7 @@ interface AvansTalebi {
   tutar: number;
   istenilenTarih: string;
   durum: string;
-  createdAt: any;
+  createdAt: Timestamp | Date;
   yanitNotu?: string;
 }
 
@@ -312,8 +312,8 @@ export default function Taleplerim() {
     try {
       const mevcutMap: Record<string, string> = {
         "Ad": personelData?.ad || "", "Soyad": personelData?.soyad || "",
-        "Telefon": (personelData as any)?.telefon || "",
-        "Doğum Tarihi": (personelData as any)?.dogumGunu || "",
+        "Telefon": (personelData as Record<string, string>)?.telefon || "",
+        "Doğum Tarihi": (personelData as Record<string, string>)?.dogumGunu || "",
       };
       await addDoc(collection(db, "profilDegisiklikleri"), {
         personelEmail: user?.email, personelAd: fullName,
@@ -403,9 +403,9 @@ export default function Taleplerim() {
     finally { setGonderiliyor(false); }
   };
 
-  const formatTimestamp = (ts: any) => {
+  const formatTimestamp = (ts: Timestamp | Date | null | undefined) => {
     if (!ts) return "";
-    const d = ts.toDate ? ts.toDate() : new Date(ts);
+    const d = ts instanceof Timestamp ? ts.toDate() : new Date(ts as Date);
     return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
   };
   const formatDate = (dateStr: string) => {

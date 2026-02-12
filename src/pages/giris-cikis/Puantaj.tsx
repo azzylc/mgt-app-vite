@@ -33,6 +33,15 @@ interface PersonelPuantaj {
   gunler: { [key: number]: GunKayit };
 }
 
+interface PuantajDevamKayit {
+  id: string;
+  tip: string;
+  tarihDate: Date;
+  personelId?: string;
+  mazeretNotu?: string;
+  [key: string]: unknown;
+}
+
 export default function PuantajPage() {
   const user = useAuth();
   const [personeller, setPersoneller] = useState<Personel[]>([]);
@@ -169,7 +178,7 @@ export default function PuantajPage() {
 
       const attendanceSnap = await getDocs(attendanceQuery);
       
-      const kayitlar = new Map<string, any[]>();
+      const kayitlar = new Map<string, PuantajDevamKayit[]>();
       attendanceSnap.forEach(docSnap => {
         const d = docSnap.data();
         const tarih = d.tarih?.toDate?.();
@@ -179,7 +188,7 @@ export default function PuantajPage() {
         const key = `${d.personelId}-${gun}`;
         
         if (!kayitlar.has(key)) kayitlar.set(key, []);
-        kayitlar.get(key)!.push({ id: docSnap.id, ...d, tarihDate: tarih });
+        kayitlar.get(key)!.push({ id: docSnap.id, ...d, tarihDate: tarih } as PuantajDevamKayit);
       });
 
       // İzinleri çek (hem izinler hem vardiyaPlan'daki hafta tatilleri)
@@ -237,7 +246,7 @@ export default function PuantajPage() {
           let kayit: GunKayit = { durum: "normal" };
 
           // Resmi tatil iptal kaydı var mı?
-          const resmiTatilIptalKayit = gunKayitlari.find((k: any) => k.tip === "resmiTatilIptal");
+          const resmiTatilIptalKayit = gunKayitlari.find((k) => k.tip === "resmiTatilIptal");
           
           // Resmi tatil mi?
           const resmiTatil = getResmiTatil(gun);
@@ -265,12 +274,12 @@ export default function PuantajPage() {
             }
           }
           // Mazeretli mi?
-          else if (gunKayitlari.some((k: any) => k.mazeretNotu)) {
+          else if (gunKayitlari.some((k) => k.mazeretNotu)) {
             kayit.durum = "mazeret";
           }
 
           // Hafta tatili kaydı var mı? (attendance'dan — Puantaj'dan eklenen)
-          const haftaTatiliKayit = gunKayitlari.find((k: any) => k.tip === "haftaTatili");
+          const haftaTatiliKayit = gunKayitlari.find((k) => k.tip === "haftaTatili");
           if (haftaTatiliKayit) {
             kayit.durum = "haftaTatili";
             kayit.haftaTatili = { id: haftaTatiliKayit.id, kaynak: "attendance" };
@@ -282,7 +291,7 @@ export default function PuantajPage() {
           }
 
           // Giriş kaydı
-          const girisler = gunKayitlari.filter((k: any) => k.tip === "giris").sort((a: any, b: any) => a.tarihDate - b.tarihDate);
+          const girisler = gunKayitlari.filter((k) => k.tip === "giris").sort((a, b) => a.tarihDate.getTime() - b.tarihDate.getTime());
           if (girisler.length > 0) {
             const ilkGiris = girisler[0];
             kayit.giris = {
@@ -292,7 +301,7 @@ export default function PuantajPage() {
           }
 
           // Çıkış kaydı
-          const cikislar = gunKayitlari.filter((k: any) => k.tip === "cikis").sort((a: any, b: any) => b.tarihDate - a.tarihDate);
+          const cikislar = gunKayitlari.filter((k) => k.tip === "cikis").sort((a, b) => b.tarihDate.getTime() - a.tarihDate.getTime());
           if (cikislar.length > 0) {
             const sonCikis = cikislar[0];
             kayit.cikis = {

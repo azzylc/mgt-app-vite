@@ -359,7 +359,7 @@ export default function HaftalikCalismaSureleriPage() {
 
               if (cikislar.length > 0) {
                 const sonCikis = cikislar[cikislar.length - 1].tarihDate;
-                let calismaDakika = Math.floor((sonCikis - ilkGiris) / (1000 * 60)) - molaSuresi;
+                let calismaDakika = Math.floor((sonCikis.getTime() - ilkGiris.getTime()) / (1000 * 60)) - molaSuresi;
                 if (calismaDakika < 0) calismaDakika = 0;
                 
                 toplamDakika += calismaDakika;
