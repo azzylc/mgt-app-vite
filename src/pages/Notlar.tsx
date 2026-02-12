@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { db } from "../lib/firebase";
 import {
-  collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot,
+  collection, addDoc, updateDoc, deleteDoc, doc, getDoc, getDocs, onSnapshot,
   query, orderBy, where, serverTimestamp, Timestamp
 } from "firebase/firestore";
 import * as Sentry from '@sentry/react';
@@ -94,27 +94,59 @@ export default function NotlarPage() {
   const editorRef = useRef<HTMLDivElement>(null);
   const baslikRef = useRef<HTMLInputElement>(null);
   const saveTimeoutRef = useRef<any>(null);
+  const [yukleniyor, setYukleniyor] = useState(false);
 
-  // ─── Firestore Listeners ────────────────────────────────
+  // ─── Notları yükle (tek seferlik okuma — maliyet dostu) ──
+  const notlariYukle = useCallback(async () => {
+    if (!user) return;
+    setYukleniyor(true);
+    try {
+      // Kendi notlarım
+      const kisiselQ = query(
+        collection(db, "notlar"),
+        where("olusturan", "==", userEmail),
+        orderBy("sonDuzenleme", "desc")
+      );
+      // Paylaşımlı notlar
+      const paylasimliQ = query(
+        collection(db, "notlar"),
+        where("paylasimli", "==", true),
+        orderBy("sonDuzenleme", "desc")
+      );
+
+      const [kisiselSnap, paylasimliSnap] = await Promise.all([
+        getDocs(kisiselQ),
+        getDocs(paylasimliQ),
+      ]);
+
+      // Birleştir, duplicate'leri temizle (paylaşımlı + kendi = aynı not)
+      const notMap = new Map<string, Not>();
+      kisiselSnap.docs.forEach(d => notMap.set(d.id, { id: d.id, ...d.data() } as Not));
+      paylasimliSnap.docs.forEach(d => notMap.set(d.id, { id: d.id, ...d.data() } as Not));
+
+      setNotlar(Array.from(notMap.values()));
+    } catch (err) {
+      console.error("Notlar yüklenirken hata:", err);
+      Sentry.captureException(err);
+    } finally {
+      setYukleniyor(false);
+    }
+  }, [user, userEmail]);
+
+  // ─── Firestore: Klasörler (onSnapshot — az değişir) ─────
   useEffect(() => {
     if (!user) return;
-
-    // Klasörleri dinle
     const klasorQ = query(collection(db, "notKlasorleri"), orderBy("sira", "asc"));
-    const unsubKlasor = onSnapshot(klasorQ, (snap) => {
+    const unsub = onSnapshot(klasorQ, (snap) => {
       setKlasorler(snap.docs.map(d => ({ id: d.id, ...d.data() } as NotKlasor)));
     });
+    return () => unsub();
+  }, [user]);
 
-    // Notları dinle
-    const notQ = query(collection(db, "notlar"), orderBy("sonDuzenleme", "desc"));
-    const unsubNot = onSnapshot(notQ, (snap) => {
-      const tumNotlar = snap.docs.map(d => ({ id: d.id, ...d.data() } as Not));
-      // Kişisel notlar: olusturan === ben VEYA paylasimli === true
-      setNotlar(tumNotlar.filter(n => n.paylasimli || n.olusturan === userEmail));
-    });
-
-    return () => { unsubKlasor(); unsubNot(); };
-  }, [user, userEmail]);
+  // ─── İlk yükleme ───────────────────────────────────────
+  useEffect(() => {
+    notlariYukle();
+  }, [notlariYukle]);
 
   // ─── Filtrelenmiş notlar ────────────────────────────────
   const filtrelenmisNotlar = useCallback(() => {
@@ -181,6 +213,7 @@ export default function NotlarPage() {
 
       const ref = await addDoc(collection(db, "notlar"), yeniNot);
       const not: Not = { ...yeniNot, id: ref.id, olusturulmaTarihi: new Date(), sonDuzenleme: new Date() };
+      setNotlar(prev => [not, ...prev]); // Listeye ekle (Firestore'a gitmeden)
       setSeciliNot(not);
       setMobilPanel("editor");
 
@@ -206,7 +239,7 @@ export default function NotlarPage() {
       } catch (err) {
         Sentry.captureException(err);
       }
-    }, 600);
+    }, 2000);
   }, []);
 
   // ─── Not sil ────────────────────────────────────────────
@@ -214,6 +247,7 @@ export default function NotlarPage() {
     if (!confirm(`"${not.baslik || 'Başlıksız not'}" silinecek. Emin misiniz?`)) return;
     try {
       await deleteDoc(doc(db, "notlar", not.id));
+      setNotlar(prev => prev.filter(n => n.id !== not.id)); // Listeden kaldır
       if (seciliNot?.id === not.id) setSeciliNot(null);
     } catch (err) {
       Sentry.captureException(err);
@@ -223,7 +257,10 @@ export default function NotlarPage() {
   // ─── Sabitleme toggle ───────────────────────────────────
   const handleSabitle = async (not: Not) => {
     try {
-      await updateDoc(doc(db, "notlar", not.id), { sabitlendi: !not.sabitlendi });
+      const yeniDeger = !not.sabitlendi;
+      await updateDoc(doc(db, "notlar", not.id), { sabitlendi: yeniDeger });
+      setNotlar(prev => prev.map(n => n.id === not.id ? { ...n, sabitlendi: yeniDeger } : n));
+      if (seciliNot?.id === not.id) setSeciliNot({ ...seciliNot, sabitlendi: yeniDeger });
     } catch (err) {
       Sentry.captureException(err);
     }
@@ -268,6 +305,7 @@ export default function NotlarPage() {
     if (!confirm(`"${klasor.ad}" klasörü silinecek. Emin misiniz?`)) return;
     try {
       await deleteDoc(doc(db, "notKlasorleri", klasor.id));
+      setKlasorler(prev => prev.filter(k => k.id !== klasor.id));
       if (seciliKlasor === klasor.id) setSeciliKlasor("tumu");
     } catch (err) {
       Sentry.captureException(err);
@@ -332,6 +370,14 @@ export default function NotlarPage() {
             className="md:hidden w-9 h-9 rounded-lg bg-[#F7F7F7] hover:bg-[#E5E5E5] flex items-center justify-center text-sm"
           >
             📁
+          </button>
+          <button
+            onClick={notlariYukle}
+            disabled={yukleniyor}
+            className={`w-9 h-9 rounded-lg bg-[#F7F7F7] hover:bg-[#E5E5E5] flex items-center justify-center text-sm transition ${yukleniyor ? "animate-spin" : ""}`}
+            title="Notları Yenile"
+          >
+            🔄
           </button>
           <button
             onClick={handleYeniNot}
@@ -543,11 +589,14 @@ export default function NotlarPage() {
                       try {
                         const yeniKlasor = e.target.value;
                         const klasorObj = klasorler.find(k => k.id === yeniKlasor);
+                        const yeniPaylasimli = klasorObj?.paylasimli ?? false;
                         await updateDoc(doc(db, "notlar", seciliNot.id), {
                           klasorId: yeniKlasor,
-                          paylasimli: klasorObj?.paylasimli ?? false,
+                          paylasimli: yeniPaylasimli,
                           sonDuzenleme: serverTimestamp(),
                         });
+                        setNotlar(prev => prev.map(n => n.id === seciliNot.id ? { ...n, klasorId: yeniKlasor, paylasimli: yeniPaylasimli } : n));
+                        setSeciliNot({ ...seciliNot, klasorId: yeniKlasor, paylasimli: yeniPaylasimli });
                       } catch (err) {
                         Sentry.captureException(err);
                       }
