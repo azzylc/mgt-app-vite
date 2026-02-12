@@ -44,7 +44,7 @@ export default function RouteGuard({ children, requiredPermission }: RouteGuardP
 
   // Sidebar ile aynı mantık: Firestore'da hiçbir rolde tanımlı olmayan yeni menüleri otomatik ekle
   const allFirestoreIds = new Set<string>();
-  Object.values(rol || {}).forEach((ids: any) => {
+  Object.values(rol || {}).forEach((ids: unknown) => {
     if (Array.isArray(ids)) ids.forEach((id: string) => allFirestoreIds.add(id));
   });
   const yeniMenuler = defaultIds.filter(id => !allFirestoreIds.has(id));

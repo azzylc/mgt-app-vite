@@ -101,7 +101,7 @@ const WaIcon = () => (
 );
 
 function PersonelBadge({ label, personelIsim, personeller }: {
-  label: string; personelIsim: string; personeller: any[];
+  label: string; personelIsim: string; personeller: ReturnType<typeof usePersoneller>['personeller'];
 }) {
   const personel = getPersonelByIsim(personelIsim, personeller);
   if (!personelIsim && !personel) return null;

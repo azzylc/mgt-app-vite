@@ -51,7 +51,7 @@ export default function PersonelGorevleri({ personelId }: { personelId: string }
   const handleDurumDegistir = async (gorevId: string, yeniDurum: Gorev['durum']) => {
     try {
       const gorevRef = doc(db, "gorevler", gorevId);
-      const updateData: any = { durum: yeniDurum };
+      const updateData: Record<string, string> = { durum: yeniDurum };
       
       if (yeniDurum === "tamamlandi") {
         updateData.tamamlanmaTarihi = new Date().toISOString();

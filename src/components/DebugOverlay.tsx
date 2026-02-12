@@ -5,7 +5,11 @@ import { useEffect, useState } from 'react';
 const logBuffer: string[] = [];
 
 // Global log function
-(globalThis as any).dlog = function(...args: any[]) {
+declare global {
+  var dlog: (...args: unknown[]) => void;
+}
+
+globalThis.dlog = function(...args: unknown[]) {
   const line = `[${new Date().toISOString().split('T')[1].substring(0, 12)}] ${args.map(a => String(a)).join(' ')}`;
   logBuffer.push(line);
   if (logBuffer.length > 100) logBuffer.shift();

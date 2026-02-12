@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { db } from "../../lib/firebase";
-import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
+import { collection, query, where, onSnapshot, orderBy, Timestamp } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/RoleProvider";
 
@@ -13,7 +13,7 @@ interface GorevItem {
   sonTarih?: string;
   otomatikMi?: boolean;
   atayanAd: string;
-  olusturulmaTarihi: any;
+  olusturulmaTarihi: Timestamp | Date | string;
 }
 
 export default function GorevWidget({ onCount }: { onCount?: (count: number) => void }) {

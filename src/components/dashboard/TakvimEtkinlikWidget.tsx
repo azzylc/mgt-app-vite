@@ -79,7 +79,7 @@ export default function TakvimEtkinlikWidget({ personeller }: Props) {
 
     // Doğum günleri
     const normalized = personeller.map(p => ({
-      ...p, dogumTarihi: p.dogumTarihi || (p as any).dogumGunu || ""
+      ...p, dogumTarihi: p.dogumTarihi || p.dogumGunu || ""
     }));
     getYaklasanDogumGunleri(normalized).forEach(d => {
       items.push({

@@ -117,7 +117,7 @@ export async function checkAndBindDevice(userEmail: string): Promise<DeviceCheck
       message: `Bu hesap "${storedDeviceName}" cihazına bağlı. Farklı bir cihazdan giriş yapamazsınız.\n\nYöneticinizden "Telefon Bağını Kopar" işlemini talep edin.`,
       boundDeviceName: storedDeviceName,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[DeviceBinding] Hata:", error);
     return { status: "error", message: "Cihaz kontrolü sırasında bir hata oluştu." };
   }

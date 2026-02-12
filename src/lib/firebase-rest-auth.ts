@@ -64,7 +64,7 @@ export async function signInWithEmailPasswordREST(
     await setToken(data.idToken);
     
     return data;
-  } catch (error: any) {
+  } catch (error: unknown) {
     Sentry.captureException(error);
     throw error;
   }

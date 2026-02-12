@@ -11,7 +11,7 @@ import Login from './pages/Login'
 import Home from './pages/Home'
 
 // Chunk yükleme hatası olursa sayfayı yenile (deploy sonrası eski cache sorunu)
-function lazyWithRetry(importFn: () => Promise<any>) {
+function lazyWithRetry(importFn: () => Promise<{ default: React.ComponentType }>) {
   return lazy(() =>
     importFn().catch(() => {
       const lastReload = sessionStorage.getItem('chunk_reload');

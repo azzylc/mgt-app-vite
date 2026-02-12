@@ -25,7 +25,7 @@ export async function nativeSignIn(email: string, password: string) {
     // Firebase onAuthStateChanged otomatik tetiklenecek!
     return webResult;
     
-  } catch (error: any) {
+  } catch (error: unknown) {
     Sentry.captureException(error);
     throw error;
   }
