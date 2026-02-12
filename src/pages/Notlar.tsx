@@ -5,7 +5,7 @@ import {
   query, orderBy, where, serverTimestamp, Timestamp
 } from "firebase/firestore";
 import * as Sentry from '@sentry/react';
-import { useAuth } from "../context/RoleProvider";
+import { useRole } from "../context/RoleProvider";
 
 // ─── Tipler ─────────────────────────────────────────────────
 interface NotKlasor {
@@ -71,9 +71,9 @@ function formatTarih(ts: any): string {
 // ANA COMPONENT
 // ═════════════════════════════════════════════════════════════
 export default function NotlarPage() {
-  const user = useAuth();
+  const { user, personelData } = useRole();
   const userEmail = user?.email || "";
-  const userName = user?.displayName || userEmail;
+  const userName = personelData ? `${personelData.ad} ${personelData.soyad}` : (user?.displayName || userEmail);
 
   // ─── State ──────────────────────────────────────────────
   const [klasorler, setKlasorler] = useState<NotKlasor[]>([]);
@@ -176,9 +176,10 @@ export default function NotlarPage() {
 
       // Başlığa focus
       setTimeout(() => baslikRef.current?.focus(), 100);
-    } catch (err) {
+    } catch (err: any) {
+      console.error("Not oluşturma hatası:", err);
       Sentry.captureException(err);
-      alert("Not oluşturulamadı!");
+      alert("Not oluşturulamadı! " + (err?.message || "Firestore rules kontrol edin."));
     }
   };
 
