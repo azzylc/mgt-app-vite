@@ -264,7 +264,7 @@ export default function CalismaSaatleriPage() {
                 <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Mesai Türü *</label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {Object.entries(turler).map(([key, value]) => (
-                    <button key={key} type="button" onClick={() => setFormData({...formData, tur: key as any})} className={`p-4 rounded-lg border-2 transition text-left ${formData.tur === key ? 'border-rose-500 bg-rose-50' : 'border-[#E5E5E5] hover:border-[#E5E5E5]'}`}>
+                    <button key={key} type="button" onClick={() => setFormData({...formData, tur: key as "sabit" | "esnek" | "parttime"})} className={`p-4 rounded-lg border-2 transition text-left ${formData.tur === key ? 'border-rose-500 bg-rose-50' : 'border-[#E5E5E5] hover:border-[#E5E5E5]'}`}>
                       <div className="text-2xl mb-1">{value.icon}</div>
                       <div className="font-medium text-sm">{value.label}</div>
                       <div className="text-xs text-[#8A8A8A] mt-1">{value.desc}</div>
@@ -331,7 +331,7 @@ export default function CalismaSaatleriPage() {
                 <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Mesai Türü *</label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {Object.entries(turler).map(([key, value]) => (
-                    <button key={key} type="button" onClick={() => setFormData({...formData, tur: key as any})} className={`p-4 rounded-lg border-2 transition text-left ${formData.tur === key ? 'border-rose-500 bg-rose-50' : 'border-[#E5E5E5]'}`}>
+                    <button key={key} type="button" onClick={() => setFormData({...formData, tur: key as "sabit" | "esnek" | "parttime"})} className={`p-4 rounded-lg border-2 transition text-left ${formData.tur === key ? 'border-rose-500 bg-rose-50' : 'border-[#E5E5E5]'}`}>
                       <div className="text-2xl mb-1">{value.icon}</div>
                       <div className="font-medium text-sm">{value.label}</div>
                     </button>

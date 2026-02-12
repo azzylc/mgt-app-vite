@@ -6,13 +6,13 @@ import { useAuth } from "../../context/RoleProvider";
 interface DegisiklikKaydi {
   id: string;
   degisiklikYapan: string;
-  degisiklikTarihi: any;
+  degisiklikTarihi: Timestamp | Date;
   degisiklikTuru: string;
   oncekiDeger: string;
   sonrakiDeger: string;
   kullaniciAdi: string;
   konum: string;
-  girisCikisTarih: any;
+  girisCikisTarih: Timestamp | Date | null;
 }
 
 export default function DegisiklikKayitlariPage() {
@@ -142,8 +142,8 @@ export default function DegisiklikKayitlariPage() {
                     </tr>
                   ) : (
                     filteredKayitlar.map((kayit, index) => {
-                      const degisiklikTarihi = kayit.degisiklikTarihi?.toDate?.() ? kayit.degisiklikTarihi.toDate() : new Date();
-                      const girisCikisTarihi = kayit.girisCikisTarih?.toDate?.() ? kayit.girisCikisTarih.toDate() : null;
+                      const degisiklikTarihi = kayit.degisiklikTarihi instanceof Timestamp ? kayit.degisiklikTarihi.toDate() : new Date(kayit.degisiklikTarihi as Date);
+                      const girisCikisTarihi = kayit.girisCikisTarih instanceof Timestamp ? kayit.girisCikisTarih.toDate() : kayit.girisCikisTarih ? new Date(kayit.girisCikisTarih as Date) : null;
                       
                       return (
                         <tr key={kayit.id} className="hover:bg-[#F7F7F7]">

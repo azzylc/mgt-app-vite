@@ -10,7 +10,7 @@ interface AttendanceRecord {
   personelAd: string;
   sicilNo?: string;
   tip: "giris" | "cikis";
-  tarih: any;
+  tarih: Timestamp | Date;
   konumAdi: string;
   konumId: string;
   kayitOrtami: string;
@@ -147,7 +147,7 @@ export default function IslemListesiPage() {
         degisiklikYapan: user.email,
         degisiklikTarihi: Timestamp.now(),
         degisiklikTuru: "Kayıt Silindi",
-        oncekiDeger: `${deleteModal.personelAd} - ${deleteModal.tip} - ${deleteModal.tarih?.toDate?.()?.toLocaleString('tr-TR')}`,
+        oncekiDeger: `${deleteModal.personelAd} - ${deleteModal.tip} - ${deleteModal.tarih instanceof Timestamp ? deleteModal.tarih.toDate().toLocaleString('tr-TR') : new Date(deleteModal.tarih as Date).toLocaleString('tr-TR')}`,
         sonrakiDeger: "",
         kullaniciAdi: deleteModal.personelAd,
         konum: deleteModal.konumAdi,
@@ -175,8 +175,8 @@ export default function IslemListesiPage() {
         degisiklikYapan: user.email,
         degisiklikTarihi: Timestamp.now(),
         degisiklikTuru: "Kayıt Eklendi",
-        oncekiDeger: oncekiKayit ? `${oncekiKayit.tip} - ${oncekiKayit.tarih?.toDate?.()?.toLocaleString('tr-TR')}` : "",
-        sonrakiDeger: `${editModal.tip} - ${editModal.tarih?.toDate?.()?.toLocaleString('tr-TR')}`,
+        oncekiDeger: oncekiKayit ? `${oncekiKayit.tip} - ${oncekiKayit.tarih instanceof Timestamp ? oncekiKayit.tarih.toDate().toLocaleString('tr-TR') : new Date(oncekiKayit.tarih as Date).toLocaleString('tr-TR')}` : "",
+        sonrakiDeger: `${editModal.tip} - ${editModal.tarih instanceof Timestamp ? editModal.tarih.toDate().toLocaleString('tr-TR') : new Date(editModal.tarih as Date).toLocaleString('tr-TR')}`,
         kullaniciAdi: editModal.personelAd,
         konum: editModal.konumAdi,
         girisCikisTarih: editModal.tarih
@@ -274,7 +274,7 @@ export default function IslemListesiPage() {
                   ) : (
                     filteredRecords.map((record, index) => {
                       const personel = getPersonelBilgi(record.personelId);
-                      const tarih = record.tarih?.toDate?.() ? record.tarih.toDate() : new Date();
+                      const tarih = record.tarih instanceof Timestamp ? record.tarih.toDate() : new Date(record.tarih as Date);
                       const konumDisi = record.mesafe && record.mesafe > 100;
                       
                       return (
@@ -397,7 +397,7 @@ export default function IslemListesiPage() {
             <h3 className="text-lg font-bold text-[#2F2F2F] mb-4">Kaydı Sil</h3>
             <p className="text-[#2F2F2F] mb-6">
               <strong>{deleteModal.personelAd}</strong> adlı personelin{" "}
-              <strong>{deleteModal.tarih?.toDate?.()?.toLocaleString('tr-TR')}</strong> tarihli{" "}
+              <strong>{deleteModal.tarih instanceof Timestamp ? deleteModal.tarih.toDate().toLocaleString('tr-TR') : new Date(deleteModal.tarih as Date).toLocaleString('tr-TR')}</strong> tarihli{" "}
               <strong>{deleteModal.tip === "giris" ? "giriş" : "çıkış"}</strong> kaydını silmek istediğinize emin misiniz?
             </p>
 

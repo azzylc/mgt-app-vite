@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from "
 import { doc, getDoc, collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { auth } from "../lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, type User } from "firebase/auth";
 import * as Sentry from '@sentry/react';
 
 interface RolYetkileri {
@@ -24,7 +24,7 @@ export interface PersonelData {
 interface RoleContextType {
   rol: RolYetkileri | null;
   loading: boolean;
-  user: any;
+  user: User | null;
   authReady: boolean;
   personelData: PersonelData | null;
 }
@@ -54,7 +54,7 @@ function getCachedPersonel(): PersonelData | null {
 }
 
 export function RoleProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [authReady, setAuthReady] = useState(false);
   
   // Cache varsa hemen yükle → loading = false → sayfa anında açılır

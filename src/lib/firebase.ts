@@ -1,6 +1,6 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth, initializeAuth, indexedDBLocalPersistence } from "firebase/auth";
-import { initializeFirestore, persistentLocalCache, persistentSingleTabManager } from "firebase/firestore";
+import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
+import { getAuth, initializeAuth, indexedDBLocalPersistence, type Auth } from "firebase/auth";
+import { initializeFirestore, persistentLocalCache, persistentSingleTabManager, type Firestore } from "firebase/firestore";
 import { Capacitor } from "@capacitor/core";
 
 const firebaseConfig = {
@@ -14,9 +14,9 @@ const firebaseConfig = {
 
 // SINGLETON - HMR DUPLICATE ENGELLE
 declare global {
-  var __firebase_app__: any;
-  var __firebase_db__: any;
-  var __firebase_auth__: any;
+  var __firebase_app__: FirebaseApp | undefined;
+  var __firebase_db__: Firestore | undefined;
+  var __firebase_auth__: Auth | undefined;
 }
 
 export const app = globalThis.__firebase_app__ ?? 

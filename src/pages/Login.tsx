@@ -33,7 +33,7 @@ export default function Login() {
       }
 
       navigate('/');
-    } catch (err: any) {
+    } catch (err: unknown) {
       Sentry.captureException(err);
       setError('Giriş başarısız. Lütfen bilgilerinizi kontrol edin.');
     } finally {

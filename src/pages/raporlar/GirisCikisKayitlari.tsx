@@ -9,7 +9,7 @@ interface AttendanceRecord {
   personelEmail: string;
   sicilNo?: string;
   tip: "giris" | "cikis";
-  tarih: any;
+  tarih: Timestamp | Date;
   konumAdi: string;
   konumId: string;
   lat?: number;
@@ -156,7 +156,7 @@ export default function GirisCikisKayitlariPage() {
     
     filteredRecords.forEach((r, index) => {
       const personel = getPersonelBilgi(r.personelId);
-      const tarih = r.tarih?.toDate?.() ? r.tarih.toDate() : new Date();
+      const tarih = r.tarih instanceof Timestamp ? r.tarih.toDate() : new Date(r.tarih as Date);
       const tarihStr = tarih.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' });
       const saatStr = tarih.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       
@@ -173,7 +173,7 @@ export default function GirisCikisKayitlariPage() {
     
     filteredRecords.forEach((r, index) => {
       const personel = getPersonelBilgi(r.personelId);
-      const tarih = r.tarih?.toDate?.() ? r.tarih.toDate() : new Date();
+      const tarih = r.tarih instanceof Timestamp ? r.tarih.toDate() : new Date(r.tarih as Date);
       const tarihStr = tarih.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' });
       const saatStr = tarih.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       
@@ -305,7 +305,7 @@ export default function GirisCikisKayitlariPage() {
                 ) : (
                   filteredRecords.map((record, index) => {
                     const personel = getPersonelBilgi(record.personelId);
-                    const tarih = record.tarih?.toDate?.() ? record.tarih.toDate() : new Date();
+                    const tarih = record.tarih instanceof Timestamp ? record.tarih.toDate() : new Date(record.tarih as Date);
                     
                     return (
                       <tr key={record.id} className="hover:bg-[#F7F7F7]">
