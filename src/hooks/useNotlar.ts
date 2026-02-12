@@ -113,13 +113,11 @@ export function useNotlar() {
     try {
       const kisiselQ = query(
         collection(db, "notlar"),
-        where("olusturan", "==", userEmail),
-        orderBy("sonDuzenleme", "desc")
+        where("olusturan", "==", userEmail)
       );
       const paylasimliQ = query(
         collection(db, "notlar"),
-        where("paylasimli", "==", true),
-        orderBy("sonDuzenleme", "desc")
+        where("paylasimli", "==", true)
       );
 
       const [kisiselSnap, paylasimliSnap] = await Promise.all([
@@ -149,7 +147,13 @@ export function useNotlar() {
         } as Not);
       });
 
-      setNotlar(Array.from(notMap.values()));
+      // Client-side sıralama (sonDuzenleme desc)
+      const sorted = Array.from(notMap.values()).sort((a, b) => {
+        const tA = a.sonDuzenleme instanceof Timestamp ? a.sonDuzenleme.toMillis() : 0;
+        const tB = b.sonDuzenleme instanceof Timestamp ? b.sonDuzenleme.toMillis() : 0;
+        return tB - tA;
+      });
+      setNotlar(sorted);
     } catch (err) {
       console.error("Notlar yüklenirken hata:", err);
       Sentry.captureException(err);
