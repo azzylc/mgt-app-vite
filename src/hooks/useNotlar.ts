@@ -39,9 +39,15 @@ export function useNotlar() {
   const [sonKayit, setSonKayit] = useState<Date | null>(null);
   const [kaydediliyor, setKaydediliyor] = useState(false);
 
-  // Firma state
+  // Firma state — localStorage'dan persist
   const [firmalar, setFirmalar] = useState<{ id: string; firmaAdi: string }[]>([]);
-  const [seciliFirma, setSeciliFirma] = useState<string>("kisisel"); // "kisisel" | firmaId
+  const [seciliFirma, setSeciliFirmaRaw] = useState<string>(() => {
+    try { return localStorage.getItem("notlar_seciliFirma") || "kisisel"; } catch { return "kisisel"; }
+  });
+  const setSeciliFirma = useCallback((val: string) => {
+    setSeciliFirmaRaw(val);
+    try { localStorage.setItem("notlar_seciliFirma", val); } catch {}
+  }, []);
 
   // Klasör modal state
   const [showKlasorModal, setShowKlasorModal] = useState(false);

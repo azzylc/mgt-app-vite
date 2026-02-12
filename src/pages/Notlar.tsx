@@ -21,7 +21,7 @@ export default function NotlarPage() {
       : null;
 
   const firmaLabel = n.seciliFirma === "kisisel"
-    ? "Kişisel"
+    ? "Kişisel / Herkes"
     : n.firmalar.find(f => f.id === n.seciliFirma)?.firmaAdi || "";
 
   const headerLabel =
@@ -107,7 +107,7 @@ export default function NotlarPage() {
                 : "bg-[#F7F7F7] text-[#8A8A8A] hover:bg-[#E5E5E5]"
             }`}
           >
-            🔒 Kişisel
+            🔒 Kişisel / Herkes
           </button>
           {n.firmalar.map(f => (
             <button
