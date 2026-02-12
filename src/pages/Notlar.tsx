@@ -34,16 +34,18 @@ export default function NotlarPage() {
   // Başlık değişikliğini hem lokal hem debounced kaydet
   const handleBaslikChange = (yeniBaslik: string) => {
     if (!n.seciliNot) return;
-    const guncelNot = { ...n.seciliNot, baslik: yeniBaslik };
+    const now = new Date();
+    const guncelNot = { ...n.seciliNot, baslik: yeniBaslik, sonDuzenleme: now };
     n.setSeciliNot(guncelNot);
-    n.setNotlar(prev => prev.map(x => x.id === n.seciliNot!.id ? { ...x, baslik: yeniBaslik } : x));
+    n.setNotlar(prev => prev.map(x => x.id === n.seciliNot!.id ? { ...x, baslik: yeniBaslik, sonDuzenleme: now } : x));
     n.kaydetNot(n.seciliNot, yeniBaslik);
   };
 
   // İçerik değişikliğini hem lokal hem debounced kaydet
   const handleIcerikChange = (icerik: string) => {
     if (!n.seciliNot) return;
-    n.setNotlar(prev => prev.map(x => x.id === n.seciliNot!.id ? { ...x, icerik } : x));
+    const now = new Date();
+    n.setNotlar(prev => prev.map(x => x.id === n.seciliNot!.id ? { ...x, icerik, sonDuzenleme: now } : x));
     n.kaydetNot(n.seciliNot, undefined, icerik);
   };
 

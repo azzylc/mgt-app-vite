@@ -251,8 +251,10 @@ export function useNotlar() {
     sonuc.sort((a, b) => {
       if (a.sabitlendi && !b.sabitlendi) return -1;
       if (!a.sabitlendi && b.sabitlendi) return 1;
-      const tA = a.sonDuzenleme instanceof Timestamp ? a.sonDuzenleme.toMillis() : 0;
-      const tB = b.sonDuzenleme instanceof Timestamp ? b.sonDuzenleme.toMillis() : 0;
+      const tA = a.sonDuzenleme instanceof Timestamp ? a.sonDuzenleme.toMillis()
+        : a.sonDuzenleme instanceof Date ? a.sonDuzenleme.getTime() : 0;
+      const tB = b.sonDuzenleme instanceof Timestamp ? b.sonDuzenleme.toMillis()
+        : b.sonDuzenleme instanceof Date ? b.sonDuzenleme.getTime() : 0;
       return tB - tA;
     });
 
@@ -274,7 +276,9 @@ export function useNotlar() {
   const handleYeniNot = async () => {
     try {
       await flushSave(); // Önceki notu kaydet
-      const paylasimli = seciliKlasor === "paylasimli" ||
+      const isFirmaMode = seciliFirma !== "kisisel";
+      const paylasimli = isFirmaMode ? true :
+        seciliKlasor === "paylasimli" ||
         (seciliKlasor !== "tumu" && seciliKlasor !== "kisisel" && seciliKlasor !== "paylasimli" && seciliKlasor !== "cop" &&
           klasorler.find(k => k.id === seciliKlasor)?.paylasimli === true);
 
