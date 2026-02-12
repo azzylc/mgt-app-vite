@@ -2,7 +2,7 @@ import { onRequest, onCall, HttpsError } from 'firebase-functions/v2/https';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { onDocumentUpdated, onDocumentCreated, onDocumentDeleted } from 'firebase-functions/v2/firestore';
 import { defineSecret } from 'firebase-functions/params';
-import { incrementalSync, fullSync } from './lib/calendar-sync';
+import { incrementalSync, fullSync, FirmaKodu } from './lib/calendar-sync';
 import { adminDb, adminAuth, adminMessaging } from './lib/firestore-admin';
 import { sendPasswordResetEmail } from './lib/email';
 import { uploadFileToDrive } from './lib/drive-upload';
@@ -163,7 +163,7 @@ export const calendarWebhook = onRequest({ region: 'europe-west1', cors: true, s
 
     if (resourceState === 'exists') {
       const syncTokenDoc = await adminDb.collection('system').doc('sync').get();
-      const result = await incrementalSync(syncTokenDoc.data()?.lastSyncToken);
+      const result = await incrementalSync(syncTokenDoc.data()?.lastSyncToken, calendarId.value(), 'GYS' as FirmaKodu);
 
       if (result.success && result.syncToken) {
         await adminDb.collection('system').doc('sync').set({
@@ -173,7 +173,7 @@ export const calendarWebhook = onRequest({ region: 'europe-west1', cors: true, s
         }, { merge: true });
         res.json({ status: 'success', updates: result.updateCount }); return;
       } else if (result.error === 'SYNC_TOKEN_INVALID') {
-        const fullResult = await fullSync();
+        const fullResult = await fullSync(calendarId.value(), 'GYS' as FirmaKodu);
         if (fullResult.syncToken) {
           await adminDb.collection('system').doc('sync').set({
             lastSyncToken: fullResult.syncToken,
@@ -199,7 +199,7 @@ export const fullSyncEndpoint = onRequest({ region: 'europe-west1', cors: true, 
   try {
     process.env.GOOGLE_CALENDAR_ID = calendarId.value();
     console.log('Full sync başlatılıyor... Calendar ID:', calendarId.value());
-    const result = await fullSync();
+    const result = await fullSync(calendarId.value(), 'GYS' as FirmaKodu);
     if (result.syncToken) {
       await adminDb.collection('system').doc('sync').set({
         lastSyncToken: result.syncToken,
@@ -490,17 +490,149 @@ export const hourlyGorevReconcile = onSchedule({
   region: 'europe-west1',
   schedule: 'every 1 hours',
   timeZone: 'Europe/Istanbul',
-}, async (event) => {
-  console.log('Saatlik görev reconcile başladı...');
+}, async () => {
+  console.log('[RECONCILE] Saatlik görev reconcile başladı...');
   try {
     const result = await gorevReconcile();
-    console.log(`Reconcile tamamlandı. Oluşturulan: ${result.olusturulan}, Silinen: ${result.silinen}`);
+    console.log(`[RECONCILE] Tamamlandı. Oluşturulan: ${result.olusturulan}, Silinen: ${result.silinen}`);
     await adminDb.collection('system').doc('gorevKontrol').set({
       lastRun: new Date().toISOString(),
       ...result
     }, { merge: true });
+
+    // Yeni görev oluşturulduysa → 10 birikti eşik kontrolü
+    if (result.olusturulan > 0) {
+      await checkOtomatikGorevThreshold();
+    }
   } catch (error) {
-    console.error('Görev reconcile hatası:', error);
+    console.error('[RECONCILE] Görev reconcile hatası:', error);
+  }
+});
+
+// ============================================
+// HELPER: Otomatik görev eşik kontrolü (10 adet birikti)
+// Kişi ilk kez 10'a ulaşınca tek seferlik bildirim gönderir
+// 10 altına düşerse flag temizlenir, tekrar 10'a çıkınca yeniden bildirim
+// ============================================
+async function checkOtomatikGorevThreshold() {
+  try {
+    const otomatikSnap = await adminDb.collection('gorevler')
+      .where('otomatikMi', '==', true)
+      .where('durum', 'in', ['bekliyor', 'devam-ediyor'])
+      .get();
+
+    // Kişi başına say
+    const perPerson: Record<string, number> = {};
+    for (const doc of otomatikSnap.docs) {
+      const email = doc.data().atanan;
+      if (email && email !== 'Sistem') {
+        perPerson[email] = (perPerson[email] || 0) + 1;
+      }
+    }
+
+    // Daha önce kimlere "birikti" bildirimi gönderildi?
+    const logRef = adminDb.doc('settings/otomatikBildirimLog');
+    const logSnap = await logRef.get();
+    const bildirimLog: Record<string, string> = logSnap.exists ? (logSnap.data() || {}) as Record<string, string> : {};
+
+    let degisti = false;
+
+    for (const [email, count] of Object.entries(perPerson)) {
+      const key = sanitizeEmailForId(email);
+
+      if (count >= 10 && !bildirimLog[key]) {
+        console.log(`[THRESHOLD] ${email}: ${count} otomatik görev birikti → bildirim gönderiliyor`);
+
+        await sendNotification({
+          alici: email,
+          title: '📋 Otomatik Görevler Birikti',
+          body: `${count} adet otomatik göreviniz birikti. Lütfen kontrol edin.`,
+          tip: 'gorev_atama',
+          route: '/gorevler',
+        });
+
+        bildirimLog[key] = new Date().toISOString();
+        degisti = true;
+      } else if (count < 10 && bildirimLog[key]) {
+        delete bildirimLog[key];
+        degisti = true;
+      }
+    }
+
+    // Artık görevi olmayan kişileri temizle
+    for (const key of Object.keys(bildirimLog)) {
+      const halaVar = Object.entries(perPerson).some(
+        ([email]) => sanitizeEmailForId(email) === key
+      );
+      if (!halaVar) {
+        delete bildirimLog[key];
+        degisti = true;
+      }
+    }
+
+    if (degisti) {
+      await logRef.set(bildirimLog);
+    }
+  } catch (error) {
+    console.error('[THRESHOLD] Otomatik görev eşik kontrolü hatası:', error);
+  }
+}
+
+// ============================================
+// 6d. SCHEDULED: Günlük otomatik görev hatırlatma (10:00)
+// 10+ aktif otomatik görevi olan kişilere her sabah hatırlatma
+// ============================================
+export const dailyOtomatikHatirlatma = onSchedule({
+  region: 'europe-west1',
+  schedule: 'every day 10:00',
+  timeZone: 'Europe/Istanbul',
+}, async () => {
+  console.log('[OTOMATİK-HATIRLATMA] Günlük otomatik görev hatırlatma başladı (10:00)...');
+
+  try {
+    const otomatikSnap = await adminDb.collection('gorevler')
+      .where('otomatikMi', '==', true)
+      .where('durum', 'in', ['bekliyor', 'devam-ediyor'])
+      .get();
+
+    const perPerson: Record<string, number> = {};
+    for (const doc of otomatikSnap.docs) {
+      const email = doc.data().atanan;
+      if (email && email !== 'Sistem') {
+        perPerson[email] = (perPerson[email] || 0) + 1;
+      }
+    }
+
+    let gonderilen = 0;
+
+    for (const [email, count] of Object.entries(perPerson)) {
+      if (count >= 10) {
+        console.log(`[OTOMATİK-HATIRLATMA] ${email}: ${count} görev → hatırlatma gönderiliyor`);
+
+        await sendNotification({
+          alici: email,
+          title: '⏰ Otomatik Görev Hatırlatma',
+          body: `${count} adet otomatik göreviniz bekliyor. Lütfen kontrol edin.`,
+          tip: 'gorev_atama',
+          route: '/gorevler',
+        });
+
+        gonderilen++;
+      }
+    }
+
+    console.log(`[OTOMATİK-HATIRLATMA] ${gonderilen} kişiye hatırlatma gönderildi`);
+
+    await adminDb.doc('system/otomatikHatirlatmaLog').set({
+      lastRun: new Date().toISOString(),
+      gonderilen,
+      detay: Object.entries(perPerson)
+        .filter(([, c]) => c >= 10)
+        .map(([e, c]) => ({ email: e, count: c }))
+    });
+  } catch (error) {
+    console.error('[OTOMATİK-HATIRLATMA] Hata:', error);
+    await logSystemError('otomatikHatirlatma', error);
   }
 });
 
@@ -932,6 +1064,9 @@ export const onGorevCreated = onDocumentCreated({
 }, async (event) => {
   const data = event.data?.data();
   if (!data) return;
+
+  // Otomatik görevlere tek tek bildirim gönderme (eşik sistemi var)
+  if (data.otomatikMi) return;
 
   const gorevId = event.params.gorevId;
   const { atayan, atayanAd, baslik, oncelik, ortakMi, atananlar, atanan } = data;
