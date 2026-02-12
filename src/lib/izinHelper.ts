@@ -10,7 +10,7 @@
  * Aynı personel+tarih için mükerrer kayıt varsa tekini alır.
  */
 
-import { collection, getDocs, query, where, onSnapshot, orderBy } from "firebase/firestore";
+import { collection, getDocs, query, where, onSnapshot, orderBy, Timestamp } from "firebase/firestore";
 import { db } from "./firebase";
 import * as Sentry from '@sentry/react';
 
@@ -32,6 +32,33 @@ export interface IzinKaydi {
   durum: string;
   aciklama?: string;
   kaynak: "izinler" | "attendance" | "vardiyaPlan";
+}
+
+/** Firestore izinler collection document */
+interface IzinDoc {
+  durum?: string;
+  baslangic?: string;
+  bitis?: string;
+  personelId?: string;
+  personelAd?: string;
+  izinTuru?: string;
+  aciklama?: string;
+}
+
+/** Firestore attendance haftaTatili document */
+interface AttendanceHaftaTatiliDoc {
+  tarih?: Timestamp | Date;
+  personelId?: string;
+  personelAd?: string;
+  tip?: string;
+}
+
+/** Firestore vardiyaPlan haftaTatili document */
+interface VardiyaPlanHaftaTatiliDoc {
+  tarih?: string;
+  personelId?: string;
+  personelAd?: string;
+  haftaTatili?: boolean;
 }
 
 /**
@@ -62,7 +89,7 @@ export async function tumIzinleriGetir(
 
     const izinSnap = await getDocs(izinQuery);
     izinSnap.forEach(doc => {
-      const d = doc.data();
+      const d = doc.data() as IzinDoc;
       const durum = (d.durum || "").toLowerCase();
       if (durum === "onaylandı" || durum === "onaylandi") {
         const baslangic = d.baslangic || "";
@@ -114,8 +141,8 @@ export async function tumIzinleriGetir(
 
     const haftaSnap = await getDocs(haftaQuery);
     haftaSnap.forEach(doc => {
-      const d = doc.data();
-      const tarih = d.tarih?.toDate ? d.tarih.toDate() : new Date(d.tarih);
+      const d = doc.data() as AttendanceHaftaTatiliDoc;
+      const tarih = d.tarih instanceof Timestamp ? d.tarih.toDate() : new Date(d.tarih as Date);
       const tarihStr = toLocalDateStr(tarih);
       const dedupKey = `${d.personelId}_${tarihStr}`;
       
@@ -161,7 +188,7 @@ export async function tumIzinleriGetir(
 
     const vardiyaSnap = await getDocs(vardiyaQuery);
     vardiyaSnap.forEach(doc => {
-      const d = doc.data();
+      const d = doc.data() as VardiyaPlanHaftaTatiliDoc;
       const tarihStr = d.tarih || "";
       const dedupKey = `${d.personelId}_${tarihStr}`;
       
@@ -313,7 +340,7 @@ export function izinleriDinle(
     (snapshot) => {
       izinlerData = [];
       snapshot.forEach(doc => {
-        const d = doc.data();
+        const d = doc.data() as IzinDoc;
         const durum = (d.durum || "").toLowerCase();
         if (durum === "onaylandı" || durum === "onaylandi") {
           izinlerData.push({
@@ -339,8 +366,8 @@ export function izinleriDinle(
     (haftaSnap) => {
       attendanceData = [];
       haftaSnap.forEach(doc => {
-        const d = doc.data();
-        const tarih = d.tarih?.toDate ? d.tarih.toDate() : new Date(d.tarih);
+        const d = doc.data() as AttendanceHaftaTatiliDoc;
+        const tarih = d.tarih instanceof Timestamp ? d.tarih.toDate() : new Date(d.tarih as Date);
         const tarihStr = toLocalDateStr(tarih);
         attendanceData.push({
           id: doc.id,
@@ -364,7 +391,7 @@ export function izinleriDinle(
     (vardiyaSnap) => {
       vardiyaPlanData = [];
       vardiyaSnap.forEach(doc => {
-        const d = doc.data();
+        const d = doc.data() as VardiyaPlanHaftaTatiliDoc;
         const tarihStr = d.tarih || "";
         vardiyaPlanData.push({
           id: doc.id,

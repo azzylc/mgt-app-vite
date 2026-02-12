@@ -21,7 +21,7 @@ interface MenuItem {
   label: string;
   icon: string;
   path?: string;
-  submenu?: { label: string; path: string }[];
+  submenu?: { label: string; path?: string; type?: string }[];
   mobileOnly?: boolean;
   excludeKurucu?: boolean;
 }
@@ -188,7 +188,7 @@ function SidebarContent({ user }: SidebarProps) {
     return searchParams.toString() === queryString;
   };
 
-  const isParentActive = (submenu: { label: string; path: string }[]) => 
+  const isParentActive = (submenu: { label: string; path?: string; type?: string }[]) => 
     submenu.some(sub => sub.path && isActive(sub.path));
 
   const MenuContent = () => (

@@ -143,7 +143,7 @@ export default function DegisiklikKayitlariPage() {
                   ) : (
                     filteredKayitlar.map((kayit, index) => {
                       const degisiklikTarihi = kayit.degisiklikTarihi instanceof Timestamp ? kayit.degisiklikTarihi.toDate() : new Date(kayit.degisiklikTarihi as Date);
-                      const girisCikisTarihi = kayit.girisCikisTarih instanceof Timestamp ? kayit.girisCikisTarih.toDate() : kayit.girisCikisTarih ? new Date(kayit.girisCikisTarih as Date) : null;
+                      const girisCikisTarihi = kayit.girisCikisTarih instanceof Timestamp ? kayit.girisCikisTarih.toDate() : (kayit.girisCikisTarih instanceof Date ? kayit.girisCikisTarih : null);
                       
                       return (
                         <tr key={kayit.id} className="hover:bg-[#F7F7F7]">

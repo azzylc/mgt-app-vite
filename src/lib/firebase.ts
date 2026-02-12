@@ -1,6 +1,6 @@
-import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
-import { getAuth, initializeAuth, indexedDBLocalPersistence, type Auth } from "firebase/auth";
-import { initializeFirestore, persistentLocalCache, persistentSingleTabManager, type Firestore } from "firebase/firestore";
+import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
+import { getAuth, initializeAuth, indexedDBLocalPersistence, Auth } from "firebase/auth";
+import { initializeFirestore, persistentLocalCache, persistentSingleTabManager, Firestore } from "firebase/firestore";
 import { Capacitor } from "@capacitor/core";
 
 const firebaseConfig = {

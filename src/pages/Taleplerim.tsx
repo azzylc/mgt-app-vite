@@ -312,8 +312,8 @@ export default function Taleplerim() {
     try {
       const mevcutMap: Record<string, string> = {
         "Ad": personelData?.ad || "", "Soyad": personelData?.soyad || "",
-        "Telefon": (personelData as Record<string, string>)?.telefon || "",
-        "Doğum Tarihi": (personelData as Record<string, string>)?.dogumGunu || "",
+        "Telefon": ((personelData as unknown) as Record<string, string>)?.telefon || "",
+        "Doğum Tarihi": ((personelData as unknown) as Record<string, string>)?.dogumGunu || "",
       };
       await addDoc(collection(db, "profilDegisiklikleri"), {
         personelEmail: user?.email, personelAd: fullName,
@@ -403,9 +403,9 @@ export default function Taleplerim() {
     finally { setGonderiliyor(false); }
   };
 
-  const formatTimestamp = (ts: Timestamp | Date | null | undefined) => {
+  const formatTimestamp = (ts: Timestamp | Date | string | null | undefined) => {
     if (!ts) return "";
-    const d = ts instanceof Timestamp ? ts.toDate() : new Date(ts as Date);
+    const d = ts instanceof Timestamp ? ts.toDate() : new Date(ts);
     return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
   };
   const formatDate = (dateStr: string) => {
