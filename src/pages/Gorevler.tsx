@@ -605,6 +605,48 @@ export default function GorevlerPage() {
     }
   };
 
+  const handleKisiEkle = async (email: string) => {
+    if (!detayGorev) return;
+    try {
+      const p = personeller.find(per => per.email === email);
+      const ad = p ? `${p.ad} ${p.soyad}` : email;
+
+      if (detayGorev.ortakMi) {
+        // Ortak görevde: atananlar + atananAdlar array'lerine ekle
+        await updateDoc(doc(db, "gorevler", detayGorev.id), {
+          atananlar: arrayUnion(email),
+          atananAdlar: arrayUnion(ad)
+        });
+        setDetayGorev({
+          ...detayGorev,
+          atananlar: [...(detayGorev.atananlar || []), email],
+          atananAdlar: [...(detayGorev.atananAdlar || []), ad]
+        });
+      } else {
+        // Kişisel görevde: ortakMi'ye çevir, mevcut atanan + yeni kişi
+        const mevcutAtananlar = [detayGorev.atanan, email];
+        const mevcutAdlar = [detayGorev.atananAd, ad];
+        await updateDoc(doc(db, "gorevler", detayGorev.id), {
+          ortakMi: true,
+          atananlar: mevcutAtananlar,
+          atananAdlar: mevcutAdlar,
+          tamamlayanlar: []
+        });
+        setDetayGorev({
+          ...detayGorev,
+          ortakMi: true,
+          atananlar: mevcutAtananlar,
+          atananAdlar: mevcutAdlar,
+          tamamlayanlar: []
+        });
+      }
+      alert(`✅ ${ad} göreve eklendi!`);
+    } catch (error) {
+      Sentry.captureException(error);
+      alert("❌ Kişi eklenemedi!");
+    }
+  };
+
   const handleYaptim = async (gorev: Gorev) => {
     if (!gorev.gelinId || !gorev.gorevTuru) return;
     setYaptimLoading(gorev.id);
@@ -1050,12 +1092,14 @@ export default function GorevlerPage() {
           userEmail={user?.email || ""}
           userRole={userRole}
           gorevSilmeYetkisi={gorevSilmeYetkisi}
+          personeller={personeller}
           yorumLoading={yorumLoading}
           onKapat={() => { setDetayGorev(null); }}
           onTamamla={handleTamamla}
           onSil={handleGorevSil}
           onYorumEkle={handleYorumEkle}
           onDuzenle={handleGorevDuzenle}
+          onKisiEkle={handleKisiEkle}
         />
       )}
     </div>

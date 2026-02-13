@@ -1,17 +1,19 @@
-import { useState } from "react";
-import { Gorev, durumEmojiyon, durumLabel, toDateSafe } from "./types";
+import { useState, useRef, useEffect, useMemo } from "react";
+import { Gorev, Personel, durumEmojiyon, durumLabel, toDateSafe } from "./types";
 
 interface GorevDetayModalProps {
   gorev: Gorev;
   userEmail: string;
   userRole: string;
   gorevSilmeYetkisi: string;
+  personeller: Personel[];
   yorumLoading: boolean;
   onKapat: () => void;
   onTamamla: (gorevId: string) => void;
   onSil: (gorevId: string) => void;
   onYorumEkle: (yorum: string) => void;
   onDuzenle: (data: { baslik: string; aciklama: string; oncelik: Gorev["oncelik"]; sonTarih: string }) => void;
+  onKisiEkle: (email: string) => void;
 }
 
 export default function GorevDetayModal({
@@ -19,12 +21,14 @@ export default function GorevDetayModal({
   userEmail,
   userRole,
   gorevSilmeYetkisi,
+  personeller,
   yorumLoading,
   onKapat,
   onTamamla,
   onSil,
   onYorumEkle,
   onDuzenle,
+  onKisiEkle,
 }: GorevDetayModalProps) {
   const [duzenleMode, setDuzenleMode] = useState(false);
   const [duzenleData, setDuzenleData] = useState({
@@ -36,17 +40,67 @@ export default function GorevDetayModal({
   const [yeniYorum, setYeniYorum] = useState("");
   const [tamamlaAcik, setTamamlaAcik] = useState(false);
   const [tamamlaYorum, setTamamlaYorum] = useState("");
+  const [showKisiEkle, setShowKisiEkle] = useState(false);
+
+  // @mention state
+  const [mentionAktif, setMentionAktif] = useState(false);
+  const [mentionFiltre, setMentionFiltre] = useState("");
+  const [mentionIndex, setMentionIndex] = useState(0);
+  const yorumRef = useRef<HTMLTextAreaElement>(null);
+  const mentionRef = useRef<HTMLDivElement>(null);
 
   const canDelete = (() => {
     if (gorevSilmeYetkisi === "sadece_kurucu") return userRole === "Kurucu";
     if (gorevSilmeYetkisi === "yonetici") return userRole === "Kurucu" || userRole === "Yönetici" || gorev.atayan === userEmail;
-    // "atayan_kurucu" (default)
     return userRole === "Kurucu" || gorev.atayan === userEmail;
   })();
+
+  const canEdit = !gorev.otomatikMi && (gorev.atayan === userEmail || userRole === "Kurucu");
+
+  // Görevdeki kişiler (mention için)
+  const gorevdekiKisiler = useMemo(() => {
+    const emails = new Set<string>();
+    if (gorev.ortakMi && gorev.atananlar) {
+      gorev.atananlar.forEach(e => emails.add(e));
+    } else {
+      if (gorev.atanan) emails.add(gorev.atanan);
+    }
+    if (gorev.atayan && gorev.atayan !== "Sistem") emails.add(gorev.atayan);
+    // userEmail zaten görevde olacak ama yine de mention'da göstermeyelim
+    emails.delete(userEmail);
+    return personeller.filter(p => emails.has(p.email));
+  }, [gorev, personeller, userEmail]);
+
+  // Mention filtreleme
+  const filtrelenmisKisiler = useMemo(() => {
+    if (!mentionFiltre) return gorevdekiKisiler;
+    const lower = mentionFiltre.toLowerCase();
+    return gorevdekiKisiler.filter(p =>
+      `${p.ad} ${p.soyad}`.toLowerCase().includes(lower)
+    );
+  }, [gorevdekiKisiler, mentionFiltre]);
+
+  // Mention dışında tıklayınca kapat
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (mentionRef.current && !mentionRef.current.contains(e.target as Node)) {
+        setMentionAktif(false);
+      }
+    };
+    if (mentionAktif) document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [mentionAktif]);
+
+  // Görevde olmayan kişiler (kişi ekle için)
+  const eklenebilirKisiler = useMemo(() => {
+    const mevcutEmails = new Set(gorev.ortakMi ? (gorev.atananlar || []) : [gorev.atanan]);
+    return personeller.filter(p => p.email && !mevcutEmails.has(p.email));
+  }, [personeller, gorev]);
 
   const handleKapat = () => {
     setDuzenleMode(false);
     setYeniYorum("");
+    setShowKisiEkle(false);
     onKapat();
   };
 
@@ -59,6 +113,7 @@ export default function GorevDetayModal({
     if (!yeniYorum.trim()) return;
     onYorumEkle(yeniYorum.trim());
     setYeniYorum("");
+    setMentionAktif(false);
   };
 
   const handleTamamlaOnayla = () => {
@@ -67,13 +122,91 @@ export default function GorevDetayModal({
       alert("Lütfen ne yaptığınızı yazın!");
       return;
     }
-    // Eğer yeni yorum yazıldıysa onu da ekle
     if (tamamlaYorum.trim()) {
       onYorumEkle(tamamlaYorum.trim());
     }
     onTamamla(gorev.id);
     setTamamlaAcik(false);
     setTamamlaYorum("");
+  };
+
+  // @mention: @ yazınca dropdown aç
+  const handleYorumDegisiklik = (value: string) => {
+    setYeniYorum(value);
+
+    const textarea = yorumRef.current;
+    if (!textarea) return;
+    const cursorPos = textarea.selectionStart;
+    const textBefore = value.slice(0, cursorPos);
+
+    // Son @ karakterini bul
+    const lastAtIndex = textBefore.lastIndexOf("@");
+    if (lastAtIndex >= 0) {
+      const afterAt = textBefore.slice(lastAtIndex + 1);
+      // @ sonrası boşluk yoksa mention aktif
+      if (!afterAt.includes(" ") && !afterAt.includes("\n")) {
+        setMentionAktif(true);
+        setMentionFiltre(afterAt);
+        setMentionIndex(0);
+        return;
+      }
+    }
+    setMentionAktif(false);
+  };
+
+  // Mention seç
+  const handleMentionSec = (p: Personel) => {
+    const textarea = yorumRef.current;
+    if (!textarea) return;
+    const cursorPos = textarea.selectionStart;
+    const textBefore = yeniYorum.slice(0, cursorPos);
+    const textAfter = yeniYorum.slice(cursorPos);
+    const lastAtIndex = textBefore.lastIndexOf("@");
+
+    const isim = `${p.ad} ${p.soyad}`;
+    const newText = textBefore.slice(0, lastAtIndex) + `@${isim} ` + textAfter;
+    setYeniYorum(newText);
+    setMentionAktif(false);
+
+    // Focus geri ver
+    setTimeout(() => {
+      textarea.focus();
+      const newPos = lastAtIndex + isim.length + 2; // @isim + space
+      textarea.setSelectionRange(newPos, newPos);
+    }, 0);
+  };
+
+  // Enter gönder, Shift+Enter yeni satır
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (mentionAktif) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setMentionIndex(i => Math.min(i + 1, filtrelenmisKisiler.length - 1));
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setMentionIndex(i => Math.max(i - 1, 0));
+        return;
+      }
+      if (e.key === "Enter" || e.key === "Tab") {
+        e.preventDefault();
+        if (filtrelenmisKisiler[mentionIndex]) {
+          handleMentionSec(filtrelenmisKisiler[mentionIndex]);
+        }
+        return;
+      }
+      if (e.key === "Escape") {
+        setMentionAktif(false);
+        return;
+      }
+    }
+
+    // Enter gönder (Shift+Enter = yeni satır)
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleYorumGonder();
+    }
   };
 
   return (
@@ -103,7 +236,7 @@ export default function GorevDetayModal({
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            {!gorev.otomatikMi && gorev.atayan === userEmail && !duzenleMode && (
+            {canEdit && !duzenleMode && (
               <button
                 onClick={() => {
                   setDuzenleMode(true);
@@ -170,24 +303,23 @@ export default function GorevDetayModal({
                 </div>
               </div>
               <div className="flex gap-2">
-                <button onClick={handleDuzenleKaydet} className="flex-1 py-2.5 bg-[#8FAF9A] text-white rounded-lg font-semibold hover:bg-[#7A9E86] transition text-sm">
-                  ✅ Kaydet
+                <button onClick={handleDuzenleKaydet} className="px-4 py-2 bg-[#8FAF9A] text-white rounded-lg text-sm font-medium hover:bg-[#7A9E86] transition">
+                  💾 Kaydet
                 </button>
-                <button onClick={() => setDuzenleMode(false)} className="px-4 py-2.5 bg-[#E5E5E5] text-[#2F2F2F] rounded-lg font-medium hover:bg-[#E5E5E5] transition text-sm">
-                  İptal
+                <button onClick={() => setDuzenleMode(false)} className="px-4 py-2 bg-[#F7F7F7] text-[#2F2F2F] rounded-lg text-sm hover:bg-[#E5E5E5] transition">
+                  Vazgeç
                 </button>
               </div>
             </div>
           ) : (
-          /* GÖRÜNTÜLEME MODU */
-          <div className="space-y-3">
+          <div>
             {gorev.aciklama && (
-              <div className="p-3 bg-[#F7F7F7] rounded-lg">
-                <p className="text-xs font-medium text-[#8A8A8A] mb-1">📝 Açıklama</p>
+              <div className="p-3 bg-[#F7F7F7] rounded-lg mb-3">
                 <p className="text-sm text-[#2F2F2F] whitespace-pre-wrap">{gorev.aciklama}</p>
               </div>
             )}
 
+            {/* Bilgi Kartları */}
             <div className="grid grid-cols-2 gap-3 text-sm">
               {!gorev.ortakMi && (
               <div className="p-3 bg-[#F7F7F7] rounded-lg">
@@ -251,12 +383,42 @@ export default function GorevDetayModal({
             </div>
           )}
 
+          {/* ➕ Kişi Ekle Butonu */}
+          {!gorev.otomatikMi && canEdit && (
+            <div>
+              <button
+                onClick={() => setShowKisiEkle(!showKisiEkle)}
+                className="px-3 py-1.5 bg-violet-50 text-violet-700 border border-violet-200 rounded-lg text-xs font-medium hover:bg-violet-100 transition"
+              >
+                {showKisiEkle ? "✕ Kapat" : "➕ Kişi Ekle"}
+              </button>
+
+              {showKisiEkle && (
+                <div className="mt-2 border border-[#E5E5E5] rounded-lg max-h-40 overflow-y-auto">
+                  {eklenebilirKisiler.length === 0 ? (
+                    <p className="text-xs text-[#8A8A8A] p-3 text-center">Eklenecek kişi kalmadı</p>
+                  ) : (
+                    eklenebilirKisiler.map(p => (
+                      <button
+                        key={p.id}
+                        onClick={() => { onKisiEkle(p.email); setShowKisiEkle(false); }}
+                        className="w-full flex items-center gap-2 px-3 py-2 hover:bg-[#EAF2ED] transition text-left text-sm border-b border-[#F7F7F7] last:border-0"
+                      >
+                        <span className="text-[#8FAF9A]">➕</span>
+                        <span className="text-[#2F2F2F]">{p.ad} {p.soyad}</span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Durum Değiştirme */}
           {!gorev.otomatikMi && (
             <div className="flex flex-wrap gap-2 p-3 bg-[#F7F7F7] rounded-xl">
               {gorev.durum !== "tamamlandi" && (
                 <>
-                  {/* Ortak görevde zaten tamamladıysa gösterme */}
                   {gorev.ortakMi && gorev.tamamlayanlar?.includes(userEmail) ? (
                     <span className="text-xs text-[#8FAF9A] font-medium">✅ Siz tamamladınız — diğerleri bekleniyor</span>
                   ) : (
@@ -331,28 +493,61 @@ export default function GorevDetayModal({
                         {(() => { const d = typeof yorum.tarih === 'string' ? new Date(yorum.tarih) : toDateSafe(yorum.tarih) || new Date(); return `${d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })} ${d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}`; })()}
                       </span>
                     </div>
-                    <p className="text-sm text-[#2F2F2F] whitespace-pre-wrap">{yorum.yorum}</p>
+                    <p className="text-sm text-[#2F2F2F] whitespace-pre-wrap">
+                      {yorum.yorum.split(/(@[A-Za-zÇçĞğİıÖöŞşÜü]+ [A-Za-zÇçĞğİıÖöŞşÜü]+)/g).map((part, i) =>
+                        part.startsWith("@") ? (
+                          <span key={i} className="text-[#8FAF9A] font-semibold">{part}</span>
+                        ) : (
+                          <span key={i}>{part}</span>
+                        )
+                      )}
+                    </p>
                   </div>
                 ))
               )}
             </div>
 
-            {/* Yorum Ekle */}
-            <div className="flex gap-2">
-              <textarea
-                value={yeniYorum}
-                onChange={e => setYeniYorum(e.target.value)}
-                placeholder="Yorum veya not ekleyin... (ne yaptınız, nasıl yaptınız)"
-                rows={2}
-                className="flex-1 px-3 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8FAF9A] text-sm resize-none"
-              />
-              <button
-                onClick={handleYorumGonder}
-                disabled={yorumLoading || !yeniYorum.trim()}
-                className="px-4 py-2 bg-[#8FAF9A] text-white rounded-lg text-sm font-medium hover:bg-[#7A9E86] disabled:opacity-50 transition self-end"
-              >
-                {yorumLoading ? "⏳" : "Gönder"}
-              </button>
+            {/* Yorum Ekle — @mention + Enter gönder */}
+            <div className="relative" ref={mentionRef}>
+              <div className="flex gap-2">
+                <div className="flex-1 relative">
+                  <textarea
+                    ref={yorumRef}
+                    value={yeniYorum}
+                    onChange={e => handleYorumDegisiklik(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Yorum yazın... (@ ile etiketle, Enter ile gönder)"
+                    rows={2}
+                    className="w-full px-3 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8FAF9A] text-sm resize-none"
+                  />
+
+                  {/* @mention dropdown */}
+                  {mentionAktif && filtrelenmisKisiler.length > 0 && (
+                    <div className="absolute bottom-full mb-1 left-0 w-full bg-white border border-[#E5E5E5] rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
+                      {filtrelenmisKisiler.map((p, idx) => (
+                        <button
+                          key={p.id}
+                          onClick={() => handleMentionSec(p)}
+                          className={`w-full flex items-center gap-2 px-3 py-2 text-left text-sm transition ${
+                            idx === mentionIndex ? "bg-[#EAF2ED] text-[#8FAF9A]" : "hover:bg-[#F7F7F7] text-[#2F2F2F]"
+                          }`}
+                        >
+                          <span className="text-xs">👤</span>
+                          <span className="font-medium">{p.ad} {p.soyad}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={handleYorumGonder}
+                  disabled={yorumLoading || !yeniYorum.trim()}
+                  className="px-4 py-2 bg-[#8FAF9A] text-white rounded-lg text-sm font-medium hover:bg-[#7A9E86] disabled:opacity-50 transition self-end"
+                >
+                  {yorumLoading ? "⏳" : "Gönder"}
+                </button>
+              </div>
+              <p className="text-[10px] text-[#8A8A8A] mt-1">💡 @ ile kişi etiketle · Enter gönder · Shift+Enter yeni satır</p>
             </div>
           </div>
         </div>
