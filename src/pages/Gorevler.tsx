@@ -235,13 +235,18 @@ export default function GorevlerPage() {
       const gorevId = (e as CustomEvent).detail;
       if (!gorevId) return;
       
-      setTimeout(() => {
-        getDoc(doc(db, "gorevler", gorevId)).then(snap => {
-          if (snap.exists()) {
-            setDetayGorev({ id: snap.id, ...snap.data() } as Gorev);
-          }
-        }).catch(() => {});
-      }, 400);
+      // Önce yerel listede ara (daha hızlı)
+      const yerel = [...gorevlerim, ...verdigimGorevler].find(g => g.id === gorevId);
+      if (yerel) {
+        setDetayGorev(yerel);
+        return;
+      }
+      // Yoksa Firestore'dan çek
+      getDoc(doc(db, "gorevler", gorevId)).then(snap => {
+        if (snap.exists()) {
+          setDetayGorev({ id: snap.id, ...snap.data() } as Gorev);
+        }
+      }).catch(() => {});
     };
 
     // İlk açılışta hash'ten kontrol
@@ -261,7 +266,7 @@ export default function GorevlerPage() {
 
     window.addEventListener("openGorevDetay", handleOpenGorev);
     return () => window.removeEventListener("openGorevDetay", handleOpenGorev);
-  }, []);
+  }, [gorevlerim, verdigimGorevler]);
 
   // Görev atama yetkisi var mı? (useEffect'ten önce tanımlanmalı)
   const gorevAtayabilir = useMemo(() => {

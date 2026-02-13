@@ -50,19 +50,29 @@ export default function BildirimPaneli({ userEmail, kompakt = false }: BildirimP
 
   // ─── Bildirime tıkla ─────────────────────────────────────────
   const bildirimTikla = useCallback(
-    async (b: Bildirim) => {
+    (b: Bildirim) => {
+      // Okundu yap — fire & forget, beklemiyoruz
       if (!b.okundu) {
-        await okunduYap(b.id);
+        okunduYap(b.id);
       }
       setAcik(false);
+
       if (b.route) {
-        // Görev deep link — gorevId varsa custom event fire et
         const gorevIdMatch = b.route.match(/gorevId=([^&]+)/);
         if (gorevIdMatch) {
-          navigate("/gorevler");
-          setTimeout(() => {
-            window.dispatchEvent(new CustomEvent("openGorevDetay", { detail: gorevIdMatch[1] }));
-          }, 100);
+          const gorevId = gorevIdMatch[1];
+          const zatenGorevlerde = window.location.hash.includes("/gorevler");
+
+          if (zatenGorevlerde) {
+            // Zaten görevler sayfasında — direkt event fire et
+            window.dispatchEvent(new CustomEvent("openGorevDetay", { detail: gorevId }));
+          } else {
+            // Başka sayfada — önce navigate et, sonra event
+            navigate("/gorevler");
+            setTimeout(() => {
+              window.dispatchEvent(new CustomEvent("openGorevDetay", { detail: gorevId }));
+            }, 300);
+          }
         } else {
           navigate(b.route);
         }
