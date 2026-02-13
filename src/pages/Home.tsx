@@ -195,6 +195,8 @@ export default function Home() {
       // REF gelinlerden ücret alınmaz
       const isim = (g.isim || '').toLocaleLowerCase('tr-TR');
       if (isim.includes(' ref ') || isim.includes(' ref-') || isim.endsWith(' ref')) return false;
+      // İPTAL edilen gelinlerden ücret alınmaz
+      if (isim.includes('iptal')) return false;
       return true;
     }),
     [filteredGelinler, bugun]
