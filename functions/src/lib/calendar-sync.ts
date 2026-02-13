@@ -144,13 +144,77 @@ function parsePersonelWithMap(title: string, kisaltmaMap: Record<string, string>
     const t = s.replace(/[-–—]/g, '').trim().toUpperCase();
     return kisaltmaMap[t] || t;
   };
-  const parts = title.split('✅'), isim = (parts[0] || '').trim(), pRaw = (parts[1] || '').trim();
+  const parts = title.split('✅');
+  const rawIsim = (parts[0] || '').trim();
+  const pRaw = (parts[1] || '').trim();
   const odemeTamamlandi = pRaw.includes('--');
+
+  // ✅'den önceki kısmı analiz et
+  const upper = rawIsim.toUpperCase();
+
+  // FRLNC tespiti
+  const freelance = upper.includes('FRLNC');
+
+  // ÇT (çift türban) tespiti
+  const ciftTurban = /\bÇT\b/.test(upper);
+
+  // PRV (prova) tespiti
+  const prova = upper.includes('PRV');
+
+  // Hizmet türü tespiti (Makyaj/Türban keyword'leri ✅'den ÖNCE)
+  const hasMakyaj = upper.includes('MAKYAJ');
+  const hasTurban = upper.includes('TÜRBAN') || upper.includes('TURBAN');
+  // "Makyaj + Türban" veya "Makyaj + Türban PRV" → tam paket, keyword var ama ikisi de var
+  // Sadece "Makyaj" → sadece makyaj
+  // Sadece "Türban" → sadece türban
+  // Hiçbiri yoksa → tam paket (makyaj + türban)
+  let hizmetTuru: 'makyaj+turban' | 'makyaj' | 'turban' = 'makyaj+turban';
+  if (hasMakyaj && !hasTurban) hizmetTuru = 'makyaj';
+  else if (hasTurban && !hasMakyaj) hizmetTuru = 'turban';
+
+  // İsim temizle — Makyaj, Türban, FRLNC, ÇT, PRV, +, ekstra boşlukları kaldır
+  let isim = rawIsim
+    .replace(/\bFRLNC\b/gi, '')
+    .replace(/\bÇT\b/g, '')
+    .replace(/\bPRV\b/gi, '')
+    .replace(/\bMakyaj\b/gi, '')
+    .replace(/\bTürban\b/gi, '')
+    .replace(/\bTurban\b/gi, '')
+    .replace(/\+/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+  // Sondaki tire/boşlukları temizle
+  isim = isim.replace(/[-–—\s]+$/, '').trim();
+
+  // ✅'den sonraki kısaltmalardan personel belirle
   const pStr = pRaw.replace(/[-–—]/g, ' ').trim();
   let makyaj = '', turban = '';
-  if (pStr.includes('&')) { const k = pStr.split('&').map(x => temizle(x.trim())); makyaj = k[0] || ''; turban = k[1] || ''; }
-  else if (pStr) { makyaj = turban = temizle(pStr); }
-  return { isim, makyaj, turban, odemeTamamlandi };
+
+  // İPTAL tespiti
+  const iptal = pStr.toUpperCase().includes('İPTAL') || pStr.toUpperCase().includes('IPTAL');
+
+  if (!iptal) {
+    if (pStr.includes('&')) {
+      const k = pStr.split('&').map(x => temizle(x.trim()));
+      makyaj = k[0] || '';
+      turban = k[1] || '';
+    } else if (pStr) {
+      const kisi = temizle(pStr);
+      if (hizmetTuru === 'makyaj+turban') {
+        // Tek kişi hem makyaj hem türban yapmış
+        makyaj = kisi;
+        turban = kisi;
+      } else if (hizmetTuru === 'makyaj') {
+        makyaj = kisi;
+        turban = 'Sadece Makyaj';
+      } else if (hizmetTuru === 'turban') {
+        turban = kisi;
+        makyaj = 'Sadece Türban';
+      }
+    }
+  }
+
+  return { isim, makyaj, turban, odemeTamamlandi, hizmetTuru, freelance, ciftTurban, prova, iptal };
 }
 
 type CalendarEvent = calendar_v3.Schema$Event;
@@ -163,6 +227,12 @@ interface GelinData {
   malzemeListesiGonderildi: boolean; paylasimIzni: boolean; yorumIstesinMi: string;
   yorumIstendiMi: boolean; gelinNotu: string; dekontGorseli: string; updatedAt: string;
   firma: FirmaKodu;
+  // Hizmet detayları
+  hizmetTuru: 'makyaj+turban' | 'makyaj' | 'turban';
+  freelance: boolean;
+  ciftTurban: boolean;
+  prova: boolean;
+  iptal: boolean;
   // TCB fields
   sacModeliBelirlendi: boolean; provaTermini: string; provaTarihiBelirlendi: boolean; etkinlikTuru: string;
   // MG fields
@@ -181,8 +251,9 @@ function eventToGelin(event: CalendarEvent, firma: FirmaKodu, kisaltmaMap: Recor
   const endDateStr = event.end?.dateTime || event.end?.date;
   const endDate = endDateStr ? new Date(endDateStr) : date;
   const parsedData = parseDescription(description);
-  const { isim, makyaj, turban, odemeTamamlandi } = parsePersonelWithMap(title, kisaltmaMap);
-  const kontrolDate = new Date(date.getTime() + 5 * 60 * 60 * 1000);
+  const { isim, makyaj, turban, odemeTamamlandi, hizmetTuru, freelance, ciftTurban, prova, iptal } = parsePersonelWithMap(title, kisaltmaMap);
+  // kontrolZamani = bitiş saati + 1 saat
+  const kontrolDate = new Date(endDate.getTime() + 1 * 60 * 60 * 1000);
 
   return {
     id: event.id!, isim,
@@ -190,7 +261,7 @@ function eventToGelin(event: CalendarEvent, firma: FirmaKodu, kisaltmaMap: Recor
     saat: date.toLocaleTimeString('en-GB', { timeZone: 'Europe/Istanbul', hour: '2-digit', minute: '2-digit', hour12: false }),
     bitisSaati: endDate.toLocaleTimeString('en-GB', { timeZone: 'Europe/Istanbul', hour: '2-digit', minute: '2-digit', hour12: false }),
     ucret: parsedData.ucret as number, kapora: parsedData.kapora as number, kalan: parsedData.kalan as number,
-    makyaj, turban, odemeTamamlandi,
+    makyaj, turban, odemeTamamlandi, hizmetTuru, freelance, ciftTurban, prova, iptal,
     kontrolZamani: kontrolDate.toISOString(),
     kinaGunu: parsedData.kinaGunu as string, telefon: parsedData.telefon as string,
     esiTelefon: parsedData.esiTelefon as string, instagram: parsedData.instagram as string,

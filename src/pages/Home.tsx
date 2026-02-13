@@ -40,6 +40,7 @@ interface Gelin {
   telefon?: string;
   ucretYazildi?: boolean;
   odemeTamamlandi?: boolean;
+  iptal?: boolean;
   firma?: string;
   bitisSaati?: string;
 }
@@ -193,13 +194,11 @@ export default function Home() {
   const islenmemisUcretler = useMemo(() => 
     filteredGelinler.filter(g => {
       if (g.tarih > bugun || g.ucretYazildi !== false) return false;
-      // Ödeme tamamlananları (-- işareti) gösterme
-      if (g.odemeTamamlandi) return false;
+      // İPTAL edilen gelinlerden ücret alınmaz
+      if (g.iptal || g.odemeTamamlandi) return false;
       // REF gelinlerden ücret alınmaz
       const isim = (g.isim || '').toLocaleLowerCase('tr-TR');
       if (isim.includes(' ref ') || isim.includes(' ref-') || isim.endsWith(' ref')) return false;
-      // İPTAL edilen gelinlerden ücret alınmaz
-      if (isim.includes('iptal')) return false;
       return true;
     }),
     [filteredGelinler, bugun]
