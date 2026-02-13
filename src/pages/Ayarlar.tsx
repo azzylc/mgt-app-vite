@@ -11,7 +11,6 @@ import {
   query, 
   orderBy,
   serverTimestamp,
-  Timestamp,
   where,
   getDocs,
   arrayRemove,
@@ -40,8 +39,8 @@ interface GrupEtiketi {
   grupAdi: string;
   renk: string;
   sira: number;
-  olusturulmaTarihi: Timestamp | Date;
-  sonDuzenleme: Timestamp | Date;
+  olusturulmaTarihi: any;
+  sonDuzenleme: any;
 }
 
 interface Firma {
@@ -50,8 +49,8 @@ interface Firma {
   kisaltma: string;
   renk: string;
   aktif: boolean;
-  olusturulmaTarihi: Timestamp | Date;
-  sonDuzenleme: Timestamp | Date;
+  olusturulmaTarihi: any;
+  sonDuzenleme: any;
 }
 
 interface GenelAyarlar {
@@ -67,7 +66,7 @@ interface GenelAyarlar {
   kisiselQr: boolean;
   girisCikisErisim: boolean;
   gorevAtamaYetkisi: string;
-  gorevGorunurluk: string;
+  gorevSilmeYetkisi: string;
   yonetimPinHash?: string;
 }
 
@@ -153,7 +152,7 @@ export default function AyarlarPage() {
     kisiselQr: true,
     girisCikisErisim: true,
     gorevAtamaYetkisi: "herkes",
-    gorevGorunurluk: "sadece_ilgililer"
+    gorevSilmeYetkisi: "atayan_kurucu"
   });
   const [genelAyarlarLoading, setGenelAyarlarLoading] = useState(false);
 
@@ -177,8 +176,7 @@ export default function AyarlarPage() {
     { id: 2, label: "🏢 Firmalar", icon: "🏢" },
     { id: 3, label: "📍 Konumlar", icon: "📍" },
     { id: 4, label: "🏷️ Grup Etiketleri", icon: "🏷️" },
-    { id: 5, label: "🔔 Bildirim Ayarları", icon: "🔔" },
-    { id: 6, label: "✅ Görev Ayarları", icon: "✅" }
+    { id: 5, label: "🔔 Bildirim Ayarları", icon: "🔔" }
   ];
 
   // Auth
@@ -219,7 +217,7 @@ export default function AyarlarPage() {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const data = docSnap.data() as GenelAyarlar;
-          setGenelAyarlar({ ...data, gorevGorunurluk: data.gorevGorunurluk || "sadece_ilgililer" });
+          setGenelAyarlar(data);
           setPinMevcut(!!data.yonetimPinHash);
         }
       } catch (error) {
@@ -274,7 +272,7 @@ export default function AyarlarPage() {
           // 1. Eksik sira/renk field'larını düzelt
           snapshot.docs.forEach((docSnap, index) => {
             const docData = docSnap.data();
-            const updates: Record<string, unknown> = {};
+            const updates: any = {};
             
             if (docData.sira === undefined || docData.sira === null) {
               updates.sira = index;
@@ -809,6 +807,111 @@ export default function AyarlarPage() {
                 </div>
               </div>
 
+              {/* Görev Ayarları */}
+              <div className="bg-white rounded-lg p-6 shadow-sm border border-[#E5E5E5]">
+                <h2 className="text-lg font-bold text-[#2F2F2F] mb-4 flex items-center gap-2">
+                  <span>✅</span> Görev Ayarları
+                </h2>
+                <div>
+                  <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Görev atama yetkisi</label>
+                  <p className="text-xs text-[#8A8A8A] mb-3">Kim kimlere görev atayabilir?</p>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-[#F7F7F7]" style={{ borderColor: genelAyarlar.gorevAtamaYetkisi === "herkes" ? "#f43f5e" : "#e7e5e4" }}>
+                      <input 
+                        type="radio" 
+                        name="gorevAtamaYetkisi"
+                        value="herkes"
+                        checked={genelAyarlar.gorevAtamaYetkisi === "herkes"}
+                        onChange={(e) => setGenelAyarlar({...genelAyarlar, gorevAtamaYetkisi: e.target.value})}
+                        className="w-4 h-4 text-rose-600" 
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-[#2F2F2F]">🌐 Herkes herkese</p>
+                        <p className="text-xs text-[#8A8A8A]">Tüm personel birbirine görev atayabilir</p>
+                      </div>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-[#F7F7F7]" style={{ borderColor: genelAyarlar.gorevAtamaYetkisi === "yonetici" ? "#f43f5e" : "#e7e5e4" }}>
+                      <input 
+                        type="radio" 
+                        name="gorevAtamaYetkisi"
+                        value="yonetici"
+                        checked={genelAyarlar.gorevAtamaYetkisi === "yonetici"}
+                        onChange={(e) => setGenelAyarlar({...genelAyarlar, gorevAtamaYetkisi: e.target.value})}
+                        className="w-4 h-4 text-rose-600" 
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-[#2F2F2F]">👔 Sadece Kurucu & Yönetici</p>
+                        <p className="text-xs text-[#8A8A8A]">Personel görev atayamaz, sadece alır</p>
+                      </div>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-[#F7F7F7]" style={{ borderColor: genelAyarlar.gorevAtamaYetkisi === "firma" ? "#f43f5e" : "#e7e5e4" }}>
+                      <input 
+                        type="radio" 
+                        name="gorevAtamaYetkisi"
+                        value="firma"
+                        checked={genelAyarlar.gorevAtamaYetkisi === "firma"}
+                        onChange={(e) => setGenelAyarlar({...genelAyarlar, gorevAtamaYetkisi: e.target.value})}
+                        className="w-4 h-4 text-rose-600" 
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-[#2F2F2F]">🏢 Firma bazlı</p>
+                        <p className="text-xs text-[#8A8A8A]">Kurucu herkese, Yönetici kendi firmasına atayabilir. Personel atayamaz.</p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Görev silme yetkisi */}
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Görev silme yetkisi</label>
+                  <p className="text-xs text-[#8A8A8A] mb-3">Kim görev silebilir?</p>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-[#F7F7F7]" style={{ borderColor: genelAyarlar.gorevSilmeYetkisi === "atayan_kurucu" ? "#f43f5e" : "#e7e5e4" }}>
+                      <input 
+                        type="radio" 
+                        name="gorevSilmeYetkisi"
+                        value="atayan_kurucu"
+                        checked={genelAyarlar.gorevSilmeYetkisi === "atayan_kurucu"}
+                        onChange={(e) => setGenelAyarlar({...genelAyarlar, gorevSilmeYetkisi: e.target.value})}
+                        className="w-4 h-4 text-rose-600" 
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-[#2F2F2F]">👤 Görevi veren + Kurucu</p>
+                        <p className="text-xs text-[#8A8A8A]">Sadece görevi atayan kişi ve Kurucular silebilir</p>
+                      </div>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-[#F7F7F7]" style={{ borderColor: genelAyarlar.gorevSilmeYetkisi === "yonetici" ? "#f43f5e" : "#e7e5e4" }}>
+                      <input 
+                        type="radio" 
+                        name="gorevSilmeYetkisi"
+                        value="yonetici"
+                        checked={genelAyarlar.gorevSilmeYetkisi === "yonetici"}
+                        onChange={(e) => setGenelAyarlar({...genelAyarlar, gorevSilmeYetkisi: e.target.value})}
+                        className="w-4 h-4 text-rose-600" 
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-[#2F2F2F]">👔 Görevi veren + Kurucu & Yönetici</p>
+                        <p className="text-xs text-[#8A8A8A]">Görevi atayan, Kurucular ve Yöneticiler silebilir</p>
+                      </div>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-[#F7F7F7]" style={{ borderColor: genelAyarlar.gorevSilmeYetkisi === "sadece_kurucu" ? "#f43f5e" : "#e7e5e4" }}>
+                      <input 
+                        type="radio" 
+                        name="gorevSilmeYetkisi"
+                        value="sadece_kurucu"
+                        checked={genelAyarlar.gorevSilmeYetkisi === "sadece_kurucu"}
+                        onChange={(e) => setGenelAyarlar({...genelAyarlar, gorevSilmeYetkisi: e.target.value})}
+                        className="w-4 h-4 text-rose-600" 
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-[#2F2F2F]">🔒 Sadece Kurucu</p>
+                        <p className="text-xs text-[#8A8A8A]">Hiç kimse silemez, sadece Kurucular silebilir</p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
               {/* Yönetim Paneli PIN */}
               <div className="bg-white rounded-lg p-6 shadow-sm border border-[#E5E5E5]">
                 <h2 className="text-lg font-bold text-[#2F2F2F] mb-2 flex items-center gap-2">
@@ -1142,7 +1245,7 @@ export default function AyarlarPage() {
                             </span>
                           </td>
                           <td className="px-6 py-4 text-sm text-[#2F2F2F]">
-                            {grup.olusturulmaTarihi ? (grup.olusturulmaTarihi instanceof Timestamp ? grup.olusturulmaTarihi.toDate() : new Date(grup.olusturulmaTarihi)).toLocaleDateString('tr-TR') : '-'}
+                            {grup.olusturulmaTarihi ? new Date(grup.olusturulmaTarihi.seconds * 1000).toLocaleDateString('tr-TR') : '-'}
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex gap-2">
@@ -1161,113 +1264,6 @@ export default function AyarlarPage() {
 
           {/* TAB 5: Bildirim Ayarları */}
           {activeTab === 5 && <BildirimAyarlari />}
-
-          {/* TAB 6: Görev Ayarları */}
-          {activeTab === 6 && (
-            <div className="space-y-6">
-              {/* Görev Atama Yetkisi */}
-              <div className="bg-white rounded-lg p-6 shadow-sm border border-[#E5E5E5]">
-                <h2 className="text-lg font-bold text-[#2F2F2F] mb-4 flex items-center gap-2">
-                  <span>📝</span> Görev Atama Yetkisi
-                </h2>
-                <p className="text-xs text-[#8A8A8A] mb-3">Kim kimlere görev atayabilir?</p>
-                <div className="space-y-2">
-                  <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-[#F7F7F7]" style={{ borderColor: genelAyarlar.gorevAtamaYetkisi === "herkes" ? "#f43f5e" : "#e7e5e4" }}>
-                    <input type="radio" name="gorevAtamaYetkisi" value="herkes"
-                      checked={genelAyarlar.gorevAtamaYetkisi === "herkes"}
-                      onChange={(e) => setGenelAyarlar({...genelAyarlar, gorevAtamaYetkisi: e.target.value})}
-                      className="w-4 h-4 text-rose-600" />
-                    <div>
-                      <p className="text-sm font-medium text-[#2F2F2F]">🌐 Herkes herkese</p>
-                      <p className="text-xs text-[#8A8A8A]">Tüm personel birbirine görev atayabilir</p>
-                    </div>
-                  </label>
-                  <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-[#F7F7F7]" style={{ borderColor: genelAyarlar.gorevAtamaYetkisi === "yonetici" ? "#f43f5e" : "#e7e5e4" }}>
-                    <input type="radio" name="gorevAtamaYetkisi" value="yonetici"
-                      checked={genelAyarlar.gorevAtamaYetkisi === "yonetici"}
-                      onChange={(e) => setGenelAyarlar({...genelAyarlar, gorevAtamaYetkisi: e.target.value})}
-                      className="w-4 h-4 text-rose-600" />
-                    <div>
-                      <p className="text-sm font-medium text-[#2F2F2F]">👔 Sadece Kurucu & Yönetici</p>
-                      <p className="text-xs text-[#8A8A8A]">Personel görev atayamaz, sadece alır</p>
-                    </div>
-                  </label>
-                  <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-[#F7F7F7]" style={{ borderColor: genelAyarlar.gorevAtamaYetkisi === "firma" ? "#f43f5e" : "#e7e5e4" }}>
-                    <input type="radio" name="gorevAtamaYetkisi" value="firma"
-                      checked={genelAyarlar.gorevAtamaYetkisi === "firma"}
-                      onChange={(e) => setGenelAyarlar({...genelAyarlar, gorevAtamaYetkisi: e.target.value})}
-                      className="w-4 h-4 text-rose-600" />
-                    <div>
-                      <p className="text-sm font-medium text-[#2F2F2F]">🏢 Firma bazlı</p>
-                      <p className="text-xs text-[#8A8A8A]">Kurucu herkese, Yönetici kendi firmasına atayabilir. Personel atayamaz.</p>
-                    </div>
-                  </label>
-                </div>
-              </div>
-
-              {/* Görev Görünürlüğü */}
-              <div className="bg-white rounded-lg p-6 shadow-sm border border-[#E5E5E5]">
-                <h2 className="text-lg font-bold text-[#2F2F2F] mb-4 flex items-center gap-2">
-                  <span>👁️</span> Görev Görünürlüğü
-                </h2>
-                <p className="text-xs text-[#8A8A8A] mb-3">Görevleri kimler görebilsin?</p>
-                <div className="space-y-2">
-                  <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-[#F7F7F7]" style={{ borderColor: genelAyarlar.gorevGorunurluk === "sadece_ilgililer" ? "#f43f5e" : "#e7e5e4" }}>
-                    <input type="radio" name="gorevGorunurluk" value="sadece_ilgililer"
-                      checked={genelAyarlar.gorevGorunurluk === "sadece_ilgililer"}
-                      onChange={(e) => setGenelAyarlar({...genelAyarlar, gorevGorunurluk: e.target.value})}
-                      className="w-4 h-4 text-rose-600" />
-                    <div>
-                      <p className="text-sm font-medium text-[#2F2F2F]">🔒 Sadece ilgililer</p>
-                      <p className="text-xs text-[#8A8A8A]">Görevi sadece veren ve alan kişiler görebilir</p>
-                    </div>
-                  </label>
-                  <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-[#F7F7F7]" style={{ borderColor: genelAyarlar.gorevGorunurluk === "sadece_kurucular" ? "#f43f5e" : "#e7e5e4" }}>
-                    <input type="radio" name="gorevGorunurluk" value="sadece_kurucular"
-                      checked={genelAyarlar.gorevGorunurluk === "sadece_kurucular"}
-                      onChange={(e) => setGenelAyarlar({...genelAyarlar, gorevGorunurluk: e.target.value})}
-                      className="w-4 h-4 text-rose-600" />
-                    <div>
-                      <p className="text-sm font-medium text-[#2F2F2F]">👑 Sadece Kurucular da görsün</p>
-                      <p className="text-xs text-[#8A8A8A]">İlgililer + Kurucular tüm görevleri görebilir. Yöneticiler göremez.</p>
-                    </div>
-                  </label>
-                  <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-[#F7F7F7]" style={{ borderColor: genelAyarlar.gorevGorunurluk === "yoneticiler" ? "#f43f5e" : "#e7e5e4" }}>
-                    <input type="radio" name="gorevGorunurluk" value="yoneticiler"
-                      checked={genelAyarlar.gorevGorunurluk === "yoneticiler"}
-                      onChange={(e) => setGenelAyarlar({...genelAyarlar, gorevGorunurluk: e.target.value})}
-                      className="w-4 h-4 text-rose-600" />
-                    <div>
-                      <p className="text-sm font-medium text-[#2F2F2F]">👔 Kurucu & Yöneticiler de görsün</p>
-                      <p className="text-xs text-[#8A8A8A]">İlgililer + Kurucu ve Yöneticiler tüm görevleri görebilir</p>
-                    </div>
-                  </label>
-                </div>
-              </div>
-
-              {/* Kaydet Butonu */}
-              <div className="flex justify-end">
-                <button
-                  onClick={async () => {
-                    setGenelAyarlarLoading(true);
-                    try {
-                      await setDoc(doc(db, "settings", "general"), genelAyarlar);
-                      alert("Görev ayarları kaydedildi!");
-                    } catch (error) {
-                      Sentry.captureException(error);
-                      alert("Kaydetme hatası!");
-                    } finally {
-                      setGenelAyarlarLoading(false);
-                    }
-                  }}
-                  disabled={genelAyarlarLoading}
-                  className="px-6 py-3 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition font-medium disabled:opacity-50"
-                >
-                  {genelAyarlarLoading ? "Kaydediliyor..." : "💾 Görev Ayarlarını Kaydet"}
-                </button>
-              </div>
-            </div>
-          )}
         </main>
       </div>
 

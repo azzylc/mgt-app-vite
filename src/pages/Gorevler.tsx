@@ -55,6 +55,7 @@ export default function GorevlerPage() {
   const [senkronizeLoading, setSenkronizeLoading] = useState<string | null>(null);
   const [gorevAtamaYetkisi, setGorevAtamaYetkisi] = useState<string>("herkes");
   const [gorevGorunurluk, setGorevGorunurluk] = useState<string>("sadece_ilgililer");
+  const [gorevSilmeYetkisi, setGorevSilmeYetkisi] = useState<string>("atayan_kurucu");
 
   // Firma state
   const [tumFirmalar, setTumFirmalar] = useState<{ id: string; kisaltma: string }[]>([]);
@@ -128,6 +129,7 @@ export default function GorevlerPage() {
         if (genelDoc.exists()) {
           setGorevAtamaYetkisi(genelDoc.data().gorevAtamaYetkisi || "herkes");
           setGorevGorunurluk(genelDoc.data().gorevGorunurluk || "sadece_ilgililer");
+          setGorevSilmeYetkisi(genelDoc.data().gorevSilmeYetkisi || "atayan_kurucu");
         }
       } catch (error) {
         Sentry.captureException(error);
@@ -997,6 +999,7 @@ export default function GorevlerPage() {
                   aktifSekme={aktifSekme}
                   userEmail={user?.email || ""}
                   userRole={userRole}
+                  gorevSilmeYetkisi={gorevSilmeYetkisi}
                   tamamlaGorevId={tamamlaGorevId}
                   tamamlaYorum={tamamlaYorum}
                   yaptimLoading={yaptimLoading}
@@ -1046,6 +1049,7 @@ export default function GorevlerPage() {
           gorev={detayGorev}
           userEmail={user?.email || ""}
           userRole={userRole}
+          gorevSilmeYetkisi={gorevSilmeYetkisi}
           yorumLoading={yorumLoading}
           onKapat={() => { setDetayGorev(null); }}
           onTamamla={handleTamamla}

@@ -5,6 +5,7 @@ interface GorevDetayModalProps {
   gorev: Gorev;
   userEmail: string;
   userRole: string;
+  gorevSilmeYetkisi: string;
   yorumLoading: boolean;
   onKapat: () => void;
   onTamamla: (gorevId: string) => void;
@@ -17,6 +18,7 @@ export default function GorevDetayModal({
   gorev,
   userEmail,
   userRole,
+  gorevSilmeYetkisi,
   yorumLoading,
   onKapat,
   onTamamla,
@@ -35,7 +37,12 @@ export default function GorevDetayModal({
   const [tamamlaAcik, setTamamlaAcik] = useState(false);
   const [tamamlaYorum, setTamamlaYorum] = useState("");
 
-  const canDelete = userRole === "Kurucu" || userRole === "Yönetici" || gorev.atayan === userEmail;
+  const canDelete = (() => {
+    if (gorevSilmeYetkisi === "sadece_kurucu") return userRole === "Kurucu";
+    if (gorevSilmeYetkisi === "yonetici") return userRole === "Kurucu" || userRole === "Yönetici" || gorev.atayan === userEmail;
+    // "atayan_kurucu" (default)
+    return userRole === "Kurucu" || gorev.atayan === userEmail;
+  })();
 
   const handleKapat = () => {
     setDuzenleMode(false);
