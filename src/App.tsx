@@ -4,6 +4,7 @@ import * as Sentry from '@sentry/react'
 import { RoleProvider } from './context/RoleProvider'
 import AuthLayout from './layouts/AuthLayout'
 import RouteGuard from './components/RouteGuard'
+import PageErrorBoundary from './components/PageErrorBoundary'
 import PinGuard from './components/PinGuard'
 
 // Login ve Home hemen yüklenir (ilk açılışta lazım)
@@ -11,7 +12,7 @@ import Login from './pages/Login'
 import Home from './pages/Home'
 
 // Chunk yükleme hatası olursa sayfayı yenile (deploy sonrası eski cache sorunu)
-function lazyWithRetry(importFn: () => Promise<{ default: React.ComponentType }>) {
+function lazyWithRetry(importFn: () => Promise<any>) {
   return lazy(() =>
     importFn().catch(() => {
       const lastReload = sessionStorage.getItem('chunk_reload');
@@ -87,6 +88,17 @@ function PageLoader() {
   )
 }
 
+// RouteGuard + PageErrorBoundary birleşik wrapper
+function GuardedRoute({ permission, title, children }: { permission: string; title: string; children: React.ReactNode }) {
+  return (
+    <RouteGuard requiredPermission={permission}>
+      <PageErrorBoundary fallbackTitle={title}>
+        {children}
+      </PageErrorBoundary>
+    </RouteGuard>
+  );
+}
+
 export default function App() {
   return (
     <Sentry.ErrorBoundary fallback={<div className="min-h-screen flex items-center justify-center bg-white"><div className="text-center"><p className="text-2xl mb-2">😵</p><p className="text-[#2F2F2F] font-medium">Bir hata oluştu</p><button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 bg-rose-500 text-white rounded-lg text-sm">Yenile</button></div></div>}>
@@ -99,53 +111,52 @@ export default function App() {
               
               {/* Protected routes */}
               <Route element={<AuthLayout />}>
-                <Route path="/" element={<Home />} />
-                <Route path="/profilim" element={<Suspense fallback={<PageLoader />}><Profilim /></Suspense>} />
-                <Route path="/taleplerim" element={<Suspense fallback={<PageLoader />}><Taleplerim /></Suspense>} />
-                <Route path="/talepler-merkezi" element={<Suspense fallback={<PageLoader />}><TaleplerMerkezi /></Suspense>} />
+                <Route path="/" element={<PageErrorBoundary fallbackTitle="Ana Sayfa"><Home /></PageErrorBoundary>} />
+                <Route path="/profilim" element={<Suspense fallback={<PageLoader />}><PageErrorBoundary fallbackTitle="Profilim"><Profilim /></PageErrorBoundary></Suspense>} />
+                <Route path="/taleplerim" element={<Suspense fallback={<PageLoader />}><PageErrorBoundary fallbackTitle="Taleplerim"><Taleplerim /></PageErrorBoundary></Suspense>} />
+                <Route path="/talepler-merkezi" element={<Suspense fallback={<PageLoader />}><PageErrorBoundary fallbackTitle="Talepler Merkezi"><TaleplerMerkezi /></PageErrorBoundary></Suspense>} />
                 
                 {/* Ana sayfalar */}
-                <Route path="/takvim" element={<RouteGuard requiredPermission="takvim"><Takvim /></RouteGuard>} />
-                <Route path="/personel" element={<RouteGuard requiredPermission="personel"><Personel /></RouteGuard>} />
-                <Route path="/gorevler" element={<RouteGuard requiredPermission="gorevler"><Gorevler /></RouteGuard>} />
-                <Route path="/ayarlar" element={<RouteGuard requiredPermission="ayarlar"><Ayarlar /></RouteGuard>} />
-                <Route path="/duyurular" element={<RouteGuard requiredPermission="duyurular"><Duyurular /></RouteGuard>} />
-                <Route path="/notlar" element={<RouteGuard requiredPermission="notlar"><Notlar /></RouteGuard>} />
-                <Route path="/vardiya" element={<RouteGuard requiredPermission="personel"><Vardiya /></RouteGuard>} />
-                <Route path="/qr-giris" element={<RouteGuard requiredPermission="qr-giris"><QRGiris /></RouteGuard>} />
-                <Route path="/calisma-saatleri" element={<RouteGuard requiredPermission="personel"><CalismaSaatleri /></RouteGuard>} />
+                <Route path="/takvim" element={<GuardedRoute permission="takvim" title="Takvim"><Takvim /></GuardedRoute>} />
+                <Route path="/personel" element={<GuardedRoute permission="personel" title="Personel"><Personel /></GuardedRoute>} />
+                <Route path="/gorevler" element={<GuardedRoute permission="gorevler" title="Görevler"><Gorevler /></GuardedRoute>} />
+                <Route path="/ayarlar" element={<GuardedRoute permission="ayarlar" title="Ayarlar"><Ayarlar /></GuardedRoute>} />
+                <Route path="/duyurular" element={<GuardedRoute permission="duyurular" title="Duyurular"><Duyurular /></GuardedRoute>} />
+                <Route path="/notlar" element={<GuardedRoute permission="notlar" title="Notlar"><Notlar /></GuardedRoute>} />
+                <Route path="/vardiya" element={<GuardedRoute permission="personel" title="Vardiya"><Vardiya /></GuardedRoute>} />
+                <Route path="/qr-giris" element={<GuardedRoute permission="qr-giris" title="QR Giriş"><QRGiris /></GuardedRoute>} />
+                <Route path="/calisma-saatleri" element={<GuardedRoute permission="personel" title="Çalışma Saatleri"><CalismaSaatleri /></GuardedRoute>} />
                 
                 {/* İzinler routes */}
-                <Route path="/izinler" element={<RouteGuard requiredPermission="izinler"><Izinler /></RouteGuard>} />
-                <Route path="/izinler/ekle" element={<RouteGuard requiredPermission="izinler"><IzinlerEkle /></RouteGuard>} />
-                <Route path="/izinler/talepler" element={<RouteGuard requiredPermission="izinler"><IzinlerTalepler /></RouteGuard>} />
-                <Route path="/izinler/haklar" element={<RouteGuard requiredPermission="izinler"><IzinlerHaklar /></RouteGuard>} />
-                <Route path="/izinler/hakki-ekle" element={<RouteGuard requiredPermission="izinler"><IzinlerHakkiEkle /></RouteGuard>} />
-                <Route path="/izinler/hakki-duzenle" element={<RouteGuard requiredPermission="izinler"><IzinlerHakkiDuzenle /></RouteGuard>} />
-                <Route path="/izinler/degisiklikler" element={<RouteGuard requiredPermission="izinler"><IzinlerDegisiklikler /></RouteGuard>} />
-                <Route path="/izinler/toplamlar" element={<RouteGuard requiredPermission="izinler"><IzinlerToplamlar /></RouteGuard>} />
-                <Route path="/izinler/:id/duzenle" element={<RouteGuard requiredPermission="izinler"><IzinlerDuzenle /></RouteGuard>} />
+                <Route path="/izinler" element={<GuardedRoute permission="izinler" title="İzinler"><Izinler /></GuardedRoute>} />
+                <Route path="/izinler/ekle" element={<GuardedRoute permission="izinler" title="İzin Ekle"><IzinlerEkle /></GuardedRoute>} />
+                <Route path="/izinler/talepler" element={<GuardedRoute permission="izinler" title="İzin Talepleri"><IzinlerTalepler /></GuardedRoute>} />
+                <Route path="/izinler/haklar" element={<GuardedRoute permission="izinler" title="İzin Hakları"><IzinlerHaklar /></GuardedRoute>} />
+                <Route path="/izinler/hakki-ekle" element={<GuardedRoute permission="izinler" title="İzin Hakkı Ekle"><IzinlerHakkiEkle /></GuardedRoute>} />
+                <Route path="/izinler/hakki-duzenle" element={<GuardedRoute permission="izinler" title="İzin Hakkı Düzenle"><IzinlerHakkiDuzenle /></GuardedRoute>} />
+                <Route path="/izinler/degisiklikler" element={<GuardedRoute permission="izinler" title="İzin Değişiklikleri"><IzinlerDegisiklikler /></GuardedRoute>} />
+                <Route path="/izinler/toplamlar" element={<GuardedRoute permission="izinler" title="İzin Toplamları"><IzinlerToplamlar /></GuardedRoute>} />
+                <Route path="/izinler/:id/duzenle" element={<GuardedRoute permission="izinler" title="İzin Düzenle"><IzinlerDuzenle /></GuardedRoute>} />
                 
                 {/* Giriş-Çıkış routes */}
-                <Route path="/giris-cikis" element={<RouteGuard requiredPermission="giris-cikis-islemleri"><GirisCikis /></RouteGuard>} />
-                <Route path="/giris-cikis/puantaj" element={<RouteGuard requiredPermission="giris-cikis-islemleri"><GirisCikisPuantaj /></RouteGuard>} />
-                <Route path="/giris-cikis/islem-ekle" element={<RouteGuard requiredPermission="giris-cikis-islemleri"><GirisCikisIslemEkle /></RouteGuard>} />
-                <Route path="/giris-cikis/islem-listesi" element={<RouteGuard requiredPermission="giris-cikis-islemleri"><GirisCikisIslemListesi /></RouteGuard>} />
-                <Route path="/giris-cikis/toplu-islem-ekle" element={<RouteGuard requiredPermission="giris-cikis-islemleri"><GirisCikisTopluIslemEkle /></RouteGuard>} />
-                <Route path="/giris-cikis/vardiya-plani" element={<RouteGuard requiredPermission="giris-cikis-islemleri"><GirisCikisVardiyaPlani /></RouteGuard>} />
-                <Route path="/giris-cikis/degisiklik-kayitlari" element={<RouteGuard requiredPermission="giris-cikis-islemleri"><GirisCikisDegisiklikKayitlari /></RouteGuard>} />
+                <Route path="/giris-cikis" element={<GuardedRoute permission="giris-cikis-islemleri" title="Giriş Çıkış"><GirisCikis /></GuardedRoute>} />
+                <Route path="/giris-cikis/puantaj" element={<GuardedRoute permission="giris-cikis-islemleri" title="Puantaj"><GirisCikisPuantaj /></GuardedRoute>} />
+                <Route path="/giris-cikis/islem-ekle" element={<GuardedRoute permission="giris-cikis-islemleri" title="İşlem Ekle"><GirisCikisIslemEkle /></GuardedRoute>} />
+                <Route path="/giris-cikis/islem-listesi" element={<GuardedRoute permission="giris-cikis-islemleri" title="İşlem Listesi"><GirisCikisIslemListesi /></GuardedRoute>} />
+                <Route path="/giris-cikis/toplu-islem-ekle" element={<GuardedRoute permission="giris-cikis-islemleri" title="Toplu İşlem"><GirisCikisTopluIslemEkle /></GuardedRoute>} />
+                <Route path="/giris-cikis/vardiya-plani" element={<GuardedRoute permission="giris-cikis-islemleri" title="Vardiya Planı"><GirisCikisVardiyaPlani /></GuardedRoute>} />
+                <Route path="/giris-cikis/degisiklik-kayitlari" element={<GuardedRoute permission="giris-cikis-islemleri" title="Değişiklik Kayıtları"><GirisCikisDegisiklikKayitlari /></GuardedRoute>} />
                 
                 {/* Raporlar routes */}
-                <Route path="/raporlar" element={<RouteGuard requiredPermission="raporlar"><Raporlar /></RouteGuard>} />
-
-                <Route path="/raporlar/haftalik-calisma-sureleri" element={<RouteGuard requiredPermission="raporlar"><RaporlarHaftalikCalismaSureleri /></RouteGuard>} />
-                <Route path="/raporlar/gec-kalanlar" element={<RouteGuard requiredPermission="raporlar"><RaporlarGecKalanlar /></RouteGuard>} />
-                <Route path="/raporlar/gelmeyenler" element={<RouteGuard requiredPermission="raporlar"><RaporlarGelmeyenler /></RouteGuard>} />
-                <Route path="/raporlar/giris-cikis-kayitlari" element={<RouteGuard requiredPermission="raporlar"><RaporlarGirisCikisKayitlari /></RouteGuard>} />
+                <Route path="/raporlar" element={<GuardedRoute permission="raporlar" title="Raporlar"><Raporlar /></GuardedRoute>} />
+                <Route path="/raporlar/haftalik-calisma-sureleri" element={<GuardedRoute permission="raporlar" title="Haftalık Çalışma"><RaporlarHaftalikCalismaSureleri /></GuardedRoute>} />
+                <Route path="/raporlar/gec-kalanlar" element={<GuardedRoute permission="raporlar" title="Geç Kalanlar"><RaporlarGecKalanlar /></GuardedRoute>} />
+                <Route path="/raporlar/gelmeyenler" element={<GuardedRoute permission="raporlar" title="Gelmeyenler"><RaporlarGelmeyenler /></GuardedRoute>} />
+                <Route path="/raporlar/giris-cikis-kayitlari" element={<GuardedRoute permission="raporlar" title="Giriş Çıkış Kayıtları"><RaporlarGirisCikisKayitlari /></GuardedRoute>} />
                 
                 {/* Yönetim routes */}
-                <Route path="/yonetim" element={<RouteGuard requiredPermission="yonetim-paneli"><PinGuard><Yonetim /></PinGuard></RouteGuard>} />
-                <Route path="/yonetim/compare" element={<RouteGuard requiredPermission="yonetim-paneli"><PinGuard><YonetimCompare /></PinGuard></RouteGuard>} />
+                <Route path="/yonetim" element={<GuardedRoute permission="yonetim-paneli" title="Yönetim"><PinGuard><Yonetim /></PinGuard></GuardedRoute>} />
+                <Route path="/yonetim/compare" element={<GuardedRoute permission="yonetim-paneli" title="Karşılaştır"><PinGuard><YonetimCompare /></PinGuard></GuardedRoute>} />
               </Route>
 
               {/* Catch all */}

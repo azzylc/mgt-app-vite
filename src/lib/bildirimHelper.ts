@@ -12,6 +12,7 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { db } from "./firebase";
+import * as Sentry from "@sentry/react";
 
 // ─── Bildirim Tipleri ───────────────────────────────────────────
 export type BildirimTip =
@@ -71,7 +72,7 @@ export async function bildirimYaz(params: BildirimYazParams): Promise<void> {
       gonderenAd: params.gonderenAd || null,
     });
   } catch (err) {
-    console.warn("[Bildirim] Yazılamadı:", err);
+    Sentry.captureException(err, { tags: { module: "bildirim", action: "yaz" } });
   }
 }
 
@@ -101,7 +102,7 @@ export async function bildirimYazCoklu(
   try {
     await batch.commit();
   } catch (err) {
-    console.warn("[Bildirim] Toplu yazılamadı:", err);
+    Sentry.captureException(err, { tags: { module: "bildirim", action: "yazCoklu" } });
   }
 }
 
@@ -112,7 +113,7 @@ export async function bildirimOkunduYap(bildirimId: string): Promise<void> {
       okundu: true,
     });
   } catch (err) {
-    console.warn("[Bildirim] Okundu yapılamadı:", err);
+    Sentry.captureException(err, { tags: { module: "bildirim", action: "okundu" } });
   }
 }
 
@@ -134,7 +135,7 @@ export async function bildirimTumunuOkunduYap(userEmail: string): Promise<void> 
     });
     await batch.commit();
   } catch (err) {
-    console.warn("[Bildirim] Toplu okundu yapılamadı:", err);
+    Sentry.captureException(err, { tags: { module: "bildirim", action: "topluOkundu" } });
   }
 }
 
@@ -143,7 +144,7 @@ export async function bildirimSil(bildirimId: string): Promise<void> {
   try {
     await deleteDoc(doc(db, "bildirimler", bildirimId));
   } catch (err) {
-    console.warn("[Bildirim] Silinemedi:", err);
+    Sentry.captureException(err, { tags: { module: "bildirim", action: "sil" } });
   }
 }
 
