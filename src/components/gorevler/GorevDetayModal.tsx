@@ -48,6 +48,7 @@ export default function GorevDetayModal({
   const [mentionIndex, setMentionIndex] = useState(0);
   const yorumRef = useRef<HTMLTextAreaElement>(null);
   const mentionRef = useRef<HTMLDivElement>(null);
+  const yorumListeRef = useRef<HTMLDivElement>(null);
 
   const canDelete = (() => {
     if (gorevSilmeYetkisi === "sadece_kurucu") return userRole === "Kurucu";
@@ -90,6 +91,13 @@ export default function GorevDetayModal({
     if (mentionAktif) document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, [mentionAktif]);
+
+  // Yorum eklenince otomatik en alta scroll
+  useEffect(() => {
+    if (yorumListeRef.current) {
+      yorumListeRef.current.scrollTop = yorumListeRef.current.scrollHeight;
+    }
+  }, [gorev.yorumlar?.length]);
 
   // Görevde olmayan kişiler (kişi ekle için)
   const eklenebilirKisiler = useMemo(() => {
@@ -481,7 +489,7 @@ export default function GorevDetayModal({
             </h3>
 
             {/* Yorum Listesi */}
-            <div className="space-y-3 mb-4 max-h-60 overflow-y-auto">
+            <div ref={yorumListeRef} className="space-y-3 mb-4 max-h-60 overflow-y-auto">
               {(!gorev.yorumlar || gorev.yorumlar.length === 0) ? (
                 <p className="text-sm text-[#8A8A8A] text-center py-4">Henüz yorum yok. İlk yorumu ekleyin!</p>
               ) : (
