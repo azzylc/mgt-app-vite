@@ -1,9 +1,17 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { db } from "../lib/firebase";
 import { collection, doc, getDocs, updateDoc, addDoc, serverTimestamp, query, where, onSnapshot, orderBy, Timestamp } from "firebase/firestore";
+import Cropper from "react-easy-crop";
 import * as Sentry from '@sentry/react';
 import { useAuth, usePersonelData } from "../context/RoleProvider";
 import { bildirimYazCoklu } from "../lib/bildirimHelper";
+
+interface CropArea {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
 
 interface ProfilBilgileri {
   ad: string;
@@ -39,6 +47,13 @@ export default function Profilim() {
   const [loading, setLoading] = useState(true);
   const [fotoYukleniyor, setFotoYukleniyor] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Crop states
+  const [showCropModal, setShowCropModal] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState("");
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<CropArea | null>(null);
 
   const [showTalepModal, setShowTalepModal] = useState(false);
   const [talepSatirlar, setTalepSatirlar] = useState([{ alan: "", yeniDeger: "" }]);
@@ -81,49 +96,93 @@ export default function Profilim() {
 
   const handleFotoSec = () => fileInputRef.current?.click();
 
-  const handleFotoYukle = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !personelDocId) return;
-    if (!file.type.startsWith("image/")) { alert("Lütfen bir fotoğraf seçin!"); return; }
-    if (file.size > 2 * 1024 * 1024) { alert("Fotoğraf 2MB'dan küçük olmalı!"); return; }
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert("Lütfen sadece fotoğraf dosyası seçin!");
+      e.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setCropImageSrc(reader.result as string);
+      setShowCropModal(true);
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const onCropComplete = useCallback((_croppedArea: CropArea, croppedAreaPixels: CropArea) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
+
+  const createImage = (url: string): Promise<HTMLImageElement> =>
+    new Promise((resolve, reject) => {
+      const image = new Image();
+      image.addEventListener('load', () => resolve(image));
+      image.addEventListener('error', (error) => reject(error));
+      image.src = url;
+    });
+
+  const getCroppedImg = async (imageSrc: string, pixelCrop: CropArea): Promise<string> => {
+    const image = await createImage(imageSrc);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = 512;
+    canvas.height = 512;
+
+    if (ctx) {
+      ctx.drawImage(
+        image,
+        pixelCrop.x,
+        pixelCrop.y,
+        pixelCrop.width,
+        pixelCrop.height,
+        0,
+        0,
+        512,
+        512
+      );
+    }
+
+    return canvas.toDataURL('image/jpeg', 0.85);
+  };
+
+  const handleCropSave = async () => {
+    if (!cropImageSrc || !croppedAreaPixels || !personelDocId) return;
 
     setFotoYukleniyor(true);
     try {
-      // 1. Dosyayı base64'e çevir
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (ev) => resolve(ev.target?.result as string);
-        reader.onerror = () => reject(new Error("Dosya okunamadı"));
-        reader.readAsDataURL(file);
-      });
-
-      // 2. Resmi yeniden boyutlandır
-      const resized = await new Promise<string>((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => {
-          try {
-            const canvas = document.createElement("canvas");
-            const MAX = 200;
-            let w = img.width, h = img.height;
-            if (w > h) { h = (h / w) * MAX; w = MAX; } else { w = (w / h) * MAX; h = MAX; }
-            canvas.width = w; canvas.height = h;
-            canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
-            resolve(canvas.toDataURL("image/jpeg", 0.8));
-          } catch (err) { reject(err); }
-        };
-        img.onerror = () => reject(new Error("Resim yüklenemedi"));
-        img.src = base64;
-      });
-
-      // 3. Firestore'a kaydet
-      await updateDoc(doc(db, "personnel", personelDocId), { foto: resized });
-      setProfil(prev => prev ? { ...prev, foto: resized } : null);
+      const croppedImage = await getCroppedImg(cropImageSrc, croppedAreaPixels);
+      await updateDoc(doc(db, "personnel", personelDocId), { foto: croppedImage });
+      setProfil(prev => prev ? { ...prev, foto: croppedImage } : null);
+      setShowCropModal(false);
+      setCropImageSrc("");
     } catch (err) {
       console.error("Fotoğraf yükleme hatası:", err);
       Sentry.captureException(err);
       alert("Fotoğraf yüklenemedi! Hata: " + String(err));
     } finally {
       setFotoYukleniyor(false);
+    }
+  };
+
+  const handleFotoSil = async () => {
+    if (!personelDocId) return;
+    if (!confirm("Profil fotoğrafını silmek istediğinize emin misiniz?")) return;
+
+    try {
+      await updateDoc(doc(db, "personnel", personelDocId), { foto: "" });
+      setProfil(prev => prev ? { ...prev, foto: "" } : null);
+    } catch (err) {
+      Sentry.captureException(err);
+      alert("Fotoğraf silinemedi!");
     }
   };
 
@@ -235,7 +294,7 @@ export default function Profilim() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </button>
-              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFotoYukle} />
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFotoChange} />
             </div>
 
             <h2 className="text-xl font-bold text-[#2F2F2F] tracking-tight">{profil.ad} {profil.soyad}</h2>
@@ -266,10 +325,18 @@ export default function Profilim() {
               </div>
             </div>
 
-            <button onClick={handleFotoSec} disabled={fotoYukleniyor}
-              className="mt-4 text-xs text-[#8A8A8A] hover:text-[#2F2F2F] underline underline-offset-2 decoration-[#E5E5E5] hover:decoration-[#8A8A8A] transition">
-              {fotoYukleniyor ? "Yükleniyor..." : profil.foto ? "Fotoğrafı değiştir" : "Fotoğraf yükle"}
-            </button>
+            <div className="flex items-center gap-3 mt-4">
+              <button onClick={handleFotoSec} disabled={fotoYukleniyor}
+                className="text-xs text-[#8A8A8A] hover:text-[#2F2F2F] underline underline-offset-2 decoration-[#E5E5E5] hover:decoration-[#8A8A8A] transition">
+                {fotoYukleniyor ? "Yükleniyor..." : profil.foto ? "Fotoğrafı değiştir" : "Fotoğraf yükle"}
+              </button>
+              {profil.foto && (
+                <button onClick={handleFotoSil}
+                  className="text-xs text-[#D96C6C] hover:text-[#D96C6C]/80 underline underline-offset-2 decoration-[#D96C6C]/30 hover:decoration-[#D96C6C] transition">
+                  Sil
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -394,6 +461,76 @@ export default function Profilim() {
                 <button onClick={() => setShowTalepModal(false)}
                   className="flex-1 bg-[#F7F7F7] hover:bg-[#E5E5E5] text-[#2F2F2F] py-2.5 rounded-xl text-sm font-medium transition">İptal</button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* === CROP MODAL === */}
+      {showCropModal && (
+        <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg">
+            <div className="px-5 py-4 border-b border-[#E5E5E5] flex items-center justify-between">
+              <h3 className="font-bold text-[#2F2F2F]">✂️ Fotoğraf Kırp</h3>
+              <button
+                onClick={() => { setShowCropModal(false); setCropImageSrc(""); }}
+                className="text-[#8A8A8A] hover:text-[#2F2F2F] text-2xl transition"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="p-5">
+              <div className="relative bg-[#2F2F2F] rounded-xl overflow-hidden" style={{ height: '350px' }}>
+                <Cropper
+                  image={cropImageSrc}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={1}
+                  onCropChange={setCrop}
+                  onZoomChange={setZoom}
+                  onCropComplete={onCropComplete}
+                  style={{
+                    containerStyle: {
+                      width: '100%',
+                      height: '100%',
+                      backgroundColor: '#000'
+                    }
+                  }}
+                />
+              </div>
+
+              <div className="mt-4">
+                <label className="text-xs font-medium text-[#8A8A8A] mb-1.5 block">🔍 Zoom: {zoom.toFixed(1)}x</label>
+                <input
+                  type="range"
+                  min={1}
+                  max={3}
+                  step={0.1}
+                  value={zoom}
+                  onChange={(e) => setZoom(Number(e.target.value))}
+                  className="w-full"
+                />
+              </div>
+
+              <p className="text-[11px] text-[#8A8A8A] mt-3">
+                💡 Fotoğrafı sürükleyerek konumlandırın, slider ile zoom yapın.
+              </p>
+            </div>
+
+            <div className="px-5 py-4 border-t border-[#E5E5E5] flex gap-3">
+              <button
+                onClick={() => { setShowCropModal(false); setCropImageSrc(""); }}
+                className="flex-1 py-2.5 border border-[#E5E5E5] rounded-xl text-sm text-[#2F2F2F] hover:bg-[#F7F7F7] transition font-medium"
+              >
+                İptal
+              </button>
+              <button
+                onClick={handleCropSave}
+                disabled={fotoYukleniyor}
+                className="flex-1 py-2.5 bg-[#2F2F2F] text-white rounded-xl text-sm hover:bg-[#2F2F2F]/90 transition font-medium disabled:opacity-50"
+              >
+                {fotoYukleniyor ? "Kaydediliyor..." : "✅ Kaydet"}
+              </button>
             </div>
           </div>
         </div>
