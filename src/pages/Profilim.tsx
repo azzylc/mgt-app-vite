@@ -89,27 +89,41 @@ export default function Profilim() {
 
     setFotoYukleniyor(true);
     try {
-      const reader = new FileReader();
-      reader.onload = async (ev) => {
-        const base64 = ev.target?.result as string;
+      // 1. Dosyayı base64'e çevir
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => resolve(ev.target?.result as string);
+        reader.onerror = () => reject(new Error("Dosya okunamadı"));
+        reader.readAsDataURL(file);
+      });
+
+      // 2. Resmi yeniden boyutlandır
+      const resized = await new Promise<string>((resolve, reject) => {
         const img = new Image();
-        img.onload = async () => {
-          const canvas = document.createElement("canvas");
-          const MAX = 200;
-          let w = img.width, h = img.height;
-          if (w > h) { h = (h / w) * MAX; w = MAX; } else { w = (w / h) * MAX; h = MAX; }
-          canvas.width = w; canvas.height = h;
-          canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
-          const resized = canvas.toDataURL("image/jpeg", 0.8);
-          await updateDoc(doc(db, "personnel", personelDocId), { foto: resized });
-          setProfil(prev => prev ? { ...prev, foto: resized } : null);
-          setFotoYukleniyor(false);
+        img.onload = () => {
+          try {
+            const canvas = document.createElement("canvas");
+            const MAX = 200;
+            let w = img.width, h = img.height;
+            if (w > h) { h = (h / w) * MAX; w = MAX; } else { w = (w / h) * MAX; h = MAX; }
+            canvas.width = w; canvas.height = h;
+            canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL("image/jpeg", 0.8));
+          } catch (err) { reject(err); }
         };
+        img.onerror = () => reject(new Error("Resim yüklenemedi"));
         img.src = base64;
-      };
-      reader.readAsDataURL(file);
+      });
+
+      // 3. Firestore'a kaydet
+      await updateDoc(doc(db, "personnel", personelDocId), { foto: resized });
+      setProfil(prev => prev ? { ...prev, foto: resized } : null);
     } catch (err) {
-      Sentry.captureException(err); alert("Fotoğraf yüklenemedi!"); setFotoYukleniyor(false);
+      console.error("Fotoğraf yükleme hatası:", err);
+      Sentry.captureException(err);
+      alert("Fotoğraf yüklenemedi! Hata: " + String(err));
+    } finally {
+      setFotoYukleniyor(false);
     }
   };
 
