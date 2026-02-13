@@ -236,7 +236,7 @@ export default function GorevlerPage() {
       if (!gorevId) return;
       
       // Önce yerel listede ara (daha hızlı)
-      const yerel = [...gorevlerim, ...verdigimGorevler].find(g => g.id === gorevId);
+      const yerel = [...birlesikGorevler, ...verdigimGorevler].find(g => g.id === gorevId);
       if (yerel) {
         setDetayGorev(yerel);
         return;
@@ -266,7 +266,7 @@ export default function GorevlerPage() {
 
     window.addEventListener("openGorevDetay", handleOpenGorev);
     return () => window.removeEventListener("openGorevDetay", handleOpenGorev);
-  }, [gorevlerim, verdigimGorevler]);
+  }, [birlesikGorevler, verdigimGorevler]);
 
   // Görev atama yetkisi var mı? (useEffect'ten önce tanımlanmalı)
   const gorevAtayabilir = useMemo(() => {
