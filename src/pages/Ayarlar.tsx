@@ -1232,8 +1232,15 @@ export default function AyarlarPage() {
                 <h2 className="text-lg font-bold text-[#2F2F2F] mb-4 flex items-center gap-2">
                   <span>👁️</span> Tüm Görevleri Kimler Görebilir?
                 </h2>
-                <p className="text-xs text-[#8A8A8A] mb-3">"Ekip Görevleri" sekmesini kimler görsün?</p>
+                <p className="text-xs text-[#8A8A8A] mb-3">"Ekip Görevleri" sekmesini kimler görsün? (Otomatik görevler hariç)</p>
                 <div className="space-y-2">
+                  <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-[#F7F7F7]" style={{ borderColor: genelAyarlar.gorevGorunurluk === "hic_kimse" ? "#f43f5e" : "#e7e5e4" }}>
+                    <input type="radio" name="gorevGorunurluk" value="hic_kimse" checked={genelAyarlar.gorevGorunurluk === "hic_kimse"} onChange={(e) => setGenelAyarlar({...genelAyarlar, gorevGorunurluk: e.target.value})} className="w-4 h-4 text-rose-600" />
+                    <div>
+                      <p className="text-sm font-medium text-[#2F2F2F]">🚫 Hiç kimse</p>
+                      <p className="text-xs text-[#8A8A8A]">Ekip Görevleri sekmesi kimseye görünmez</p>
+                    </div>
+                  </label>
                   <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-[#F7F7F7]" style={{ borderColor: genelAyarlar.gorevGorunurluk === "sadece_kurucular" ? "#f43f5e" : "#e7e5e4" }}>
                     <input type="radio" name="gorevGorunurluk" value="sadece_kurucular" checked={genelAyarlar.gorevGorunurluk === "sadece_kurucular"} onChange={(e) => setGenelAyarlar({...genelAyarlar, gorevGorunurluk: e.target.value})} className="w-4 h-4 text-rose-600" />
                     <div>
@@ -1258,6 +1265,13 @@ export default function AyarlarPage() {
                 </h2>
                 <p className="text-xs text-[#8A8A8A] mb-3">"Otomatik Görevler" sekmesini kimler görsün?</p>
                 <div className="space-y-2">
+                  <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-[#F7F7F7]" style={{ borderColor: genelAyarlar.otomatikGorevGorunurluk === "hic_kimse" ? "#f43f5e" : "#e7e5e4" }}>
+                    <input type="radio" name="otomatikGorevGorunurluk" value="hic_kimse" checked={genelAyarlar.otomatikGorevGorunurluk === "hic_kimse"} onChange={(e) => setGenelAyarlar({...genelAyarlar, otomatikGorevGorunurluk: e.target.value})} className="w-4 h-4 text-rose-600" />
+                    <div>
+                      <p className="text-sm font-medium text-[#2F2F2F]">🚫 Hiç kimse</p>
+                      <p className="text-xs text-[#8A8A8A]">Otomatik Görevler sekmesi kimseye görünmez</p>
+                    </div>
+                  </label>
                   <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-[#F7F7F7]" style={{ borderColor: genelAyarlar.otomatikGorevGorunurluk === "sadece_kurucular" ? "#f43f5e" : "#e7e5e4" }}>
                     <input type="radio" name="otomatikGorevGorunurluk" value="sadece_kurucular" checked={genelAyarlar.otomatikGorevGorunurluk === "sadece_kurucular"} onChange={(e) => setGenelAyarlar({...genelAyarlar, otomatikGorevGorunurluk: e.target.value})} className="w-4 h-4 text-rose-600" />
                     <div>
