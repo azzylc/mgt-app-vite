@@ -858,7 +858,7 @@ export default function GorevlerPage() {
             >
               📋 Görevlerim
               <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs ${aktifSekme === "gorevlerim" ? "bg-[#EAF2ED] text-[#2F2F2F]" : "bg-[#F7F7F7] text-[#8A8A8A]"}`}>
-                {birlesikGorevler.filter(g => !g.otomatikMi).length}
+                {birlesikGorevler.filter(g => !g.otomatikMi && g.durum !== "tamamlandi").length}
               </span>
             </button>
             
@@ -871,7 +871,7 @@ export default function GorevlerPage() {
               >
                 📤 <span className="hidden md:inline">Verdiğim </span>Görevler
                 <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs ${aktifSekme === "verdigim" ? "bg-sky-100 text-sky-700" : "bg-[#F7F7F7] text-[#8A8A8A]"}`}>
-                  {verdigimGorevler.filter(g => !g.otomatikMi).length}
+                  {verdigimGorevler.filter(g => !g.otomatikMi && g.durum !== "tamamlandi").length}
                 </span>
               </button>
             )}
