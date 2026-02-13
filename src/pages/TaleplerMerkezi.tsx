@@ -3,6 +3,7 @@ import { db } from "../lib/firebase";
 import { collection, query, onSnapshot, orderBy, doc, updateDoc, addDoc, increment, Timestamp } from "firebase/firestore";
 import * as Sentry from '@sentry/react';
 import { useAuth, useRole } from "../context/RoleProvider";
+import { useSearchParams } from "react-router-dom";
 import { bildirimYazCoklu } from "../lib/bildirimHelper";
 
 type Sekme = "izin" | "profil" | "oneri" | "avans";
@@ -65,7 +66,18 @@ interface IzinTalebi {
 export default function TaleplerMerkezi() {
   const user = useAuth();
   const { personelData } = useRole();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [aktifSekme, setAktifSekme] = useState<Sekme>("izin");
+
+  // URL'den ?tab=izin parametresini oku → bildirimden gelince doğru sekme açılır
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam && ["izin", "profil", "oneri", "avans"].includes(tabParam)) {
+      setAktifSekme(tabParam as Sekme);
+      searchParams.delete("tab");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, []);
   const [filtre, setFiltre] = useState<"bekliyor" | "tumu">("bekliyor");
   const [islemYapilan, setIslemYapilan] = useState<string | null>(null);
 
@@ -96,10 +108,16 @@ export default function TaleplerMerkezi() {
     return () => unsubs.forEach(u => u());
   }, []);
 
-  const bildirimPersonele = async (email: string, baslik: string, mesaj: string) => {
+  const bildirimPersonele = async (
+    email: string,
+    baslik: string,
+    mesaj: string,
+    bildirimTip: "sistem" | "izin" = "sistem",
+    bildirimRoute: string = "/taleplerim"
+  ) => {
     try {
       bildirimYazCoklu([email], {
-        baslik, mesaj, tip: "sistem", route: "/taleplerim",
+        baslik, mesaj, tip: bildirimTip, route: bildirimRoute,
         gonderen: user?.email || "", gonderenAd: kurucuAd,
       });
     } catch (err) { console.warn(err); }
@@ -142,7 +160,13 @@ export default function TaleplerMerkezi() {
         await updateDoc(personelRef, { digerIzinler: increment(talep.gunSayisi) });
       }
       if (talep.personelEmail) {
-        await bildirimPersonele(talep.personelEmail, "İzin Talebi Onaylandı", `${talep.gunSayisi} günlük ${talep.izinTuru} talebiniz onaylandı`);
+        await bildirimPersonele(
+          talep.personelEmail,
+          "İzin Talebi Onaylandı",
+          `${talep.gunSayisi} günlük ${talep.izinTuru} talebiniz onaylandı`,
+          "izin",
+          "/taleplerim?tab=izin"
+        );
       }
     } catch (err) { Sentry.captureException(err); alert("Hata!"); }
     finally { setIslemYapilan(null); }
@@ -161,7 +185,13 @@ export default function TaleplerMerkezi() {
         redSebebi: sebep || "",
       });
       if (talep.personelEmail) {
-        await bildirimPersonele(talep.personelEmail, "İzin Talebi Reddedildi", sebep ? `Talebiniz reddedildi: ${sebep}` : "Talebiniz reddedildi");
+        await bildirimPersonele(
+          talep.personelEmail,
+          "İzin Talebi Reddedildi",
+          sebep ? `Talebiniz reddedildi: ${sebep}` : "Talebiniz reddedildi",
+          "izin",
+          "/taleplerim?tab=izin"
+        );
       }
     } catch (err) { Sentry.captureException(err); alert("Hata!"); }
     finally { setIslemYapilan(null); }

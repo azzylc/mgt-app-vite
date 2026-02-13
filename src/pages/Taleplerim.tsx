@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { db } from "../lib/firebase";
 import { collection, addDoc, getDocs, serverTimestamp, query, where, onSnapshot, orderBy, Timestamp } from "firebase/firestore";
 import { getFunctions, httpsCallable } from "firebase/functions";
@@ -63,7 +64,18 @@ function gunFarkiHesapla(bas: string, bit: string): number {
 export default function Taleplerim() {
   const user = useAuth();
   const { personelData } = useRole();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [aktifSekme, setAktifSekme] = useState<Sekme>("izin");
+
+  // URL'den ?tab=izin parametresini oku → bildirimden gelince doğru sekme açılır
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam && ["izin", "profil", "oneri", "avans"].includes(tabParam)) {
+      setAktifSekme(tabParam as Sekme);
+      searchParams.delete("tab");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, []);
 
   const [profilTalepleri, setProfilTalepleri] = useState<ProfilTalebi[]>([]);
   const [profilAlan, setProfilAlan] = useState("");
@@ -292,14 +304,19 @@ export default function Taleplerim() {
   }, []);
 
   // Kurucuya bildirim
-  const bildirimKurucuya = async (baslik: string, mesaj: string) => {
+  const bildirimKurucuya = async (
+    baslik: string,
+    mesaj: string,
+    bildirimTip: "sistem" | "izin" = "sistem",
+    bildirimRoute: string = "/talepler-merkezi"
+  ) => {
     try {
       const kurucuQ = query(collection(db, "personnel"), where("kullaniciTuru", "==", "Kurucu"), where("aktif", "==", true));
       const kurucuSnap = await getDocs(kurucuQ);
       const alicilar = kurucuSnap.docs.map(d => d.data().email as string).filter(e => e && e !== user?.email);
       if (alicilar.length > 0) {
         bildirimYazCoklu(alicilar, {
-          baslik, mesaj, tip: "sistem", route: "/talepler-merkezi",
+          baslik, mesaj, tip: bildirimTip, route: bildirimRoute,
           gonderen: user?.email || "", gonderenAd: fullName,
         });
       }
@@ -394,7 +411,12 @@ export default function Taleplerim() {
           raporTeslimKisi: raporTeslimKisi || null,
         }),
       });
-      await bildirimKurucuya("İzin Talebi", `${fullName} ${gunSayisi} günlük ${izinTuru} talep etti`);
+      await bildirimKurucuya(
+        "İzin Talebi",
+        `${fullName} ${gunSayisi} günlük ${izinTuru} talep etti`,
+        "izin",
+        "/talepler-merkezi?tab=izin"
+      );
       setIzinTuru(""); setIzinBaslangic(""); setIzinBitis(""); setIzinAciklama("");
       setWhatsappOnay(false); setDilekceDosya(null); setDilekceDriveUrl(null); setDilekceDriveFileId(null); setDilekceTeslimKisi("");
       setRaporDosya(null); setRaporDriveUrl(null); setRaporDriveFileId(null); setRaporTeslimKisi("");

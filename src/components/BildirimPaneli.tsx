@@ -1,14 +1,25 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useBildirimler } from "../hooks/useBildirimler";
 import { BILDIRIM_AYARLARI, zamanFormat } from "../lib/bildirimHelper";
-import type { Bildirim } from "../lib/bildirimHelper";
+import type { Bildirim, BildirimTip } from "../lib/bildirimHelper";
 
 interface BildirimPaneliProps {
   userEmail: string | null | undefined;
   /** Kompakt mod: sadece ikon, dropdown küçük (desktop sidebar için) */
   kompakt?: boolean;
 }
+
+// ─── Tip bazlı fallback route'lar ────────────────────────────────
+// route alanı boş/null olan bildirimler için tip'e göre yönlendirme
+const TIP_FALLBACK_ROUTE: Record<BildirimTip, string> = {
+  gorev_atama: "/gorevler",
+  gorev_tamam: "/gorevler",
+  gorev_yorum: "/gorevler",
+  duyuru: "/duyurular",
+  izin: "/taleplerim",
+  sistem: "/",
+};
 
 export default function BildirimPaneli({ userEmail, kompakt = false }: BildirimPaneliProps) {
   const { bildirimler, okunmamisSayisi, loading, okunduYap, tumunuOkunduYap, sil } = useBildirimler(userEmail);
@@ -48,37 +59,86 @@ export default function BildirimPaneli({ userEmail, kompakt = false }: BildirimP
     return () => document.removeEventListener("keydown", handleEsc);
   }, [acik]);
 
-  // ─── Bildirime tıkla ─────────────────────────────────────────
+  // ─── Görev detayı aç (ortak helper) ───────────────────────────
+  const gorevDetayAc = useCallback(
+    (gorevId: string) => {
+      const zatenGorevlerde = window.location.hash.includes("/gorevler");
+
+      if (zatenGorevlerde) {
+        // Zaten görevler sayfasında — direkt event fire et
+        window.dispatchEvent(new CustomEvent("openGorevDetay", { detail: gorevId }));
+      } else {
+        // Başka sayfada — önce navigate et, sonra event
+        navigate("/gorevler");
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent("openGorevDetay", { detail: gorevId }));
+        }, 400);
+      }
+    },
+    [navigate]
+  );
+
+  // ─── Route'a navigate et (query string destekli) ──────────────
+  const navigateToRoute = useCallback(
+    (route: string) => {
+      // HashRouter'da query string'ler navigate ile direkt çalışır
+      navigate(route);
+    },
+    [navigate]
+  );
+
+  // ─── Bildirime tıkla — akıllı yönlendirme ────────────────────
   const bildirimTikla = useCallback(
     (b: Bildirim) => {
-      // Okundu yap — fire & forget, beklemiyoruz
+      // Okundu yap — fire & forget
       if (!b.okundu) {
         okunduYap(b.id);
       }
       setAcik(false);
 
-      if (b.route) {
-        const gorevIdMatch = b.route.match(/gorevId=([^&]+)/);
-        if (gorevIdMatch) {
-          const gorevId = gorevIdMatch[1];
-          const zatenGorevlerde = window.location.hash.includes("/gorevler");
+      const route = b.route || "";
 
-          if (zatenGorevlerde) {
-            // Zaten görevler sayfasında — direkt event fire et
-            window.dispatchEvent(new CustomEvent("openGorevDetay", { detail: gorevId }));
-          } else {
-            // Başka sayfada — önce navigate et, sonra event
-            navigate("/gorevler");
-            setTimeout(() => {
-              window.dispatchEvent(new CustomEvent("openGorevDetay", { detail: gorevId }));
-            }, 300);
-          }
-        } else {
-          navigate(b.route);
-        }
+      // ── 1) Görev deep-linking: route'ta gorevId varsa ──
+      const gorevIdMatch = route.match(/gorevId=([^&]+)/);
+      if (gorevIdMatch) {
+        gorevDetayAc(gorevIdMatch[1]);
+        return;
       }
+
+      // ── 2) Görev tipleri ama route'ta gorevId yok → görevler sayfasına git ──
+      if (b.tip === "gorev_atama" || b.tip === "gorev_tamam" || b.tip === "gorev_yorum") {
+        if (route) {
+          navigateToRoute(route);
+        } else {
+          navigateToRoute("/gorevler");
+        }
+        return;
+      }
+
+      // ── 3) Duyuru → duyurular sayfasına git ──
+      if (b.tip === "duyuru") {
+        navigateToRoute(route || "/duyurular");
+        return;
+      }
+
+      // ── 4) İzin → taleplerim sayfasına izin sekmesiyle git ──
+      if (b.tip === "izin") {
+        // Route varsa onu kullan, yoksa taleplerim/izin sekmesine
+        navigateToRoute(route || "/taleplerim?tab=izin");
+        return;
+      }
+
+      // ── 5) Sistem / diğer → route varsa kullan, yoksa fallback ──
+      if (route) {
+        navigateToRoute(route);
+        return;
+      }
+
+      // Son çare: tip'e göre fallback
+      const fallback = TIP_FALLBACK_ROUTE[b.tip] || "/";
+      navigateToRoute(fallback);
     },
-    [okunduYap, navigate]
+    [okunduYap, gorevDetayAc, navigateToRoute]
   );
 
   // ─── Bildirim sil (swipe animasyonlu) ─────────────────────────
