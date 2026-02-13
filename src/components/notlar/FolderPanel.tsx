@@ -1,19 +1,21 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import type { Not, NotKlasor, KlasorFilter } from "./notlarTypes";
 import { getRenk } from "./notlarTypes";
+import ContextMenu, { type ContextMenuItem } from "./ContextMenu";
 
 interface FolderPanelProps {
   klasorler: NotKlasor[];
   notlar: Not[];
   seciliKlasor: KlasorFilter;
   copSayisi: number;
-  seciliFirma: string; // "kisisel" | firmaId
+  seciliFirma: string;
   onSelectKlasor: (id: KlasorFilter) => void;
   onOpenKlasorModal: (klasor?: NotKlasor, ustKlasorId?: string, paylasimli?: boolean) => void;
+  onKlasorSil: (klasor: NotKlasor) => void;
+  onYeniNot: () => Promise<Not | null>;
   onMobilPanelChange: () => void;
 }
 
-// ─── Alt klasör ID'lerini recursive topla ────────────────
 function getAltKlasorIds(klasorId: string, klasorler: NotKlasor[]): string[] {
   const direkt = klasorler.filter(k => k.ustKlasorId === klasorId);
   let ids: string[] = [];
@@ -29,12 +31,15 @@ function notSayisi(klasorId: string, notlar: Not[], klasorler: NotKlasor[]): num
   return notlar.filter(n => !n.silindi && altIds.includes(n.klasorId)).length;
 }
 
+interface MenuState { x: number; y: number; items: ContextMenuItem[]; }
+
 export default function FolderPanel({
   klasorler, notlar, seciliKlasor, copSayisi, seciliFirma,
-  onSelectKlasor, onOpenKlasorModal, onMobilPanelChange,
+  onSelectKlasor, onOpenKlasorModal, onKlasorSil, onYeniNot, onMobilPanelChange,
 }: FolderPanelProps) {
   const aktifNotlar = notlar.filter(n => !n.silindi);
   const [expanded, setExpanded] = useState<Set<string>>(new Set(["kisisel", "paylasimli"]));
+  const [menu, setMenu] = useState<MenuState | null>(null);
 
   const isFirmaMode = seciliFirma !== "kisisel";
 
@@ -52,12 +57,54 @@ export default function FolderPanel({
     onMobilPanelChange();
   };
 
-  // ─── Kök klasörler ────────────────────────────────────
+  const closeMenu = useCallback(() => setMenu(null), []);
+
+  // ─── Klasör sağ tuş ─────────────────────────────────────
+  const openKlasorMenu = (e: React.MouseEvent, klasor: NotKlasor) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setMenu({
+      x: e.clientX, y: e.clientY,
+      items: [
+        { icon: "✏️", label: "Düzenle", onClick: () => onOpenKlasorModal(klasor) },
+        { icon: "📂", label: "Alt Klasör Ekle", onClick: () => onOpenKlasorModal(undefined, klasor.id, klasor.paylasimli) },
+        { icon: "📝", label: "Yeni Not", onClick: () => { onYeniNot(); } },
+        { divider: true, label: "", onClick: () => {} },
+        { icon: "🗑️", label: "Klasörü Sil", onClick: () => onKlasorSil(klasor), danger: true },
+      ],
+    });
+  };
+
+  // ─── Kategori header sağ tuş ────────────────────────────
+  const openHeaderMenu = (e: React.MouseEvent, paylasimli?: boolean) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setMenu({
+      x: e.clientX, y: e.clientY,
+      items: [
+        { icon: "📁", label: "Yeni Klasör", onClick: () => onOpenKlasorModal(undefined, undefined, paylasimli) },
+        { icon: "📝", label: "Yeni Not", onClick: () => { onYeniNot(); } },
+      ],
+    });
+  };
+
+  // ─── Boş alan sağ tuş ──────────────────────────────────
+  const openEmptyMenu = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest("button, [data-no-ctx]")) return;
+    e.preventDefault();
+    setMenu({
+      x: e.clientX, y: e.clientY,
+      items: [
+        { icon: "📁", label: "Yeni Klasör", onClick: () => onOpenKlasorModal() },
+        { icon: "📝", label: "Yeni Not", onClick: () => { onYeniNot(); } },
+      ],
+    });
+  };
+
   const kokKisisel = klasorler.filter(k => !k.paylasimli && (!k.ustKlasorId || k.ustKlasorId === ""));
   const kokPaylasimli = klasorler.filter(k => k.paylasimli && (!k.ustKlasorId || k.ustKlasorId === ""));
   const kokTumu = klasorler.filter(k => !k.ustKlasorId || k.ustKlasorId === "");
 
-  // ─── Recursive klasör item ────────────────────────────
   const KlasorItem = ({ klasor, depth }: { klasor: NotKlasor; depth: number }) => {
     const renk = getRenk(klasor.renk);
     const count = notSayisi(klasor.id, notlar, klasorler);
@@ -74,7 +121,7 @@ export default function FolderPanel({
           }`}
           style={{ paddingLeft: `${12 + depth * 16}px`, paddingRight: "12px", paddingTop: "5px", paddingBottom: "5px" }}
           onClick={() => handleSelect(klasor.id)}
-          onContextMenu={(e) => { e.preventDefault(); onOpenKlasorModal(klasor); }}
+          onContextMenu={(e) => openKlasorMenu(e, klasor)}
         >
           <span className="flex items-center gap-1.5 min-w-0 flex-1">
             {hasChildren ? (
@@ -113,7 +160,6 @@ export default function FolderPanel({
     );
   };
 
-  // ─── Sabit buton stili ────────────────────────────────
   const btnClass = (id: string) =>
     `w-full text-left px-3 py-2 rounded-lg text-sm flex items-center justify-between transition ${
       seciliKlasor === id
@@ -122,7 +168,7 @@ export default function FolderPanel({
     }`;
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full" onContextMenu={openEmptyMenu}>
       {/* Tüm Notlar */}
       <div className="p-3 space-y-1">
         <button onClick={() => handleSelect("tumu")} className={btnClass("tumu")}>
@@ -134,17 +180,17 @@ export default function FolderPanel({
         </button>
       </div>
 
-      {/* ═══ KİŞİSEL MOD: Kişisel + Paylaşımlı parent node'lar ═══ */}
+      {/* ═══ KİŞİSEL MOD ═══ */}
       {!isFirmaMode && (
         <div className="px-3 space-y-0.5">
-          {/* 🔒 Kişisel — expandable parent */}
+          {/* 🔒 Kişisel */}
           <div>
             <div
               className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center justify-between transition cursor-pointer group ${
                 seciliKlasor === "kisisel" ? "bg-[#8FAF9A]/15 text-[#2F2F2F] font-medium" : "text-[#8A8A8A] hover:bg-white"
               }`}
               onClick={() => handleSelect("kisisel")}
-              onContextMenu={(e) => { e.preventDefault(); onOpenKlasorModal(undefined, undefined, false); }}
+              onContextMenu={(e) => openHeaderMenu(e, false)}
             >
               <span className="flex items-center gap-1.5">
                 {kokKisisel.length > 0 ? (
@@ -182,14 +228,14 @@ export default function FolderPanel({
             )}
           </div>
 
-          {/* 👥 Paylaşımlı — expandable parent */}
+          {/* 👥 Paylaşımlı */}
           <div>
             <div
               className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center justify-between transition cursor-pointer group ${
                 seciliKlasor === "paylasimli" ? "bg-[#8FAF9A]/15 text-[#2F2F2F] font-medium" : "text-[#8A8A8A] hover:bg-white"
               }`}
               onClick={() => handleSelect("paylasimli")}
-              onContextMenu={(e) => { e.preventDefault(); onOpenKlasorModal(undefined, undefined, true); }}
+              onContextMenu={(e) => openHeaderMenu(e, true)}
             >
               <span className="flex items-center gap-1.5">
                 {kokPaylasimli.length > 0 ? (
@@ -229,7 +275,7 @@ export default function FolderPanel({
         </div>
       )}
 
-      {/* ═══ FİRMA MODU: Sadece klasörler (kişisel/paylaşımlı ayrımı yok) ═══ */}
+      {/* ═══ FİRMA MODU ═══ */}
       {isFirmaMode && (
         <div className="px-3 space-y-0.5">
           {kokTumu.map(k => (
@@ -244,7 +290,7 @@ export default function FolderPanel({
         </div>
       )}
 
-      {/* Çöp Kutusu — en altta */}
+      {/* Çöp Kutusu */}
       <div className="mt-auto px-3 pb-3 pt-2 border-t">
         <button onClick={() => handleSelect("cop")} className={btnClass("cop")}>
           <span className="flex items-center gap-2">
@@ -256,6 +302,9 @@ export default function FolderPanel({
           )}
         </button>
       </div>
+
+      {/* Sağ tuş menüsü */}
+      {menu && <ContextMenu x={menu.x} y={menu.y} items={menu.items} onClose={closeMenu} />}
     </div>
   );
 }

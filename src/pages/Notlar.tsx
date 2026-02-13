@@ -8,12 +8,11 @@ import type { MobilPanelType } from "../components/notlar/notlarTypes";
 
 export default function NotlarPage() {
   const n = useNotlar();
-  const [mobilPanel, setMobilPanel] = useState<MobilPanelType>("liste");
+  const [mobilPanel, setMobilPanel] = useState<MobilPanelType>("klasor");
 
   const liste = n.filtrelenmisNotlar();
   const isCop = n.seciliKlasor === "cop";
 
-  // Seçili klasör bilgisi (header için)
   const seciliKlasorBilgi =
     n.seciliKlasor !== "tumu" && n.seciliKlasor !== "kisisel" &&
     n.seciliKlasor !== "paylasimli" && n.seciliKlasor !== "cop"
@@ -31,7 +30,6 @@ export default function NotlarPage() {
     n.seciliKlasor === "cop" ? "🗑️ Çöp Kutusu" :
     seciliKlasorBilgi?.ad || "";
 
-  // Başlık değişikliğini hem lokal hem debounced kaydet
   const handleBaslikChange = (yeniBaslik: string) => {
     if (!n.seciliNot) return;
     const now = new Date();
@@ -41,7 +39,6 @@ export default function NotlarPage() {
     n.kaydetNot(n.seciliNot, yeniBaslik);
   };
 
-  // İçerik değişikliğini hem lokal hem debounced kaydet
   const handleIcerikChange = (icerik: string) => {
     if (!n.seciliNot) return;
     const now = new Date();
@@ -54,9 +51,9 @@ export default function NotlarPage() {
       {/* ── Header ──────────────────────────────────────── */}
       <header className="bg-white border-b px-4 md:px-6 py-3 sticky top-0 z-30 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          {mobilPanel !== "liste" && (
+          {mobilPanel !== "klasor" && (
             <button
-              onClick={() => setMobilPanel("liste")}
+              onClick={() => setMobilPanel(mobilPanel === "editor" ? "liste" : "klasor")}
               className="md:hidden text-[#8A8A8A] hover:text-[#2F2F2F]"
             >
               ←
@@ -70,12 +67,14 @@ export default function NotlarPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setMobilPanel("klasor")}
-            className="md:hidden w-9 h-9 rounded-lg bg-[#F7F7F7] hover:bg-[#E5E5E5] flex items-center justify-center text-sm"
-          >
-            📁
-          </button>
+          {mobilPanel !== "klasor" && (
+            <button
+              onClick={() => setMobilPanel("klasor")}
+              className="md:hidden w-9 h-9 rounded-lg bg-[#F7F7F7] hover:bg-[#E5E5E5] flex items-center justify-center text-sm"
+            >
+              📁
+            </button>
+          )}
           {!isCop && (
             <button
               onClick={async () => {
@@ -90,7 +89,7 @@ export default function NotlarPage() {
         </div>
       </header>
 
-      {/* ── Firma Tab'ları ─────────────────────────────── */}
+      {/* ── Firma Tab'ları ──────────────────────────────── */}
       {n.firmalar.length > 0 && (
         <div className="bg-white border-b px-4 md:px-6 py-2 flex items-center gap-2 overflow-x-auto sticky top-[57px] z-20">
           <button
@@ -101,7 +100,7 @@ export default function NotlarPage() {
                 : "bg-[#F7F7F7] text-[#8A8A8A] hover:bg-[#E5E5E5]"
             }`}
           >
-            🔒 Kişisel / Herkes
+            🔑 Kişisel / Herkes
           </button>
           {n.firmalar.map(f => (
             <button
@@ -119,7 +118,7 @@ export default function NotlarPage() {
         </div>
       )}
 
-      {/* ── 3 Panel Layout ─────────────────────────────── */}
+      {/* ── 3 Panel Layout ──────────────────────────────── */}
       <div className="flex-1 flex overflow-hidden">
 
         {/* SOL: Klasörler */}
@@ -132,6 +131,12 @@ export default function NotlarPage() {
             seciliFirma={n.seciliFirma}
             onSelectKlasor={n.setSeciliKlasor}
             onOpenKlasorModal={n.openKlasorModal}
+            onKlasorSil={n.handleKlasorSil}
+            onYeniNot={async () => {
+              const not = await n.handleYeniNot();
+              if (not) setMobilPanel("editor");
+              return not;
+            }}
             onMobilPanelChange={() => setMobilPanel("liste")}
           />
         </aside>
@@ -148,6 +153,8 @@ export default function NotlarPage() {
             onSelectNot={n.setSeciliNot}
             onAramaChange={n.setAramaMetni}
             onYeniNot={n.handleYeniNot}
+            onNotSil={n.handleNotSil}
+            onSabitle={n.handleSabitle}
             onNotGeriAl={n.handleNotGeriAl}
             onCopuBosalt={n.handleCopuBosalt}
             onMobilEditor={() => setMobilPanel("editor")}

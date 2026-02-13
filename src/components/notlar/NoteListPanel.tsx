@@ -1,5 +1,7 @@
+import { useState, useCallback } from "react";
 import type { Not, NotKlasor, KlasorFilter } from "./notlarTypes";
 import { htmlToPreview, formatTarih, getRenk } from "./notlarTypes";
+import ContextMenu, { type ContextMenuItem } from "./ContextMenu";
 
 interface NoteListPanelProps {
   liste: Not[];
@@ -11,19 +13,65 @@ interface NoteListPanelProps {
   onSelectNot: (not: Not) => void;
   onAramaChange: (val: string) => void;
   onYeniNot: () => void;
+  onNotSil: (not: Not) => void;
+  onSabitle: (not: Not) => void;
   onNotGeriAl: (not: Not) => void;
   onCopuBosalt: () => void;
   onMobilEditor: () => void;
 }
 
+interface MenuState { x: number; y: number; items: ContextMenuItem[]; }
+
 export default function NoteListPanel({
   liste, klasorler, seciliNot, aramaMetni, seciliKlasor, copSayisi,
-  onSelectNot, onAramaChange, onYeniNot, onNotGeriAl, onCopuBosalt, onMobilEditor,
+  onSelectNot, onAramaChange, onYeniNot, onNotSil, onSabitle, onNotGeriAl, onCopuBosalt, onMobilEditor,
 }: NoteListPanelProps) {
   const isCop = seciliKlasor === "cop";
+  const [menu, setMenu] = useState<MenuState | null>(null);
+  const closeMenu = useCallback(() => setMenu(null), []);
+
+  // ─── Not sağ tuş ────────────────────────────────────────
+  const openNotMenu = (e: React.MouseEvent, not: Not) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (not.silindi) {
+      setMenu({
+        x: e.clientX, y: e.clientY,
+        items: [
+          { icon: "↩", label: "Geri Al", onClick: () => onNotGeriAl(not) },
+        ],
+      });
+      return;
+    }
+
+    setMenu({
+      x: e.clientX, y: e.clientY,
+      items: [
+        { icon: "📌", label: not.sabitlendi ? "Sabitlemeyi Kaldır" : "Sabitle", onClick: () => onSabitle(not) },
+        { icon: "📝", label: "Yeni Not", onClick: () => onYeniNot() },
+        { divider: true, label: "", onClick: () => {} },
+        { icon: "🗑️", label: "Çöpe Taşı", onClick: () => onNotSil(not), danger: true },
+      ],
+    });
+  };
+
+  // ─── Boş alan sağ tuş ──────────────────────────────────
+  const openEmptyMenu = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest("button, [data-note-card]")) return;
+    e.preventDefault();
+    if (!isCop) {
+      setMenu({
+        x: e.clientX, y: e.clientY,
+        items: [
+          { icon: "📝", label: "Yeni Not", onClick: () => onYeniNot() },
+        ],
+      });
+    }
+  };
 
   return (
-    <>
+    <div className="flex flex-col flex-1 overflow-hidden" onContextMenu={openEmptyMenu}>
       {/* Arama */}
       <div className="p-3 border-b">
         <input
@@ -52,7 +100,7 @@ export default function NoteListPanel({
       <div className="flex-1 overflow-y-auto">
         {liste.length === 0 ? (
           <div className="p-6 text-center text-[#8A8A8A] text-sm">
-            <p className="text-2xl mb-2">{isCop ? "🗑️" : "📝"}</p>
+            <p className="text-2xl mb-2">{isCop ? "🗑️" : "📓"}</p>
             <p>{isCop ? "Çöp kutusu boş" : "Henüz not yok"}</p>
             {!isCop && (
               <button onClick={onYeniNot} className="mt-2 text-[#8FAF9A] text-sm hover:underline">
@@ -69,9 +117,11 @@ export default function NoteListPanel({
             return (
               <div
                 key={not.id}
+                data-note-card
                 className={`w-full text-left px-4 py-3 border-b border-[#F0F0F0] transition ${
                   isSecili ? "bg-[#8FAF9A]/10" : "hover:bg-[#FAFAFA]"
                 } ${not.silindi ? "opacity-60" : ""}`}
+                onContextMenu={(e) => openNotMenu(e, not)}
               >
                 <button
                   onClick={() => {
@@ -120,6 +170,9 @@ export default function NoteListPanel({
           })
         )}
       </div>
-    </>
+
+      {/* Sağ tuş menüsü */}
+      {menu && <ContextMenu x={menu.x} y={menu.y} items={menu.items} onClose={closeMenu} />}
+    </div>
   );
 }
