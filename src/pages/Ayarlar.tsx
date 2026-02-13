@@ -1233,6 +1233,7 @@ export default function AyarlarPage() {
                   <span>👁️</span> Tüm Görevleri Kimler Görebilir?
                 </h2>
                 <p className="text-xs text-[#8A8A8A] mb-3">"Ekip Görevleri" sekmesini kimler görsün? (Otomatik görevler hariç)</p>
+                <p className="text-xs text-[#E6B566] bg-[#FFF8ED] px-3 py-2 rounded-lg mb-3">💡 Bu ayar ne seçilirse seçilsin, görevi atayan ve atanan kişiler kendi görevlerini her zaman görebilir.</p>
                 <div className="space-y-2">
                   <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-[#F7F7F7]" style={{ borderColor: genelAyarlar.gorevGorunurluk === "hic_kimse" ? "#f43f5e" : "#e7e5e4" }}>
                     <input type="radio" name="gorevGorunurluk" value="hic_kimse" checked={genelAyarlar.gorevGorunurluk === "hic_kimse"} onChange={(e) => setGenelAyarlar({...genelAyarlar, gorevGorunurluk: e.target.value})} className="w-4 h-4 text-rose-600" />
@@ -1264,6 +1265,7 @@ export default function AyarlarPage() {
                   <span>🤖</span> Otomatik Görevleri Kimler Görebilir?
                 </h2>
                 <p className="text-xs text-[#8A8A8A] mb-3">"Otomatik Görevler" sekmesini kimler görsün?</p>
+                <p className="text-xs text-[#E6B566] bg-[#FFF8ED] px-3 py-2 rounded-lg mb-3">💡 Bu ayar ne seçilirse seçilsin, görevi atayan ve atanan kişiler kendi görevlerini her zaman görebilir.</p>
                 <div className="space-y-2">
                   <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-[#F7F7F7]" style={{ borderColor: genelAyarlar.otomatikGorevGorunurluk === "hic_kimse" ? "#f43f5e" : "#e7e5e4" }}>
                     <input type="radio" name="otomatikGorevGorunurluk" value="hic_kimse" checked={genelAyarlar.otomatikGorevGorunurluk === "hic_kimse"} onChange={(e) => setGenelAyarlar({...genelAyarlar, otomatikGorevGorunurluk: e.target.value})} className="w-4 h-4 text-rose-600" />
