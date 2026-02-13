@@ -67,6 +67,8 @@ interface GenelAyarlar {
   girisCikisErisim: boolean;
   gorevAtamaYetkisi: string;
   gorevSilmeYetkisi: string;
+  gorevGorunurluk: string;
+  otomatikGorevGorunurluk: string;
   yonetimPinHash?: string;
 }
 
@@ -152,7 +154,9 @@ export default function AyarlarPage() {
     kisiselQr: true,
     girisCikisErisim: true,
     gorevAtamaYetkisi: "herkes",
-    gorevSilmeYetkisi: "atayan_kurucu"
+    gorevSilmeYetkisi: "atayan_kurucu",
+    gorevGorunurluk: "sadece_kurucular",
+    otomatikGorevGorunurluk: "sadece_kurucular"
   });
   const [genelAyarlarLoading, setGenelAyarlarLoading] = useState(false);
 
@@ -906,6 +910,92 @@ export default function AyarlarPage() {
                       <div>
                         <p className="text-sm font-medium text-[#2F2F2F]">🔒 Sadece Kurucu</p>
                         <p className="text-xs text-[#8A8A8A]">Hiç kimse silemez, sadece Kurucular silebilir</p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Tüm görevleri kimler görebilir */}
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Tüm görevleri kimler görebilir?</label>
+                  <p className="text-xs text-[#8A8A8A] mb-3">"Tüm Görevler" sekmesini kimler görsün?</p>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-[#F7F7F7]" style={{ borderColor: genelAyarlar.gorevGorunurluk === "sadece_kurucular" ? "#f43f5e" : "#e7e5e4" }}>
+                      <input 
+                        type="radio" 
+                        name="gorevGorunurluk"
+                        value="sadece_kurucular"
+                        checked={genelAyarlar.gorevGorunurluk === "sadece_kurucular"}
+                        onChange={(e) => setGenelAyarlar({...genelAyarlar, gorevGorunurluk: e.target.value})}
+                        className="w-4 h-4 text-rose-600" 
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-[#2F2F2F]">🔒 Sadece Kurucular</p>
+                        <p className="text-xs text-[#8A8A8A]">Yalnızca Kurucu rolündekiler tüm görevleri görebilir</p>
+                      </div>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-[#F7F7F7]" style={{ borderColor: genelAyarlar.gorevGorunurluk === "yoneticiler" ? "#f43f5e" : "#e7e5e4" }}>
+                      <input 
+                        type="radio" 
+                        name="gorevGorunurluk"
+                        value="yoneticiler"
+                        checked={genelAyarlar.gorevGorunurluk === "yoneticiler"}
+                        onChange={(e) => setGenelAyarlar({...genelAyarlar, gorevGorunurluk: e.target.value})}
+                        className="w-4 h-4 text-rose-600" 
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-[#2F2F2F]">👔 Kurucu & Yöneticiler</p>
+                        <p className="text-xs text-[#8A8A8A]">Kurucu ve Yönetici rolündekiler tüm görevleri görebilir</p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Otomatik görevleri kimler görebilir */}
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-[#2F2F2F] mb-2">Otomatik görevleri kimler görebilir?</label>
+                  <p className="text-xs text-[#8A8A8A] mb-3">"Otomatik Görevler" sekmesini kimler görsün?</p>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-[#F7F7F7]" style={{ borderColor: genelAyarlar.otomatikGorevGorunurluk === "sadece_kurucular" ? "#f43f5e" : "#e7e5e4" }}>
+                      <input 
+                        type="radio" 
+                        name="otomatikGorevGorunurluk"
+                        value="sadece_kurucular"
+                        checked={genelAyarlar.otomatikGorevGorunurluk === "sadece_kurucular"}
+                        onChange={(e) => setGenelAyarlar({...genelAyarlar, otomatikGorevGorunurluk: e.target.value})}
+                        className="w-4 h-4 text-rose-600" 
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-[#2F2F2F]">🔒 Sadece Kurucular</p>
+                        <p className="text-xs text-[#8A8A8A]">Yalnızca Kurucu rolündekiler otomatik görevleri görebilir</p>
+                      </div>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-[#F7F7F7]" style={{ borderColor: genelAyarlar.otomatikGorevGorunurluk === "yoneticiler" ? "#f43f5e" : "#e7e5e4" }}>
+                      <input 
+                        type="radio" 
+                        name="otomatikGorevGorunurluk"
+                        value="yoneticiler"
+                        checked={genelAyarlar.otomatikGorevGorunurluk === "yoneticiler"}
+                        onChange={(e) => setGenelAyarlar({...genelAyarlar, otomatikGorevGorunurluk: e.target.value})}
+                        className="w-4 h-4 text-rose-600" 
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-[#2F2F2F]">👔 Kurucu & Yöneticiler</p>
+                        <p className="text-xs text-[#8A8A8A]">Kurucu ve Yönetici rolündekiler otomatik görevleri görebilir</p>
+                      </div>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition hover:bg-[#F7F7F7]" style={{ borderColor: genelAyarlar.otomatikGorevGorunurluk === "herkes" ? "#f43f5e" : "#e7e5e4" }}>
+                      <input 
+                        type="radio" 
+                        name="otomatikGorevGorunurluk"
+                        value="herkes"
+                        checked={genelAyarlar.otomatikGorevGorunurluk === "herkes"}
+                        onChange={(e) => setGenelAyarlar({...genelAyarlar, otomatikGorevGorunurluk: e.target.value})}
+                        className="w-4 h-4 text-rose-600" 
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-[#2F2F2F]">🌐 Herkes</p>
+                        <p className="text-xs text-[#8A8A8A]">Tüm personel kendi otomatik görevlerini görebilir</p>
                       </div>
                     </label>
                   </div>

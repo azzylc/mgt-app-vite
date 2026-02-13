@@ -1,12 +1,7 @@
 import * as admin from 'firebase-admin';
-import * as path from 'path';
 
 if (!admin.apps.length) {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const serviceAccount = require(path.resolve(__dirname, '../../serviceAccountKey.json'));
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-  });
+  admin.initializeApp();
 }
 
 export const adminDb = admin.firestore();

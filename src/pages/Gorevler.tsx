@@ -56,6 +56,7 @@ export default function GorevlerPage() {
   const [gorevAtamaYetkisi, setGorevAtamaYetkisi] = useState<string>("herkes");
   const [gorevGorunurluk, setGorevGorunurluk] = useState<string>("sadece_ilgililer");
   const [gorevSilmeYetkisi, setGorevSilmeYetkisi] = useState<string>("atayan_kurucu");
+  const [otomatikGorevGorunurluk, setOtomatikGorevGorunurluk] = useState<string>("sadece_kurucular");
 
   // Firma state
   const [tumFirmalar, setTumFirmalar] = useState<{ id: string; kisaltma: string }[]>([]);
@@ -130,6 +131,7 @@ export default function GorevlerPage() {
           setGorevAtamaYetkisi(genelDoc.data().gorevAtamaYetkisi || "herkes");
           setGorevGorunurluk(genelDoc.data().gorevGorunurluk || "sadece_ilgililer");
           setGorevSilmeYetkisi(genelDoc.data().gorevSilmeYetkisi || "atayan_kurucu");
+          setOtomatikGorevGorunurluk(genelDoc.data().otomatikGorevGorunurluk || "sadece_kurucular");
         }
       } catch (error) {
         Sentry.captureException(error);
@@ -281,6 +283,11 @@ export default function GorevlerPage() {
   const tumGorevleriGorebilir = 
     (gorevGorunurluk === "yoneticiler" && isAdmin) ||
     (gorevGorunurluk === "sadece_kurucular" && userRole === "Kurucu");
+  
+  const otomatikGorevleriGorebilir = 
+    otomatikGorevGorunurluk === "herkes" ||
+    (otomatikGorevGorunurluk === "yoneticiler" && isAdmin) ||
+    (otomatikGorevGorunurluk === "sadece_kurucular" && userRole === "Kurucu");
   
   useEffect(() => {
     if (!user || !tumGorevleriGorebilir) { setTumGorevler([]); return; }
@@ -869,6 +876,7 @@ export default function GorevlerPage() {
               </button>
             )}
 
+            {otomatikGorevleriGorebilir && (
             <button
               onClick={() => { setAktifSekme("otomatik"); setFiltre("aktif"); }}
               className={`px-2.5 md:px-4 py-2 md:py-2.5 font-medium text-xs md:text-sm transition border-b-2 whitespace-nowrap ${
@@ -881,6 +889,7 @@ export default function GorevlerPage() {
                 {firmaFiltreliBirlesikOtomatik.length}
               </span>
             </button>
+            )}
             
             {tumGorevleriGorebilir && (
               <button
