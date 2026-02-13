@@ -474,9 +474,12 @@ export default function GorevlerPage() {
   const handleGorevSil = async (gorevId: string) => {
     if (!confirm("Bu görevi silmek istediğinize emin misiniz?")) return;
     try {
+      setFiltreliGorevler(prev => prev.filter(g => g.id !== gorevId));
+      if (detayGorev?.id === gorevId) setDetayGorev(null);
       await deleteDoc(doc(db, "gorevler", gorevId));
     } catch (error) {
       Sentry.captureException(error);
+      alert("Gorev silinemedi!");
     }
   };
 
