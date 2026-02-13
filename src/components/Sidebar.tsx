@@ -194,21 +194,23 @@ function SidebarContent({ user }: SidebarProps) {
   const MenuContent = () => (
     <>
       <div className="px-4 py-4 border-b border-[#E5E5E5]/50">
-        <div className="flex items-center gap-2.5 cursor-pointer hover:bg-[#F7F7F7] rounded-lg p-1 -m-1 transition" onClick={() => window.location.hash = "#/profilim"}>
-          {personelData?.foto ? (
-            <img src={personelData.foto} alt="" className="w-8 h-8 rounded-full object-cover" />
-          ) : (
-            <div className="w-8 h-8 bg-[#E5E5E5] rounded-full flex items-center justify-center">
-              <span className="text-[#2F2F2F] font-medium text-xs">
-                {user?.email?.[0]?.toUpperCase() || "A"}
-              </span>
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 flex-1 min-w-0 cursor-pointer hover:bg-[#F7F7F7] rounded-lg p-1 -m-1 transition" onClick={() => window.location.hash = "#/profilim"}>
+            {personelData?.foto ? (
+              <img src={personelData.foto} alt="" className="w-8 h-8 rounded-full object-cover" />
+            ) : (
+              <div className="w-8 h-8 bg-[#E5E5E5] rounded-full flex items-center justify-center">
+                <span className="text-[#2F2F2F] font-medium text-xs">
+                  {user?.email?.[0]?.toUpperCase() || "A"}
+                </span>
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-[#2F2F2F] truncate">
+                {personelData?.ad ? `${personelData.ad} ${personelData.soyad || ''}` : user?.email?.split("@")[0] || "Admin"}
+              </p>
+              <p className="text-[10px] text-[#8FAF9A] font-medium hover:underline">Profilim →</p>
             </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-[#2F2F2F] truncate">
-              {personelData?.ad ? `${personelData.ad} ${personelData.soyad || ''}` : user?.email?.split("@")[0] || "Admin"}
-            </p>
-            <p className="text-[10px] text-[#8FAF9A] font-medium hover:underline">Profilim →</p>
           </div>
           <BildirimPaneli userEmail={user?.email} kompakt />
         </div>
