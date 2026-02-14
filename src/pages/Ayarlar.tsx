@@ -69,6 +69,7 @@ interface GenelAyarlar {
   gorevSilmeYetkisi: string;
   gorevGorunurluk: string;
   otomatikGorevGorunurluk: string;
+  konumlarArasiGirisCikis: string;
   yonetimPinHash?: string;
 }
 
@@ -156,7 +157,8 @@ export default function AyarlarPage() {
     gorevAtamaYetkisi: "herkes",
     gorevSilmeYetkisi: "atayan_kurucu",
     gorevGorunurluk: "sadece_kurucular",
-    otomatikGorevGorunurluk: "sadece_kurucular"
+    otomatikGorevGorunurluk: "sadece_kurucular",
+    konumlarArasiGirisCikis: "serbest"
   });
   const [genelAyarlarLoading, setGenelAyarlarLoading] = useState(false);
 
@@ -809,6 +811,22 @@ export default function AyarlarPage() {
                       <p className="text-xs text-[#8A8A8A]">Yetkililer manuel giriş-çıkış ekleyebilsin mi?</p>
                     </div>
                   </label>
+                  <div>
+                    <label className="block text-sm font-medium text-[#2F2F2F] mb-2">📍 Konumlar Arası Giriş/Çıkış</label>
+                    <select 
+                      value={genelAyarlar.konumlarArasiGirisCikis || "serbest"}
+                      onChange={(e) => setGenelAyarlar({...genelAyarlar, konumlarArasiGirisCikis: e.target.value})}
+                      className="w-full px-4 py-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white"
+                    >
+                      <option value="serbest">🔓 Serbest — Farklı konumdan giriş/çıkış yapılabilir</option>
+                      <option value="ayni_konum">🔒 Aynı Konum — Giriş yapılan konumdan çıkış yapılmalı</option>
+                    </select>
+                    <p className="text-xs text-[#8A8A8A] mt-1">
+                      {(genelAyarlar.konumlarArasiGirisCikis || "serbest") === "serbest" 
+                        ? "💡 Personel herhangi bir konumdan giriş yapıp başka bir konumdan çıkış yapabilir." 
+                        : "💡 Personel giriş yaptığı konumun QR kodunu okutarak çıkış yapmalıdır."}
+                    </p>
+                  </div>
                 </div>
               </div>
 

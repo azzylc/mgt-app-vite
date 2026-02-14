@@ -11,7 +11,9 @@ import {
   serverTimestamp,
   orderBy,
   limit,
-  Timestamp
+  Timestamp,
+  doc,
+  getDoc
 } from "firebase/firestore";
 import { Scanner } from "@yudiel/react-qr-scanner";
 import { useAuth } from "../context/RoleProvider";
@@ -88,6 +90,7 @@ export default function QRGirisPage() {
   const [activeTab, setActiveTab] = useState<Tab>("qr");
   const [kayitlar, setKayitlar] = useState<AttendanceRecord[]>([]);
   const [kayitLoading, setKayitLoading] = useState(false);
+  const [konumlarArasiGirisCikis, setKonumlarArasiGirisCikis] = useState<string>("serbest");
   const [seciliHafta, setSeciliHafta] = useState(() => {
     const now = new Date();
     const day = now.getDay();
@@ -125,6 +128,23 @@ export default function QRGirisPage() {
     if (Capacitor.isNativePlatform()) {
       Geolocation.requestPermissions().catch(() => {});
     }
+  }, []);
+
+  // Konumlar arası giriş/çıkış ayarını oku
+  useEffect(() => {
+    (async () => {
+      try {
+        const docSnap = await getDoc(doc(db, "settings", "general"));
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.konumlarArasiGirisCikis) {
+            setKonumlarArasiGirisCikis(data.konumlarArasiGirisCikis);
+          }
+        }
+      } catch (e) {
+        console.error("[QRGiris] Ayarlar okunamadı:", e);
+      }
+    })();
   }, []);
 
   // ============================================
@@ -373,6 +393,16 @@ export default function QRGirisPage() {
         setMesaj(`Çok uzaktasınız! (${Math.round(mesafe)}m)`);
         setProcessing(false);
         return;
+      }
+
+      // 🔒 Aynı konum kontrolü: Çıkış yapılırken giriş konumu ile aynı mı?
+      if (islemSecimi === "cikis" && konumlarArasiGirisCikis === "ayni_konum" && sonIslem?.tip === "giris") {
+        if (sonIslem.konumAdi !== konum.konumAdi) {
+          setDurum("hata");
+          setMesaj(`Giriş "${sonIslem.konumAdi}" konumundan yapıldı.\nÇıkışı da aynı konumdan yapmalısınız.`);
+          setProcessing(false);
+          return;
+        }
       }
 
       // ✅ Artık islemSecimi'nden geliyor, toggle yok
