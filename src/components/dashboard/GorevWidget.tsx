@@ -44,7 +44,7 @@ export default function GorevWidget({ onCount }: { onCount?: (count: number) => 
   }, [user]);
 
   const bugun = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
-  const aktifGorevler = gorevler.filter(g => g.durum === "bekliyor" || g.durum === "devam-ediyor");
+  const aktifGorevler = gorevler.filter(g => (g.durum === "bekliyor" || g.durum === "devam-ediyor") && !g.otomatikMi);
 
   useEffect(() => {
     onCount?.(aktifGorevler.length);
