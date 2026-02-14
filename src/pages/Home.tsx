@@ -18,7 +18,7 @@ import GelinModal from "../components/GelinModal";
 import MetricCard from "../components/dashboard/MetricCard";
 import GelinListPanel from "../components/dashboard/GelinListPanel";
 import PersonelDurumPanel from "../components/dashboard/PersonelDurumPanel";
-import DikkatPanel from "../components/dashboard/DikkatPanel";
+import OtomatikGorevWidget from "../components/dashboard/OtomatikGorevWidget";
 import GorevWidget from "../components/dashboard/GorevWidget";
 import TakvimEtkinlikWidget from "../components/dashboard/TakvimEtkinlikWidget";
 import { usePersoneller } from "../hooks/usePersoneller";
@@ -764,8 +764,8 @@ export default function Home() {
               {/* Görev Widget */}
               <GorevWidget onCount={setGorevSayisi} />
 
-              {/* Yaklaşan Etkinlikler */}
-              <TakvimEtkinlikWidget personeller={personeller} />
+              {/* Otomatik Görevler */}
+              <OtomatikGorevWidget />
           </div>
 
           {/* Row 2.5: Önümüzdeki Referanslar */}
@@ -841,17 +841,9 @@ export default function Home() {
             </div>
           )}
 
-          {/* Row 3: Dikkat + Bugün + Şu An Çalışıyor */}
+          {/* Row 3: Yaklaşan Etkinlikler + Bugün + Bugün Geldi */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-2.5 lg:h-[340px]">
-            <DikkatPanel
-              islenmemisUcretler={islenmemisUcretler}
-              eksikIzinler={eksikIzinler}
-              onGelinClick={(g) => setSelectedGelin(g)}
-              onIzinEkle={handleIzinEkle}
-              onTumIzinleriEkle={handleTumIzinleriEkle}
-              izinEkleniyor={izinEkleniyor}
-              onIslenmemisUcretlerClick={() => navigate("/takvim")}
-            />
+            <TakvimEtkinlikWidget personeller={personeller} />
             <GelinListPanel
               title={gelinGunSecim === 'bugun' ? "Bugün" : "Yarın"}
               gelinler={gelinGunSecim === 'bugun' ? bugunGelinler : yarinGelinler}
