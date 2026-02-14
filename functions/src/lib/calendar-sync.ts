@@ -52,6 +52,8 @@ function parseDescription(description: string) {
     yorumIstendiMi: false, gelinNotu: '', dekontGorseli: '', ucret: 0, kapora: 0, kalan: 0,
     // TCB fields
     sacModeliBelirlendi: false, provaTermini: '', provaTarihiBelirlendi: false, etkinlikTuru: '',
+    // REF fields
+    gidecegiYerSaat: '', gidecegiYer: '',
     // MG fields
     cekimUcretiAlindi: false, fotografPaylasimIzni: false, ciftinIsiBitti: false,
     dosyaSahipligiAktarildi: false, ekHizmetler: '', merasimTarihi: '',
@@ -87,14 +89,22 @@ function parseDescription(description: string) {
     }
     // Checklist - GYS
     if (lower.includes('bilgilendirme metni gönderildi mi')) result.bilgilendirmeGonderildi = hasCheck(line);
+    if (lower.includes('bilgilendirme pdf gönderildi mi')) result.bilgilendirmeGonderildi = hasCheck(line);
     if (lower.includes('müşteriye bilgilendirme metni gönderildi mi')) result.bilgilendirmeGonderildi = hasCheck(line);
+    // TCB PRV: "prova bilgilendirmesi gönderildi mi"
+    if (lower.includes('prova bilgilendirmesi gönderildi mi')) result.bilgilendirmeGonderildi = hasCheck(line);
+    // REF: "ref bilgilendirmesi gönderildi mi"
+    if (lower.includes('ref bilgilendirmesi gönderildi mi')) result.bilgilendirmeGonderildi = hasCheck(line);
     if (lower.includes('anlaşılan ve kalan ücret yazıldı mı')) result.ucretYazildi = hasCheck(line);
     if (lower.includes('malzeme listesi gönderildi mi')) result.malzemeListesiGonderildi = hasCheck(line);
     if (lower.includes('paylaşım izni var mı')) result.paylasimIzni = hasCheck(line);
     // Checklist - TCB
-    if (lower.includes('saç modeli belirlendi mi')) result.sacModeliBelirlendi = hasCheck(line);
+    if (lower.includes('saç modeli belirlendi') && lower.includes('mi')) result.sacModeliBelirlendi = hasCheck(line);
     if (lower.includes('prova tercihi:')) result.provaTermini = line.split(':').slice(1).join(':').trim();
-    if (lower.includes('prova tarihi belirlendi mi')) result.provaTarihiBelirlendi = hasCheck(line);
+    if (lower.includes('prova tarihi belirlendi mi') || lower.includes('prova günü belirlendi mi')) result.provaTarihiBelirlendi = hasCheck(line);
+    // REF fields
+    if (lower.includes('gideceği yerde bulunması gereken saat:')) result.gidecegiYerSaat = line.split(':').slice(1).join(':').trim();
+    if (lower.includes('gideceği yer:')) result.gidecegiYer = line.split(':').slice(1).join(':').trim();
     // Checklist - MG
     if (lower.includes('çekim ücreti alındı mı')) result.cekimUcretiAlindi = hasCheck(line);
     if (lower.includes('fotoğraf paylaşım izni')) result.fotografPaylasimIzni = hasCheck(line);
@@ -107,9 +117,9 @@ function parseDescription(description: string) {
     if (lower.includes('varsa gelin notu:') || lower.includes('varsa çift notu:')) result.gelinNotu = line.split(':').slice(1).join(':').trim();
     if (lower.includes('dekont görseli:')) result.dekontGorseli = line.split(':').slice(1).join(':').trim();
   });
-  // TCB: ilk satır etkinlik türü olabilir (Nişan Günü, Düğün vs.)
+  // TCB/GYS: ilk satır etkinlik türü olabilir (Nişan Günü, Düğün, Nikah / Düğün Günü için Makyaj PRV vs.)
   const firstLine = lines[0]?.trim();
-  if (firstLine && !firstLine.includes(':') && !firstLine.includes('---') && firstLine.length < 30) {
+  if (firstLine && !firstLine.includes(':') && !firstLine.includes('---') && firstLine.length < 50) {
     result.etkinlikTuru = firstLine;
   }
   return result;
@@ -161,25 +171,34 @@ function parsePersonelWithMap(title: string, kisaltmaMap: Record<string, string>
   // PRV (prova) tespiti
   const prova = upper.includes('PRV');
 
-  // Hizmet türü tespiti (Makyaj/Türban keyword'leri ✅'den ÖNCE)
+  // REF (referans/işbirliği) tespiti
+  const ref = /\bREF\b/.test(upper);
+
+  // Hizmet türü tespiti (Makyaj/Türban/Sac keyword'leri ✅'den ÖNCE)
   const hasMakyaj = upper.includes('MAKYAJ');
   const hasTurban = upper.includes('TÜRBAN') || upper.includes('TURBAN');
-  // "Makyaj + Türban" veya "Makyaj + Türban PRV" → tam paket, keyword var ama ikisi de var
-  // Sadece "Makyaj" → sadece makyaj
-  // Sadece "Türban" → sadece türban
-  // Hiçbiri yoksa → tam paket (makyaj + türban)
-  let hizmetTuru: 'makyaj+turban' | 'makyaj' | 'turban' = 'makyaj+turban';
-  if (hasMakyaj && !hasTurban) hizmetTuru = 'makyaj';
-  else if (hasTurban && !hasMakyaj) hizmetTuru = 'turban';
+  const hasSac = /\bSAC\b/.test(upper) || upper.includes('SADECE SAC') || upper.includes('SAÇ');
 
-  // İsim temizle — Makyaj, Türban, FRLNC, ÇT, PRV, +, ekstra boşlukları kaldır
+  let hizmetTuru: 'makyaj+turban' | 'makyaj' | 'turban' | 'makyaj+sac' | 'sac' = 'makyaj+turban';
+  if (hasSac && hasMakyaj) hizmetTuru = 'makyaj+sac';
+  else if (hasSac && !hasMakyaj) hizmetTuru = 'sac';
+  else if (hasMakyaj && !hasTurban && !hasSac) hizmetTuru = 'makyaj';
+  else if (hasTurban && !hasMakyaj) hizmetTuru = 'turban';
+  // TCB: başlıkta hiçbir şey yoksa → firma prefix'ine göre default belirlenecek (eventToGelin'de)
+
+  // İsim temizle — tcb/gys/mg prefix, Makyaj, Türban, Sac, FRLNC, ÇT, PRV, +, sadece, ekstra boşlukları kaldır
   let isim = rawIsim
+    .replace(/^(tcb|gys|mg)\s+/i, '')
     .replace(/\bFRLNC\b/gi, '')
     .replace(/\bÇT\b/g, '')
     .replace(/\bPRV\b/gi, '')
+    .replace(/\bREF\b/gi, '')
     .replace(/\bMakyaj\b/gi, '')
     .replace(/\bTürban\b/gi, '')
     .replace(/\bTurban\b/gi, '')
+    .replace(/\bSac\b/gi, '')
+    .replace(/\bSaç\b/gi, '')
+    .replace(/\bsadece\b/gi, '')
     .replace(/\+/g, '')
     .replace(/\s{2,}/g, ' ')
     .trim();
@@ -200,8 +219,8 @@ function parsePersonelWithMap(title: string, kisaltmaMap: Record<string, string>
       turban = k[1] || '';
     } else if (pStr) {
       const kisi = temizle(pStr);
-      if (hizmetTuru === 'makyaj+turban') {
-        // Tek kişi hem makyaj hem türban yapmış
+      if (hizmetTuru === 'makyaj+turban' || hizmetTuru === 'makyaj+sac') {
+        // Tek kişi hem makyaj hem türban/saç yapmış
         makyaj = kisi;
         turban = kisi;
       } else if (hizmetTuru === 'makyaj') {
@@ -210,11 +229,14 @@ function parsePersonelWithMap(title: string, kisaltmaMap: Record<string, string>
       } else if (hizmetTuru === 'turban') {
         turban = kisi;
         makyaj = 'Sadece Türban';
+      } else if (hizmetTuru === 'sac') {
+        turban = kisi;
+        makyaj = 'Sadece Saç';
       }
     }
   }
 
-  return { isim, makyaj, turban, odemeTamamlandi, hizmetTuru, freelance, ciftTurban, prova, iptal };
+  return { isim, makyaj, turban, odemeTamamlandi, hizmetTuru, freelance, ciftTurban, prova, ref, iptal };
 }
 
 type CalendarEvent = calendar_v3.Schema$Event;
@@ -228,13 +250,16 @@ interface GelinData {
   yorumIstendiMi: boolean; gelinNotu: string; dekontGorseli: string; updatedAt: string;
   firma: FirmaKodu;
   // Hizmet detayları
-  hizmetTuru: 'makyaj+turban' | 'makyaj' | 'turban';
+  hizmetTuru: 'makyaj+turban' | 'makyaj' | 'turban' | 'makyaj+sac' | 'sac';
   freelance: boolean;
   ciftTurban: boolean;
   prova: boolean;
+  ref: boolean;
   iptal: boolean;
   // TCB fields
   sacModeliBelirlendi: boolean; provaTermini: string; provaTarihiBelirlendi: boolean; etkinlikTuru: string;
+  // REF fields
+  gidecegiYerSaat: string; gidecegiYer: string;
   // MG fields
   cekimUcretiAlindi: boolean; fotografPaylasimIzni: boolean; ciftinIsiBitti: boolean;
   dosyaSahipligiAktarildi: boolean; ekHizmetler: string; merasimTarihi: string;
@@ -251,7 +276,11 @@ function eventToGelin(event: CalendarEvent, firma: FirmaKodu, kisaltmaMap: Recor
   const endDateStr = event.end?.dateTime || event.end?.date;
   const endDate = endDateStr ? new Date(endDateStr) : date;
   const parsedData = parseDescription(description);
-  const { isim, makyaj, turban, odemeTamamlandi, hizmetTuru, freelance, ciftTurban, prova, iptal } = parsePersonelWithMap(title, kisaltmaMap);
+  const parsed = parsePersonelWithMap(title, kisaltmaMap);
+  const { isim, makyaj, turban, odemeTamamlandi, freelance, ciftTurban, prova, ref, iptal } = parsed;
+  let hizmetTuru = parsed.hizmetTuru;
+  // TCB: default hizmet "makyaj+sac" (türban yok), GYS: default "makyaj+turban"
+  if (firma === 'TCB' && hizmetTuru === 'makyaj+turban') hizmetTuru = 'makyaj+sac';
   // kontrolZamani = bitiş saati + 1 saat
   const kontrolDate = new Date(endDate.getTime() + 1 * 60 * 60 * 1000);
 
@@ -261,7 +290,7 @@ function eventToGelin(event: CalendarEvent, firma: FirmaKodu, kisaltmaMap: Recor
     saat: date.toLocaleTimeString('en-GB', { timeZone: 'Europe/Istanbul', hour: '2-digit', minute: '2-digit', hour12: false }),
     bitisSaati: endDate.toLocaleTimeString('en-GB', { timeZone: 'Europe/Istanbul', hour: '2-digit', minute: '2-digit', hour12: false }),
     ucret: parsedData.ucret as number, kapora: parsedData.kapora as number, kalan: parsedData.kalan as number,
-    makyaj, turban, odemeTamamlandi, hizmetTuru, freelance, ciftTurban, prova, iptal,
+    makyaj, turban, odemeTamamlandi, hizmetTuru, freelance, ciftTurban, prova, ref, iptal,
     kontrolZamani: kontrolDate.toISOString(),
     kinaGunu: parsedData.kinaGunu as string, telefon: parsedData.telefon as string,
     esiTelefon: parsedData.esiTelefon as string, instagram: parsedData.instagram as string,
@@ -280,6 +309,9 @@ function eventToGelin(event: CalendarEvent, firma: FirmaKodu, kisaltmaMap: Recor
     provaTermini: parsedData.provaTermini as string,
     provaTarihiBelirlendi: parsedData.provaTarihiBelirlendi as boolean,
     etkinlikTuru: parsedData.etkinlikTuru as string,
+    // REF fields
+    gidecegiYerSaat: parsedData.gidecegiYerSaat as string,
+    gidecegiYer: parsedData.gidecegiYer as string,
     // MG fields
     cekimUcretiAlindi: parsedData.cekimUcretiAlindi as boolean,
     fotografPaylasimIzni: parsedData.fotografPaylasimIzni as boolean,

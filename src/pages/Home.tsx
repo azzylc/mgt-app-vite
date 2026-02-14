@@ -43,6 +43,12 @@ interface Gelin {
   iptal?: boolean;
   firma?: string;
   bitisSaati?: string;
+  ref?: boolean;
+  prova?: boolean;
+  etkinlikTuru?: string;
+  gidecegiYer?: string;
+  gidecegiYerSaat?: string;
+  hizmetTuru?: string;
 }
 
 interface FirmaInfo {
@@ -145,7 +151,7 @@ export default function Home() {
   const [personelDurumlar, setPersonelDurumlar] = useState<PersonelGunlukDurum[]>([]);
   const [bugunIzinliler, setBugunIzinliler] = useState<IzinKaydi[]>([]);
   const [haftaTatiliIzinliler, setHaftaTatiliIzinliler] = useState<IzinKaydi[]>([]);
-
+  const [refGelinler, setRefGelinler] = useState<Gelin[]>([]);
   const bugun = new Date().toISOString().split("T")[0];
   const bugunDate = new Date();
 
@@ -165,6 +171,11 @@ export default function Home() {
   }, [gelinler, aktifFirmaKodlari]);
 
   const bugunGelinler = useMemo(() => filteredGelinler.filter(g => g.tarih === bugun), [filteredGelinler, bugun]);
+  
+  const filteredRefGelinler = useMemo(() => {
+    if (aktifFirmaKodlari.size === 0) return refGelinler;
+    return refGelinler.filter(g => !g.firma || aktifFirmaKodlari.has(g.firma));
+  }, [refGelinler, aktifFirmaKodlari]);
   
   const yarinGelinler = useMemo(() => {
     const yarin = new Date();
@@ -197,8 +208,7 @@ export default function Home() {
       // İPTAL edilen gelinlerden ücret alınmaz
       if (g.iptal || g.odemeTamamlandi) return false;
       // REF gelinlerden ücret alınmaz
-      const isim = (g.isim || '').toLocaleLowerCase('tr-TR');
-      if (isim.includes(' ref ') || isim.includes(' ref-') || isim.endsWith(' ref')) return false;
+      if (g.ref) return false;
       return true;
     }),
     [filteredGelinler, bugun]
@@ -321,6 +331,29 @@ export default function Home() {
       setDataLoading(false);
     });
 
+    return () => unsubscribe();
+  }, [user]);
+
+  // Önümüzdeki Referanslar (REF gelinler - bugün dahil 90 gün)
+  useEffect(() => {
+    if (!user) return;
+    const q = query(
+      collection(db, "gelinler"),
+      where("ref", "==", true),
+      where("tarih", ">=", new Date().toISOString().split("T")[0]),
+      orderBy("tarih", "asc"),
+      limit(10)
+    );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Gelin[];
+      setRefGelinler(data.filter(g => !g.iptal));
+    }, (error) => {
+      console.error("[Home/refGelinler] Firestore hatası:", error);
+      Sentry.captureException(error, { tags: { module: "Home", collection: "gelinler", query: "ref" } });
+    });
     return () => unsubscribe();
   }, [user]);
 
@@ -736,6 +769,79 @@ export default function Home() {
               {/* Yaklaşan Etkinlikler */}
               <TakvimEtkinlikWidget personeller={personeller} />
           </div>
+
+          {/* Row 2.5: Önümüzdeki Referanslar */}
+          {filteredRefGelinler.length > 0 && (
+            <div className="bg-white rounded-xl border border-[#E5E5E5] overflow-hidden">
+              <div className="px-3 py-2 border-b border-[#E5E5E5] flex items-center justify-between bg-gradient-to-r from-[#FFF3E0] to-transparent">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">⭐</span>
+                  <span className="text-xs font-semibold text-[#2F2F2F]">Önümüzdeki Referanslar</span>
+                  <span className="text-[10px] text-[#E67E22] bg-[#FFF3E0] px-1.5 py-0.5 rounded-full font-medium">{filteredRefGelinler.length}</span>
+                </div>
+              </div>
+              <div className="divide-y divide-[#E5E5E5]/60">
+                {filteredRefGelinler.map((g) => {
+                  const d = new Date(g.tarih);
+                  const gunAdi = d.toLocaleDateString('tr-TR', { weekday: 'short' });
+                  const tarihStr = d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+                  const gunFarki = Math.ceil((d.getTime() - new Date(bugun).getTime()) / (1000 * 60 * 60 * 24));
+                  const hizmet = g.hizmetTuru === 'makyaj' ? 'Makyaj' 
+                    : g.hizmetTuru === 'sac' ? 'Saç' 
+                    : g.hizmetTuru === 'turban' ? 'Türban'
+                    : g.hizmetTuru === 'makyaj+sac' ? 'Makyaj + Saç'
+                    : 'Makyaj + Türban';
+                  return (
+                    <div 
+                      key={g.id} 
+                      onClick={() => setSelectedGelin(g)}
+                      className="px-3 py-2.5 hover:bg-[#FFF8F0] cursor-pointer transition flex items-center gap-3"
+                    >
+                      {/* Tarih */}
+                      <div className="flex-shrink-0 w-14 text-center">
+                        <p className="text-xs font-bold text-[#E67E22]">{tarihStr}</p>
+                        <p className="text-[10px] text-[#8A8A8A]">{gunAdi}</p>
+                      </div>
+                      {/* Detay */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          {g.firma && (
+                            <span className="text-[9px] font-bold px-1 py-0.5 rounded bg-[#F0F0F0] text-[#8A8A8A]">{g.firma}</span>
+                          )}
+                          <p className="text-xs font-medium text-[#2F2F2F] truncate">{g.isim}</p>
+                        </div>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-[10px] text-[#8A8A8A]">{g.saat}{g.bitisSaati ? `–${g.bitisSaati}` : ''}</span>
+                          <span className="text-[10px] text-[#8A8A8A]">•</span>
+                          <span className="text-[10px] text-[#8A8A8A]">{hizmet}{g.prova ? ' PRV' : ''}</span>
+                          {g.etkinlikTuru && (
+                            <>
+                              <span className="text-[10px] text-[#8A8A8A]">•</span>
+                              <span className="text-[10px] text-[#8A8A8A]">{g.etkinlikTuru}</span>
+                            </>
+                          )}
+                        </div>
+                        {g.gidecegiYer && (
+                          <p className="text-[10px] text-[#E67E22] mt-0.5">📍 {g.gidecegiYer}{g.gidecegiYerSaat ? ` • ${g.gidecegiYerSaat}'da orada ol` : ''}</p>
+                        )}
+                      </div>
+                      {/* Gün sayacı */}
+                      <div className="flex-shrink-0">
+                        <span className={`text-[10px] font-medium px-2 py-1 rounded-full ${
+                          gunFarki === 0 ? 'bg-red-100 text-red-600' 
+                          : gunFarki <= 3 ? 'bg-orange-100 text-orange-600' 
+                          : gunFarki <= 7 ? 'bg-yellow-100 text-yellow-700' 
+                          : 'bg-gray-100 text-gray-500'
+                        }`}>
+                          {gunFarki === 0 ? 'Bugün' : gunFarki === 1 ? 'Yarın' : `${gunFarki} gün`}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Row 3: Dikkat + Bugün + Şu An Çalışıyor */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-2.5">
