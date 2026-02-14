@@ -35,7 +35,6 @@ interface PersonelDurumPanelProps {
 export default function PersonelDurumPanel({
   bugunGelenler,
   izinliler,
-  tumPersoneller
 }: PersonelDurumPanelProps) {
   const calisanlar = bugunGelenler.filter(p => p.aktifMi);
   const cikanlar = bugunGelenler.filter(p => !p.aktifMi && p.cikisSaati);
@@ -58,38 +57,30 @@ export default function PersonelDurumPanel({
         ) : (
           <div className="space-y-1.5">
             {/* Çalışıyor (yeşil arka plan, üstte) */}
-            {calisanlar.map((p) => {
-              const personel = tumPersoneller.find(per => per.id === p.personelId);
-              return (
-                <div key={p.personelId} className="flex items-center justify-between py-1.5 px-2.5 rounded-lg bg-[#EAF2ED]">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-[#8FAF9A] rounded-full animate-pulse flex-shrink-0"></span>
-                    {personel?.emoji && <span className="text-xs">{personel.emoji}</span>}
-                    <span className="text-xs text-[#2F2F2F] font-medium">{p.personelAd}</span>
-                  </div>
-                  <span className="text-[10px] text-[#8FAF9A] font-semibold">{p.girisSaati}</span>
+            {calisanlar.map((p) => (
+              <div key={p.personelId} className="flex items-center justify-between py-1.5 px-2.5 rounded-lg bg-[#EAF2ED]">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 bg-[#8FAF9A] rounded-full animate-pulse flex-shrink-0"></span>
+                  <span className="text-xs text-[#2F2F2F] font-medium">{p.personelAd}</span>
                 </div>
-              );
-            })}
+                <span className="text-[10px] text-[#8FAF9A] font-semibold">{p.girisSaati}</span>
+              </div>
+            ))}
 
             {/* Çıktı (normal arka plan, altta) */}
-            {cikanlar.map((p) => {
-              const personel = tumPersoneller.find(per => per.id === p.personelId);
-              return (
-                <div key={p.personelId} className="flex items-center justify-between py-1.5 px-2.5 rounded-lg bg-[#F7F7F7]">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-[#E5E5E5] rounded-full flex-shrink-0"></span>
-                    {personel?.emoji && <span className="text-xs">{personel.emoji}</span>}
-                    <span className="text-xs text-[#8A8A8A]">{p.personelAd}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-[10px] text-[#8A8A8A] font-medium">{p.girisSaati}</span>
-                    <span className="text-[10px] text-[#8A8A8A]">→</span>
-                    <span className="text-[10px] text-[#D96C6C] font-medium">{p.cikisSaati}</span>
-                  </div>
+            {cikanlar.map((p) => (
+              <div key={p.personelId} className="flex items-center justify-between py-1.5 px-2.5 rounded-lg bg-[#F7F7F7]">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 bg-[#E5E5E5] rounded-full flex-shrink-0"></span>
+                  <span className="text-xs text-[#8A8A8A]">{p.personelAd}</span>
                 </div>
-              );
-            })}
+                <div className="flex items-center gap-1">
+                  <span className="text-[10px] text-[#8A8A8A] font-medium">{p.girisSaati}</span>
+                  <span className="text-[10px] text-[#8A8A8A]">→</span>
+                  <span className="text-[10px] text-[#D96C6C] font-medium">{p.cikisSaati}</span>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
