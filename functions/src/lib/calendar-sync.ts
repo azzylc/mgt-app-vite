@@ -263,7 +263,7 @@ interface GelinData {
   // MG fields
   cekimUcretiAlindi: boolean; fotografPaylasimIzni: boolean; ciftinIsiBitti: boolean;
   dosyaSahipligiAktarildi: boolean; ekHizmetler: string; merasimTarihi: string;
-  gelinlikci: string; kuafor: string;
+  gelinlikci: string; kuafor: string; videocu: string;
   __delete?: boolean; reason?: string;
 }
 
@@ -277,10 +277,20 @@ function eventToGelin(event: CalendarEvent, firma: FirmaKodu, kisaltmaMap: Recor
   const endDate = endDateStr ? new Date(endDateStr) : date;
   const parsedData = parseDescription(description);
   const parsed = parsePersonelWithMap(title, kisaltmaMap);
-  const { isim, makyaj, turban, odemeTamamlandi, freelance, ciftTurban, prova, ref, iptal } = parsed;
+  let { isim, makyaj, turban, odemeTamamlandi, freelance, ciftTurban, prova, ref, iptal } = parsed;
   let hizmetTuru = parsed.hizmetTuru;
   // TCB: default hizmet "makyaj+sac" (türban yok), GYS: default "makyaj+turban"
   if (firma === 'TCB' && hizmetTuru === 'makyaj+turban') hizmetTuru = 'makyaj+sac';
+
+  // MG: title'daki kısaltmalar fotoğrafçı & videocu (makyaj/turban değil)
+  let mgFotografci = '';
+  let mgVideocu = '';
+  if (firma === 'MG') {
+    mgFotografci = makyaj || '';  // ilk kişi = fotoğrafçı
+    mgVideocu = turban || '';     // ikinci kişi = videocu (yoksa boş)
+    makyaj = '';
+    turban = '';
+  }
   // kontrolZamani = bitiş saati + 1 saat
   const kontrolDate = new Date(endDate.getTime() + 1 * 60 * 60 * 1000);
 
@@ -294,7 +304,8 @@ function eventToGelin(event: CalendarEvent, firma: FirmaKodu, kisaltmaMap: Recor
     kontrolZamani: kontrolDate.toISOString(),
     kinaGunu: parsedData.kinaGunu as string, telefon: parsedData.telefon as string,
     esiTelefon: parsedData.esiTelefon as string, instagram: parsedData.instagram as string,
-    fotografci: parsedData.fotografci as string, modaevi: parsedData.modaevi as string,
+    fotografci: firma === 'MG' ? mgFotografci : (parsedData.fotografci as string),
+    modaevi: parsedData.modaevi as string,
     anlasildigiTarih: parsedData.anlasildigiTarih as string,
     bilgilendirmeGonderildi: parsedData.bilgilendirmeGonderildi as boolean,
     ucretYazildi: parsedData.ucretYazildi as boolean,
@@ -321,6 +332,7 @@ function eventToGelin(event: CalendarEvent, firma: FirmaKodu, kisaltmaMap: Recor
     merasimTarihi: parsedData.merasimTarihi as string,
     gelinlikci: parsedData.gelinlikci as string,
     kuafor: parsedData.kuafor as string,
+    videocu: firma === 'MG' ? mgVideocu : '',
     updatedAt: new Date().toISOString(),
     firma
   };
