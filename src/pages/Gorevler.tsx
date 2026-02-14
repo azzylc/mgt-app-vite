@@ -404,10 +404,6 @@ export default function GorevlerPage() {
           yorumIstendiMi2: data.yorumIstendiMi2 || false,
           anlastigiTarih: data.anlastigiTarih || "",
           odemeTamamlandi: data.odemeTamamlandi || false,
-          iptal: data.iptal || false,
-          ref: data.ref || false,
-          firma: data.firma || "",
-          bitisSaati: data.bitisSaati || "",
         });
       }
     } catch (error) {
