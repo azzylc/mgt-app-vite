@@ -33,8 +33,8 @@ export default function GelinListPanel({
   onToggleChange
 }: GelinListPanelProps) {
   return (
-    <div className="bg-white rounded-xl border border-[#E5E5E5] overflow-hidden">
-      <div className="px-3 py-2 border-b border-[#E5E5E5] flex items-center justify-between bg-gradient-to-r from-rose-50/40 to-transparent">
+    <div className="bg-white rounded-xl border border-[#E5E5E5] overflow-hidden flex flex-col h-full">
+      <div className="px-3 py-2 border-b border-[#E5E5E5] flex items-center justify-between bg-gradient-to-r from-rose-50/40 to-transparent flex-shrink-0">
         <div className="flex items-center gap-2">
           <span className="text-sm">💄</span>
           <span className="text-xs font-semibold text-[#2F2F2F]">{title}</span>
@@ -61,7 +61,7 @@ export default function GelinListPanel({
           </div>
         )}
       </div>
-      <div className="p-2.5">
+      <div className="p-2.5 flex-1 overflow-y-auto min-h-0">
         {loading ? (
           <p className="text-center py-4 text-[#8A8A8A] text-xs">Yükleniyor...</p>
         ) : gelinler.length === 0 ? (
@@ -70,7 +70,7 @@ export default function GelinListPanel({
             <p className="text-[#8A8A8A] text-xs mt-1">İş yok!</p>
           </div>
         ) : (
-          <div className="space-y-1 max-h-[400px] overflow-y-auto">
+          <div className="space-y-1">
             {gelinler.map((gelin) => (
               <div 
                 key={gelin.id}

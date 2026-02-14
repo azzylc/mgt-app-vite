@@ -724,11 +724,11 @@ export default function Home() {
           </div>
 
           {/* Row 2: Duyurular + Görevler + Yaklaşan Etkinlikler */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 lg:h-[420px]">
               {/* Duyurular */}
               {duyurular.length > 0 && (
-                <div className="bg-white rounded-xl border border-[#E5E5E5] overflow-hidden">
-                  <div className="px-3 py-2 border-b border-[#E5E5E5] flex items-center justify-between bg-gradient-to-r from-[#EAF2ED] to-transparent">
+                <div className="bg-white rounded-xl border border-[#E5E5E5] overflow-hidden flex flex-col h-full">
+                  <div className="px-3 py-2 border-b border-[#E5E5E5] flex items-center justify-between bg-gradient-to-r from-[#EAF2ED] to-transparent flex-shrink-0">
                     <div className="flex items-center gap-2">
                       <span className="text-sm">📢</span>
                       <span className="text-xs font-semibold text-[#2F2F2F]">Duyurular</span>
@@ -741,7 +741,7 @@ export default function Home() {
                       Tümü →
                     </button>
                   </div>
-                  <div className="p-2.5 space-y-1 max-h-[160px] overflow-y-auto">
+                  <div className="p-2.5 space-y-1 flex-1 overflow-y-auto min-h-0">
                     {duyurular.map((d) => (
                       <div 
                         key={d.id} 
@@ -842,7 +842,7 @@ export default function Home() {
           )}
 
           {/* Row 3: Dikkat + Bugün + Şu An Çalışıyor */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-2.5 lg:h-[420px]">
             <DikkatPanel
               islenmemisUcretler={islenmemisUcretler}
               eksikIzinler={eksikIzinler}

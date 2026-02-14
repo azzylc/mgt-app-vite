@@ -40,15 +40,15 @@ export default function PersonelDurumPanel({
   const cikanlar = bugunGelenler.filter(p => !p.aktifMi && p.cikisSaati);
 
   return (
-    <div className="bg-white rounded-xl border border-[#E5E5E5] overflow-hidden">
+    <div className="bg-white rounded-xl border border-[#E5E5E5] overflow-hidden flex flex-col h-full">
       {/* Bugün Geldi Header */}
-      <div className="px-3 py-2 border-b border-[#E5E5E5] flex items-center gap-2 bg-gradient-to-r from-[#EAF2ED] to-transparent">
+      <div className="px-3 py-2 border-b border-[#E5E5E5] flex items-center gap-2 bg-gradient-to-r from-[#EAF2ED] to-transparent flex-shrink-0">
         <span className="text-sm">📋</span>
         <span className="text-xs font-semibold text-[#2F2F2F]">Bugün Geldi</span>
         <span className="text-[10px] text-[#8FAF9A] bg-[#EAF2ED] px-1.5 py-0.5 rounded-full font-medium">{bugunGelenler.length}</span>
       </div>
 
-      <div className="p-2.5">
+      <div className="p-2.5 flex-1 overflow-y-auto min-h-0">
         {bugunGelenler.length === 0 ? (
           <div className="text-center py-3">
             <span className="text-lg">😴</span>
