@@ -563,8 +563,15 @@ async function gorevReconcile() {
           }
         }
       } else {
-        const makyajci = personeller.find(p => p.ad.toLocaleLowerCase('tr-TR') === (gelin.makyaj || '').toLocaleLowerCase('tr-TR'));
-        const turbanci = personeller.find(p => p.ad.toLocaleLowerCase('tr-TR') === (gelin.turban || '').toLocaleLowerCase('tr-TR'));
+        const findPersonel = (isim: string) => {
+          const s = (isim || '').toLocaleLowerCase('tr-TR');
+          return personeller.find(p => {
+            const tamIsim = `${p.ad} ${p.soyad}`.toLocaleLowerCase('tr-TR');
+            return tamIsim === s || p.ad.toLocaleLowerCase('tr-TR') === s;
+          });
+        };
+        const makyajci = findPersonel(gelin.makyaj);
+        const turbanci = findPersonel(gelin.turban);
         const ayniKisi = makyajci?.email === turbanci?.email;
 
         const kisiler: { email: string; ad: string; soyad: string; rol: string }[] = [];

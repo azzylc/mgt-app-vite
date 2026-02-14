@@ -134,17 +134,19 @@ async function getKisaltmaMap(): Promise<Record<string, string>> {
   for (const doc of snap.docs) {
     const data = doc.data();
     const ad = (data.ad || '').trim();
+    const soyad = (data.soyad || '').trim();
+    const tamIsim = soyad ? `${ad} ${soyad}` : ad;
     const kisaltma = (data.kisaltma || '').trim();
     if (!ad) continue;
     // Kısaltma virgülle ayrılmış olabilir: "Sa, Kü, Rü"
     if (kisaltma) {
       const parcalar = kisaltma.split(',').map((s: string) => s.trim().toUpperCase()).filter(Boolean);
       for (const k of parcalar) {
-        map[k] = ad;
+        map[k] = tamIsim;
       }
     }
     // Ad'ın kendisini de ekle (büyük harf)
-    map[ad.toUpperCase()] = ad;
+    map[ad.toUpperCase()] = tamIsim;
   }
   return map;
 }
