@@ -17,6 +17,7 @@ import {
 } from "firebase/firestore";
 import { Scanner } from "@yudiel/react-qr-scanner";
 import { useAuth } from "../context/RoleProvider";
+import * as Sentry from '@sentry/react';
 
 // ============================================
 // INTERFACES
@@ -129,6 +130,20 @@ export default function QRGirisPage() {
       Geolocation.requestPermissions().catch(() => {});
     }
   }, []);
+
+  // Sayfa/uygulama tekrar görünür olunca verileri yenile
+  // (Yönetici manuel düzeltme yaptığında personelin uygulaması güncellensin)
+  useEffect(() => {
+    if (!personel?.id) return;
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        fetchSonIslem(personel.id);
+        fetchBugunOzet(personel.id);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [personel?.id]);
 
   // Konumlar arası giriş/çıkış ayarını oku
   useEffect(() => {
@@ -432,8 +447,11 @@ export default function QRGirisPage() {
       fetchBugunOzet(personel.id);
 
     } catch (error) {
+      console.error("[QRGiris] İşlem hatası:", error);
+      Sentry.captureException(error, { tags: { page: "QRGiris", action: islemSecimi || "unknown" } });
       setDurum("hata");
-      setMesaj("Bir hata oluştu");
+      const errMsg = error instanceof Error ? error.message : String(error);
+      setMesaj(`İşlem başarısız: ${errMsg}`);
     } finally {
       setProcessing(false);
     }
