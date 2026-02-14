@@ -143,7 +143,13 @@ export default function Home() {
 
   // Firma filtreleme
   const [tumFirmalar, setTumFirmalar] = useState<FirmaInfo[]>([]);
-  const [aktifFirmaKodlari, setAktifFirmaKodlari] = useState<Set<string>>(new Set());
+  const [aktifFirmaKodlari, setAktifFirmaKodlari] = useState<Set<string>>(() => {
+    try {
+      const saved = localStorage.getItem('aktifFirmalar');
+      if (saved) return new Set(JSON.parse(saved));
+    } catch {}
+    return new Set();
+  });
   const [aylikHedef, setAylikHedef] = useState<number>(0);
   const [eksikIzinler, setEksikIzinler] = useState<EksikIzin[]>([]);
   const [izinEkleniyor, setIzinEkleniyor] = useState<string | null>(null);
@@ -506,7 +512,12 @@ export default function Home() {
     const firmaKodlari = isKurucu
       ? tumFirmalar.map(f => f.kisaltma)
       : tumFirmalar.filter(f => kullaniciFirmalariIds.includes(f.id)).map(f => f.kisaltma);
-    setAktifFirmaKodlari(prev => prev.size === 0 ? new Set(firmaKodlari) : prev);
+    setAktifFirmaKodlari(prev => {
+      if (prev.size > 0) return prev;
+      const initial = new Set(firmaKodlari);
+      localStorage.setItem('aktifFirmalar', JSON.stringify(firmaKodlari));
+      return initial;
+    });
   }, [user, personeller, tumFirmalar]);
 
   // ✅ Firma toggle
@@ -518,6 +529,7 @@ export default function Home() {
       } else {
         next.add(kisaltma);
       }
+      localStorage.setItem('aktifFirmalar', JSON.stringify([...next]));
       return next;
     });
   };
