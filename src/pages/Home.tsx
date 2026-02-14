@@ -778,8 +778,8 @@ export default function Home() {
                   <span className="text-[10px] text-[#E67E22] bg-[#FFF3E0] px-1.5 py-0.5 rounded-full font-medium">{filteredRefGelinler.length}</span>
                 </div>
               </div>
-              <div className="divide-y divide-[#E5E5E5]/60">
-                {filteredRefGelinler.map((g) => {
+              <div className="divide-y divide-[#E5E5E5]/60 max-h-[275px] overflow-y-auto">
+                {filteredRefGelinler.slice(0, 10).map((g) => {
                   const d = new Date(g.tarih);
                   const gunAdi = d.toLocaleDateString('tr-TR', { weekday: 'short' });
                   const tarihStr = d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
