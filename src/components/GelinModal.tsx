@@ -221,16 +221,8 @@ export default function GelinModal({ gelin: initialGelin, onClose }: { gelin: Ge
                       </div>
                     </div>
                   )}
-                  {gelin.videocu ? (
+                  {gelin.videocu && (
                     <PersonelBadge label="Videocu" personelIsim={gelin.videocu} personeller={personeller} />
-                  ) : (
-                    <div className="flex items-center gap-2 py-1.5">
-                      <div className="w-6 h-6 rounded-full bg-[#F7F7F7] flex items-center justify-center text-xs">🎥</div>
-                      <div>
-                        <p className="text-[10px] text-[#8A8A8A] uppercase tracking-wider leading-none">Videocu</p>
-                        <p className="text-xs text-[#8A8A8A] italic">Videosu yok</p>
-                      </div>
-                    </div>
                   )}
                   <PersonelBadge label="Gelinlikçi" personelIsim={gelin.gelinlikci || ''} personeller={personeller} />
                   <PersonelBadge label="Kuaför" personelIsim={gelin.kuafor || ''} personeller={personeller} />
