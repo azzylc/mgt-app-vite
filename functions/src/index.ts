@@ -9,10 +9,17 @@ import { uploadFileToDrive } from './lib/drive-upload';
 
 // Secret tanımları
 const calendarId = defineSecret('GOOGLE_CALENDAR_ID');
+const tcbCalendarId = defineSecret('TCB_CALENDAR_ID');
 const webhookToken = defineSecret('WEBHOOK_TOKEN');
 const resendApiKey = defineSecret('RESEND_API_KEY');
 const driveClientId = defineSecret('DRIVE_CLIENT_ID');
 const driveClientSecret = defineSecret('DRIVE_CLIENT_SECRET');
+
+// Firma → Calendar ID mapping helper
+function getCalendarConfig(firma: FirmaKodu, gysCalId: string, tcbCalId: string): { calId: string; syncDoc: string } {
+  if (firma === 'TCB') return { calId: tcbCalId, syncDoc: 'sync_TCB' };
+  return { calId: gysCalId, syncDoc: 'sync_GYS' };
+}
 const driveRefreshToken = defineSecret('DRIVE_REFRESH_TOKEN');
 
 // ============================================
@@ -202,45 +209,59 @@ async function verifyCallableAuth(request: any, requiredRoles?: string[]): Promi
 
   return { email, role: userRole, uid: request.auth.uid };
 }
-export const calendarWebhook = onRequest({ region: 'europe-west1', cors: true, secrets: [calendarId, webhookToken] }, async (req, res) => {
+export const calendarWebhook = onRequest({ region: 'europe-west1', cors: true, secrets: [calendarId, tcbCalendarId, webhookToken] }, async (req, res) => {
   try {
     process.env.GOOGLE_CALENDAR_ID = calendarId.value();
-    const channelId = req.headers['x-goog-channel-id'] as string;
+    const channelIdHeader = req.headers['x-goog-channel-id'] as string;
     const resourceId = req.headers['x-goog-resource-id'] as string;
     const resourceState = req.headers['x-goog-resource-state'] as string;
     const messageNumber = req.headers['x-goog-message-number'] as string;
 
-    console.log('Webhook received:', { channelId, resourceId, resourceState, messageNumber });
+    console.log('Webhook received:', { channelId: channelIdHeader, resourceId, resourceState, messageNumber });
+
+    // Channel ID'den firma belirle
+    let firma: FirmaKodu = 'GYS';
+    if (channelIdHeader) {
+      const channelDoc = await adminDb.collection('webhookChannels').doc(channelIdHeader).get();
+      if (channelDoc.exists && channelDoc.data()?.firma) {
+        firma = channelDoc.data()!.firma as FirmaKodu;
+      } else if (channelIdHeader.startsWith('tcb-')) {
+        firma = 'TCB';
+      }
+    }
+
+    const config = getCalendarConfig(firma, calendarId.value(), tcbCalendarId.value());
 
     await adminDb.collection('system').doc('webhookLog').set({
       lastReceived: new Date().toISOString(),
       resourceState,
-      channelId
+      channelId: channelIdHeader,
+      firma
     }, { merge: true });
 
     if (resourceState === 'sync') { res.json({ status: 'sync_acknowledged' }); return; }
 
     if (resourceState === 'exists') {
-      const syncTokenDoc = await adminDb.collection('system').doc('sync').get();
-      const result = await incrementalSync(syncTokenDoc.data()?.lastSyncToken, calendarId.value(), 'GYS' as FirmaKodu);
+      const syncTokenDoc = await adminDb.collection('system').doc(config.syncDoc).get();
+      const result = await incrementalSync(syncTokenDoc.data()?.lastSyncToken, config.calId, firma);
 
       if (result.success && result.syncToken) {
-        await adminDb.collection('system').doc('sync').set({
+        await adminDb.collection('system').doc(config.syncDoc).set({
           lastSyncToken: result.syncToken,
           lastSync: new Date().toISOString(),
           lastSyncResult: { success: true, updates: result.updateCount }
         }, { merge: true });
-        res.json({ status: 'success', updates: result.updateCount }); return;
+        res.json({ status: 'success', firma, updates: result.updateCount }); return;
       } else if (result.error === 'SYNC_TOKEN_INVALID') {
-        const fullResult = await fullSync(calendarId.value(), 'GYS' as FirmaKodu);
+        const fullResult = await fullSync(config.calId, firma);
         if (fullResult.syncToken) {
-          await adminDb.collection('system').doc('sync').set({
+          await adminDb.collection('system').doc(config.syncDoc).set({
             lastSyncToken: fullResult.syncToken,
             lastFullSync: new Date().toISOString(),
             lastSyncResult: { success: true, type: 'full', added: fullResult.added }
           }, { merge: true });
         }
-        res.json({ status: 'full_sync_completed', result: fullResult }); return;
+        res.json({ status: 'full_sync_completed', firma, result: fullResult }); return;
       }
     }
     res.json({ status: 'ok' });
@@ -254,19 +275,27 @@ export const calendarWebhook = onRequest({ region: 'europe-west1', cors: true, s
 // ============================================
 // 2. FULL SYNC
 // ============================================
-export const fullSyncEndpoint = onRequest({ region: 'europe-west1', cors: true, timeoutSeconds: 540, secrets: [calendarId] }, async (req, res) => {
+export const fullSyncEndpoint = onRequest({ region: 'europe-west1', cors: true, timeoutSeconds: 540, secrets: [calendarId, tcbCalendarId] }, async (req, res) => {
   try {
     process.env.GOOGLE_CALENDAR_ID = calendarId.value();
-    console.log('Full sync başlatılıyor... Calendar ID:', calendarId.value());
-    const result = await fullSync(calendarId.value(), 'GYS' as FirmaKodu);
-    if (result.syncToken) {
-      await adminDb.collection('system').doc('sync').set({
-        lastSyncToken: result.syncToken,
-        lastFullSync: new Date().toISOString(),
-        needsFullSync: false
-      }, { merge: true });
+    const firmaParam = (req.query.firma as string || '').toUpperCase();
+    const firmalar: FirmaKodu[] = firmaParam === 'TCB' ? ['TCB'] : firmaParam === 'GYS' ? ['GYS'] : ['GYS', 'TCB'];
+
+    const results: Record<string, unknown> = {};
+    for (const firma of firmalar) {
+      const config = getCalendarConfig(firma, calendarId.value(), tcbCalendarId.value());
+      console.log(`Full sync başlatılıyor... Firma: ${firma}, Calendar ID: ${config.calId}`);
+      const result = await fullSync(config.calId, firma);
+      if (result.syncToken) {
+        await adminDb.collection('system').doc(config.syncDoc).set({
+          lastSyncToken: result.syncToken,
+          lastFullSync: new Date().toISOString(),
+          needsFullSync: false
+        }, { merge: true });
+      }
+      results[firma] = result;
     }
-    res.json(result);
+    res.json({ success: true, results });
   } catch (error) {
     console.error('Full sync error:', error);
     await logSystemError('fullSync', error);
@@ -277,10 +306,18 @@ export const fullSyncEndpoint = onRequest({ region: 'europe-west1', cors: true, 
 // ============================================
 // 3. SETUP WATCH
 // ============================================
-export const setupWatch = onRequest({ region: 'europe-west1', cors: true, secrets: [calendarId, webhookToken] }, async (req, res) => {
+export const setupWatch = onRequest({ region: 'europe-west1', cors: true, secrets: [calendarId, tcbCalendarId, webhookToken] }, async (req, res) => {
   try {
-    const result = await createWebhookChannel(calendarId.value(), webhookToken.value());
-    res.json(result);
+    const firmaParam = (req.query.firma as string || '').toUpperCase();
+    const firmalar: { firma: FirmaKodu; calId: string }[] = [];
+    if (!firmaParam || firmaParam === 'GYS') firmalar.push({ firma: 'GYS', calId: calendarId.value() });
+    if (!firmaParam || firmaParam === 'TCB') firmalar.push({ firma: 'TCB', calId: tcbCalendarId.value() });
+
+    const results: Record<string, unknown> = {};
+    for (const { firma, calId } of firmalar) {
+      results[firma] = await createWebhookChannel(calId, webhookToken.value(), firma);
+    }
+    res.json(results);
   } catch (error) {
     console.error('Setup watch error:', error);
     res.status(500).json({ error: 'Setup watch failed', details: String(error) });
@@ -332,38 +369,47 @@ export const health = onRequest({ region: 'europe-west1', cors: true }, async (r
 export const renewWebhook = onSchedule({
   region: 'europe-west1',
   schedule: 'every 24 hours',
-  secrets: [calendarId, webhookToken]
+  secrets: [calendarId, tcbCalendarId, webhookToken]
 }, async (event) => {
   console.log('Webhook renewal check started...');
 
-  try {
-    const channelsSnapshot = await adminDb.collection('webhookChannels')
-      .orderBy('createdAt', 'desc')
-      .limit(1)
-      .get();
+  const firmalar: { firma: FirmaKodu; calId: string }[] = [
+    { firma: 'GYS', calId: calendarId.value() },
+    { firma: 'TCB', calId: tcbCalendarId.value() }
+  ];
 
-    if (channelsSnapshot.empty) {
-      console.log('No webhook channel found, creating new one...');
-      await createWebhookChannel(calendarId.value(), webhookToken.value());
-      return;
+  for (const { firma, calId } of firmalar) {
+    try {
+      // Bu firmanın en son channel'ını bul
+      const channelsSnapshot = await adminDb.collection('webhookChannels')
+        .where('firma', '==', firma)
+        .orderBy('createdAt', 'desc')
+        .limit(1)
+        .get();
+
+      if (channelsSnapshot.empty) {
+        console.log(`[${firma}] No webhook channel found, creating new one...`);
+        await createWebhookChannel(calId, webhookToken.value(), firma);
+        continue;
+      }
+
+      const channel = channelsSnapshot.docs[0].data();
+      const expiration = new Date(channel.expiration).getTime();
+      const now = Date.now();
+      const twoDaysMs = 2 * 24 * 60 * 60 * 1000;
+
+      if (expiration - now < twoDaysMs) {
+        console.log(`[${firma}] Webhook expiring soon, renewing...`);
+        await createWebhookChannel(calId, webhookToken.value(), firma);
+        console.log(`[${firma}] Webhook renewed successfully`);
+      } else {
+        const hoursLeft = Math.round((expiration - now) / (1000 * 60 * 60));
+        console.log(`[${firma}] Webhook still valid, ${hoursLeft} hours left`);
+      }
+    } catch (error) {
+      console.error(`[${firma}] Webhook renewal failed:`, error);
+      await logSystemError(`webhookRenewal_${firma}`, error);
     }
-
-    const channel = channelsSnapshot.docs[0].data();
-    const expiration = new Date(channel.expiration).getTime();
-    const now = Date.now();
-    const twoDaysMs = 2 * 24 * 60 * 60 * 1000;
-
-    if (expiration - now < twoDaysMs) {
-      console.log('Webhook expiring soon, renewing...');
-      await createWebhookChannel(calendarId.value(), webhookToken.value());
-      console.log('Webhook renewed successfully');
-    } else {
-      const hoursLeft = Math.round((expiration - now) / (1000 * 60 * 60));
-      console.log(`Webhook still valid, ${hoursLeft} hours left`);
-    }
-  } catch (error) {
-    console.error('Webhook renewal failed:', error);
-    await logSystemError('webhookRenewal', error);
   }
 });
 
@@ -424,8 +470,10 @@ function alanBosMu(gelin: Record<string, unknown>, gorevTuru: string): boolean {
   return false;
 }
 
-// REF gelinler referans — ücret alınmaz, odemeTakip görevi oluşturulmaz
+// REF gelinler referans — ücret alınmaz, tüm görevler atlanır
 function isRefGelin(gelin: Record<string, unknown>): boolean {
+  if (gelin.ref === true) return true;
+  // Fallback: eski gelinlerde ref field yoksa isim kontrolü
   const isim = ((gelin.isim as string) || '').toLocaleLowerCase('tr-TR');
   return isim.includes(' ref ') || isim.includes(' ref-') || isim.endsWith(' ref');
 }
@@ -484,8 +532,10 @@ async function gorevReconcile() {
       if (!ayar?.aktif || !ayar.baslangicTarihi) continue;
       if (gelinTarih < ayar.baslangicTarihi || gelinTarih > bugun) continue;
 
-      // REF gelinlerde ücret alınmaz → odemeTakip görevi oluşturma
-      if (gorevTuru === 'odemeTakip' && isRefGelin(gelin)) continue;
+      // İPTAL gelinleri atla
+      if (gelin.iptal === true) continue;
+      // REF gelinleri atla (tüm görev türlerinden muaf)
+      if (isRefGelin(gelin)) continue;
 
       const bos = alanBosMu(gelin, gorevTuru);
 
@@ -1070,12 +1120,13 @@ export const personelActions = onCall({
 // ============================================
 // Helper: Webhook channel oluştur
 // ============================================
-async function createWebhookChannel(calId: string, token: string) {
+async function createWebhookChannel(calId: string, token: string, firma: FirmaKodu = 'GYS') {
   const { google } = await import('googleapis');
   const auth = new google.auth.GoogleAuth({ scopes: ['https://www.googleapis.com/auth/calendar'] });
   const calendar = google.calendar({ version: 'v3', auth });
 
-  const channelIdVal = `gys-channel-${Date.now()}`;
+  const prefix = firma.toLowerCase();
+  const channelIdVal = `${prefix}-channel-${Date.now()}`;
   const webhookUrl = `https://europe-west1-gmt-test-99b30.cloudfunctions.net/calendarWebhook`;
 
   const response = await calendar.events.watch({
@@ -1088,13 +1139,15 @@ async function createWebhookChannel(calId: string, token: string) {
     resourceId: response.data.resourceId,
     webhookToken: token,
     expiration: new Date(parseInt(response.data.expiration || '0')).toISOString(),
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    firma
   });
 
-  console.log('New webhook channel created:', channelIdVal);
+  console.log(`[${firma}] New webhook channel created:`, channelIdVal);
 
   return {
     success: true,
+    firma,
     channelId: channelIdVal,
     resourceId: response.data.resourceId,
     expiration: response.data.expiration
