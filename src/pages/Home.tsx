@@ -724,7 +724,7 @@ export default function Home() {
           </div>
 
           {/* Row 2: Duyurular + Görevler + Yaklaşan Etkinlikler */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 lg:h-[420px]">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 lg:h-[340px]">
               {/* Duyurular */}
               {duyurular.length > 0 && (
                 <div className="bg-white rounded-xl border border-[#E5E5E5] overflow-hidden flex flex-col h-full">
@@ -842,7 +842,7 @@ export default function Home() {
           )}
 
           {/* Row 3: Dikkat + Bugün + Şu An Çalışıyor */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-2.5 lg:h-[420px]">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-2.5 lg:h-[340px]">
             <DikkatPanel
               islenmemisUcretler={islenmemisUcretler}
               eksikIzinler={eksikIzinler}
