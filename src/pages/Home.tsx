@@ -170,7 +170,7 @@ export default function Home() {
     return gelinler.filter(g => !g.firma || aktifFirmaKodlari.has(g.firma));
   }, [gelinler, aktifFirmaKodlari]);
 
-  const bugunGelinler = useMemo(() => filteredGelinler.filter(g => g.tarih === bugun), [filteredGelinler, bugun]);
+  const bugunGelinler = useMemo(() => filteredGelinler.filter(g => g.tarih === bugun).sort((a, b) => (a.saat || '').localeCompare(b.saat || '')), [filteredGelinler, bugun]);
   
   const filteredRefGelinler = useMemo(() => {
     const filtered = aktifFirmaKodlari.size === 0 ? refGelinler : refGelinler.filter(g => !g.firma || aktifFirmaKodlari.has(g.firma));
@@ -180,7 +180,7 @@ export default function Home() {
   const yarinGelinler = useMemo(() => {
     const yarin = new Date();
     yarin.setDate(yarin.getDate() + 1);
-    return filteredGelinler.filter(g => g.tarih === yarin.toISOString().split("T")[0]);
+    return filteredGelinler.filter(g => g.tarih === yarin.toISOString().split("T")[0]).sort((a, b) => (a.saat || '').localeCompare(b.saat || ''));
   }, [filteredGelinler]);
 
   const buHaftaGelinler = useMemo(() => {
@@ -193,24 +193,22 @@ export default function Home() {
     return filteredGelinler.filter(g => 
       g.tarih >= haftaBasi.toISOString().split("T")[0] && 
       g.tarih <= haftaSonu.toISOString().split("T")[0]
-    );
+    ).sort((a, b) => a.tarih.localeCompare(b.tarih) || (a.saat || '').localeCompare(b.saat || ''));
   }, [filteredGelinler]);
 
   const buAyGelinler = useMemo(() => {
     const ayBasi = `${bugun.slice(0, 7)}-01`;
     const ayBiti = new Date(bugunDate.getFullYear(), bugunDate.getMonth() + 1, 0).toISOString().split("T")[0];
-    return filteredGelinler.filter(g => g.tarih >= ayBasi && g.tarih <= ayBiti);
+    return filteredGelinler.filter(g => g.tarih >= ayBasi && g.tarih <= ayBiti).sort((a, b) => a.tarih.localeCompare(b.tarih) || (a.saat || '').localeCompare(b.saat || ''));
   }, [filteredGelinler, bugun]);
 
   const islenmemisUcretler = useMemo(() => 
     filteredGelinler.filter(g => {
       if (g.tarih > bugun || g.ucretYazildi !== false) return false;
-      // İPTAL edilen gelinlerden ücret alınmaz
       if (g.iptal || g.odemeTamamlandi) return false;
-      // REF gelinlerden ücret alınmaz
       if (g.ref) return false;
       return true;
-    }),
+    }).sort((a, b) => a.tarih.localeCompare(b.tarih) || (a.saat || '').localeCompare(b.saat || '')),
     [filteredGelinler, bugun]
   );
 
@@ -903,7 +901,7 @@ export default function Home() {
                     <div key={tarih} className={`${bgColor} rounded-xl p-3`}>
                       <p className="text-xs font-semibold text-[#8A8A8A] mb-2 uppercase tracking-wide">{tarihStr} {gunAdi}</p>
                       <div className="space-y-1.5 divide-y divide-[#E5E5E5]/60">
-                        {grouped[tarih].map((g) => (
+                        {grouped[tarih].sort((a, b) => (a.saat || '').localeCompare(b.saat || '')).map((g) => (
                           <div
                             key={g.id}
                             onClick={() => {
