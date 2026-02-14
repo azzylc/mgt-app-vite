@@ -10,14 +10,16 @@ import { uploadFileToDrive } from './lib/drive-upload';
 // Secret tanımları
 const calendarId = defineSecret('GOOGLE_CALENDAR_ID');
 const tcbCalendarId = defineSecret('TCB_CALENDAR_ID');
+const mgCalendarId = defineSecret('MG_CALENDAR_ID');
 const webhookToken = defineSecret('WEBHOOK_TOKEN');
 const resendApiKey = defineSecret('RESEND_API_KEY');
 const driveClientId = defineSecret('DRIVE_CLIENT_ID');
 const driveClientSecret = defineSecret('DRIVE_CLIENT_SECRET');
 
 // Firma → Calendar ID mapping helper
-function getCalendarConfig(firma: FirmaKodu, gysCalId: string, tcbCalId: string): { calId: string; syncDoc: string } {
+function getCalendarConfig(firma: FirmaKodu, gysCalId: string, tcbCalId: string, mgCalId: string): { calId: string; syncDoc: string } {
   if (firma === 'TCB') return { calId: tcbCalId, syncDoc: 'sync_TCB' };
+  if (firma === 'MG') return { calId: mgCalId, syncDoc: 'sync_MG' };
   return { calId: gysCalId, syncDoc: 'sync_GYS' };
 }
 const driveRefreshToken = defineSecret('DRIVE_REFRESH_TOKEN');
@@ -209,7 +211,7 @@ async function verifyCallableAuth(request: any, requiredRoles?: string[]): Promi
 
   return { email, role: userRole, uid: request.auth.uid };
 }
-export const calendarWebhook = onRequest({ region: 'europe-west1', cors: true, secrets: [calendarId, tcbCalendarId, webhookToken] }, async (req, res) => {
+export const calendarWebhook = onRequest({ region: 'europe-west1', cors: true, secrets: [calendarId, tcbCalendarId, mgCalendarId, webhookToken] }, async (req, res) => {
   try {
     process.env.GOOGLE_CALENDAR_ID = calendarId.value();
     const channelIdHeader = req.headers['x-goog-channel-id'] as string;
@@ -230,7 +232,7 @@ export const calendarWebhook = onRequest({ region: 'europe-west1', cors: true, s
       }
     }
 
-    const config = getCalendarConfig(firma, calendarId.value(), tcbCalendarId.value());
+    const config = getCalendarConfig(firma, calendarId.value(), tcbCalendarId.value(), mgCalendarId.value());
 
     await adminDb.collection('system').doc('webhookLog').set({
       lastReceived: new Date().toISOString(),
@@ -275,15 +277,15 @@ export const calendarWebhook = onRequest({ region: 'europe-west1', cors: true, s
 // ============================================
 // 2. FULL SYNC
 // ============================================
-export const fullSyncEndpoint = onRequest({ region: 'europe-west1', cors: true, timeoutSeconds: 540, secrets: [calendarId, tcbCalendarId] }, async (req, res) => {
+export const fullSyncEndpoint = onRequest({ region: 'europe-west1', cors: true, timeoutSeconds: 540, secrets: [calendarId, tcbCalendarId, mgCalendarId] }, async (req, res) => {
   try {
     process.env.GOOGLE_CALENDAR_ID = calendarId.value();
     const firmaParam = (req.query.firma as string || '').toUpperCase();
-    const firmalar: FirmaKodu[] = firmaParam === 'TCB' ? ['TCB'] : firmaParam === 'GYS' ? ['GYS'] : ['GYS', 'TCB'];
+    const firmalar: FirmaKodu[] = firmaParam === 'TCB' ? ['TCB'] : firmaParam === 'GYS' ? ['GYS'] : firmaParam === 'MG' ? ['MG'] : ['GYS', 'TCB', 'MG'];
 
     const results: Record<string, unknown> = {};
     for (const firma of firmalar) {
-      const config = getCalendarConfig(firma, calendarId.value(), tcbCalendarId.value());
+      const config = getCalendarConfig(firma, calendarId.value(), tcbCalendarId.value(), mgCalendarId.value());
       console.log(`Full sync başlatılıyor... Firma: ${firma}, Calendar ID: ${config.calId}`);
       const result = await fullSync(config.calId, firma);
       if (result.syncToken) {
@@ -306,12 +308,13 @@ export const fullSyncEndpoint = onRequest({ region: 'europe-west1', cors: true, 
 // ============================================
 // 3. SETUP WATCH
 // ============================================
-export const setupWatch = onRequest({ region: 'europe-west1', cors: true, secrets: [calendarId, tcbCalendarId, webhookToken] }, async (req, res) => {
+export const setupWatch = onRequest({ region: 'europe-west1', cors: true, secrets: [calendarId, tcbCalendarId, mgCalendarId, webhookToken] }, async (req, res) => {
   try {
     const firmaParam = (req.query.firma as string || '').toUpperCase();
     const firmalar: { firma: FirmaKodu; calId: string }[] = [];
     if (!firmaParam || firmaParam === 'GYS') firmalar.push({ firma: 'GYS', calId: calendarId.value() });
     if (!firmaParam || firmaParam === 'TCB') firmalar.push({ firma: 'TCB', calId: tcbCalendarId.value() });
+    if (!firmaParam || firmaParam === 'MG') firmalar.push({ firma: 'MG', calId: mgCalendarId.value() });
 
     const results: Record<string, unknown> = {};
     for (const { firma, calId } of firmalar) {
@@ -369,13 +372,14 @@ export const health = onRequest({ region: 'europe-west1', cors: true }, async (r
 export const renewWebhook = onSchedule({
   region: 'europe-west1',
   schedule: 'every 24 hours',
-  secrets: [calendarId, tcbCalendarId, webhookToken]
+  secrets: [calendarId, tcbCalendarId, mgCalendarId, webhookToken]
 }, async (event) => {
   console.log('Webhook renewal check started...');
 
   const firmalar: { firma: FirmaKodu; calId: string }[] = [
     { firma: 'GYS', calId: calendarId.value() },
-    { firma: 'TCB', calId: tcbCalendarId.value() }
+    { firma: 'TCB', calId: tcbCalendarId.value() },
+    { firma: 'MG', calId: mgCalendarId.value() }
   ];
 
   for (const { firma, calId } of firmalar) {

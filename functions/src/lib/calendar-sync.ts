@@ -271,7 +271,7 @@ function eventToGelin(event: CalendarEvent, firma: FirmaKodu, kisaltmaMap: Recor
   const title = event.summary || '', description = event.description || '', startDate = event.start?.dateTime || event.start?.date;
   if (!startDate) return null;
   if (isErtelendi(title)) return { __delete: true, id: event.id!, reason: 'ertelendi', firma } as GelinData;
-  if (!hasFinancialMarkers(description) && !title.toUpperCase().includes('REF')) return null;
+  if (!hasFinancialMarkers(description)) return null;
   const date = new Date(startDate);
   const endDateStr = event.end?.dateTime || event.end?.date;
   const endDate = endDateStr ? new Date(endDateStr) : date;
