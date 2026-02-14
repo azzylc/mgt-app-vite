@@ -173,8 +173,8 @@ export default function Home() {
   const bugunGelinler = useMemo(() => filteredGelinler.filter(g => g.tarih === bugun), [filteredGelinler, bugun]);
   
   const filteredRefGelinler = useMemo(() => {
-    if (aktifFirmaKodlari.size === 0) return refGelinler;
-    return refGelinler.filter(g => !g.firma || aktifFirmaKodlari.has(g.firma));
+    const filtered = aktifFirmaKodlari.size === 0 ? refGelinler : refGelinler.filter(g => !g.firma || aktifFirmaKodlari.has(g.firma));
+    return filtered.slice(0, 10);
   }, [refGelinler, aktifFirmaKodlari]);
   
   const yarinGelinler = useMemo(() => {
@@ -342,7 +342,7 @@ export default function Home() {
       where("ref", "==", true),
       where("tarih", ">=", new Date().toISOString().split("T")[0]),
       orderBy("tarih", "asc"),
-      limit(10)
+      limit(30)
     );
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map((doc) => ({
