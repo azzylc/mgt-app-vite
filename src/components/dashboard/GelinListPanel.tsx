@@ -78,7 +78,7 @@ export default function GelinListPanel({
                 className="flex items-center justify-between py-1.5 px-2.5 rounded-lg hover:bg-rose-50/40 transition cursor-pointer group"
               >
                 <div className="flex items-center gap-2.5">
-                  <span className="text-[10px] text-[#8A8A8A] font-mono w-[4.5rem] bg-[#F7F7F7] group-hover:bg-rose-50 px-1 py-0.5 rounded text-center transition">{gelin.saat}{gelin.bitisSaati ? `-${gelin.bitisSaati}` : ''}</span>
+                  <span className="text-[10px] text-[#8A8A8A] font-mono w-[6.5rem] bg-[#F7F7F7] group-hover:bg-rose-50 px-1.5 py-0.5 rounded text-center transition whitespace-nowrap">{gelin.saat}{gelin.bitisSaati ? ` - ${gelin.bitisSaati}` : ''}</span>
                   <div>
                     <p className="text-xs text-[#2F2F2F] font-medium">{gelin.isim}</p>
                     <p className="text-[10px] text-[#8A8A8A]">
