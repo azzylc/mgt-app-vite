@@ -286,8 +286,15 @@ function eventToGelin(event: CalendarEvent, firma: FirmaKodu, kisaltmaMap: Recor
   let mgFotografci = '';
   let mgVideocu = '';
   if (firma === 'MG') {
-    mgFotografci = makyaj || '';  // ilk kişi = fotoğrafçı
-    mgVideocu = turban || '';     // ikinci kişi = videocu (yoksa boş)
+    const pRawCheck = (title.split('✅')[1] || '').trim();
+    const hasAmpersand = pRawCheck.includes('&');
+    if (hasAmpersand) {
+      mgFotografci = makyaj || '';  // ilk kişi = fotoğrafçı
+      mgVideocu = turban || '';     // ikinci kişi = videocu
+    } else {
+      mgFotografci = makyaj || '';  // tek kişi = sadece fotoğrafçı
+      mgVideocu = '';               // videocu yok
+    }
     makyaj = '';
     turban = '';
   }
