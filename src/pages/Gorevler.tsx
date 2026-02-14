@@ -404,6 +404,10 @@ export default function GorevlerPage() {
           yorumIstendiMi2: data.yorumIstendiMi2 || false,
           anlastigiTarih: data.anlastigiTarih || "",
           odemeTamamlandi: data.odemeTamamlandi || false,
+          iptal: data.iptal || false,
+          ref: data.ref || false,
+          firma: data.firma || "",
+          bitisSaati: data.bitisSaati || "",
         });
       }
     } catch (error) {
@@ -734,6 +738,20 @@ export default function GorevlerPage() {
         const gelinlerData = gelinlerSnapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Gelin[];
 
         for (const gelin of gelinlerData) {
+          // İPTAL ve REF gelinleri atla
+          if ((gelin as any).iptal) continue;
+          if ((gelin as any).ref) continue;
+
+          // Henüz bitmemiş gelinleri atla (bitiş + 1 saat geçmeli)
+          const kontrolZamani = (gelin as any).kontrolZamani;
+          if (kontrolZamani && new Date(kontrolZamani) > new Date()) continue;
+          // kontrolZamani yoksa bitisSaati + 1 saat ile kontrol et
+          if (!kontrolZamani && gelin.bitisSaati && gelin.tarih) {
+            const bitis = new Date(`${gelin.tarih}T${gelin.bitisSaati}:00`);
+            bitis.setHours(bitis.getHours() + 1);
+            if (bitis > new Date()) continue;
+          }
+
           let alanBos = false;
           if (gorevTuru === "yorumIstesinMi") alanBos = !gelin.yorumIstesinMi || gelin.yorumIstesinMi.trim() === "";
           else if (gorevTuru === "paylasimIzni") alanBos = !gelin.paylasimIzni;
