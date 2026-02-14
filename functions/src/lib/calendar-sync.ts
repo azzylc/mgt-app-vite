@@ -346,6 +346,7 @@ export async function incrementalSync(syncToken: string | undefined, calendarId:
           const gelin = eventToGelin(event, firma, kisaltmaMap);
           if (gelin?.__delete) { batch.delete(adminDb.collection('gelinler').doc(gelin.id)); totalUpdateCount++; deleteCount++; batchCount++; }
           else if (gelin) { batch.set(adminDb.collection('gelinler').doc(gelin.id), gelin, { merge: true }); totalUpdateCount++; batchCount++; }
+          else if (event.id) { batch.delete(adminDb.collection('gelinler').doc(event.id)); batchCount++; }
         }
         if (batchCount >= 500) { await batch.commit(); batch = adminDb.batch(); batchCount = 0; }
       }
@@ -375,7 +376,11 @@ export async function fullSync(calendarId: string, firma: FirmaKodu) {
     const gelin = eventToGelin(event, firma, kisaltmaMap);
     if (gelin?.__delete) { batch.delete(adminDb.collection('gelinler').doc(gelin.id)); deletedCount++; batchCount++; }
     else if (gelin) { batch.set(adminDb.collection('gelinler').doc(gelin.id), gelin, { merge: true }); addedCount++; batchCount++; if (batchCount >= 100) { await batch.commit(); batch = adminDb.batch(); batchCount = 0; } }
-    else { skippedCount++; }
+    else {
+      // Gelin olarak sayılmayan event — Firestore'da varsa sil (eski sync'ten kalmış olabilir)
+      if (event.id) { batch.delete(adminDb.collection('gelinler').doc(event.id)); batchCount++; }
+      skippedCount++;
+    }
   }
   if (batchCount > 0) await batch.commit();
   return { success: true, totalEvents: allEvents.length, added: addedCount, deleted: deletedCount, skipped: skippedCount, syncToken };
